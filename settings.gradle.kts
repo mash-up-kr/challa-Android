@@ -24,3 +24,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Challa"
 include(":app")
+include(":data")
+include(":domain")
+include(":presentation")

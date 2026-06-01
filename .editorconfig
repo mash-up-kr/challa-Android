@@ -10,6 +10,7 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ktlint_function_naming_ignore_when_annotated_with = Composable
 
 [*.{xml,gradle,properties}]
 indent_style = space
