@@ -7,10 +7,19 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.{kt,kts}]
-indent_style = space
 indent_size = 4
-ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ktlint_code_style = ktlint_official
 ktlint_function_naming_ignore_when_annotated_with = Composable
+
+# Trailing Comma 강제
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+ktlint_standard_trailing-comma-on-call-site = enabled
+ktlint_standard_trailing-comma-on-declaration-site = enabled
+
+# 와일드카드(*) import 완전 금지 (명시적 import 강제)
+ij_kotlin_packages_to_use_import_on_demand = unset
+ktlint_standard_no-wildcard-imports = enabled
 
 [*.{xml,gradle,properties}]
 indent_style = space
@@ -18,3 +27,9 @@ indent_size = 4
 
 [*.md]
 trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.xml]
+indent_size = 4
