@@ -5,3 +5,8 @@ plugins {
 kotlin {
     jvmToolchain(17)
 }
+
+dependencies {
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.collections.immutable)
+}

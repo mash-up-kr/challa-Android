@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             ChallaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "HappyHouse",
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
@@ -45,6 +45,6 @@ fun Greeting(
 @Composable
 fun GreetingPreview() {
     ChallaTheme {
-        Greeting("Android")
+        Greeting("HappyHouse")
     }
 }

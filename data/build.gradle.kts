@@ -1,18 +1,15 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.happyhouse.challa.data"
-    compileSdk {
-        version =
-            release(36) {
-                minorApiLevel = 1
-            }
-    }
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.minSdk.get().toInt()
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -30,4 +27,7 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.bundles.network)
 }
