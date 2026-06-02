@@ -35,6 +35,7 @@ collectionsImmutable = "0.4.0"
 
 # Logging
 timber = "5.0.1"
+logger = "2.2.0"
 
 # Network
 retrofit = "3.0.0"
@@ -80,6 +81,7 @@ kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotli
 
 # Logging
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+logger = { group = "com.orhanobut", name = "logger", version.ref = "logger" }
 
 # Retrofit
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
