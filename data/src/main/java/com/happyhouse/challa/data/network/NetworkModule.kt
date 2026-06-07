@@ -1,6 +1,7 @@
 package com.happyhouse.challa.data.network
 
 import com.happyhouse.challa.data.BuildConfig
+import com.happyhouse.challa.data.network.adapter.ChallaResultCallAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -54,6 +55,7 @@ object NetworkModule {
             .Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
+            .addCallAdapterFactory(ChallaResultCallAdapterFactory())
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
 }
