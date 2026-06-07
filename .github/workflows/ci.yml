@@ -33,6 +33,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Create local.properties
+        env:
+          DEBUG_BASE_URL: ${{ secrets.DEBUG_BASE_URL }}
+        run: |
+          echo "debug.base.url=${DEBUG_BASE_URL:-https://placeholder.example.com/}" >> local.properties
+          echo "release.base.url=${DEBUG_BASE_URL:-https://placeholder.example.com/}" >> local.properties
+
       - name: ktlint
         run: ./gradlew ktlintCheck
 
