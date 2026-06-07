@@ -46,6 +46,10 @@ dependencies {
     implementation(libs.bundles.androidx.navigation3)
     implementation(libs.bundles.coil)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.gpuimage)
     ksp(libs.hilt.android.compiler)
 
     debugImplementation(libs.bundles.androidx.compose.debug)

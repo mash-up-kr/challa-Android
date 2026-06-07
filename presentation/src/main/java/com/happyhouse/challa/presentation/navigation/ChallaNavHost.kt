@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.happyhouse.challa.presentation.sample.CameraScreen
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
 @Composable
@@ -12,7 +13,7 @@ fun ChallaNavHost(navigator: ChallaNavigator) {
         entryProvider =
             entryProvider {
                 entry<ChallaRoute.Sample> {
-                    SampleScreen()
+                    CameraScreen()
                 }
             },
     )

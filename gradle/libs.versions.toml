@@ -5,6 +5,8 @@ targetSdk = "37"
 minSdk = "26"
 versionCode = "1"
 versionName = "1.0.0"
+camerax = "1.4.1"
+gpuimage = "2.1.0"
 
 # Build plugins
 agp = "9.1.1"
@@ -100,6 +102,12 @@ okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-i
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+# Camera
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+gpuimage = { group = "jp.co.cyberagent.android", name = "gpuimage", version.ref = "gpuimage" }
 
 [bundles]
 # Compose
