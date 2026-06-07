@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [ develop ]
   pull_request:
     branches: [ develop ]
 
@@ -22,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -34,6 +32,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Create local.properties
+        # assembleDebug는 컴파일만 수행하므로 URL 값은 사용되지 않음. 키 존재 여부만 필요.
         run: |
           echo "debug.base.url=https://placeholder.example.com/" >> local.properties
           echo "release.base.url=https://placeholder.example.com/" >> local.properties
