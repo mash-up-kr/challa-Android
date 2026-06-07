@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.dagger.hilt)
     alias(libs.plugins.ksp)
 }
@@ -38,9 +39,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.collections.immutable)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.androidx.compose)
+    implementation(libs.bundles.androidx.navigation3)
     implementation(libs.bundles.coil)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
