@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.happyhouse.challa.presentation.login.LoginScreen
 import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
@@ -18,7 +19,14 @@ fun ChallaNavHost(navigator: ChallaNavigator) {
                 entry<ChallaRoute.Onboarding> {
                     OnboardingScreen(
                         onComplete = {
-                            // TODO JH: Login 화면 구현 후 navigator.replace(ChallaRoute.Login)
+                            navigator.replace(ChallaRoute.Login)
+                        },
+                    )
+                }
+                entry<ChallaRoute.Login> {
+                    LoginScreen(
+                        onLoginSuccess = {
+                            // TODO JH: 로그인 성공 후 다음 화면(Home 등) 구현되면 navigator.replace(...) 연결
                         },
                     )
                 }
