@@ -34,11 +34,9 @@ jobs:
       - name: Create local.properties
         env:
           DEBUG_BASE_URL: ${{ secrets.DEBUG_BASE_URL }}
-        # assembleDebug는 컴파일만 수행하므로 URL 값은 사용되지 않음. 키 존재 여부만 필요.
-        # Secret 미설정 시(fork PR 등) placeholder로 폴백
         run: |
-          echo "debug.base.url=${DEBUG_BASE_URL:-https://placeholder.example.com/}" >> local.properties
-          echo "release.base.url=${DEBUG_BASE_URL:-https://placeholder.example.com/}" >> local.properties
+          echo "debug.base.url=${DEBUG_BASE_URL}" >> local.properties
+          echo "release.base.url=${DEBUG_BASE_URL}" >> local.properties
 
       - name: ktlint
         run: ./gradlew ktlintCheck
