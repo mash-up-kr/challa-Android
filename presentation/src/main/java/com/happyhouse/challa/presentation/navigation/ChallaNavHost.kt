@@ -6,9 +6,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
 @Composable
-fun ChallaNavHost() {
-    val navigator = rememberNavigator(ChallaRoute.Sample)
-
+fun ChallaNavHost(navigator: ChallaNavigator) {
     NavDisplay(
         backStack = navigator.backStack,
         entryProvider =

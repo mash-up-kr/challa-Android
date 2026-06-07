@@ -18,7 +18,7 @@ class ChallaResultCallAdapterFactory : CallAdapter.Factory() {
         }
 
         check(returnType is ParameterizedType) {
-            "Call 반환 타입은 Call<ChallaResult<Foo>> 형태로 제네릭 타입을 지정해야 합니다."
+            "API 반환 타입은 suspend fun ...(): ChallaResult<Foo> 형태로 지정해야 합니다."
         }
 
         val callType = getParameterUpperBound(0, returnType)
@@ -27,7 +27,7 @@ class ChallaResultCallAdapterFactory : CallAdapter.Factory() {
         }
 
         check(callType is ParameterizedType) {
-            "ChallaResult 반환 타입은 ChallaResult<Foo> 형태로 제네릭 타입을 지정해야 합니다."
+            "ChallaResult는 ChallaResult<Foo> 형태로 성공 타입을 지정해야 합니다."
         }
 
         val successType = getParameterUpperBound(0, callType)

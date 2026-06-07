@@ -8,16 +8,19 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 
 @Composable
-fun rememberNavigator(startRoute: ChallaRoute): Navigator {
+fun rememberChallaNavigator(startRoute: ChallaRoute): ChallaNavigator {
     val backStack = rememberNavBackStack(startRoute)
 
     return remember(backStack) {
-        Navigator(backStack)
+        ChallaNavigator(backStack)
     }
 }
 
+/**
+ * Navigation3의 back stack을 화면 이동 API로 감싼 navigator.
+ */
 @Stable
-class Navigator internal constructor(
+class ChallaNavigator internal constructor(
     internal val backStack: NavBackStack<NavKey>,
 ) {
     val currentRoute: ChallaRoute
@@ -27,6 +30,9 @@ class Navigator internal constructor(
         backStack.add(route)
     }
 
+    /**
+     * 이동하려는 route가 현재 stack 최상단 route와 다를 때만 이동한다.
+     */
     fun navigateSingleTop(route: ChallaRoute) {
         if (currentRoute != route) {
             backStack.add(route)
