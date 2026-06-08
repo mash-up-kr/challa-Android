@@ -30,19 +30,6 @@ jobs:
         with:
           persist-credentials: 'false'
 
-      - name: 'Prepare prompt context'
-        run: |-
-          mkdir -p .gemini
-          jq -n \
-            --arg repo "${REPOSITORY}" \
-            --arg pr "${PULL_REQUEST_NUMBER}" \
-            --arg context "${ADDITIONAL_CONTEXT}" \
-            '{repository: $repo, pull_request_number: $pr, additional_context: $context}' > .gemini/context.json
-        env:
-          REPOSITORY: '${{ github.repository }}'
-          PULL_REQUEST_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
-          ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
-
       - name: 'Run Gemini pull request review'
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         env:
@@ -54,7 +41,7 @@ jobs:
           ADDITIONAL_CONTEXT: '${{ inputs.additional_context }}'
         with:
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
-          workflow_name: 'gemini-review'
+          workflow_name: 'challa-review'
           github_pr_number: '${{ github.event.pull_request.number }}'
           settings: |-
             {
@@ -91,8 +78,4 @@ jobs:
                 "core": []
               }
             }
-          extensions: |
-            [
-              "https://github.com/gemini-cli-extensions/code-review"
-            ]
           prompt: '/challa-review'
