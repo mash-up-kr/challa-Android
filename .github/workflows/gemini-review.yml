@@ -22,7 +22,6 @@ jobs:
     timeout-minutes: 7
     permissions:
       contents: 'read'
-      id-token: 'write'
       issues: 'write'
       pull-requests: 'write'
     steps:
@@ -46,11 +45,9 @@ jobs:
 
       - name: 'Run Gemini pull request review'
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
-        id: 'gemini_pr_review'
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
         with:
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
           workflow_name: 'gemini-review'
