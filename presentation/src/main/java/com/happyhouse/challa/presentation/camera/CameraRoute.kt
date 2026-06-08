@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.camera
 
 import androidx.compose.runtime.Composable
+import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
 
 @Composable
 fun CameraRoute(

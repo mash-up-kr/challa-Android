@@ -24,6 +24,7 @@ import com.happyhouse.challa.presentation.camera.component.CameraContent
 import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.component.CameraTopBar
 import com.happyhouse.challa.presentation.camera.component.MockViewFinder
+import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 

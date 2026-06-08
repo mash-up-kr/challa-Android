@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera
+package com.happyhouse.challa.presentation.camera.permission
 
 import android.Manifest
 import android.content.Context
