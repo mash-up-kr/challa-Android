@@ -1,3 +1,20 @@
 <resources>
     <string name="presentation_module_name">presentation</string>
+    <string name="sample_title">Challa Sample</string>
+
+    <!-- cameraScreen -->
+    <string name="sample_camera_button">촬영하기</string>
+    <string name="camera_close_button">닫기</string>
+    <string name="camera_permission_required_title">카메라 권한이 필요합니다.</string>
+    <string name="camera_permission_required_description">사진을 촬영하려면 카메라 권한을 허용해주세요.</string>
+    <string name="camera_permission_request_button">권한 요청하기</string>
+    <string name="camera_remaining_counter">%1$d/%2$d</string>
+    <string name="camera_close_icon">×</string>
+    <string name="camera_flash_icon">⚡</string>
+    <string name="camera_switch_icon">↻</string>
+    <string name="camera_preview_empty">미리보기\n없음</string>
+    <string name="camera_shutter_description">셔터</string>
+    <string name="camera_switch_description">전후면 카메라 전환</string>
+    <string name="camera_flash_description">플래시 토글</string>
+    <string name="camera_viewfinder_preview_label">카메라 프리뷰</string>
 </resources>
