@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.camera.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,20 +19,17 @@ import com.happyhouse.challa.presentation.R
 @Composable
 fun ViewFinder(
     modifier: Modifier = Modifier,
-    cameraPreview: @Composable (Modifier) -> Unit,
+    previewContent: @Composable (Modifier) -> Unit,
 ) {
-    Box(modifier = modifier.border(width = 1.dp, color = Color(0xFF444444))) {
-        cameraPreview(Modifier.fillMaxSize())
+    ViewFinderFrame(modifier = modifier) {
+        previewContent(Modifier.fillMaxSize())
     }
 }
 
 @Composable
 fun MockViewFinder(modifier: Modifier = Modifier) {
-    Box(
-        modifier =
-            modifier
-                .border(width = 1.dp, color = Color(0xFF444444))
-                .background(Color.Black),
+    ViewFinderFrame(
+        modifier = modifier.background(Color.Black),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -41,4 +39,17 @@ fun MockViewFinder(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold,
         )
     }
+}
+
+@Composable
+private fun ViewFinderFrame(
+    modifier: Modifier = Modifier,
+    contentAlignment: Alignment = Alignment.TopStart,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(
+        modifier = modifier.border(width = 1.dp, color = Color(0xFF444444)),
+        contentAlignment = contentAlignment,
+        content = content,
+    )
 }
