@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun CameraRoute(
-    @Suppress("UNUSED_PARAMETER")
     roomId: Long,
     onBackClick: () -> Unit,
 ) {
