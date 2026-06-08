@@ -37,40 +37,44 @@ fun CameraContent(
         camera?.cameraControl?.enableTorch(isFlashOn && hasFlashUnit)
     }
 
-    CameraContentLayout(
-        modifier = modifier,
-        isFlashOn = isFlashOn,
-        isFlashEnabled = hasFlashUnit,
-        onBackClick = onBackClick,
-        onFlashClick = {
-            if (hasFlashUnit) {
-                isFlashOn = !isFlashOn
+    CameraSession(
+        lensFacing = lensFacing,
+        onCameraBound = { boundCamera ->
+            camera = boundCamera
+        },
+        onFlashAvailabilityChanged = { isAvailable ->
+            hasFlashUnit = isAvailable
+            if (!isAvailable) {
+                isFlashOn = false
             }
         },
-        onSwitchCameraClick = {
-            isFlashOn = false
-            lensFacing =
-                if (lensFacing == CameraSelector.LENS_FACING_BACK) {
-                    CameraSelector.LENS_FACING_FRONT
-                } else {
-                    CameraSelector.LENS_FACING_BACK
-                }
-        },
-        onShutterClick = {},
-    ) { viewFinderModifier ->
-        ViewFinder(
-            modifier = viewFinderModifier,
-            lensFacing = lensFacing,
-            onCameraBound = { boundCamera ->
-                camera = boundCamera
-            },
-            onFlashAvailabilityChanged = { isAvailable ->
-                hasFlashUnit = isAvailable
-                if (!isAvailable) {
-                    isFlashOn = false
+    ) { cameraPreview ->
+        CameraContentLayout(
+            modifier = modifier,
+            isFlashOn = isFlashOn,
+            isFlashEnabled = hasFlashUnit,
+            onBackClick = onBackClick,
+            onFlashClick = {
+                if (hasFlashUnit) {
+                    isFlashOn = !isFlashOn
                 }
             },
-        )
+            onSwitchCameraClick = {
+                isFlashOn = false
+                lensFacing =
+                    if (lensFacing == CameraSelector.LENS_FACING_BACK) {
+                        CameraSelector.LENS_FACING_FRONT
+                    } else {
+                        CameraSelector.LENS_FACING_BACK
+                    }
+            },
+            onShutterClick = {},
+        ) { viewFinderModifier ->
+            ViewFinder(
+                modifier = viewFinderModifier,
+                cameraPreview = cameraPreview,
+            )
+        }
     }
 }
 
