@@ -6,4 +6,10 @@ import kotlinx.serialization.Serializable
 sealed interface ChallaRoute : NavKey {
     @Serializable
     data object Sample : ChallaRoute
+
+    @Serializable
+    data class RoomWaiting(
+        val roomId: Long,
+        val opensAtMillis: Long,
+    ) : ChallaRoute
 }
