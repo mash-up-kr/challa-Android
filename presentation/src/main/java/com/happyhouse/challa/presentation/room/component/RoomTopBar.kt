@@ -23,7 +23,10 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
-internal fun RoomTopBar(onBackClick: () -> Unit) {
+internal fun RoomTopBar(
+    title: String,
+    onBackClick: () -> Unit,
+) {
     Column {
         Row(
             modifier =
@@ -48,7 +51,7 @@ internal fun RoomTopBar(onBackClick: () -> Unit) {
                 )
             }
             Text(
-                text = "오사카 졸업여행",
+                text = title,
                 modifier = Modifier.weight(1f),
                 color = RoomBlack,
                 fontSize = 20.sp,
@@ -81,5 +84,8 @@ internal fun RoomTopBar(onBackClick: () -> Unit) {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun RoomTopBarPreview() {
-    RoomTopBar(onBackClick = {})
+    RoomTopBar(
+        title = "해피하우스 프작모",
+        onBackClick = {},
+    )
 }

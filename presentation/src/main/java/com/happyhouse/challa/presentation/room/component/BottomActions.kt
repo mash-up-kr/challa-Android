@@ -19,9 +19,13 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.room.model.RoomMainStatus
 
 @Composable
-internal fun BottomActions(modifier: Modifier = Modifier) {
+internal fun BottomActions(
+    status: RoomMainStatus,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -47,6 +51,7 @@ internal fun BottomActions(modifier: Modifier = Modifier) {
         }
         Button(
             onClick = {},
+            enabled = status.isPrimaryButtonEnabled,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -59,7 +64,7 @@ internal fun BottomActions(modifier: Modifier = Modifier) {
                 ),
         ) {
             Text(
-                text = "촬영하기",
+                text = status.primaryButtonText,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -70,6 +75,20 @@ internal fun BottomActions(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun BottomActionsPreview() {
-    BottomActions()
+private fun BottomActionsShootingPreview() {
+    BottomActions(status = RoomMainStatus.Shooting)
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun BottomActionsWaitingPreview() {
+    BottomActions(status = RoomMainStatus.Waiting)
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun BottomActionsPublishedPreview() {
+    BottomActions(status = RoomMainStatus.Published)
 }

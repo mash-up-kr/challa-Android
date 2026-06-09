@@ -22,9 +22,13 @@ import com.happyhouse.challa.presentation.room.component.PhotoProgress
 import com.happyhouse.challa.presentation.room.component.RoomTopBar
 import com.happyhouse.challa.presentation.room.component.RoomWhite
 import com.happyhouse.challa.presentation.room.component.StatusCard
+import com.happyhouse.challa.presentation.room.contract.RoomMainUiState
 
 @Composable
-fun RoomMainScreen(onBackClick: () -> Unit) {
+fun RoomMainScreen(
+    onBackClick: () -> Unit,
+    uiState: RoomMainUiState = RoomMainUiState(),
+) {
     Column(
         modifier =
             Modifier
@@ -32,7 +36,10 @@ fun RoomMainScreen(onBackClick: () -> Unit) {
                 .background(RoomWhite)
                 .statusBarsPadding(),
     ) {
-        RoomTopBar(onBackClick = onBackClick)
+        RoomTopBar(
+            title = uiState.title,
+            onBackClick = onBackClick,
+        )
 
         Column(
             modifier =
@@ -41,14 +48,21 @@ fun RoomMainScreen(onBackClick: () -> Unit) {
                     .verticalScroll(rememberScrollState())
                     .padding(all = 20.dp),
         ) {
-            MemberCard()
+            MemberCard(
+                memberInitials = uiState.memberInitials,
+                maxMemberCount = uiState.maxMemberCount,
+            )
             Spacer(modifier = Modifier.height(60.dp))
-            PhotoProgress()
+            PhotoProgress(
+                currentCount = uiState.photoCount,
+                totalCount = uiState.totalPhotoCount,
+            )
             Spacer(modifier = Modifier.height(60.dp))
-            StatusCard()
+            StatusCard(status = uiState.status)
         }
 
         BottomActions(
+            status = uiState.status,
             modifier =
                 Modifier
                     .navigationBarsPadding()
@@ -63,5 +77,32 @@ fun RoomMainScreen(onBackClick: () -> Unit) {
 private fun RoomMainScreenPreview() {
     RoomMainScreen(
         onBackClick = {},
+    )
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun RoomMainScreenWaitingPreview() {
+    RoomMainScreen(
+        onBackClick = {},
+        uiState =
+            RoomMainUiState(
+                photoCount = 24,
+            ),
+    )
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun RoomMainScreenPublishedPreview() {
+    RoomMainScreen(
+        onBackClick = {},
+        uiState =
+            RoomMainUiState(
+                photoCount = 24,
+                isPublished = true,
+            ),
     )
 }

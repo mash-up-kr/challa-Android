@@ -25,9 +25,14 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
-internal fun MemberCard() {
+internal fun MemberCard(
+    memberInitials: ImmutableList<String>,
+    maxMemberCount: Int,
+) {
     Column(
         modifier =
             Modifier
@@ -40,20 +45,32 @@ internal fun MemberCard() {
                 .padding(horizontal = 18.dp, vertical = 20.dp),
     ) {
         Text(
-            text = "멤버 (3/12)",
+            text = "멤버 (${memberInitials.size} / $maxMemberCount)",
             color = RoomBlack,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MemberAvatar(text = "윤", color = Color(0xFFFFDCA8))
-            MemberAvatar(text = "김", color = Color(0xFFA9D8F3))
-            MemberAvatar(text = "이", color = Color(0xFFC9E7C8))
-            AddMemberAvatar()
+            memberInitials.forEachIndexed { index, initial ->
+                MemberAvatar(
+                    text = initial,
+                    color = memberAvatarColors[index % memberAvatarColors.size],
+                )
+            }
+            if (memberInitials.size < maxMemberCount) {
+                AddMemberAvatar()
+            }
         }
     }
 }
+
+private val memberAvatarColors =
+    persistentListOf(
+        Color(0xFFFFDCA8),
+        Color(0xFFA9D8F3),
+        Color(0xFFC9E7C8),
+    )
 
 @Composable
 private fun MemberAvatar(
@@ -82,7 +99,10 @@ private fun MemberAvatar(
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun MemberCardPreview() {
-    MemberCard()
+    MemberCard(
+        memberInitials = persistentListOf("박", "김", "이"),
+        maxMemberCount = 12,
+    )
 }
 
 @Composable

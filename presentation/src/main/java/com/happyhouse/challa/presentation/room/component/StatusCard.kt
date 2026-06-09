@@ -19,9 +19,10 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.room.model.RoomMainStatus
 
 @Composable
-internal fun StatusCard() {
+internal fun StatusCard(status: RoomMainStatus) {
     Column(
         modifier =
             Modifier
@@ -56,7 +57,7 @@ internal fun StatusCard() {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "촬영중",
+                    text = status.label,
                     color = RoomBlack,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -65,7 +66,7 @@ internal fun StatusCard() {
         }
         Spacer(modifier = Modifier.height(14.dp))
         Text(
-            text = "24장 완성 시 자동으로 3시간 카운트다운이 시작됩니다.",
+            text = status.description,
             color = RoomGray700,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
@@ -77,6 +78,20 @@ internal fun StatusCard() {
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun StatusCardPreview() {
-    StatusCard()
+private fun StatusCardShootingPreview() {
+    StatusCard(status = RoomMainStatus.Shooting)
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun StatusCardWaitingPreview() {
+    StatusCard(status = RoomMainStatus.Waiting)
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun StatusCardPublishedPreview() {
+    StatusCard(status = RoomMainStatus.Published)
 }

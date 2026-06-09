@@ -23,7 +23,17 @@ import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 
 @Composable
-internal fun PhotoProgress() {
+internal fun PhotoProgress(
+    currentCount: Int,
+    totalCount: Int = 24,
+) {
+    val progress =
+        if (totalCount > 0) {
+            (currentCount.toFloat() / totalCount).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -37,10 +47,10 @@ internal fun PhotoProgress() {
                             fontSize = 58.sp,
                         ),
                     ) {
-                        append("12")
+                        append(currentCount.toString())
                     }
                     withStyle(SpanStyle(color = RoomGray300)) {
-                        append("/24")
+                        append("/$totalCount")
                     }
                 },
             fontSize = 36.sp,
@@ -65,7 +75,7 @@ internal fun PhotoProgress() {
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth(0.5f)
+                        .fillMaxWidth(progress)
                         .height(8.dp)
                         .clip(RoundedCornerShape(999.dp))
                         .background(RoomBlack),
@@ -78,5 +88,12 @@ internal fun PhotoProgress() {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoProgressPreview() {
-    PhotoProgress()
+    PhotoProgress(currentCount = 12)
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoProgressCompletePreview() {
+    PhotoProgress(currentCount = 24)
 }
