@@ -6,4 +6,7 @@ import kotlinx.serialization.Serializable
 sealed interface ChallaRoute : NavKey {
     @Serializable
     data object Sample : ChallaRoute
+
+    @Serializable
+    data object RoomMain : ChallaRoute
 }
