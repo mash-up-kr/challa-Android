@@ -26,7 +26,7 @@ internal fun BottomActions(
     status: RoomMainStatus,
     modifier: Modifier = Modifier,
     onShareClick: () -> Unit = {},
-    onButtonClick: () -> Unit = {},
+    onMainActionClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -52,7 +52,7 @@ internal fun BottomActions(
             )
         }
         Button(
-            onClick = onButtonClick,
+            onClick = onMainActionClick,
             enabled = status.isPrimaryButtonEnabled,
             modifier =
                 Modifier

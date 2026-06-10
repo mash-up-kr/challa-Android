@@ -29,6 +29,7 @@ import com.happyhouse.challa.presentation.room.main.component.StatusCard
 import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiIntent
 import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiSideEffect
 import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiState
+import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 
 @Composable
 fun RoomMainRoute(
@@ -43,9 +44,7 @@ fun RoomMainRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { sideEffect ->
             when (sideEffect) {
-                RoomMainUiSideEffect.ShareInviteLink -> onShareClick()
-                RoomMainUiSideEffect.NavigateToCamera -> onCameraClick()
-                RoomMainUiSideEffect.NavigateToGallery -> onGalleryClick()
+                RoomMainUiSideEffect.ShowShareSheet -> onShareClick()
             }
         }
     }
@@ -56,8 +55,12 @@ fun RoomMainRoute(
         onShareClick = {
             viewModel.onIntent(RoomMainUiIntent.ShareClick)
         },
-        onButtonClick = {
-            viewModel.onIntent(RoomMainUiIntent.MainActionClick)
+        onMainActionClick = {
+            when (uiState.status) {
+                RoomMainStatus.Shooting -> onCameraClick()
+                RoomMainStatus.Waiting -> Unit
+                RoomMainStatus.Published -> onGalleryClick()
+            }
         },
     )
 }
@@ -67,7 +70,7 @@ fun RoomMainScreen(
     uiState: RoomMainUiState = RoomMainUiState(),
     onBackClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
-    onButtonClick: () -> Unit = {},
+    onMainActionClick: () -> Unit = {},
 ) {
     Column(
         modifier =
@@ -108,7 +111,7 @@ fun RoomMainScreen(
                     .navigationBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 20.dp),
             onShareClick = onShareClick,
-            onButtonClick = onButtonClick,
+            onMainActionClick = onMainActionClick,
         )
     }
 }
