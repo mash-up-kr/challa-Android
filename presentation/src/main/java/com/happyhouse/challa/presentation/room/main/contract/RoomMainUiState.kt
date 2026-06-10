@@ -1,7 +1,7 @@
-package com.happyhouse.challa.presentation.room.contract
+package com.happyhouse.challa.presentation.room.main.contract
 
 import com.happyhouse.challa.presentation.base.UiState
-import com.happyhouse.challa.presentation.room.model.RoomMainStatus
+import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 

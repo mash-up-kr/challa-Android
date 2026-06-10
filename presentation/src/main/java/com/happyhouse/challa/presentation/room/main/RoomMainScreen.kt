@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room
+package com.happyhouse.challa.presentation.room.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -11,23 +11,63 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.room.component.BottomActions
-import com.happyhouse.challa.presentation.room.component.MemberCard
-import com.happyhouse.challa.presentation.room.component.PhotoProgress
-import com.happyhouse.challa.presentation.room.component.RoomTopBar
-import com.happyhouse.challa.presentation.room.component.RoomWhite
-import com.happyhouse.challa.presentation.room.component.StatusCard
-import com.happyhouse.challa.presentation.room.contract.RoomMainUiState
+import com.happyhouse.challa.presentation.room.main.component.BottomActions
+import com.happyhouse.challa.presentation.room.main.component.MemberCard
+import com.happyhouse.challa.presentation.room.main.component.PhotoProgress
+import com.happyhouse.challa.presentation.room.main.component.RoomTopBar
+import com.happyhouse.challa.presentation.room.main.component.RoomWhite
+import com.happyhouse.challa.presentation.room.main.component.StatusCard
+import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiIntent
+import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiSideEffect
+import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiState
+
+@Composable
+fun RoomMainRoute(
+    onBackClick: () -> Unit,
+    onShareClick: () -> Unit = {},
+    onCameraClick: () -> Unit = {},
+    onGalleryClick: () -> Unit = {},
+    viewModel: RoomMainViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEffect.collect { sideEffect ->
+            when (sideEffect) {
+                RoomMainUiSideEffect.ShareInviteLink -> onShareClick()
+                RoomMainUiSideEffect.NavigateToCamera -> onCameraClick()
+                RoomMainUiSideEffect.NavigateToGallery -> onGalleryClick()
+            }
+        }
+    }
+
+    RoomMainScreen(
+        uiState = uiState,
+        onBackClick = onBackClick,
+        onShareClick = {
+            viewModel.onIntent(RoomMainUiIntent.ShareClick)
+        },
+        onButtonClick = {
+            viewModel.onIntent(RoomMainUiIntent.MainActionClick)
+        },
+    )
+}
 
 @Composable
 fun RoomMainScreen(
-    onBackClick: () -> Unit,
     uiState: RoomMainUiState = RoomMainUiState(),
+    onBackClick: () -> Unit = {},
+    onShareClick: () -> Unit = {},
+    onButtonClick: () -> Unit = {},
 ) {
     Column(
         modifier =
@@ -67,6 +107,8 @@ fun RoomMainScreen(
                 Modifier
                     .navigationBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 20.dp),
+            onShareClick = onShareClick,
+            onButtonClick = onButtonClick,
         )
     }
 }
@@ -75,9 +117,7 @@ fun RoomMainScreen(
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun RoomMainScreenPreview() {
-    RoomMainScreen(
-        onBackClick = {},
-    )
+    RoomMainScreen()
 }
 
 @Preview(showBackground = true)
@@ -85,7 +125,6 @@ private fun RoomMainScreenPreview() {
 @Composable
 private fun RoomMainScreenWaitingPreview() {
     RoomMainScreen(
-        onBackClick = {},
         uiState =
             RoomMainUiState(
                 photoCount = 24,
@@ -98,7 +137,6 @@ private fun RoomMainScreenWaitingPreview() {
 @Composable
 private fun RoomMainScreenPublishedPreview() {
     RoomMainScreen(
-        onBackClick = {},
         uiState =
             RoomMainUiState(
                 photoCount = 24,

@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room.model
+package com.happyhouse.challa.presentation.room.main.model
 
 /**
  * 방 메인 화면에서 표시할 촬영 진행 상태.

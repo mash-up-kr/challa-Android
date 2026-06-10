@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.bundles.androidx.navigation3)
     implementation(libs.bundles.coil)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.viewmodel.compose)
     ksp(libs.hilt.android.compiler)
 
     debugImplementation(libs.bundles.androidx.compose.debug)

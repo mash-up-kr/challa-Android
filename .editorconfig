@@ -22,6 +22,10 @@ ktlint_standard_trailing-comma-on-declaration-site = enabled
 ij_kotlin_packages_to_use_import_on_demand = unset
 ktlint_standard_no-wildcard-imports = enabled
 
+# Keep @Inject constructor on the same line (ktlint #2138)
+# Related ktlint issue: https://github.com/pinterest/ktlint/issues/2138
+ktlint_standard_annotation = disabled
+
 [*.{xml,gradle,properties}]
 indent_style = space
 indent_size = 4

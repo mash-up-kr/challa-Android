@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room.component
+package com.happyhouse.challa.presentation.room.main.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

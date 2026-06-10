@@ -3,7 +3,7 @@ package com.happyhouse.challa.presentation.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import com.happyhouse.challa.presentation.room.RoomMainScreen
+import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
 @Composable
@@ -20,7 +20,7 @@ fun ChallaNavHost(navigator: ChallaNavigator) {
                     )
                 }
                 entry<ChallaRoute.RoomMain> {
-                    RoomMainScreen(
+                    RoomMainRoute(
                         onBackClick = {
                             navigator.goBack()
                         },

@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room.component
+package com.happyhouse.challa.presentation.room.main.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -19,19 +19,21 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.room.model.RoomMainStatus
+import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 
 @Composable
 internal fun BottomActions(
     status: RoomMainStatus,
     modifier: Modifier = Modifier,
+    onShareClick: () -> Unit = {},
+    onButtonClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedButton(
-            onClick = {},
+            onClick = onShareClick,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -50,7 +52,7 @@ internal fun BottomActions(
             )
         }
         Button(
-            onClick = {},
+            onClick = onButtonClick,
             enabled = status.isPrimaryButtonEnabled,
             modifier =
                 Modifier

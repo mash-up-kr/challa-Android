@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room.component
+package com.happyhouse.challa.presentation.room.main.component
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.room.model.RoomMainStatus
+import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 
 @Composable
 internal fun StatusCard(status: RoomMainStatus) {
