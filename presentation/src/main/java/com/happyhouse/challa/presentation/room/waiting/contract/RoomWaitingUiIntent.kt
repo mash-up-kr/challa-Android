@@ -8,8 +8,6 @@ sealed interface RoomWaitingUiIntent : UiIntent {
         val opensAtMillis: Long,
     ) : RoomWaitingUiIntent
 
-    data object ClickBack : RoomWaitingUiIntent
-
     data object ClickShare : RoomWaitingUiIntent
 
     data object ClickOpen : RoomWaitingUiIntent

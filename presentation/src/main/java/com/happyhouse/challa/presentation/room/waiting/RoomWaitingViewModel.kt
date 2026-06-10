@@ -6,8 +6,8 @@ import com.happyhouse.challa.presentation.room.waiting.contract.RoomWaitingUiInt
 import com.happyhouse.challa.presentation.room.waiting.contract.RoomWaitingUiSideEffect
 import com.happyhouse.challa.presentation.room.waiting.contract.RoomWaitingUiState
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class RoomWaitingViewModel :
@@ -20,27 +20,32 @@ class RoomWaitingViewModel :
         when (intent) {
             is RoomWaitingUiIntent.Initialize -> {
                 updateState {
-                    copy(roomId = intent.roomId)
+                    copy(
+                        roomId = intent.roomId,
+                        isInitialized = false,
+                    )
                 }
                 startCountdown(intent.opensAtMillis)
             }
 
-            RoomWaitingUiIntent.ClickBack -> {
-                viewModelScope.launch {
-                    sendEffect(RoomWaitingUiSideEffect.NavigateBack)
-                }
-            }
-
             RoomWaitingUiIntent.ClickShare -> {
+                val roomId = currentState.roomId
+
                 viewModelScope.launch {
-                    sendEffect(RoomWaitingUiSideEffect.ShowShareSheet)
+                    sendEffect(
+                        RoomWaitingUiSideEffect.ShareLink(
+                            link = "https://challa.app/rooms/$roomId",
+                            title = "찰나 방에 초대합니다",
+                            description = "링크를 통해 방에 입장해 주세요.",
+                        ),
+                    )
                 }
             }
 
             RoomWaitingUiIntent.ClickOpen -> {
                 if (currentState.isReadyToOpen) {
                     viewModelScope.launch {
-                        sendEffect(RoomWaitingUiSideEffect.NavigateToRoom)
+                        sendEffect(RoomWaitingUiSideEffect.NavigateToRoom(currentState.roomId))
                     }
                 }
             }
@@ -62,6 +67,7 @@ class RoomWaitingViewModel :
                         copy(
                             opensAtMillis = targetMillis,
                             remainingSeconds = remainingSeconds,
+                            isInitialized = true,
                         )
                     }
 
@@ -72,6 +78,7 @@ class RoomWaitingViewModel :
             }
     }
 
+    // TODO: 서버/로컬 저장소에서 고정된 opensAtMillis를 받으면 fallback 제거
     private fun Long.resolveOpensAtMillis(): Long =
         takeIf { it > 0L }
             ?: (System.currentTimeMillis() + DEFAULT_WAITING_DURATION_MILLIS)

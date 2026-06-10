@@ -36,7 +36,7 @@ fun ChallaNavHost(navigator: ChallaNavigator) {
                         onShareClick = {
                             // TODO: 공유 처리
                         },
-                        onOpenClick = {
+                        onOpenClick = { _ ->
                             // TODO: 방 열기 처리
                         },
                     )

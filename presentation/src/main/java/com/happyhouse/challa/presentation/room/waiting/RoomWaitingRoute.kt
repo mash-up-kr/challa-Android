@@ -7,15 +7,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.room.waiting.contract.RoomWaitingUiIntent
 import com.happyhouse.challa.presentation.room.waiting.contract.RoomWaitingUiSideEffect
+import com.happyhouse.challa.presentation.room.waiting.model.ShareLinkUiModel
 
 @Composable
 fun RoomWaitingRoute(
     roomId: Long,
     opensAtMillis: Long,
-    viewModel: RoomWaitingViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onOpenClick: () -> Unit,
+    onShareClick: (ShareLinkUiModel) -> Unit,
+    onOpenClick: (Long) -> Unit,
+    viewModel: RoomWaitingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -29,18 +30,20 @@ fun RoomWaitingRoute(
     }
 
     LaunchedEffect(viewModel) {
-        viewModel.uiEffect.collect { sideEffect ->
-            when (sideEffect) {
-                RoomWaitingUiSideEffect.NavigateBack -> {
-                    onBackClick()
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is RoomWaitingUiSideEffect.ShareLink -> {
+                    onShareClick(
+                        ShareLinkUiModel(
+                            link = effect.link,
+                            title = effect.title,
+                            description = effect.description,
+                        ),
+                    )
                 }
 
-                RoomWaitingUiSideEffect.ShowShareSheet -> {
-                    onShareClick()
-                }
-
-                RoomWaitingUiSideEffect.NavigateToRoom -> {
-                    onOpenClick()
+                is RoomWaitingUiSideEffect.NavigateToRoom -> {
+                    onOpenClick(effect.roomId)
                 }
             }
         }
@@ -48,9 +51,7 @@ fun RoomWaitingRoute(
 
     RoomWaitingScreen(
         uiState = uiState,
-        onBackClick = {
-            viewModel.onIntent(RoomWaitingUiIntent.ClickBack)
-        },
+        onBackClick = onBackClick,
         onShareClick = {
             viewModel.onIntent(RoomWaitingUiIntent.ClickShare)
         },
