@@ -20,12 +20,19 @@ jobs:
             const author = context.payload.pull_request.user.login;
             const prNumber = context.payload.pull_request.number;
 
-            core.info(`actor: ${context.actor}`);
             core.info(`author: ${author}`);
-            core.info(`repo: ${context.repo.owner}/${context.repo.repo}`);
             core.info(`prNumber: ${prNumber}`);
 
             try {
+              await github.rest.issues.checkUserCanBeAssigned({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                assignee: author,
+              });
+
+              core.info(`${author} can be assigned`);
+
               await github.rest.issues.addAssignees({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -33,11 +40,10 @@ jobs:
                 assignees: [author],
               });
 
-              core.info(`Assigned ${author}`);
+              core.info(`${author} assigned`);
             } catch (error) {
               core.warning(`status: ${error.status}`);
               core.warning(`message: ${error.message}`);
-              core.warning(`documentation_url: ${error.response?.data?.documentation_url}`);
               core.warning(JSON.stringify(error.response?.data, null, 2));
               throw error;
             }
