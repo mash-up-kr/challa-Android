@@ -8,6 +8,7 @@ jobs:
   auto-assign:
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       issues: write
       pull-requests: read
 
@@ -17,11 +18,26 @@ jobs:
         with:
           script: |
             const author = context.payload.pull_request.user.login;
-            const pr_number = context.payload.pull_request.number;
+            const prNumber = context.payload.pull_request.number;
 
-            await github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr_number,
-              assignees: [author],
-            });
+            core.info(`actor: ${context.actor}`);
+            core.info(`author: ${author}`);
+            core.info(`repo: ${context.repo.owner}/${context.repo.repo}`);
+            core.info(`prNumber: ${prNumber}`);
+
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                assignees: [author],
+              });
+
+              core.info(`Assigned ${author}`);
+            } catch (error) {
+              core.warning(`status: ${error.status}`);
+              core.warning(`message: ${error.message}`);
+              core.warning(`documentation_url: ${error.response?.data?.documentation_url}`);
+              core.warning(JSON.stringify(error.response?.data, null, 2));
+              throw error;
+            }
