@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.login
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,12 +14,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -31,6 +36,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 
@@ -45,6 +52,35 @@ private val KakaoYellow = Color(0xFFFEE500)
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = hiltViewModel(),
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                LoginSideEffect.LoginSuccess -> onLoginSuccess()
+                is LoginSideEffect.LoginFailed -> {
+                    // TODO JH: 디자인 확정되면 수정
+                    Toast.makeText(context, "로그인 실패", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    LoginContent(
+        state = state,
+        onIntent = viewModel::onIntent,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun LoginContent(
+    state: LoginState,
+    onIntent: (LoginIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -102,10 +138,8 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Button(
-                onClick = {
-                    // TODO JH: 카카오 로그인 연동 후 실제 인증 결과에 따라 다음 화면으로 이동
-                    onLoginSuccess()
-                },
+                onClick = { onIntent(LoginIntent.ClickLogin) },
+                enabled = !state.isLoading,
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -117,11 +151,19 @@ fun LoginScreen(
                         contentColor = Color.Black,
                     ),
             ) {
-                Text(
-                    text = stringResource(id = R.string.login_kakao),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.Black,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Text(
+                        text = stringResource(id = R.string.login_kakao),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
             Text(
                 text = termsAnnotatedString(),
@@ -148,9 +190,12 @@ private fun termsAnnotatedString(): AnnotatedString =
         append(stringResource(id = R.string.login_terms_suffix))
     }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Login")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun LoginScreenPreview() {
-    LoginScreen(onLoginSuccess = {})
+    LoginContent(
+        state = LoginState(isLoading = false),
+        onIntent = {},
+    )
 }
