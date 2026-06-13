@@ -9,29 +9,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel
-@Inject
-constructor() :
+    @Inject
+    constructor() :
     BaseViewModel<LoginState, LoginIntent, LoginSideEffect>(
-        initialState = LoginState(isLoading = false),
-    ) {
-    override fun onIntent(intent: LoginIntent) {
-        when (intent) {
-            LoginIntent.ClickLogin -> onLoginClick()
-        }
-    }
-
-    private fun onLoginClick() {
-        viewModelScope.launch {
-            updateState { copy(isLoading = true) }
-            try {
-                delay(1000L) // TODO JH: API 호출
-                LoginSideEffect.LoginSuccess
-            } catch (e: Exception) {
-                LoginSideEffect.LoginFailed
-            }.also { sideEffect ->
-                sendEffect(sideEffect)
+            initialState = LoginState(isLoading = false),
+        ) {
+        override fun onIntent(intent: LoginIntent) {
+            when (intent) {
+                LoginIntent.ClickLogin -> onLoginClick()
             }
-            updateState { copy(isLoading = false) }
+        }
+
+        private fun onLoginClick() {
+            viewModelScope.launch {
+                updateState { copy(isLoading = true) }
+                try {
+                    delay(1000L) // TODO JH: API 호출
+                    LoginSideEffect.LoginSuccess
+                } catch (e: Exception) {
+                    LoginSideEffect.LoginFailed
+                }.also { sideEffect ->
+                    sendEffect(sideEffect)
+                }
+                updateState { copy(isLoading = false) }
+            }
         }
     }
-}
