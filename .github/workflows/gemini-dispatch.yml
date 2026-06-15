@@ -1,0 +1,78 @@
+name: '🔀 Gemini Dispatch'
+
+on:
+  pull_request:
+    types:
+      - 'opened'
+      - 'synchronize'
+    branches:
+      - 'develop'
+
+defaults:
+  run:
+    shell: 'bash'
+
+jobs:
+  dispatch:
+    if: ${{ github.event.pull_request.head.repo.fork == false }}
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
+    outputs:
+      command: '${{ steps.extract_command.outputs.command }}'
+      additional_context: '${{ steps.extract_command.outputs.additional_context }}'
+    steps:
+      - name: 'Extract command'
+        id: 'extract_command'
+        uses: 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea' # ratchet:actions/github-script@v7
+        env:
+          EVENT_TYPE: '${{ github.event_name }}.${{ github.event.action }}'
+          REQUEST: '${{ github.event.comment.body || github.event.review.body }}'
+        with:
+          script: |
+            const eventType = process.env.EVENT_TYPE;
+            const request = process.env.REQUEST;
+
+            if (eventType === 'pull_request.opened' || eventType === 'pull_request.synchronize') {
+              core.setOutput('command', 'review');
+            } else {
+              core.setOutput('command', 'fallthrough');
+            }
+
+  review:
+    needs: 'dispatch'
+    if: ${{ needs.dispatch.outputs.command == 'review' }}
+    uses: './.github/workflows/gemini-review.yml'
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
+    with:
+      additional_context: '${{ needs.dispatch.outputs.additional_context }}'
+    secrets: 'inherit'
+
+  fallthrough:
+    needs:
+      - 'dispatch'
+      - 'review'
+    if: ${{ always() && !cancelled() && failure() }}
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
+      issues: 'write'
+      pull-requests: 'write'
+    steps:
+      - name: 'Send failure comment'
+        if: ${{ github.event.pull_request.number || github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          ISSUE_NUMBER: '${{ github.event.pull_request.number || github.event.issue.number }}'
+          MESSAGE: |-
+            🤖 I'm sorry @${{ github.actor }}, but I was unable to process your request. Please [see the logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more details.
+          REPOSITORY: '${{ github.repository }}'
+        run: |-
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "${MESSAGE}" \
+            --repo "${REPOSITORY}"
