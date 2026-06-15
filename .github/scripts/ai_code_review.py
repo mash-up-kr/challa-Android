@@ -12,14 +12,6 @@ PR_NUMBER = int(os.environ["PR_NUMBER"])
 MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
 
 
-def 프로젝트_컨텍스트() -> str:
-    for 파일명 in ["CLAUDE.md", "README.md"]:
-        if os.path.exists(파일명):
-            with open(파일명, encoding="utf-8") as f:
-                return f.read()
-    return ""
-
-
 def PR_변경사항(pr) -> str:
     결과 = []
     for 파일 in pr.get_files():
@@ -29,11 +21,8 @@ def PR_변경사항(pr) -> str:
     return "\n\n".join(결과)
 
 
-def 리뷰_프롬프트(컨텍스트: str, 제목: str, 본문: str, diff: str) -> str:
+def 리뷰_프롬프트(제목: str, 본문: str, diff: str) -> str:
     return f"""너는 Android 앱 개발에 익숙한 코드 리뷰어야. 아래 PR을 보고 리뷰해줘.
-
-프로젝트 정보:
-{컨텍스트 or "없음"}
 
 PR 제목: {제목}
 PR 설명: {본문 or "(없음)"}
@@ -106,7 +95,6 @@ def main():
 
     print(f"제목: {pr.title} / 변경 파일 수: {pr.changed_files}")
 
-    컨텍스트 = 프로젝트_컨텍스트()
     diff = PR_변경사항(pr)
 
     if not diff.strip():
@@ -116,7 +104,7 @@ def main():
     if len(diff) > 100000:
         diff = diff[:100000] + "\n\n... (너무 길어서 일부 생략)"
 
-    프롬프트 = 리뷰_프롬프트(컨텍스트, pr.title, pr.body, diff)
+    프롬프트 = 리뷰_프롬프트(pr.title, pr.body, diff)
     리뷰 = gemini_리뷰(프롬프트)
 
     코멘트 = (
