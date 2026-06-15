@@ -45,7 +45,7 @@ fun CameraScreen(
                     .padding(innerPadding),
         ) {
             when (permissionState) {
-                CameraPermissionState.Checking -> {
+                CameraPermissionState.Unchecked -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
                     )
@@ -63,7 +63,7 @@ fun CameraScreen(
                     )
                 }
 
-                CameraPermissionState.Denied -> {
+                CameraPermissionState.NotGranted -> {
                     CameraPermissionDeniedContent(
                         modifier =
                             Modifier

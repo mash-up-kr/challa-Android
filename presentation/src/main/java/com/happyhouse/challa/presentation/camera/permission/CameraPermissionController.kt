@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat
 @Composable
 fun rememberCameraPermissionController(): CameraPermissionController {
     val context = LocalContext.current
-    var permissionState by remember { mutableStateOf<CameraPermissionState>(CameraPermissionState.Checking) }
+    var permissionState by remember { mutableStateOf<CameraPermissionState>(CameraPermissionState.Unchecked) }
     val permissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(),
@@ -26,7 +26,7 @@ fun rememberCameraPermissionController(): CameraPermissionController {
                 if (isGranted) {
                     CameraPermissionState.Granted
                 } else {
-                    CameraPermissionState.Denied
+                    CameraPermissionState.NotGranted
                 }
         }
 
@@ -34,7 +34,7 @@ fun rememberCameraPermissionController(): CameraPermissionController {
         if (context.hasCameraPermission()) {
             permissionState = CameraPermissionState.Granted
         } else {
-            permissionState = CameraPermissionState.Denied
+            permissionState = CameraPermissionState.NotGranted
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }

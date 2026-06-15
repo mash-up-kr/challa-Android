@@ -37,24 +37,23 @@ fun CameraSession(
         cameraProviderFuture.addListener(
             {
                 runCatching {
-                    cameraProviderFuture.get()
-                }.onSuccess { provider ->
+                    val provider = cameraProviderFuture.get()
                     cameraProvider = provider
                     provider.unbindAll()
 
                     if (isDisposed) {
-                        provider.unbindAll()
-                    } else {
-                        val boundCamera =
-                            bindPreviewUseCase(
-                                cameraProvider = provider,
-                                lifecycleOwner = lifecycleOwner,
-                                previewView = previewView,
-                                lensFacing = lensFacing,
-                            )
-                        onCameraBound(boundCamera)
-                        onFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
+                        return@runCatching
                     }
+
+                    val boundCamera =
+                        bindPreviewUseCase(
+                            cameraProvider = provider,
+                            lifecycleOwner = lifecycleOwner,
+                            previewView = previewView,
+                            lensFacing = lensFacing,
+                        )
+                    onCameraBound(boundCamera)
+                    onFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
                 }.onFailure { throwable ->
                     onCameraBound(null)
                     onFlashAvailabilityChanged(false)
