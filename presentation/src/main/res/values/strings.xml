@@ -17,4 +17,7 @@
     <string name="camera_switch_description">전후면 카메라 전환</string>
     <string name="camera_flash_description">플래시 토글</string>
     <string name="camera_viewfinder_preview_label">카메라 프리뷰</string>
+    <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
+    <string name="camera_flash_enabled_message">플래시가 켜졌어요.</string>
+    <string name="camera_flash_disabled_message">플래시가 꺼졌어요.</string>
 </resources>

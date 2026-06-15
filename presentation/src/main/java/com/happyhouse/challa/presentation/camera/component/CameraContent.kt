@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.camera.component
 
-import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -19,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.camera.contract.CameraUiIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraUiState
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import androidx.camera.core.Camera as CameraXCamera
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -26,49 +26,33 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 @Composable
 fun CameraContent(
     modifier: Modifier = Modifier,
+    state: CameraUiState,
     onBackClick: () -> Unit,
+    onIntent: (CameraUiIntent) -> Unit,
 ) {
-    var lensFacing by remember { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
-    var isFlashOn by remember { mutableStateOf(false) }
-    var hasFlashUnit by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<CameraXCamera?>(null) }
 
-    LaunchedEffect(camera, isFlashOn, hasFlashUnit) {
-        camera?.cameraControl?.enableTorch(isFlashOn && hasFlashUnit)
+    LaunchedEffect(camera, state.isFlashOn, state.hasFlashUnit) {
+        camera?.cameraControl?.enableTorch(state.isFlashOn && state.hasFlashUnit)
     }
 
     CameraContentLayout(
         modifier = modifier,
-        isFlashOn = isFlashOn,
-        isFlashEnabled = hasFlashUnit,
+        remainingCount = state.remainingCount,
+        totalCount = state.totalCount,
         onBackClick = onBackClick,
-        onFlashClick = {
-            if (hasFlashUnit) {
-                isFlashOn = !isFlashOn
-            }
-        },
-        onSwitchCameraClick = {
-            isFlashOn = false
-            lensFacing =
-                if (lensFacing == CameraSelector.LENS_FACING_BACK) {
-                    CameraSelector.LENS_FACING_FRONT
-                } else {
-                    CameraSelector.LENS_FACING_BACK
-                }
-        },
-        onShutterClick = {},
+        onFlashClick = { onIntent(CameraUiIntent.FlashClick) },
+        onSwitchCameraClick = { onIntent(CameraUiIntent.SwitchCameraClick) },
+        onShutterClick = { onIntent(CameraUiIntent.ShutterClick) },
     ) { viewFinderModifier ->
         CameraSession(
             modifier = viewFinderModifier,
-            lensFacing = lensFacing,
+            lensFacing = state.lensFacing,
             onCameraBound = { boundCamera ->
                 camera = boundCamera
             },
             onFlashAvailabilityChanged = { isAvailable ->
-                hasFlashUnit = isAvailable
-                if (!isAvailable) {
-                    isFlashOn = false
-                }
+                onIntent(CameraUiIntent.FlashAvailabilityChanged(isAvailable))
             },
         )
     }
@@ -77,8 +61,8 @@ fun CameraContent(
 @Composable
 fun CameraContentLayout(
     modifier: Modifier = Modifier,
-    isFlashOn: Boolean,
-    isFlashEnabled: Boolean,
+    remainingCount: Int,
+    totalCount: Int,
     onBackClick: () -> Unit,
     onFlashClick: () -> Unit,
     onSwitchCameraClick: () -> Unit,
@@ -93,12 +77,10 @@ fun CameraContentLayout(
                 Modifier
                     .fillMaxWidth()
                     .height(88.dp)
-                    .padding(horizontal = 28.dp, vertical = 14.dp),
+                    .padding(horizontal = 24.dp, vertical = 14.dp),
             onBackClick = onBackClick,
-            remainingCount = 12,
-            totalCount = 24,
-            isFlashOn = isFlashOn,
-            isFlashEnabled = isFlashEnabled,
+            remainingCount = remainingCount,
+            totalCount = totalCount,
             onFlashClick = onFlashClick,
         )
 
@@ -112,8 +94,8 @@ fun CameraContentLayout(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(136.dp)
-                    .padding(horizontal = 56.dp, vertical = 16.dp),
+                    .height(120.dp)
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
             onSwitchCameraClick = onSwitchCameraClick,
             onShutterClick = onShutterClick,
         )
@@ -132,8 +114,8 @@ private fun CameraContentLayoutPreview() {
     ) {
         CameraContentLayout(
             modifier = Modifier.fillMaxSize(),
-            isFlashOn = false,
-            isFlashEnabled = true,
+            remainingCount = 12,
+            totalCount = 24,
             onBackClick = {},
             onFlashClick = {},
             onSwitchCameraClick = {},

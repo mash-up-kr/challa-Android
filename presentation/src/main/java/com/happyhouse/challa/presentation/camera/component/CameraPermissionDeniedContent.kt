@@ -39,8 +39,6 @@ fun CameraPermissionDeniedContent(
             onBackClick = onBackClick,
             remainingCount = 24,
             totalCount = 24,
-            isFlashOn = false,
-            isFlashEnabled = false,
             onFlashClick = {},
         )
         CameraPermissionGuide(

@@ -37,8 +37,6 @@ fun CameraTopBar(
     onBackClick: () -> Unit,
     remainingCount: Int,
     totalCount: Int,
-    isFlashOn: Boolean,
-    isFlashEnabled: Boolean,
     onFlashClick: () -> Unit,
 ) {
     Box(modifier = modifier) {
@@ -59,14 +57,8 @@ fun CameraTopBar(
         CameraIconButton(
             modifier = Modifier.align(Alignment.CenterEnd),
             text = stringResource(R.string.camera_flash_icon),
-            textColor =
-                when {
-                    !isFlashEnabled -> Color(0xFF666666)
-                    isFlashOn -> Color(0xFFFFD000)
-                    else -> Color(0xFFFFB300)
-                },
+            textColor = Color.White,
             contentDescription = stringResource(R.string.camera_flash_description),
-            enabled = isFlashEnabled,
             onClick = onFlashClick,
         )
     }
@@ -198,8 +190,6 @@ private fun CameraTopBarPreview() {
         onBackClick = {},
         remainingCount = 12,
         totalCount = 24,
-        isFlashOn = true,
-        isFlashEnabled = true,
         onFlashClick = {},
     )
 }
