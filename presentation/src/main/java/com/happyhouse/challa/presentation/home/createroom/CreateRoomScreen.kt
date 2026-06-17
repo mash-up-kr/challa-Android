@@ -145,13 +145,14 @@ private fun CreateRoomContent(
 @Composable
 private fun LoadingOverlay(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Transparent)
-            .pointerInput(Unit) {
-                detectTapGestures { }
-            },
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(Color.Transparent)
+                .pointerInput(Unit) {
+                    detectTapGestures { }
+                },
+        contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
     }
