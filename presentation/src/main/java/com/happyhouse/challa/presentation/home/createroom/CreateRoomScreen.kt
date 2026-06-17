@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.home.createroom
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -99,7 +102,7 @@ private fun CreateRoomContent(
     onIntent: (CreateRoomIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Box(
         modifier =
             modifier
                 .fillMaxSize()
@@ -107,29 +110,50 @@ private fun CreateRoomContent(
                 .statusBarsPadding()
                 .imePadding(),
     ) {
-        CreateRoomTopBar(
-            onClickClose = { onIntent(CreateRoomIntent.ClickClose) },
-        )
-
-        Column(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            NameField(
-                name = state.name,
-                onNameChange = { onIntent(CreateRoomIntent.NameChanged(it)) },
+        Column(modifier = Modifier.fillMaxSize()) {
+            CreateRoomTopBar(
+                onClickClose = { onIntent(CreateRoomIntent.ClickClose) },
             )
-            InfoBox()
+
+            Column(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                NameField(
+                    name = state.name,
+                    onNameChange = { onIntent(CreateRoomIntent.NameChanged(it)) },
+                )
+                InfoBox()
+            }
+
+            CreateRoomFooter(
+                canSubmit = state.canSubmit,
+                onClickSubmit = { onIntent(CreateRoomIntent.ClickCreate) },
+            )
         }
 
-        CreateRoomFooter(
-            canSubmit = state.canSubmit,
-            onClickSubmit = { onIntent(CreateRoomIntent.ClickCreate) },
-        )
+        if (state.isSubmitting) {
+            LoadingOverlay()
+        }
+    }
+}
+
+@Composable
+private fun LoadingOverlay(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
+            .pointerInput(Unit) {
+                detectTapGestures { }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
 
