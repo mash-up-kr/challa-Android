@@ -11,7 +11,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RoomMainViewModel @Inject constructor() :
-    BaseViewModel<RoomMainUiState, RoomMainUiIntent, RoomMainUiSideEffect>(initialState = RoomMainUiState()) {
+    BaseViewModel<RoomMainUiState, RoomMainUiIntent, RoomMainUiSideEffect>(
+        initialState = RoomMainUiState(),
+    ) {
         init {
             onIntent(RoomMainUiIntent.FetchData)
         }
@@ -19,7 +21,7 @@ class RoomMainViewModel @Inject constructor() :
         override fun onIntent(intent: RoomMainUiIntent) {
             when (intent) {
                 RoomMainUiIntent.FetchData -> fetchData()
-                RoomMainUiIntent.ShareClick -> postSideEffect(RoomMainUiSideEffect.ShowShareSheet)
+                RoomMainUiIntent.ShareClick -> postSideEffect(RoomMainUiSideEffect.ShareRequested)
             }
         }
 

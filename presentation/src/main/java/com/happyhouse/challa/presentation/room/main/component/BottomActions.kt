@@ -19,6 +19,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.Black
+import com.happyhouse.challa.presentation.designsystem.theme.White
 import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 
 @Composable
@@ -42,7 +44,7 @@ internal fun BottomActions(
             border = BorderStroke(width = 1.dp, color = Color(0xFF9E9E9E)),
             colors =
                 ButtonDefaults.outlinedButtonColors(
-                    contentColor = RoomBlack,
+                    contentColor = Black,
                 ),
         ) {
             Text(
@@ -61,8 +63,8 @@ internal fun BottomActions(
             shape = RoundedCornerShape(8.dp),
             colors =
                 ButtonDefaults.buttonColors(
-                    containerColor = RoomBlack,
-                    contentColor = RoomWhite,
+                    containerColor = Black,
+                    contentColor = White,
                 ),
         ) {
             Text(

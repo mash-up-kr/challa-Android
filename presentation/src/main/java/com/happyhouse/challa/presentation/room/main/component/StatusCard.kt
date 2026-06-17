@@ -19,6 +19,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.Black
+import com.happyhouse.challa.presentation.designsystem.theme.Border
+import com.happyhouse.challa.presentation.designsystem.theme.Gray700
 import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 
 @Composable
@@ -29,7 +32,7 @@ internal fun StatusCard(status: RoomMainStatus) {
                 .fillMaxWidth()
                 .border(
                     width = 1.dp,
-                    color = RoomBorder,
+                    color = Border,
                     shape = RoundedCornerShape(6.dp),
                 )
                 .padding(horizontal = 18.dp, vertical = 20.dp),
@@ -41,7 +44,7 @@ internal fun StatusCard(status: RoomMainStatus) {
             Text(
                 text = "상태",
                 modifier = Modifier.weight(1f),
-                color = RoomBlack,
+                color = Black,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -50,7 +53,7 @@ internal fun StatusCard(status: RoomMainStatus) {
                     Modifier
                         .border(
                             width = 1.dp,
-                            color = RoomBlack,
+                            color = Black,
                             shape = RoundedCornerShape(1000.dp),
                         )
                         .padding(horizontal = 14.dp, vertical = 6.dp),
@@ -58,7 +61,7 @@ internal fun StatusCard(status: RoomMainStatus) {
             ) {
                 Text(
                     text = status.label,
-                    color = RoomBlack,
+                    color = Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -67,7 +70,7 @@ internal fun StatusCard(status: RoomMainStatus) {
         Spacer(modifier = Modifier.height(14.dp))
         Text(
             text = status.description,
-            color = RoomGray700,
+            color = Gray700,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             lineHeight = 20.sp,

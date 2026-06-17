@@ -21,6 +21,10 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.Black
+import com.happyhouse.challa.presentation.designsystem.theme.Gray100
+import com.happyhouse.challa.presentation.designsystem.theme.Gray300
+import com.happyhouse.challa.presentation.designsystem.theme.Gray700
 
 @Composable
 internal fun PhotoProgress(
@@ -43,13 +47,13 @@ internal fun PhotoProgress(
                 buildAnnotatedString {
                     withStyle(
                         SpanStyle(
-                            color = RoomBlack,
+                            color = Black,
                             fontSize = 58.sp,
                         ),
                     ) {
                         append(currentCount.toString())
                     }
-                    withStyle(SpanStyle(color = RoomGray300)) {
+                    withStyle(SpanStyle(color = Gray300)) {
                         append("/$totalCount")
                     }
                 },
@@ -59,7 +63,7 @@ internal fun PhotoProgress(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "찍은 사진",
-            color = RoomGray700,
+            color = Gray700,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -70,7 +74,7 @@ internal fun PhotoProgress(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(999.dp))
-                    .background(RoomGray100),
+                    .background(Gray100),
         ) {
             Box(
                 modifier =
@@ -78,7 +82,7 @@ internal fun PhotoProgress(
                         .fillMaxWidth(progress)
                         .height(8.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(RoomBlack),
+                        .background(Black),
             )
         }
     }

@@ -20,6 +20,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.Black
+import com.happyhouse.challa.presentation.designsystem.theme.Border
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
@@ -45,7 +47,7 @@ internal fun RoomTopBar(
             ) {
                 Text(
                     text = "<",
-                    color = RoomBlack,
+                    color = Black,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -53,7 +55,7 @@ internal fun RoomTopBar(
             Text(
                 text = title,
                 modifier = Modifier.weight(1f),
-                color = RoomBlack,
+                color = Black,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -67,7 +69,7 @@ internal fun RoomTopBar(
             ) {
                 Text(
                     text = "...",
-                    color = RoomBlack,
+                    color = Black,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -75,7 +77,7 @@ internal fun RoomTopBar(
         }
         HorizontalDivider(
             thickness = 1.dp,
-            color = RoomBorder,
+            color = Border,
         )
     }
 }

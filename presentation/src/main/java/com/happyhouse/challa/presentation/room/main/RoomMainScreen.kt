@@ -10,21 +10,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.White
 import com.happyhouse.challa.presentation.room.main.component.BottomActions
 import com.happyhouse.challa.presentation.room.main.component.MemberCard
 import com.happyhouse.challa.presentation.room.main.component.PhotoProgress
 import com.happyhouse.challa.presentation.room.main.component.RoomTopBar
-import com.happyhouse.challa.presentation.room.main.component.RoomWhite
 import com.happyhouse.challa.presentation.room.main.component.StatusCard
 import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiIntent
 import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiSideEffect
@@ -34,39 +38,46 @@ import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
 @Composable
 fun RoomMainRoute(
     onBackClick: () -> Unit,
-    onShareClick: () -> Unit = {},
-    onCameraClick: () -> Unit = {},
-    onGalleryClick: () -> Unit = {},
+    onShareClick: () -> Unit,
+    onCameraClick: () -> Unit,
+    onGalleryClick: () -> Unit,
     viewModel: RoomMainViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel) {
-        viewModel.uiEffect.collect { sideEffect ->
-            when (sideEffect) {
-                RoomMainUiSideEffect.ShowShareSheet -> onShareClick()
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                RoomMainUiSideEffect.ShareRequested -> onShareClick()
             }
         }
     }
 
-    RoomMainScreen(
-        uiState = uiState,
-        onBackClick = onBackClick,
-        onShareClick = {
-            viewModel.onIntent(RoomMainUiIntent.ShareClick)
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         },
-        onMainActionClick = {
-            when (uiState.status) {
-                RoomMainStatus.Shooting -> onCameraClick()
-                RoomMainStatus.Waiting -> Unit
-                RoomMainStatus.Published -> onGalleryClick()
-            }
-        },
-    )
+    ) { innerPadding ->
+        RoomMainScreen(
+            modifier = Modifier.padding(innerPadding),
+            uiState = uiState,
+            onBackClick = onBackClick,
+            onShareClick = { viewModel.onIntent(RoomMainUiIntent.ShareClick) },
+            onMainActionClick = {
+                when (uiState.status) {
+                    RoomMainStatus.Shooting -> onCameraClick()
+                    RoomMainStatus.Waiting -> Unit
+                    RoomMainStatus.Published -> onGalleryClick()
+                }
+            },
+        )
+    }
 }
 
 @Composable
 fun RoomMainScreen(
+    modifier: Modifier = Modifier,
     uiState: RoomMainUiState = RoomMainUiState(),
     onBackClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
@@ -74,9 +85,9 @@ fun RoomMainScreen(
 ) {
     Column(
         modifier =
-            Modifier
+            modifier
                 .fillMaxSize()
-                .background(RoomWhite)
+                .background(White)
                 .statusBarsPadding(),
     ) {
         RoomTopBar(

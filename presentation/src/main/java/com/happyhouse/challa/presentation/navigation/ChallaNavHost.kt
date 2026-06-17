@@ -24,6 +24,9 @@ fun ChallaNavHost(navigator: ChallaNavigator) {
                         onBackClick = {
                             navigator.goBack()
                         },
+                        onShareClick = {},
+                        onCameraClick = {},
+                        onGalleryClick = {},
                     )
                 }
             },

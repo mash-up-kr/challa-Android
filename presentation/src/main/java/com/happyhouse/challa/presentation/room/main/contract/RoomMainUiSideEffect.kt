@@ -3,5 +3,5 @@ package com.happyhouse.challa.presentation.room.main.contract
 import com.happyhouse.challa.presentation.base.UiSideEffect
 
 sealed interface RoomMainUiSideEffect : UiSideEffect {
-    data object ShowShareSheet : RoomMainUiSideEffect
+    data object ShareRequested : RoomMainUiSideEffect
 }
