@@ -1,8 +1,8 @@
 package com.happyhouse.challa.presentation.camera
 
-import androidx.camera.core.CameraSelector
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
+import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraUiIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraUiSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraUiState
@@ -66,10 +66,9 @@ class CameraViewModel
             updateState {
                 copy(
                     lensFacing =
-                        if (lensFacing == CameraSelector.LENS_FACING_BACK) {
-                            CameraSelector.LENS_FACING_FRONT
-                        } else {
-                            CameraSelector.LENS_FACING_BACK
+                        when (lensFacing) {
+                            CameraLensFacing.Back -> CameraLensFacing.Front
+                            CameraLensFacing.Front -> CameraLensFacing.Back
                         },
                     isFlashOn = false,
                 )

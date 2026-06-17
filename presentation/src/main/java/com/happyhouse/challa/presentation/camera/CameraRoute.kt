@@ -33,7 +33,7 @@ fun CameraRoute(
     val flashEnabledMessage = stringResource(R.string.camera_flash_enabled_message)
     val flashDisabledMessage = stringResource(R.string.camera_flash_disabled_message)
 
-    LaunchedEffect(viewModel, flashNotAvailableMessage, flashEnabledMessage, flashDisabledMessage) {
+    LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             val message =
                 when (effect) {

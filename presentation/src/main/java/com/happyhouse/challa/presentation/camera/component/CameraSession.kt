@@ -14,13 +14,14 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import timber.log.Timber
 import androidx.camera.core.Camera as CameraXCamera
 
 @Composable
 fun CameraSession(
     modifier: Modifier = Modifier,
-    lensFacing: Int,
+    lensFacing: CameraLensFacing,
     onCameraBound: (CameraXCamera?) -> Unit,
     onFlashAvailabilityChanged: (Boolean) -> Unit,
 ) {
@@ -88,7 +89,7 @@ private fun bindPreviewUseCase(
     cameraProvider: ProcessCameraProvider,
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
-    lensFacing: Int,
+    lensFacing: CameraLensFacing,
 ): CameraXCamera {
     val preview = createPreview(previewView)
     val cameraSelector = createCameraSelector(lensFacing)
@@ -107,7 +108,13 @@ private fun createPreview(previewView: PreviewView): Preview =
             preview.surfaceProvider = previewView.surfaceProvider
         }
 
-private fun createCameraSelector(lensFacing: Int): CameraSelector =
+private fun createCameraSelector(lensFacing: CameraLensFacing): CameraSelector =
     CameraSelector.Builder()
-        .requireLensFacing(lensFacing)
+        .requireLensFacing(lensFacing.toCameraSelectorLensFacing())
         .build()
+
+private fun CameraLensFacing.toCameraSelectorLensFacing(): Int =
+    when (this) {
+        CameraLensFacing.Back -> CameraSelector.LENS_FACING_BACK
+        CameraLensFacing.Front -> CameraSelector.LENS_FACING_FRONT
+    }
