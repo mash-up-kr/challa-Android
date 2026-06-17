@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -55,6 +53,7 @@ fun RoomMainRoute(
     }
 
     Scaffold(
+        containerColor = White,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
@@ -87,8 +86,7 @@ fun RoomMainScreen(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(White)
-                .statusBarsPadding(),
+                .background(White),
     ) {
         RoomTopBar(
             title = uiState.title,
@@ -117,10 +115,7 @@ fun RoomMainScreen(
 
         BottomActions(
             status = uiState.status,
-            modifier =
-                Modifier
-                    .navigationBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
             onShareClick = onShareClick,
             onMainActionClick = onMainActionClick,
         )
