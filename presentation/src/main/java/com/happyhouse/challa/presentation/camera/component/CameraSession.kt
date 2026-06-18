@@ -115,6 +115,6 @@ private fun createCameraSelector(lensFacing: CameraLensFacing): CameraSelector =
 
 private fun CameraLensFacing.toCameraSelectorLensFacing(): Int =
     when (this) {
-        CameraLensFacing.Back -> CameraSelector.LENS_FACING_BACK
-        CameraLensFacing.Front -> CameraSelector.LENS_FACING_FRONT
+        CameraLensFacing.BACK -> CameraSelector.LENS_FACING_BACK
+        CameraLensFacing.FRONT -> CameraSelector.LENS_FACING_FRONT
     }

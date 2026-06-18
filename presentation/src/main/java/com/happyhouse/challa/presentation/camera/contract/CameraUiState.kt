@@ -6,7 +6,7 @@ import com.happyhouse.challa.presentation.base.UiState
 @Immutable
 data class CameraUiState(
     val roomId: Long = 0L,
-    val lensFacing: CameraLensFacing = CameraLensFacing.Back,
+    val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashOn: Boolean = false,
     val hasFlashUnit: Boolean = false,
     val remainingCount: Int = 12,
@@ -14,6 +14,6 @@ data class CameraUiState(
 ) : UiState
 
 enum class CameraLensFacing {
-    Back,
-    Front,
+    BACK,
+    FRONT,
 }
