@@ -1,6 +1,8 @@
 package com.happyhouse.challa.presentation.navigation
 
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.login.LoginScreen
@@ -10,6 +12,7 @@ import com.happyhouse.challa.presentation.sample.SampleScreen
 @Composable
 fun ChallaNavHost(navigator: ChallaNavigator) {
     NavDisplay(
+        modifier = Modifier.navigationBarsPadding(),
         backStack = navigator.backStack,
         entryProvider =
             entryProvider {
