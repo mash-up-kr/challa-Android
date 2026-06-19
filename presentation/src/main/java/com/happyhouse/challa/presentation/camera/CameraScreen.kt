@@ -6,10 +6,8 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -69,7 +67,6 @@ fun CameraScreen(
     Scaffold(
         modifier = modifier,
         containerColor = Color.Black,
-        contentWindowInsets = WindowInsets(0),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
@@ -89,10 +86,7 @@ fun CameraScreen(
 
                 CameraPermissionState.Granted -> {
                     CameraContent(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .systemBarsPadding(),
+                        modifier = Modifier.fillMaxSize(),
                         state = state,
                         onBackClick = onBackClick,
                         onIntent = onIntent,
