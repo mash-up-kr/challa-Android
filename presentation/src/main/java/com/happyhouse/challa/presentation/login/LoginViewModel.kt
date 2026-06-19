@@ -21,6 +21,7 @@ class LoginViewModel
         }
 
         private fun handleLoginClick() {
+            if (currentState.isLoading) return
             viewModelScope.launch {
                 updateState { copy(isLoading = true) }
                 try {
