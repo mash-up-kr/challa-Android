@@ -62,7 +62,7 @@ fun LoginScreen(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 LoginSideEffect.LoginSuccess -> onLoginSuccess()
-                is LoginSideEffect.LoginFailed -> {
+                LoginSideEffect.LoginFailed -> {
                     // TODO JH: 디자인 확정되면 수정
                     Toast.makeText(context, "로그인 실패", Toast.LENGTH_SHORT).show()
                 }
