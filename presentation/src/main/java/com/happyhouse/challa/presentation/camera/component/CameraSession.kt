@@ -40,11 +40,12 @@ fun CameraSession(
                 runCatching {
                     val provider = cameraProviderFuture.get()
                     cameraProvider = provider
-                    provider.unbindAll()
 
                     if (isDisposed) {
                         return@runCatching
                     }
+
+                    provider.unbindAll()
 
                     val boundCamera =
                         bindPreviewUseCase(

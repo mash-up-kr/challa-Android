@@ -26,8 +26,8 @@ fun CameraRoute(
             },
         ),
 ) {
-    val permissionController = rememberCameraPermissionController()
     val snackbarHostState = remember { SnackbarHostState() }
+    val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val flashEnabledMessage = stringResource(R.string.camera_flash_enabled_message)
