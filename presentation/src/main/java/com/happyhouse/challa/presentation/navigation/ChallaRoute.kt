@@ -13,4 +13,10 @@ sealed interface ChallaRoute : NavKey {
     data class Camera(
         val roomId: Long,
     ) : ChallaRoute
+
+    @Serializable
+    data object Onboarding : ChallaRoute
+
+    @Serializable
+    data object Login : ChallaRoute
 }
