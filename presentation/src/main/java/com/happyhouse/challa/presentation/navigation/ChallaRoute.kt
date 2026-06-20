@@ -10,5 +10,10 @@ sealed interface ChallaRoute : NavKey {
     data object Sample : ChallaRoute
 
     @Serializable
+    data class Camera(
+        val roomId: Long,
+    ) : ChallaRoute
+
+    @Serializable
     data object RoomMain : ChallaRoute
 }
