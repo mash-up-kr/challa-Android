@@ -22,10 +22,13 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.Black
 import com.happyhouse.challa.presentation.designsystem.theme.Border
 import com.happyhouse.challa.presentation.designsystem.theme.Gray700
-import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
+import com.happyhouse.challa.presentation.model.RoomStatus
+import com.happyhouse.challa.presentation.model.description
+import com.happyhouse.challa.presentation.model.label
+import kotlin.time.Duration.Companion.hours
 
 @Composable
-internal fun StatusCard(status: RoomMainStatus) {
+internal fun StatusCard(status: RoomStatus) {
     Column(
         modifier =
             Modifier
@@ -82,19 +85,19 @@ internal fun StatusCard(status: RoomMainStatus) {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun StatusCardShootingPreview() {
-    StatusCard(status = RoomMainStatus.Shooting)
+    StatusCard(status = RoomStatus.Shooting(taken = 11, total = 24))
 }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun StatusCardWaitingPreview() {
-    StatusCard(status = RoomMainStatus.Waiting)
+    StatusCard(status = RoomStatus.Waiting(dDay = 0, remaining = 3.hours))
 }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun StatusCardPublishedPreview() {
-    StatusCard(status = RoomMainStatus.Published)
+    StatusCard(status = RoomStatus.Opened)
 }

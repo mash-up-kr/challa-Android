@@ -21,11 +21,14 @@ import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.Black
 import com.happyhouse.challa.presentation.designsystem.theme.White
-import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
+import com.happyhouse.challa.presentation.model.RoomStatus
+import com.happyhouse.challa.presentation.model.isPrimaryButtonEnabled
+import com.happyhouse.challa.presentation.model.primaryButtonText
+import kotlin.time.Duration.Companion.hours
 
 @Composable
 internal fun BottomActions(
-    status: RoomMainStatus,
+    status: RoomStatus,
     modifier: Modifier = Modifier,
     onShareClick: () -> Unit = {},
     onMainActionClick: () -> Unit = {},
@@ -80,19 +83,19 @@ internal fun BottomActions(
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun BottomActionsShootingPreview() {
-    BottomActions(status = RoomMainStatus.Shooting)
+    BottomActions(status = RoomStatus.Shooting(taken = 11, total = 24))
 }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun BottomActionsWaitingPreview() {
-    BottomActions(status = RoomMainStatus.Waiting)
+    BottomActions(status = RoomStatus.Waiting(dDay = 0, remaining = 3.hours))
 }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun BottomActionsPublishedPreview() {
-    BottomActions(status = RoomMainStatus.Published)
+    BottomActions(status = RoomStatus.Opened)
 }

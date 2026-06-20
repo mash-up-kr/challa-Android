@@ -23,15 +23,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.White
+import com.happyhouse.challa.presentation.model.RoomStatus
 import com.happyhouse.challa.presentation.room.main.component.BottomActions
 import com.happyhouse.challa.presentation.room.main.component.MemberCard
 import com.happyhouse.challa.presentation.room.main.component.PhotoProgress
 import com.happyhouse.challa.presentation.room.main.component.RoomTopBar
 import com.happyhouse.challa.presentation.room.main.component.StatusCard
-import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiIntent
-import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiSideEffect
-import com.happyhouse.challa.presentation.room.main.contract.RoomMainUiState
-import com.happyhouse.challa.presentation.room.main.model.RoomMainStatus
+import com.happyhouse.challa.presentation.room.main.contract.RoomMainIntent
+import com.happyhouse.challa.presentation.room.main.contract.RoomMainSideEffect
+import com.happyhouse.challa.presentation.room.main.contract.RoomMainState
 
 @Composable
 fun RoomMainRoute(
@@ -47,7 +47,7 @@ fun RoomMainRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                RoomMainUiSideEffect.ShareRequested -> onShareClick()
+                RoomMainSideEffect.ShareRequested -> onShareClick()
             }
         }
     }
@@ -62,12 +62,13 @@ fun RoomMainRoute(
             modifier = Modifier.padding(innerPadding),
             uiState = uiState,
             onBackClick = onBackClick,
-            onShareClick = { viewModel.onIntent(RoomMainUiIntent.ShareClick) },
+            onShareClick = { viewModel.onIntent(RoomMainIntent.ShareClick) },
             onMainActionClick = {
                 when (uiState.status) {
-                    RoomMainStatus.Shooting -> onCameraClick()
-                    RoomMainStatus.Waiting -> Unit
-                    RoomMainStatus.Published -> onGalleryClick()
+                    is RoomStatus.Shooting -> onCameraClick()
+                    is RoomStatus.Waiting -> Unit
+                    RoomStatus.Opened -> onGalleryClick()
+                    is RoomStatus.Expiring -> onGalleryClick()
                 }
             },
         )
@@ -77,7 +78,7 @@ fun RoomMainRoute(
 @Composable
 fun RoomMainScreen(
     modifier: Modifier = Modifier,
-    uiState: RoomMainUiState = RoomMainUiState(),
+    uiState: RoomMainState = RoomMainState(),
     onBackClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
     onMainActionClick: () -> Unit = {},
@@ -134,10 +135,7 @@ private fun RoomMainScreenPreview() {
 @Composable
 private fun RoomMainScreenWaitingPreview() {
     RoomMainScreen(
-        uiState =
-            RoomMainUiState(
-                photoCount = 24,
-            ),
+        uiState = RoomMainState.waiting(),
     )
 }
 
@@ -146,10 +144,6 @@ private fun RoomMainScreenWaitingPreview() {
 @Composable
 private fun RoomMainScreenPublishedPreview() {
     RoomMainScreen(
-        uiState =
-            RoomMainUiState(
-                photoCount = 24,
-                isPublished = true,
-            ),
+        uiState = RoomMainState.opened(),
     )
 }
