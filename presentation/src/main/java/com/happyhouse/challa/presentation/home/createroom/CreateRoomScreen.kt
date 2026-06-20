@@ -148,7 +148,6 @@ private fun LoadingOverlay(modifier: Modifier = Modifier) {
         modifier =
             modifier
                 .fillMaxSize()
-                .background(Color.Transparent)
                 .pointerInput(Unit) {
                     detectTapGestures { }
                 },
@@ -187,7 +186,7 @@ private fun CreateRoomTopBar(
             )
             Spacer(modifier = Modifier.width(40.dp))
         }
-        HorizontalDivider(thickness = 1.dp, color = DividerColor)
+        HorizontalDivider(color = DividerColor)
     }
 }
 
@@ -281,7 +280,7 @@ private fun CreateRoomFooter(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        HorizontalDivider(thickness = 1.dp, color = FooterDivider)
+        HorizontalDivider(color = FooterDivider)
         Box(
             modifier =
                 Modifier

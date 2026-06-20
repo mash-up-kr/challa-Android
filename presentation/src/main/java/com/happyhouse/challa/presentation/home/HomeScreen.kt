@@ -194,7 +194,7 @@ private fun HomeTopBar(
                 )
             }
         }
-        HorizontalDivider(thickness = 1.dp, color = DividerColor)
+        HorizontalDivider(color = DividerColor)
     }
 }
 
