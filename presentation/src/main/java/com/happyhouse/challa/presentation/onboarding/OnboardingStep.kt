@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.model
+package com.happyhouse.challa.presentation.onboarding
 
 import androidx.annotation.StringRes
 import com.happyhouse.challa.presentation.R

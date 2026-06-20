@@ -16,11 +16,12 @@ class LoginViewModel
         ) {
         override fun onIntent(intent: LoginIntent) {
             when (intent) {
-                LoginIntent.ClickLogin -> onLoginClick()
+                LoginIntent.ClickLogin -> handleLoginClick()
             }
         }
 
-        private fun onLoginClick() {
+        private fun handleLoginClick() {
+            if (currentState.isLoading) return
             viewModelScope.launch {
                 updateState { copy(isLoading = true) }
                 try {
