@@ -6,18 +6,13 @@ import kotlinx.serialization.Serializable
 
 @Immutable
 sealed interface ChallaRoute : NavKey {
-    val useNavigationBarsPadding: Boolean
-        get() = true
-
     @Serializable
     data object Sample : ChallaRoute
 
     @Serializable
     data class Camera(
         val roomId: Long,
-    ) : ChallaRoute {
-        override val useNavigationBarsPadding: Boolean = false
-    }
+    ) : ChallaRoute
 
     @Serializable
     data object RoomMain : ChallaRoute

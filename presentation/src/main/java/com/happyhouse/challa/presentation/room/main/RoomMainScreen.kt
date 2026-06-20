@@ -55,6 +55,8 @@ fun RoomMainRoute(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 RoomMainSideEffect.ShareRequested -> onShareClick()
+                RoomMainSideEffect.NavigateToCamera -> onCameraClick()
+                RoomMainSideEffect.NavigateToGallery -> onGalleryClick()
             }
         }
     }
@@ -70,14 +72,7 @@ fun RoomMainRoute(
             uiState = uiState,
             onBackClick = onBackClick,
             onShareClick = { viewModel.onIntent(RoomMainIntent.ShareClick) },
-            onMainActionClick = { status ->
-                when (status) {
-                    is RoomStatus.Shooting -> onCameraClick()
-                    is RoomStatus.Waiting -> Unit
-                    RoomStatus.Opened -> onGalleryClick()
-                    is RoomStatus.Expiring -> onGalleryClick()
-                }
-            },
+            onMainActionClick = { viewModel.onIntent(RoomMainIntent.MainActionClick) },
         )
     }
 }
@@ -88,7 +83,7 @@ fun RoomMainScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
-    onMainActionClick: (RoomStatus) -> Unit = {},
+    onMainActionClick: () -> Unit = {},
 ) {
     Column(
         modifier =
@@ -121,31 +116,11 @@ fun RoomMainScreen(
             }
 
             is RoomMainState.Content -> {
-                Column(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState())
-                            .padding(all = 20.dp),
-                ) {
-                    MemberCard(
-                        memberInitials = uiState.memberInitials,
-                        maxMemberCount = uiState.maxMemberCount,
-                    )
-                    Spacer(modifier = Modifier.height(60.dp))
-                    PhotoProgress(
-                        currentCount = uiState.photoCount,
-                        totalCount = uiState.totalPhotoCount,
-                    )
-                    Spacer(modifier = Modifier.height(60.dp))
-                    StatusCard(room = uiState.room)
-                }
-
-                BottomActions(
-                    status = uiState.room.status,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
+                RoomMainContent(
+                    state = uiState,
+                    modifier = Modifier.weight(1f),
                     onShareClick = onShareClick,
-                    onMainActionClick = { onMainActionClick(uiState.room.status) },
+                    onMainActionClick = onMainActionClick,
                 )
             }
 
@@ -162,6 +137,40 @@ fun RoomMainScreen(
             }
         }
     }
+}
+
+@Composable
+private fun RoomMainContent(
+    state: RoomMainState.Content,
+    modifier: Modifier = Modifier,
+    onShareClick: () -> Unit,
+    onMainActionClick: () -> Unit,
+) {
+    Column(
+        modifier =
+            modifier
+                .verticalScroll(rememberScrollState())
+                .padding(all = 20.dp),
+    ) {
+        MemberCard(
+            memberInitials = state.memberInitials,
+            maxMemberCount = state.maxMemberCount,
+        )
+        Spacer(modifier = Modifier.height(60.dp))
+        PhotoProgress(
+            currentCount = state.photoCount,
+            totalCount = state.totalPhotoCount,
+        )
+        Spacer(modifier = Modifier.height(60.dp))
+        StatusCard(room = state.room)
+    }
+
+    BottomActions(
+        status = state.room.status,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+        onShareClick = onShareClick,
+        onMainActionClick = onMainActionClick,
+    )
 }
 
 @Preview(showBackground = true)

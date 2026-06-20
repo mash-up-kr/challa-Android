@@ -6,4 +6,6 @@ sealed interface RoomMainIntent : UiIntent {
     data object FetchData : RoomMainIntent
 
     data object ShareClick : RoomMainIntent
+
+    data object MainActionClick : RoomMainIntent
 }
