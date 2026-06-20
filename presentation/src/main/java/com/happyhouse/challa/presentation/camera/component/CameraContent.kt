@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.contract.CameraUiIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraUiState
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import androidx.camera.core.Camera as CameraXCamera
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -115,7 +116,7 @@ private fun CameraContentLayoutPreview() {
         CameraContentLayout(
             modifier = Modifier.fillMaxSize(),
             remainingCount = 12,
-            totalCount = 24,
+            totalCount = ROOM_REQUIRED_PHOTO_COUNT,
             onBackClick = {},
             onFlashClick = {},
             onSwitchCameraClick = {},

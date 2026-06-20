@@ -22,13 +22,14 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.Black
 import com.happyhouse.challa.presentation.designsystem.theme.Border
 import com.happyhouse.challa.presentation.designsystem.theme.Gray700
+import com.happyhouse.challa.presentation.model.Room
 import com.happyhouse.challa.presentation.model.RoomStatus
-import com.happyhouse.challa.presentation.model.description
-import com.happyhouse.challa.presentation.model.label
+import com.happyhouse.challa.presentation.room.main.util.roomMainDescription
+import com.happyhouse.challa.presentation.room.main.util.roomMainLabel
 import kotlin.time.Duration.Companion.hours
 
 @Composable
-internal fun StatusCard(status: RoomStatus) {
+internal fun StatusCard(room: Room) {
     Column(
         modifier =
             Modifier
@@ -63,7 +64,7 @@ internal fun StatusCard(status: RoomStatus) {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = status.label,
+                    text = room.status.roomMainLabel,
                     color = Black,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -72,7 +73,7 @@ internal fun StatusCard(status: RoomStatus) {
         }
         Spacer(modifier = Modifier.height(14.dp))
         Text(
-            text = status.description,
+            text = room.status.roomMainDescription(room.requiredPhotoCount),
             color = Gray700,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
@@ -85,19 +86,40 @@ internal fun StatusCard(status: RoomStatus) {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun StatusCardShootingPreview() {
-    StatusCard(status = RoomStatus.Shooting(taken = 11, total = 24))
+    StatusCard(
+        room =
+            Room(
+                id = "room-id",
+                name = "해피하우스 프작모",
+                status = RoomStatus.Shooting(taken = 11),
+            ),
+    )
 }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun StatusCardWaitingPreview() {
-    StatusCard(status = RoomStatus.Waiting(dDay = 0, remaining = 3.hours))
+    StatusCard(
+        room =
+            Room(
+                id = "room-id",
+                name = "해피하우스 프작모",
+                status = RoomStatus.Waiting(dDay = 0, remaining = 3.hours),
+            ),
+    )
 }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun StatusCardPublishedPreview() {
-    StatusCard(status = RoomStatus.Opened)
+    StatusCard(
+        room =
+            Room(
+                id = "room-id",
+                name = "해피하우스 프작모",
+                status = RoomStatus.Opened,
+            ),
+    )
 }

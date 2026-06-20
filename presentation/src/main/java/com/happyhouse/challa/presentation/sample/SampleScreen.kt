@@ -35,7 +35,7 @@ fun SampleScreen(onEnterRoom: () -> Unit) {
         Button(
             onClick = onEnterRoom,
             modifier =
-                Modifier.height(48.dp),
+                Modifier.height(40.dp),
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF111111),
@@ -44,7 +44,7 @@ fun SampleScreen(onEnterRoom: () -> Unit) {
         ) {
             Text(
                 text = "방 들어가기",
-                fontSize = 18.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             )
         }

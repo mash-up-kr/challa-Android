@@ -22,8 +22,8 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.Black
 import com.happyhouse.challa.presentation.designsystem.theme.White
 import com.happyhouse.challa.presentation.model.RoomStatus
-import com.happyhouse.challa.presentation.model.isPrimaryButtonEnabled
-import com.happyhouse.challa.presentation.model.primaryButtonText
+import com.happyhouse.challa.presentation.room.main.util.isRoomMainPrimaryButtonEnabled
+import com.happyhouse.challa.presentation.room.main.util.roomMainPrimaryButtonText
 import kotlin.time.Duration.Companion.hours
 
 @Composable
@@ -58,7 +58,7 @@ internal fun BottomActions(
         }
         Button(
             onClick = onMainActionClick,
-            enabled = status.isPrimaryButtonEnabled,
+            enabled = status.isRoomMainPrimaryButtonEnabled,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -71,7 +71,7 @@ internal fun BottomActions(
                 ),
         ) {
             Text(
-                text = status.primaryButtonText,
+                text = status.roomMainPrimaryButtonText,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -83,7 +83,7 @@ internal fun BottomActions(
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun BottomActionsShootingPreview() {
-    BottomActions(status = RoomStatus.Shooting(taken = 11, total = 24))
+    BottomActions(status = RoomStatus.Shooting(taken = 11))
 }
 
 @Preview(showBackground = true)

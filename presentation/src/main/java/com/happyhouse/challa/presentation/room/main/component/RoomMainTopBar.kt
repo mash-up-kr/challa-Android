@@ -25,7 +25,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.Border
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
-internal fun RoomTopBar(
+internal fun RoomMainTopBar(
     title: String,
     onBackClick: () -> Unit,
 ) {
@@ -85,8 +85,8 @@ internal fun RoomTopBar(
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun RoomTopBarPreview() {
-    RoomTopBar(
+private fun RoomMainTopBarPreview() {
+    RoomMainTopBar(
         title = "해피하우스 프작모",
         onBackClick = {},
     )
