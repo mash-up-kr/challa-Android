@@ -24,10 +24,19 @@ class RoomMainViewModel @Inject constructor() :
         override fun onIntent(intent: RoomMainIntent) {
             when (intent) {
                 RoomMainIntent.FetchData -> fetchData()
-                RoomMainIntent.MainActionClick -> handleMainActionClick()
                 RoomMainIntent.ShareClick -> {
                     viewModelScope.launch {
                         sendEffect(RoomMainSideEffect.ShareRequested)
+                    }
+                }
+                RoomMainIntent.ShootClick -> {
+                    viewModelScope.launch {
+                        sendEffect(RoomMainSideEffect.NavigateToCamera)
+                    }
+                }
+                RoomMainIntent.GalleryClick -> {
+                    viewModelScope.launch {
+                        sendEffect(RoomMainSideEffect.NavigateToGallery)
                     }
                 }
             }
@@ -35,23 +44,6 @@ class RoomMainViewModel @Inject constructor() :
 
         private fun fetchData() {
             updateState { createSampleState() }
-        }
-
-        private fun handleMainActionClick() {
-            val contentState = currentState as? RoomMainState.Content ?: return
-
-            val sideEffect =
-                when (contentState.room.status) {
-                    is RoomStatus.Shooting -> RoomMainSideEffect.NavigateToCamera
-                    is RoomStatus.Waiting -> return
-                    RoomStatus.Opened,
-                    is RoomStatus.Expiring,
-                    -> RoomMainSideEffect.NavigateToGallery
-                }
-
-            viewModelScope.launch {
-                sendEffect(sideEffect)
-            }
         }
 
         private fun createSampleState(): RoomMainState =

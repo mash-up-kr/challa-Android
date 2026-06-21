@@ -76,10 +76,11 @@ fun RoomMainRoute(
         containerColor = White,
     ) { innerPadding ->
         RoomMainScreen(
-            modifier = Modifier.padding(innerPadding),
             uiState = uiState,
+            modifier = Modifier.padding(innerPadding),
             onShareClick = { viewModel.onIntent(RoomMainIntent.ShareClick) },
-            onMainActionClick = { viewModel.onIntent(RoomMainIntent.MainActionClick) },
+            onShootClick = { viewModel.onIntent(RoomMainIntent.ShootClick) },
+            onGalleryClick = { viewModel.onIntent(RoomMainIntent.GalleryClick) },
         )
     }
 }
@@ -89,7 +90,8 @@ fun RoomMainScreen(
     uiState: RoomMainState,
     modifier: Modifier = Modifier,
     onShareClick: () -> Unit = {},
-    onMainActionClick: () -> Unit = {},
+    onShootClick: () -> Unit = {},
+    onGalleryClick: () -> Unit = {},
 ) {
     Column(
         modifier =
@@ -115,7 +117,8 @@ fun RoomMainScreen(
                     state = uiState,
                     modifier = Modifier.weight(1f),
                     onShareClick = onShareClick,
-                    onMainActionClick = onMainActionClick,
+                    onShootClick = onShootClick,
+                    onGalleryClick = onGalleryClick,
                 )
             }
 
@@ -139,7 +142,8 @@ private fun RoomMainContent(
     state: RoomMainState.Content,
     modifier: Modifier = Modifier,
     onShareClick: () -> Unit,
-    onMainActionClick: () -> Unit,
+    onShootClick: () -> Unit,
+    onGalleryClick: () -> Unit,
 ) {
     Column(
         modifier =
@@ -164,7 +168,8 @@ private fun RoomMainContent(
         status = state.room.status,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
         onShareClick = onShareClick,
-        onMainActionClick = onMainActionClick,
+        onShootClick = onShootClick,
+        onGalleryClick = onGalleryClick,
     )
 }
 

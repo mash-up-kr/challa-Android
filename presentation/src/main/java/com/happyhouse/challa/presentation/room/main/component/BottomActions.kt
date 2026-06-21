@@ -32,51 +32,85 @@ internal fun BottomActions(
     status: RoomStatus,
     modifier: Modifier = Modifier,
     onShareClick: () -> Unit = {},
-    onMainActionClick: () -> Unit = {},
+    onShootClick: () -> Unit = {},
+    onGalleryClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OutlinedButton(
-            onClick = rememberClickOnce(onClick = onShareClick),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(width = 1.dp, color = Color(0xFF9E9E9E)),
-            colors =
-                ButtonDefaults.outlinedButtonColors(
-                    contentColor = Black,
-                ),
-        ) {
-            Text(
-                text = "초대 링크 공유",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Button(
-            onClick = rememberClickOnce(onClick = onMainActionClick),
-            enabled = status.isRoomMainPrimaryButtonEnabled,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = Black,
-                    contentColor = White,
-                ),
-        ) {
-            Text(
-                text = status.roomMainPrimaryButtonText,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        ShareButton(onClick = onShareClick)
+        RoomMainPrimaryButton(
+            status = status,
+            onShootClick = onShootClick,
+            onGalleryClick = onGalleryClick,
+        )
+    }
+}
+
+@Composable
+private fun ShareButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        onClick = rememberClickOnce(onClick = onClick),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(48.dp),
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(width = 1.dp, color = Color(0xFF9E9E9E)),
+        colors =
+            ButtonDefaults.outlinedButtonColors(
+                contentColor = Black,
+            ),
+    ) {
+        Text(
+            text = "초대 링크 공유",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun RoomMainPrimaryButton(
+    status: RoomStatus,
+    onShootClick: () -> Unit,
+    onGalleryClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick =
+            rememberClickOnce(
+                onClick = {
+                    when (status) {
+                        is RoomStatus.Shooting -> onShootClick()
+                        is RoomStatus.Waiting -> Unit
+                        RoomStatus.Opened,
+                        is RoomStatus.Expiring,
+                        -> onGalleryClick()
+                    }
+                },
+            ),
+        enabled = status.isRoomMainPrimaryButtonEnabled,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(48.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = Black,
+                contentColor = White,
+            ),
+    ) {
+        Text(
+            text = status.roomMainPrimaryButtonText,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 

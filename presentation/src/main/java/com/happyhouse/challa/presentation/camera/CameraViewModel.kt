@@ -43,7 +43,9 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun handleFlashClick() {
         if (!currentState.hasFlashUnit) {
-            sendSideEffect(CameraSideEffect.FlashNotAvailable)
+            viewModelScope.launch {
+                sendEffect(CameraSideEffect.FlashNotAvailable)
+            }
             return
         }
 
@@ -51,13 +53,15 @@ class CameraViewModel @AssistedInject constructor(
             copy(isFlashOn = !isFlashOn)
         }
 
-        sendSideEffect(
-            if (currentState.isFlashOn) {
-                CameraSideEffect.FlashEnabled
-            } else {
-                CameraSideEffect.FlashDisabled
-            },
-        )
+        viewModelScope.launch {
+            sendEffect(
+                if (currentState.isFlashOn) {
+                    CameraSideEffect.FlashEnabled
+                } else {
+                    CameraSideEffect.FlashDisabled
+                },
+            )
+        }
     }
 
     private fun handleSwitchCameraClick() {
@@ -81,12 +85,6 @@ class CameraViewModel @AssistedInject constructor(
                 hasFlashUnit = isAvailable,
                 isFlashOn = isFlashOn && isAvailable,
             )
-        }
-    }
-
-    private fun sendSideEffect(sideEffect: CameraSideEffect) {
-        viewModelScope.launch {
-            sendEffect(sideEffect)
         }
     }
 

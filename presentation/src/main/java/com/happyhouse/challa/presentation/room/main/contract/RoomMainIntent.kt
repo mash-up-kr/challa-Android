@@ -7,5 +7,7 @@ sealed interface RoomMainIntent : UiIntent {
 
     data object ShareClick : RoomMainIntent
 
-    data object MainActionClick : RoomMainIntent
+    data object ShootClick : RoomMainIntent
+
+    data object GalleryClick : RoomMainIntent
 }
