@@ -112,7 +112,7 @@ private fun CreateRoomContent(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             CreateRoomTopBar(
-                onClickClose = { onIntent(CreateRoomIntent.ClickClose) },
+                onClickClose = { onIntent(CreateRoomIntent.CloseClick) },
             )
 
             Column(
@@ -132,7 +132,7 @@ private fun CreateRoomContent(
 
             CreateRoomFooter(
                 canSubmit = state.canSubmit,
-                onClickSubmit = { onIntent(CreateRoomIntent.ClickCreate) },
+                onClickSubmit = { onIntent(CreateRoomIntent.CreateClick) },
             )
         }
 

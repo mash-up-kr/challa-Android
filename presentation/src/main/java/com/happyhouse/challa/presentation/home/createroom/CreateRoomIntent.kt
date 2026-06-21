@@ -7,7 +7,7 @@ sealed interface CreateRoomIntent : UiIntent {
         val name: String,
     ) : CreateRoomIntent
 
-    data object ClickCreate : CreateRoomIntent
+    data object CreateClick : CreateRoomIntent
 
-    data object ClickClose : CreateRoomIntent
+    data object CloseClick : CreateRoomIntent
 }

@@ -86,9 +86,9 @@ fun HomeScreen(
             // TODO JH 클릭 피드백용 임시 토스트 - 실제 동작 연결되면 제거 예정
             val message =
                 when (intent) {
-                    HomeIntent.ClickInviteCode -> "초대코드 입력 클릭"
-                    HomeIntent.ClickCreateRoom -> "방 만들기 클릭"
-                    is HomeIntent.ClickRoom -> "${intent.room.name} 방 클릭"
+                    HomeIntent.InviteCodeClick -> "초대코드 입력 클릭"
+                    HomeIntent.CreateRoomClick -> "방 만들기 클릭"
+                    is HomeIntent.RoomClick -> "${intent.room.name} 방 클릭"
                 }
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.onIntent(intent)
@@ -117,7 +117,7 @@ private fun HomeContent(
         ) {
             HomeTopBar(
                 userName = state.userName,
-                onClickInviteCode = { onIntent(HomeIntent.ClickInviteCode) },
+                onClickInviteCode = { onIntent(HomeIntent.InviteCodeClick) },
             )
 
             if (state.isLoading) {
@@ -140,7 +140,7 @@ private fun HomeContent(
                     items(items = state.rooms, key = { it.id }) { room ->
                         RoomCard(
                             room = room,
-                            onClick = { onIntent(HomeIntent.ClickRoom(room)) },
+                            onClick = { onIntent(HomeIntent.RoomClick(room)) },
                         )
                     }
                 }
@@ -148,7 +148,7 @@ private fun HomeContent(
         }
 
         CreateRoomFab(
-            onClick = { onIntent(HomeIntent.ClickCreateRoom) },
+            onClick = { onIntent(HomeIntent.CreateRoomClick) },
             modifier =
                 Modifier
                     .align(Alignment.BottomEnd)

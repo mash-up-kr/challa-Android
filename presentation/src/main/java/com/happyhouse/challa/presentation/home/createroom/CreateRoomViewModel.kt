@@ -19,8 +19,8 @@ class CreateRoomViewModel
         override fun onIntent(intent: CreateRoomIntent) {
             when (intent) {
                 is CreateRoomIntent.NameChanged -> onNameChanged(intent.name)
-                CreateRoomIntent.ClickCreate -> createRoom()
-                CreateRoomIntent.ClickClose -> cancelRoomCreation()
+                CreateRoomIntent.CreateClick -> createRoom()
+                CreateRoomIntent.CloseClick -> cancelRoomCreation()
             }
         }
 

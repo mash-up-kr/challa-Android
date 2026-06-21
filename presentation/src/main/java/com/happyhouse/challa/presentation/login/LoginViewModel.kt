@@ -16,7 +16,7 @@ class LoginViewModel
         ) {
         override fun onIntent(intent: LoginIntent) {
             when (intent) {
-                LoginIntent.ClickLogin -> handleLoginClick()
+                LoginIntent.LoginClick -> handleLoginClick()
             }
         }
 
