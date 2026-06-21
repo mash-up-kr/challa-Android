@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.Black
 import com.happyhouse.challa.presentation.designsystem.theme.White
+import com.happyhouse.challa.presentation.designsystem.util.rememberClickOnce
 import com.happyhouse.challa.presentation.model.RoomStatus
 import com.happyhouse.challa.presentation.room.main.util.isRoomMainPrimaryButtonEnabled
 import com.happyhouse.challa.presentation.room.main.util.roomMainPrimaryButtonText
@@ -38,7 +39,7 @@ internal fun BottomActions(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedButton(
-            onClick = onShareClick,
+            onClick = rememberClickOnce(onClick = onShareClick),
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -57,7 +58,7 @@ internal fun BottomActions(
             )
         }
         Button(
-            onClick = onMainActionClick,
+            onClick = rememberClickOnce(onClick = onMainActionClick),
             enabled = status.isRoomMainPrimaryButtonEnabled,
             modifier =
                 Modifier
