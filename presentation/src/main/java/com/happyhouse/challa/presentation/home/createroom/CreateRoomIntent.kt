@@ -8,6 +8,4 @@ sealed interface CreateRoomIntent : UiIntent {
     ) : CreateRoomIntent
 
     data object CreateClick : CreateRoomIntent
-
-    data object CloseClick : CreateRoomIntent
 }

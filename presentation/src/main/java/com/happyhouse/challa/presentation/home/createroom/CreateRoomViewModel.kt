@@ -20,19 +20,12 @@ class CreateRoomViewModel
             when (intent) {
                 is CreateRoomIntent.NameChanged -> onNameChanged(intent.name)
                 CreateRoomIntent.CreateClick -> createRoom()
-                CreateRoomIntent.CloseClick -> cancelRoomCreation()
             }
         }
 
         private fun onNameChanged(name: String) {
             val truncated = name.take(ROOM_NAME_MAX_LENGTH)
             updateState { copy(name = truncated) }
-        }
-
-        private fun cancelRoomCreation() {
-            viewModelScope.launch {
-                sendEffect(CreateRoomSideEffect.RoomCreationCancelled)
-            }
         }
 
         private fun createRoom() {

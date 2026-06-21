@@ -24,17 +24,7 @@ class HomeViewModel
             loadHome()
         }
 
-        override fun onIntent(intent: HomeIntent) {
-            viewModelScope.launch {
-                when (intent) {
-                    HomeIntent.CreateRoomClick -> HomeSideEffect.RoomCreationRequested
-                    HomeIntent.InviteCodeClick -> HomeSideEffect.InviteCodeEntryRequested
-                    is HomeIntent.RoomClick -> HomeSideEffect.RoomSelected(intent.room)
-                }.also { sideEffect ->
-                    sendEffect(sideEffect)
-                }
-            }
-        }
+        override fun onIntent(intent: HomeIntent) = Unit
 
         private fun loadHome() {
             viewModelScope.launch {

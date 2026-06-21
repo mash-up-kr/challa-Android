@@ -7,6 +7,4 @@ sealed interface CreateRoomSideEffect : UiSideEffect {
         val roomId: String,
         val roomName: String,
     ) : CreateRoomSideEffect
-
-    data object RoomCreationCancelled : CreateRoomSideEffect
 }

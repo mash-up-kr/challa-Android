@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.home
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -22,14 +21,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,31 +65,12 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                HomeSideEffect.InviteCodeEntryRequested -> onNavigateToInviteCode()
-                HomeSideEffect.RoomCreationRequested -> onNavigateToCreateRoom()
-                is HomeSideEffect.RoomSelected -> onNavigateToRoom(effect.room)
-            }
-        }
-    }
 
     HomeContent(
         state = state,
-        onIntent = { intent ->
-            // TODO JH 클릭 피드백용 임시 토스트 - 실제 동작 연결되면 제거 예정
-            val message =
-                when (intent) {
-                    HomeIntent.InviteCodeClick -> "초대코드 입력 클릭"
-                    HomeIntent.CreateRoomClick -> "방 만들기 클릭"
-                    is HomeIntent.RoomClick -> "${intent.room.name} 방 클릭"
-                }
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            viewModel.onIntent(intent)
-        },
+        onInviteCodeClick = onNavigateToInviteCode,
+        onCreateRoomClick = onNavigateToCreateRoom,
+        onRoomClick = onNavigateToRoom,
         modifier = modifier,
     )
 }
@@ -100,7 +78,9 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeState,
-    onIntent: (HomeIntent) -> Unit,
+    onInviteCodeClick: () -> Unit,
+    onCreateRoomClick: () -> Unit,
+    onRoomClick: (Room) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -117,7 +97,7 @@ private fun HomeContent(
         ) {
             HomeTopBar(
                 userName = state.userName,
-                onClickInviteCode = { onIntent(HomeIntent.InviteCodeClick) },
+                onClickInviteCode = onInviteCodeClick,
             )
 
             if (state.isLoading) {
@@ -140,7 +120,7 @@ private fun HomeContent(
                     items(items = state.rooms, key = { it.id }) { room ->
                         RoomCard(
                             room = room,
-                            onClick = { onIntent(HomeIntent.RoomClick(room)) },
+                            onClick = { onRoomClick(room) },
                         )
                     }
                 }
@@ -148,7 +128,7 @@ private fun HomeContent(
         }
 
         CreateRoomFab(
-            onClick = { onIntent(HomeIntent.CreateRoomClick) },
+            onClick = onCreateRoomClick,
             modifier =
                 Modifier
                     .align(Alignment.BottomEnd)
@@ -314,7 +294,9 @@ private fun HomeScreenPreview() {
                         Room("4", "부산 1박", RoomStatus.Expiring(2)),
                     ),
             ),
-        onIntent = {},
+        onInviteCodeClick = {},
+        onCreateRoomClick = {},
+        onRoomClick = {},
     )
 }
 
@@ -324,6 +306,8 @@ private fun HomeScreenPreview() {
 private fun HomeScreenLoadingPreview() {
     HomeContent(
         state = HomeState(isLoading = true, userName = ""),
-        onIntent = {},
+        onInviteCodeClick = {},
+        onCreateRoomClick = {},
+        onRoomClick = {},
     )
 }

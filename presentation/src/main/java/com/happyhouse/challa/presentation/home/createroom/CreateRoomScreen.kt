@@ -77,7 +77,6 @@ fun CreateRoomScreen(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                CreateRoomSideEffect.RoomCreationCancelled -> onClose()
                 is CreateRoomSideEffect.RoomCreated -> {
                     // TODO JH 방 생성 완료 피드백용 임시 토스트 - ShareInvite 화면 연결 시 제거 예정
                     Toast
@@ -91,6 +90,7 @@ fun CreateRoomScreen(
 
     CreateRoomContent(
         state = state,
+        onClose = onClose,
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
@@ -99,6 +99,7 @@ fun CreateRoomScreen(
 @Composable
 private fun CreateRoomContent(
     state: CreateRoomState,
+    onClose: () -> Unit,
     onIntent: (CreateRoomIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -112,7 +113,7 @@ private fun CreateRoomContent(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             CreateRoomTopBar(
-                onClickClose = { onIntent(CreateRoomIntent.CloseClick) },
+                onClickClose = onClose,
             )
 
             Column(
@@ -328,6 +329,7 @@ private fun SubmitButton(
 private fun CreateRoomScreenEmptyPreview() {
     CreateRoomContent(
         state = CreateRoomState(name = ""),
+        onClose = {},
         onIntent = {},
     )
 }
@@ -338,6 +340,7 @@ private fun CreateRoomScreenEmptyPreview() {
 private fun CreateRoomScreenFilledPreview() {
     CreateRoomContent(
         state = CreateRoomState(name = "오사카 졸업여행"),
+        onClose = {},
         onIntent = {},
     )
 }
@@ -348,6 +351,7 @@ private fun CreateRoomScreenFilledPreview() {
 private fun CreateRoomScreenSubmittingPreview() {
     CreateRoomContent(
         state = CreateRoomState(name = "오사카 졸업여행", isSubmitting = true),
+        onClose = {},
         onIntent = {},
     )
 }
