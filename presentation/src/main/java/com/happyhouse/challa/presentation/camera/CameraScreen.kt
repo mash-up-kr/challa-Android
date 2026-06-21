@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.happyhouse.challa.presentation.camera.component.CameraContent
 import com.happyhouse.challa.presentation.camera.component.CameraPermissionDeniedContent
-import com.happyhouse.challa.presentation.camera.contract.CameraUiIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraUiState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 
@@ -32,7 +32,7 @@ fun CameraScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     onRequestPermissionClick: () -> Unit,
-    onIntent: (CameraUiIntent) -> Unit,
+    onIntent: (CameraIntent) -> Unit,
 ) {
     val activity = LocalActivity.current as? ComponentActivity
 
