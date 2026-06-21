@@ -43,6 +43,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.home.model.Room
 import com.happyhouse.challa.presentation.home.model.RoomStatus
+import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -306,7 +307,7 @@ private fun HomeScreenPreview() {
                 isLoading = false,
                 userName = "윤서연",
                 rooms =
-                    listOf(
+                    persistentListOf(
                         Room("1", "오사카 졸업여행", RoomStatus.Shooting(12, 24)),
                         Room("2", "제주 워크샵", RoomStatus.Waiting(0, 2.hours + 47.minutes)),
                         Room("3", "다낭 4박5일", RoomStatus.Opened),

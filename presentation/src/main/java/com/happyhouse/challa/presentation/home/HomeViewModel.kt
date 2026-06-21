@@ -5,6 +5,8 @@ import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.home.model.Room
 import com.happyhouse.challa.presentation.home.model.RoomStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,14 +53,14 @@ class HomeViewModel
 
         private data class MockHome(
             val userName: String,
-            val rooms: List<Room>,
+            val rooms: ImmutableList<Room>,
         )
 
         private fun mockHomeData(): MockHome =
             MockHome(
                 userName = "윤서연",
                 rooms =
-                    listOf(
+                    persistentListOf(
                         Room(
                             id = "1",
                             name = "오사카 졸업여행",
