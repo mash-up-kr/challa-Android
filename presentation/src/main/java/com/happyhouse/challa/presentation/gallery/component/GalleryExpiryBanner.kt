@@ -21,9 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 private val BannerBackgroundColor = Color(0xFFFFF3E0)
 private val BannerContentColor = Color(0xFFB26A00)
 
-/**
- * 안내 배너. 시안: 좌측 정렬 + ⓘ prefix(유니코드 placeholder).
- */
 @Composable
 fun GalleryExpiryBanner(
     remainingDays: Int,
