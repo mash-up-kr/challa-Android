@@ -29,12 +29,12 @@ class GalleryViewModel @AssistedInject constructor(
 
     override fun onIntent(intent: GalleryIntent) {
         when (intent) {
-            GalleryIntent.PhotosLoad -> loadPhotos()
+            GalleryIntent.PhotosLoad -> handlePhotosLoad()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
         }
     }
 
-    private fun loadPhotos() {
+    private fun handlePhotosLoad() {
         viewModelScope.launch {
             updateState { copy(isLoading = true, isError = false) }
             runCatching {
