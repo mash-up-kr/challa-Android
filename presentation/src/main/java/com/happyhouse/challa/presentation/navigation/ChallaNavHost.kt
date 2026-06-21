@@ -55,7 +55,8 @@ fun ChallaNavHost(
                 entry<ChallaRoute.Onboarding> {
                     OnboardingScreen(
                         onComplete = {
-                            navigator.replace(ChallaRoute.Login)
+                            // login화면으로 보내지 않고 SampleScreen으로 보냄
+                            navigator.replace(ChallaRoute.Sample)
                         },
                     )
                 }

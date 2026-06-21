@@ -28,8 +28,9 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 internal fun RoomMainTopBar(
     title: String,
     onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier =
                 Modifier

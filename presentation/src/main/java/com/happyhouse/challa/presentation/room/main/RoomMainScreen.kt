@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,15 +63,21 @@ fun RoomMainRoute(
     }
 
     Scaffold(
-        containerColor = White,
+        topBar = {
+            RoomMainTopBar(
+                title = uiState.topBarTitle,
+                onBackClick = onBackClick,
+                modifier = Modifier.statusBarsPadding(),
+            )
+        },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
+        containerColor = White,
     ) { innerPadding ->
         RoomMainScreen(
             modifier = Modifier.padding(innerPadding),
             uiState = uiState,
-            onBackClick = onBackClick,
             onShareClick = { viewModel.onIntent(RoomMainIntent.ShareClick) },
             onMainActionClick = { viewModel.onIntent(RoomMainIntent.MainActionClick) },
         )
@@ -81,7 +88,6 @@ fun RoomMainRoute(
 fun RoomMainScreen(
     uiState: RoomMainState,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
     onMainActionClick: () -> Unit = {},
 ) {
@@ -91,17 +97,6 @@ fun RoomMainScreen(
                 .fillMaxSize()
                 .background(White),
     ) {
-        RoomMainTopBar(
-            title =
-                when (uiState) {
-                    is RoomMainState.Content -> uiState.room.name
-                    RoomMainState.Loading,
-                    RoomMainState.Error,
-                    -> ""
-                },
-            onBackClick = onBackClick,
-        )
-
         when (uiState) {
             RoomMainState.Loading -> {
                 Box(
@@ -172,6 +167,15 @@ private fun RoomMainContent(
         onMainActionClick = onMainActionClick,
     )
 }
+
+private val RoomMainState.topBarTitle: String
+    get() =
+        when (this) {
+            is RoomMainState.Content -> title
+            RoomMainState.Loading,
+            RoomMainState.Error,
+            -> ""
+        }
 
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)

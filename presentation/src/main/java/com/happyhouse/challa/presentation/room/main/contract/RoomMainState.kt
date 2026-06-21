@@ -15,6 +15,9 @@ sealed interface RoomMainState : UiState {
         val memberInitials: ImmutableList<String>,
         val maxMemberCount: Int,
     ) : RoomMainState {
+        val title: String
+            get() = room.name
+
         val photoCount: Int
             get() =
                 when (room.status) {
