@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.camera.CameraRoute
+import com.happyhouse.challa.presentation.login.LoginScreen
+import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
@@ -19,7 +21,7 @@ fun ChallaNavHost(
 ) {
     NavDisplay(
         backStack = navigator.backStack,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.navigationBarsPadding(),
         transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
@@ -48,6 +50,20 @@ fun ChallaNavHost(
                             navigator.navigate(ChallaRoute.Camera(roomId = 1L))
                         },
                         onGalleryClick = {},
+                    )
+                }
+                entry<ChallaRoute.Onboarding> {
+                    OnboardingScreen(
+                        onComplete = {
+                            navigator.replace(ChallaRoute.Login)
+                        },
+                    )
+                }
+                entry<ChallaRoute.Login> {
+                    LoginScreen(
+                        onLoginSuccess = {
+                            // TODO JH: 로그인 성공 후 다음 화면(Home 등) 구현되면 navigator.replace(...) 연결
+                        },
                     )
                 }
             },

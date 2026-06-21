@@ -50,7 +50,7 @@ dependencies {
     implementation(libs.bundles.coil)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
-    implementation(libs.hilt.viewmodel.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.android.compiler)
 
     debugImplementation(libs.bundles.androidx.compose.debug)

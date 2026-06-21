@@ -20,4 +20,25 @@
     <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
     <string name="camera_flash_enabled_message">플래시가 켜졌어요.</string>
     <string name="camera_flash_disabled_message">플래시가 꺼졌어요.</string>
+
+    <string name="onboarding_step1_title">함께 찍기</string>
+    <string name="onboarding_step1_description">한 방 = 한 카메라.\n일행이 같은 카메라를 함께 든다.</string>
+    <!-- TODO JH 장수, 시간 혹은 문구 자체를 서버에서 받도록 수정해야한다. -->
+    <string name="onboarding_step2_title">24장의 제약</string>
+    <string name="onboarding_step2_description">24장을 다 채워야 공개됩니다.\n한 컷, 한 컷에 의미를.</string>
+    <string name="onboarding_step3_title">3시간 뒤 공개</string>
+    <string name="onboarding_step3_description">24장을 다 채우면\n3시간 후 다 같이 열어봐요.</string>
+    <string name="previous">이전</string>
+    <string name="next">다음</string>
+    <string name="start">시작하기</string>
+
+    <string name="app_name_kr">찰나</string>
+    <string name="app_name_en">Challa</string>
+    <string name="login_logo_placeholder">[로고 placeholder]</string>
+    <string name="login_kakao">카카오로 시작하기</string>
+    <string name="login_terms_prefix">"시작 시 "</string>
+    <string name="login_terms_of_service">이용약관</string>
+    <string name="login_terms_middle">" 및 "</string>
+    <string name="login_privacy_policy">개인정보처리방침</string>
+    <string name="login_terms_suffix">에 동의한 것으로 간주됩니다.</string>
 </resources>
