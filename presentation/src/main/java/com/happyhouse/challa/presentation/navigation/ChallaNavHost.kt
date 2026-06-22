@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.camera.CameraRoute
+import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
-import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.login.LoginScreen
 import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
 import com.happyhouse.challa.presentation.sample.SampleScreen
