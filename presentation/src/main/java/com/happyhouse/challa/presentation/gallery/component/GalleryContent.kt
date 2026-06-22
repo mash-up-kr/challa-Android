@@ -2,7 +2,9 @@ package com.happyhouse.challa.presentation.gallery.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,7 +22,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
-import kotlinx.collections.immutable.persistentListOf
+import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -32,60 +34,66 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun GalleryContent(
     state: GalleryState,
     onIntent: (GalleryIntent) -> Unit,
-    onBackClick: () -> Unit,
-    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        GalleryTopBar(
-            modifier = Modifier.fillMaxWidth(),
-            title = state.roomName,
-            onBackClick = onBackClick,
-            onMoreClick = onMoreClick,
-        )
-
-        GalleryExpiryBanner(
-            modifier = Modifier.fillMaxWidth(),
-            remainingDays = state.remainingDays,
-        )
-
-        Box(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-        ) {
-            when {
-                state.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        when (val photoInfo = state.photoInfo) {
+            PhotoInfo.Loading -> {
+                GalleryCenterBox {
+                    CircularProgressIndicator()
                 }
+            }
 
-                state.isError -> {
+            PhotoInfo.Error -> {
+                GalleryCenterBox {
                     GalleryMessage(
-                        modifier = Modifier.align(Alignment.Center),
                         message = stringResource(R.string.gallery_error_message),
                         actionLabel = stringResource(R.string.gallery_retry),
                         onAction = { onIntent(GalleryIntent.PhotosLoad) },
                     )
                 }
+            }
 
-                state.isEmpty -> {
+            PhotoInfo.Empty -> {
+                GalleryCenterBox {
                     GalleryMessage(
-                        modifier = Modifier.align(Alignment.Center),
                         message = stringResource(R.string.gallery_empty),
                     )
                 }
+            }
 
-                else -> {
-                    GalleryGrid(
-                        modifier = Modifier.fillMaxSize(),
-                        photos = state.photos,
-                        onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
-                    )
-                }
+            is PhotoInfo.Loaded -> {
+                GalleryExpiryBanner(
+                    modifier = Modifier.fillMaxWidth(),
+                    remainingDays = state.remainingDays,
+                )
+
+                GalleryGrid(
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                    photos = photoInfo.photos,
+                    onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
+                )
             }
         }
     }
+}
+
+/**
+ * 로딩/에러/빈 상태를 화면 중앙에 배치하는 영역
+ */
+@Composable
+private fun ColumnScope.GalleryCenterBox(content: @Composable BoxScope.() -> Unit) {
+    Box(
+        modifier =
+            Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+        content = content,
+    )
 }
 
 @Composable
@@ -128,13 +136,10 @@ private fun GalleryContentPreview() {
         state =
             GalleryState(
                 roomName = "다낭 4박5일",
-                isLoading = false,
-                photos = photos,
                 remainingDays = 3,
+                photoInfo = PhotoInfo.Loaded(photos),
             ),
         onIntent = {},
-        onBackClick = {},
-        onMoreClick = {},
     )
 }
 
@@ -147,12 +152,41 @@ private fun GalleryContentEmptyPreview() {
         state =
             GalleryState(
                 roomName = "다낭 4박5일",
-                isLoading = false,
-                photos = persistentListOf(),
                 remainingDays = 3,
+                photoInfo = PhotoInfo.Empty,
             ),
         onIntent = {},
-        onBackClick = {},
-        onMoreClick = {},
+    )
+}
+
+@ComposePreview(showBackground = true, name = "Gallery - Loading")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryContentLoadingPreview() {
+    GalleryContent(
+        modifier = Modifier.fillMaxSize(),
+        state =
+            GalleryState(
+                roomName = "다낭 4박5일",
+                remainingDays = 3,
+                photoInfo = PhotoInfo.Loading,
+            ),
+        onIntent = {},
+    )
+}
+
+@ComposePreview(showBackground = true, name = "Gallery - Error")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryContentErrorPreview() {
+    GalleryContent(
+        modifier = Modifier.fillMaxSize(),
+        state =
+            GalleryState(
+                roomName = "다낭 4박5일",
+                remainingDays = 3,
+                photoInfo = PhotoInfo.Error,
+            ),
+        onIntent = {},
     )
 }
