@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,13 +19,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
+import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val ThumbnailPlaceholderColor = Color(0xFFE0E0E0)
 
@@ -87,5 +91,16 @@ private fun OrderLabel(
         color = Color.White,
         fontSize = 11.sp,
         fontWeight = FontWeight.SemiBold,
+    )
+}
+
+@ComposePreview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryPhotoItemPreview() {
+    GalleryPhotoItem(
+        modifier = Modifier.size(120.dp),
+        photo = GalleryPhotoUiModel(id = 1L, order = 1, imageUrl = ""),
+        onClick = {},
     )
 }

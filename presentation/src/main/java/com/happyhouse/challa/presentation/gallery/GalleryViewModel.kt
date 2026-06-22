@@ -6,6 +6,7 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
+import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -36,17 +37,20 @@ class GalleryViewModel @AssistedInject constructor(
 
     private fun handlePhotosLoad() {
         viewModelScope.launch {
-            updateState { copy(isLoading = true, isError = false) }
+            updateState { copy(photoInfo = PhotoInfo.Loading) }
             runCatching {
                 loadMockPhotos()
             }.onSuccess { photos ->
                 updateState {
-                    copy(isLoading = false, isError = false, photos = photos, roomName = MOCK_ROOM_NAME)
+                    copy(
+                        roomName = MOCK_ROOM_NAME,
+                        photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
+                    )
                 }
             }.onFailure { throwable ->
                 if (throwable is CancellationException) throw throwable
                 Timber.e(throwable)
-                updateState { copy(isLoading = false, isError = true) }
+                updateState { copy(photoInfo = PhotoInfo.Error) }
             }
         }
     }

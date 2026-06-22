@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.gallery.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +28,6 @@ fun GalleryExpiryBanner(
     Text(
         modifier =
             modifier
-                .fillMaxWidth()
                 .background(BannerBackgroundColor)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         text = stringResource(R.string.gallery_auto_delete_banner, remainingDays),
