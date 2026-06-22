@@ -3,7 +3,7 @@ package com.happyhouse.challa.presentation.photodetail.contract
 import com.happyhouse.challa.presentation.base.UiSideEffect
 
 sealed interface PhotoDetailSideEffect : UiSideEffect {
-    data class SavePhotoToMediaStore(
+    data class SavePhotoToDevice(
         val imageUrl: String,
     ) : PhotoDetailSideEffect
 
