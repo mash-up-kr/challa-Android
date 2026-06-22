@@ -16,7 +16,6 @@ import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val GALLERY_COLUMN_COUNT = 4
-private const val GALLERY_ITEM_CONTENT_TYPE = "gallery_photo"
 
 /**
  * 공개된 방 사진 4열 그리드
@@ -37,7 +36,6 @@ fun GalleryGrid(
         items(
             items = photos,
             key = { photo -> photo.id },
-            contentType = { GALLERY_ITEM_CONTENT_TYPE },
         ) { photo ->
             GalleryPhotoItem(
                 photo = photo,
