@@ -138,7 +138,7 @@ private fun LoginContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Button(
-                onClick = { onIntent(LoginIntent.ClickLogin) },
+                onClick = { onIntent(LoginIntent.LoginClick) },
                 enabled = !state.isLoading,
                 modifier =
                     Modifier
