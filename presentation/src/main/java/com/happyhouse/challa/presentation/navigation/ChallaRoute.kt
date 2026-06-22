@@ -22,4 +22,10 @@ sealed interface ChallaRoute : NavKey {
 
     @Serializable
     data object RoomMain : ChallaRoute
+
+    @Serializable
+    data object Home : ChallaRoute
+
+    @Serializable
+    data object CreateRoom : ChallaRoute
 }
