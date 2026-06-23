@@ -30,6 +30,5 @@ data class PhotoDetailUiModel(
     val id: Long,
     val imageUrl: String,
     val photographer: String,
-    // TODO: 실제로는 촬영 timestamp를 받아 표시용 포맷으로 변환
     val capturedDate: String,
 )
