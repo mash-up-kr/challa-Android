@@ -10,6 +10,4 @@ import android.content.Context
 suspend fun savePhotoToMediaStore(
     context: Context,
     imageUrl: String,
-): Result<Unit> {
-    return Result.failure(NotImplementedError("savePhotoToMediaStore 미구현"))
-}
+): Result<Unit> = Result.failure(NotImplementedError("savePhotoToMediaStore 미구현"))
