@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.photodetail.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,9 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val PhotoPlaceholderColor = Color(0xFF1A1A1A)
 
+// 이미지 로드 전후로 높이가 변하지 않도록 영역을 고정
+private const val PHOTO_ASPECT_RATIO = 3f / 4f
+
 @Composable
 fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
@@ -43,6 +47,7 @@ fun PhotoDetailPage(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .aspectRatio(PHOTO_ASPECT_RATIO)
                     .background(PhotoPlaceholderColor),
             model =
                 ImageRequest
