@@ -13,6 +13,7 @@ import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.login.LoginScreen
 import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
+import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
 @Composable
@@ -38,6 +39,13 @@ fun ChallaNavHost(
                 entry<ChallaRoute.Camera> { route ->
                     CameraRoute(
                         roomId = route.roomId,
+                        onBackClick = { navigator.goBack() },
+                    )
+                }
+                entry<ChallaRoute.PhotoDetail> { route ->
+                    PhotoDetailRoute(
+                        roomId = route.roomId,
+                        photoId = route.photoId,
                         onBackClick = { navigator.goBack() },
                     )
                 }

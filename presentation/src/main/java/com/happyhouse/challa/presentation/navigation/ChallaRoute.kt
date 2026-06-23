@@ -15,6 +15,12 @@ sealed interface ChallaRoute : NavKey {
     ) : ChallaRoute
 
     @Serializable
+    data class PhotoDetail(
+        val roomId: Long,
+        val photoId: Long,
+    ) : ChallaRoute
+
+    @Serializable
     data object Onboarding : ChallaRoute
 
     @Serializable
