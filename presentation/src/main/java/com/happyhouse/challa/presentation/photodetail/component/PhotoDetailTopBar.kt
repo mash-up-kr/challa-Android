@@ -37,7 +37,7 @@ fun PhotoDetailTopBar(
                 scrolledContainerColor = Color.Unspecified,
                 navigationIconContentColor = Color.White,
                 titleContentColor = Color.White,
-                actionIconContentColor = Color.White
+                actionIconContentColor = Color.White,
             ),
         title = {
             Text(
