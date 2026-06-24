@@ -2,18 +2,18 @@ package com.happyhouse.challa.presentation.camera.contract
 
 import com.happyhouse.challa.presentation.base.UiIntent
 
-sealed interface CameraUiIntent : UiIntent {
+sealed interface CameraIntent : UiIntent {
     data class FetchData(
         val roomId: Long,
-    ) : CameraUiIntent
+    ) : CameraIntent
 
-    data object FlashClick : CameraUiIntent
+    data object FlashClick : CameraIntent
 
-    data object SwitchCameraClick : CameraUiIntent
+    data object SwitchCameraClick : CameraIntent
 
-    data object ShutterClick : CameraUiIntent
+    data object ShutterClick : CameraIntent
 
     data class FlashAvailabilityChanged(
         val isAvailable: Boolean,
-    ) : CameraUiIntent
+    ) : CameraIntent
 }
