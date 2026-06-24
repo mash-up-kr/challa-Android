@@ -16,7 +16,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,13 +29,11 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.White
 import com.happyhouse.challa.presentation.model.Room
 import com.happyhouse.challa.presentation.model.RoomStatus
-import com.happyhouse.challa.presentation.room.main.component.BottomActions
 import com.happyhouse.challa.presentation.room.main.component.MemberCard
 import com.happyhouse.challa.presentation.room.main.component.PhotoProgress
+import com.happyhouse.challa.presentation.room.main.component.RoomMainActionButton
 import com.happyhouse.challa.presentation.room.main.component.RoomMainTopBar
 import com.happyhouse.challa.presentation.room.main.component.StatusCard
-import com.happyhouse.challa.presentation.room.main.contract.RoomMainIntent
-import com.happyhouse.challa.presentation.room.main.contract.RoomMainSideEffect
 import com.happyhouse.challa.presentation.room.main.contract.RoomMainState
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration.Companion.hours
@@ -44,23 +41,12 @@ import kotlin.time.Duration.Companion.hours
 @Composable
 fun RoomMainRoute(
     onBackClick: () -> Unit,
-    onShareClick: () -> Unit,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
     viewModel: RoomMainViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(viewModel) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                RoomMainSideEffect.ShareRequested -> onShareClick()
-                RoomMainSideEffect.NavigateToCamera -> onCameraClick()
-                RoomMainSideEffect.NavigateToGallery -> onGalleryClick()
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -78,9 +64,8 @@ fun RoomMainRoute(
         RoomMainScreen(
             uiState = uiState,
             modifier = Modifier.padding(innerPadding),
-            onShareClick = { viewModel.onIntent(RoomMainIntent.ShareClick) },
-            onShootClick = { viewModel.onIntent(RoomMainIntent.ShootClick) },
-            onGalleryClick = { viewModel.onIntent(RoomMainIntent.GalleryClick) },
+            onShootClick = onCameraClick,
+            onGalleryClick = onGalleryClick,
         )
     }
 }
@@ -89,7 +74,6 @@ fun RoomMainRoute(
 fun RoomMainScreen(
     uiState: RoomMainState,
     modifier: Modifier = Modifier,
-    onShareClick: () -> Unit = {},
     onShootClick: () -> Unit = {},
     onGalleryClick: () -> Unit = {},
 ) {
@@ -116,7 +100,6 @@ fun RoomMainScreen(
                 RoomMainContent(
                     state = uiState,
                     modifier = Modifier.weight(1f),
-                    onShareClick = onShareClick,
                     onShootClick = onShootClick,
                     onGalleryClick = onGalleryClick,
                 )
@@ -141,7 +124,6 @@ fun RoomMainScreen(
 private fun RoomMainContent(
     state: RoomMainState.Content,
     modifier: Modifier = Modifier,
-    onShareClick: () -> Unit,
     onShootClick: () -> Unit,
     onGalleryClick: () -> Unit,
 ) {
@@ -164,10 +146,9 @@ private fun RoomMainContent(
         StatusCard(room = state.room)
     }
 
-    BottomActions(
+    RoomMainActionButton(
         status = state.room.status,
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-        onShareClick = onShareClick,
         onShootClick = onShootClick,
         onGalleryClick = onGalleryClick,
     )

@@ -47,7 +47,6 @@ fun ChallaNavHost(
                         onBackClick = {
                             navigator.goBack()
                         },
-                        onShareClick = {},
                         onCameraClick = {
                             navigator.navigate(ChallaRoute.Camera(roomId = 1L))
                         },

@@ -4,10 +4,4 @@ import com.happyhouse.challa.presentation.base.UiIntent
 
 sealed interface RoomMainIntent : UiIntent {
     data object FetchData : RoomMainIntent
-
-    data object ShareClick : RoomMainIntent
-
-    data object ShootClick : RoomMainIntent
-
-    data object GalleryClick : RoomMainIntent
 }

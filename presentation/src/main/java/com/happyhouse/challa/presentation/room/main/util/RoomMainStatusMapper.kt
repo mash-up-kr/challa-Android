@@ -19,7 +19,7 @@ internal fun RoomStatus.roomMainDescription(requiredPhotoCount: Int): String =
         is RoomStatus.Expiring -> "방이 곧 자동 삭제됩니다. 갤러리에서 사진을 확인해보세요."
     }
 
-internal val RoomStatus.roomMainPrimaryButtonText: String
+internal val RoomStatus.roomMainActionButtonText: String
     get() =
         when (this) {
             is RoomStatus.Shooting,
@@ -31,5 +31,5 @@ internal val RoomStatus.roomMainPrimaryButtonText: String
             -> "갤러리 보기"
         }
 
-internal val RoomStatus.isRoomMainPrimaryButtonEnabled: Boolean
+internal val RoomStatus.isRoomMainActionButtonEnabled: Boolean
     get() = this !is RoomStatus.Waiting
