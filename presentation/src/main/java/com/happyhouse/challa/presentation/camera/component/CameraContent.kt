@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
-import com.happyhouse.challa.presentation.camera.contract.CameraUiState
+import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import androidx.camera.core.Camera as CameraXCamera
@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 @Composable
 fun CameraContent(
     modifier: Modifier = Modifier,
-    state: CameraUiState,
+    state: CameraState,
     onBackClick: () -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {

@@ -5,7 +5,7 @@ import com.happyhouse.challa.presentation.base.UiState
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 
 @Immutable
-data class CameraUiState(
+data class CameraState(
     val roomId: Long = 0L,
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashOn: Boolean = false,

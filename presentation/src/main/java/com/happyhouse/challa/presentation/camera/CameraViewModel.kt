@@ -5,7 +5,7 @@ import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
-import com.happyhouse.challa.presentation.camera.contract.CameraUiState
+import com.happyhouse.challa.presentation.camera.contract.CameraState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -15,9 +15,9 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
-) : BaseViewModel<CameraUiState, CameraIntent, CameraSideEffect>(
+) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
         initialState =
-            CameraUiState(
+            CameraState(
                 roomId = roomId,
             ),
     ) {
