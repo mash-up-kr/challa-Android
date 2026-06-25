@@ -302,7 +302,7 @@ private fun SubmitButton(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(6.dp))
                 .background(bg)
-                .clickOnce(enabled = enabled) { onClick() }
+                .noRippleClickOnce(enabled = enabled) { onClick() }
                 .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
