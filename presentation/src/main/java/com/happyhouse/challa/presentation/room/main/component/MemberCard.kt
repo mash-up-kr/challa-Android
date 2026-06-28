@@ -25,8 +25,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.Black
-import com.happyhouse.challa.presentation.designsystem.theme.Border
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -41,14 +40,14 @@ internal fun MemberCard(
                 .fillMaxWidth()
                 .border(
                     width = 1.dp,
-                    color = Border,
+                    color = ChallaTheme.colors.lineNormal,
                     shape = RoundedCornerShape(6.dp),
                 )
                 .padding(horizontal = 18.dp, vertical = 20.dp),
     ) {
         Text(
             text = "멤버 (${memberInitials.size} / $maxMemberCount)",
-            color = Black,
+            color = ChallaTheme.colors.staticBlack,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -85,12 +84,12 @@ private fun MemberAvatar(
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(color)
-                .border(width = 1.dp, color = Border, shape = CircleShape),
+                .border(width = 1.dp, color = ChallaTheme.colors.lineNormal, shape = CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            color = Black,
+            color = ChallaTheme.colors.staticBlack,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )

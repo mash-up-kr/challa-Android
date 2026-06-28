@@ -1,47 +1,34 @@
 package com.happyhouse.challa.presentation.designsystem.theme
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 
-private val DarkColorScheme =
-    darkColorScheme(
-        primary = PrimaryPink,
-        background = BackgroundSurface,
-        onBackground = LabelNormal,
-        surface = BackgroundLevel1,
-        onSurface = LabelNormal,
-        outline = LineNormal,
-        error = PrimaryOrange,
-    )
+private val LocalChallaColors = staticCompositionLocalOf { ChallaColorScheme.Dark }
 
-private val LightColorScheme =
-    lightColorScheme(
-        primary = PrimaryPink,
-        background = StaticWhite,
-        onBackground = StaticBlack,
-        surface = StaticWhite,
-        onSurface = StaticBlack,
-        outline = LineNormal,
-        error = PrimaryOrange,
-    )
+object ChallaTheme {
+    val colors: ChallaColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalChallaColors.current
+
+    val typography: ChallaTypography
+        get() = ChallaTypography
+}
 
 @Composable
 fun ChallaTheme(
     darkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme =
-        if (darkTheme) {
-            DarkColorScheme
-        } else {
-            LightColorScheme
-        }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+    CompositionLocalProvider(
+        LocalChallaColors provides
+            if (darkTheme) {
+                ChallaColorScheme.Dark
+            } else {
+                ChallaColorScheme.Light
+            },
         content = content,
     )
 }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -65,13 +65,13 @@ private fun CameraPermissionGuide(
         Text(
             text = stringResource(R.string.camera_permission_required_title),
             color = Color.White,
-            style = MaterialTheme.typography.titleMedium,
+            style = ChallaTheme.typography.headingSmall,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
             text = stringResource(R.string.camera_permission_required_description),
             color = Color.White,
-            style = MaterialTheme.typography.bodyMedium,
+            style = ChallaTheme.typography.bodyMedium,
         )
         Button(
             modifier = Modifier.padding(top = 24.dp),

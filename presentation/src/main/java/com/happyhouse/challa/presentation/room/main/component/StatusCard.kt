@@ -19,9 +19,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.Black
-import com.happyhouse.challa.presentation.designsystem.theme.Border
-import com.happyhouse.challa.presentation.designsystem.theme.Gray700
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.model.Room
 import com.happyhouse.challa.presentation.model.RoomStatus
 import com.happyhouse.challa.presentation.room.main.util.roomMainDescription
@@ -36,7 +34,7 @@ internal fun StatusCard(room: Room) {
                 .fillMaxWidth()
                 .border(
                     width = 1.dp,
-                    color = Border,
+                    color = ChallaTheme.colors.lineNormal,
                     shape = RoundedCornerShape(6.dp),
                 )
                 .padding(horizontal = 18.dp, vertical = 20.dp),
@@ -48,7 +46,7 @@ internal fun StatusCard(room: Room) {
             Text(
                 text = "상태",
                 modifier = Modifier.weight(1f),
-                color = Black,
+                color = ChallaTheme.colors.staticBlack,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -57,7 +55,7 @@ internal fun StatusCard(room: Room) {
                     Modifier
                         .border(
                             width = 1.dp,
-                            color = Black,
+                            color = ChallaTheme.colors.staticBlack,
                             shape = RoundedCornerShape(1000.dp),
                         )
                         .padding(horizontal = 14.dp, vertical = 6.dp),
@@ -65,7 +63,7 @@ internal fun StatusCard(room: Room) {
             ) {
                 Text(
                     text = room.status.roomMainLabel,
-                    color = Black,
+                    color = ChallaTheme.colors.staticBlack,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -74,7 +72,7 @@ internal fun StatusCard(room: Room) {
         Spacer(modifier = Modifier.height(14.dp))
         Text(
             text = room.status.roomMainDescription(room.requiredPhotoCount),
-            color = Gray700,
+            color = ChallaTheme.colors.labelAlternative,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             lineHeight = 20.sp,
