@@ -21,10 +21,18 @@ sealed interface ChallaRoute : NavKey {
     ) : ChallaRoute
 
     @Serializable
+    data class Gallery(
+        val roomId: Long,
+    ) : ChallaRoute
+
+    @Serializable
     data object Onboarding : ChallaRoute
 
     @Serializable
     data object Login : ChallaRoute
+
+    @Serializable
+    data object RoomMain : ChallaRoute
 
     @Serializable
     data object Home : ChallaRoute

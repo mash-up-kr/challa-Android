@@ -17,7 +17,10 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 
 @Composable
-fun SampleScreen(onCameraClick: () -> Unit) {
+fun SampleScreen(
+    onEnterRoom: () -> Unit,
+    onGalleryClick: () -> Unit,
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
@@ -28,9 +31,15 @@ fun SampleScreen(onCameraClick: () -> Unit) {
             Text(text = stringResource(R.string.sample_title))
             Button(
                 modifier = Modifier.padding(top = 16.dp),
-                onClick = onCameraClick,
+                onClick = onEnterRoom,
             ) {
                 Text(text = stringResource(R.string.sample_camera_button))
+            }
+            Button(
+                modifier = Modifier.padding(top = 8.dp),
+                onClick = onGalleryClick,
+            ) {
+                Text(text = stringResource(R.string.sample_gallery_button))
             }
         }
     }
@@ -40,5 +49,8 @@ fun SampleScreen(onCameraClick: () -> Unit) {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun SampleScreenPreview() {
-    SampleScreen(onCameraClick = {})
+    SampleScreen(
+        onEnterRoom = {},
+        onGalleryClick = {},
+    )
 }

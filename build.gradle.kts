@@ -1,4 +1,4 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Top-level build file where you can add configuration options common to all subprojects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -12,4 +12,14 @@ plugins {
 
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    configurations.configureEach {
+        if (name.contains("ksp", ignoreCase = true) ||
+            name.contains("hiltAnnotationProcessor", ignoreCase = true)
+        ) {
+            resolutionStrategy.force(
+                "org.jetbrains.kotlin:kotlin-metadata-jvm:${libs.versions.kotlin.get()}",
+            )
+        }
+    }
 }
