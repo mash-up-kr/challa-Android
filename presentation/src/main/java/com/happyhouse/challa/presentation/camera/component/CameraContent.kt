@@ -17,18 +17,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.camera.contract.CameraUiIntent
-import com.happyhouse.challa.presentation.camera.contract.CameraUiState
+import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import androidx.camera.core.Camera as CameraXCamera
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
 fun CameraContent(
     modifier: Modifier = Modifier,
-    state: CameraUiState,
+    state: CameraState,
     onBackClick: () -> Unit,
-    onIntent: (CameraUiIntent) -> Unit,
+    onIntent: (CameraIntent) -> Unit,
 ) {
     var camera by remember { mutableStateOf<CameraXCamera?>(null) }
 
@@ -41,9 +42,9 @@ fun CameraContent(
         remainingCount = state.remainingCount,
         totalCount = state.totalCount,
         onBackClick = onBackClick,
-        onFlashClick = { onIntent(CameraUiIntent.FlashClick) },
-        onSwitchCameraClick = { onIntent(CameraUiIntent.SwitchCameraClick) },
-        onShutterClick = { onIntent(CameraUiIntent.ShutterClick) },
+        onFlashClick = { onIntent(CameraIntent.FlashClick) },
+        onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
+        onShutterClick = { onIntent(CameraIntent.ShutterClick) },
     ) { viewFinderModifier ->
         CameraSession(
             modifier = viewFinderModifier,
@@ -52,7 +53,7 @@ fun CameraContent(
                 camera = boundCamera
             },
             onFlashAvailabilityChanged = { isAvailable ->
-                onIntent(CameraUiIntent.FlashAvailabilityChanged(isAvailable))
+                onIntent(CameraIntent.FlashAvailabilityChanged(isAvailable))
             },
         )
     }
@@ -115,7 +116,7 @@ private fun CameraContentLayoutPreview() {
         CameraContentLayout(
             modifier = Modifier.fillMaxSize(),
             remainingCount = 12,
-            totalCount = 24,
+            totalCount = ROOM_REQUIRED_PHOTO_COUNT,
             onBackClick = {},
             onFlashClick = {},
             onSwitchCameraClick = {},

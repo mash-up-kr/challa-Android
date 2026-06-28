@@ -4,6 +4,7 @@ import android.os.SystemClock
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
@@ -12,6 +13,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.semantics.Role
+
+/**
+ * [Button]처럼 자체 onClick 파라미터를 가진 컴포넌트에서 중복 클릭을 무시하는 콜백을 만든다.
+ *
+ * Modifier.clickable을 추가하면 클릭 semantics가 중첩될 수 있는 컴포넌트에 사용한다.
+ */
+@Composable
+internal fun rememberClickOnce(
+    intervalMillis: Long = 200L,
+    onClick: () -> Unit,
+): () -> Unit {
+    var lastClickTimeMillis by remember { mutableLongStateOf(0L) }
+    val currentOnClick by rememberUpdatedState(onClick)
+
+    return remember(intervalMillis) {
+        {
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastClickTimeMillis >= intervalMillis) {
+                lastClickTimeMillis = now
+                currentOnClick()
+            }
+        }
+    }
+}
 
 /**
  * 짧은 시간 안에 같은 Composable에서 발생한 중복 클릭을 무시한다.

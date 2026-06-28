@@ -14,6 +14,7 @@ import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.login.LoginScreen
 import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
+import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
 @Composable
@@ -22,8 +23,8 @@ fun ChallaNavHost(
     modifier: Modifier = Modifier,
 ) {
     NavDisplay(
-        modifier = Modifier.navigationBarsPadding(),
         backStack = navigator.backStack,
+        modifier = modifier.navigationBarsPadding(),
         transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
@@ -31,8 +32,8 @@ fun ChallaNavHost(
             entryProvider {
                 entry<ChallaRoute.Sample> {
                     SampleScreen(
-                        onCameraClick = {
-                            navigator.navigate(ChallaRoute.Camera(roomId = 0L))
+                        onEnterRoom = {
+                            navigator.navigate(ChallaRoute.RoomMain)
                         },
                         onGalleryClick = {
                             navigator.navigate(ChallaRoute.Gallery(roomId = 0L))
@@ -54,10 +55,22 @@ fun ChallaNavHost(
                         },
                     )
                 }
+                entry<ChallaRoute.RoomMain> {
+                    RoomMainRoute(
+                        onBackClick = {
+                            navigator.goBack()
+                        },
+                        onCameraClick = {
+                            navigator.navigate(ChallaRoute.Camera(roomId = 1L))
+                        },
+                        onGalleryClick = {},
+                    )
+                }
                 entry<ChallaRoute.Onboarding> {
                     OnboardingScreen(
                         onComplete = {
-                            navigator.replace(ChallaRoute.Login)
+                            // login화면으로 보내지 않고 SampleScreen으로 보냄
+                            navigator.replace(ChallaRoute.Sample)
                         },
                     )
                 }
