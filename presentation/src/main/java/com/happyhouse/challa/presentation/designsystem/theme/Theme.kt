@@ -19,7 +19,7 @@ object ChallaTheme {
 
 @Composable
 fun ChallaTheme(
-    darkTheme: Boolean = false,
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
