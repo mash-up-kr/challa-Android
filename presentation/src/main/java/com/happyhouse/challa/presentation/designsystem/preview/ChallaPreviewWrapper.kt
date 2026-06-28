@@ -14,9 +14,10 @@ class ChallaPreviewWrapper : PreviewWrapperProvider {
     override fun Wrap(content: @Composable () -> Unit) {
         ChallaTheme {
             Box(
-                modifier = Modifier
-                    .background(ChallaTheme.colors.backgroundLevel4)
-                    .padding(12.dp),
+                modifier =
+                    Modifier
+                        .background(ChallaTheme.colors.backgroundLevel4)
+                        .padding(12.dp),
             ) {
                 content()
             }
