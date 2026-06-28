@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,6 +72,24 @@ fun ChallaButton(
             style = sizeSpec.textStyle,
         )
     }
+}
+
+@Composable
+fun ChallaActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
+) {
+    ChallaButton(
+        text = text,
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
+        variant = variant,
+        size = ChallaButtonSize.LARGE,
+    )
 }
 
 private data class ChallaButtonSizeSpec(
@@ -156,6 +176,27 @@ private fun ChallaButtonPreview() {
     ) {
         ButtonPreviewColumn(variant = ChallaButtonVariant.PRIMARY)
         ButtonPreviewColumn(variant = ChallaButtonVariant.NEUTRAL)
+    }
+}
+
+@Preview(showBackground = true)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun ChallaActionButtonPreview() {
+    Column(
+        modifier = Modifier.width(360.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ChallaActionButton(
+            text = "버튼명",
+            onClick = {},
+            variant = ChallaButtonVariant.PRIMARY,
+        )
+        ChallaActionButton(
+            text = "버튼명",
+            onClick = {},
+            variant = ChallaButtonVariant.NEUTRAL,
+        )
     }
 }
 
