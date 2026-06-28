@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun PhotoDetailPager(
     photos: ImmutableList<PhotoDetailUiModel>,
     initialPhotoId: Long,
-    onSaveClick: (Long) -> Unit,
+    onSaveClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val initialPage = photos.indexOfFirst { it.id == initialPhotoId }.coerceAtLeast(0)
@@ -47,7 +47,7 @@ fun PhotoDetailPager(
                 Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 24.dp),
-            onClick = { onSaveClick(photos[pagerState.currentPage].id) },
+            onClick = { onSaveClick(photos[pagerState.currentPage].imageUrl) },
         ) {
             Text(text = stringResource(R.string.photo_detail_save))
         }

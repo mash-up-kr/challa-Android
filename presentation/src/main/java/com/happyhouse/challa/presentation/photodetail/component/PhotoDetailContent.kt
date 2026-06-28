@@ -56,7 +56,7 @@ fun PhotoDetailContent(
                     modifier = Modifier.fillMaxSize(),
                     photos = photoInfo.photos,
                     initialPhotoId = state.initialPhotoId,
-                    onSaveClick = { photoId -> onIntent(PhotoDetailIntent.PhotoSave(photoId)) },
+                    onSaveClick = { imageUrl -> onIntent(PhotoDetailIntent.PhotoSave(imageUrl)) },
                 )
             }
         }

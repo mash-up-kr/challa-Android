@@ -32,8 +32,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     override fun onIntent(intent: PhotoDetailIntent) {
         when (intent) {
             PhotoDetailIntent.PhotosLoad -> handlePhotosLoad()
-            is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.photoId)
-            is PhotoDetailIntent.PhotoSaveResult -> handlePhotoSaveResult(intent.isSuccess)
+            is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.imageUrl)
         }
     }
 
@@ -57,20 +56,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handlePhotoSave(photoId: Long) {
-        val photo =
-            (currentState.photoInfo as? PhotoInfo.Loaded)
-                ?.photos
-                ?.firstOrNull { it.id == photoId }
-                ?: return
+    private fun handlePhotoSave(imageUrl: String) {
+        // TODO: 저장 중복 방지(isSaving 가드)는 후속 이슈에서 추가
         viewModelScope.launch {
-            sendEffect(PhotoDetailSideEffect.SavePhotoToDevice(photo.imageUrl))
-        }
-    }
-
-    private fun handlePhotoSaveResult(isSuccess: Boolean) {
-        viewModelScope.launch {
-            sendEffect(PhotoDetailSideEffect.ShowSaveResult(isSuccess))
+            sendEffect(PhotoDetailSideEffect.SavePhotoToDevice(imageUrl))
         }
     }
 
