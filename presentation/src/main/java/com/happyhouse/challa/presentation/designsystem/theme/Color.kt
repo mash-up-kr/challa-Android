@@ -25,15 +25,13 @@ internal object ColorTokens {
     val LabelStrong = Color(0xFFFFFFFF)
     val LabelNeutral = Color(0xFFAEAFB4)
     val LabelAlternative = Color(0xFF74767B)
-    val LabelAssistive = Color(0xFF444549)
-    val LabelDisable = Color(0xFF202023)
+    val LabelDisable = Color(0xFF444549)
 
     val BackgroundSurface = Color(0xFF1A1A1A)
-    val BackgroundLevel1 = Color(0xFF242424)
-    val BackgroundLevel2 = Color(0xFF2F2F2F)
-    val BackgroundLevel3 = Color(0xFF3B3B3B)
-    val LightBackgroundLevel2 = Color(0xFFF7F7F8)
-    val LightBackgroundLevel3 = Color(0xFFF1F1F3)
+    val BackgroundLevel1 = Color(0xFF1F1F1F)
+    val BackgroundLevel2 = Color(0xFF242424)
+    val BackgroundLevel3 = Color(0xFF2F2F2F)
+    val BackgroundLevel4 = Color(0xFF3B3B3B)
 
     val LineNormal = Color(0xFF818181).copy(alpha = 0.22f)
     val LineNeutral = Color(0xFF7E7E7E).copy(alpha = 0.16f)
@@ -57,12 +55,12 @@ data class ChallaColors(
     val labelStrong: Color,
     val labelNeutral: Color,
     val labelAlternative: Color,
-    val labelAssistive: Color,
     val labelDisable: Color,
     val backgroundSurface: Color,
     val backgroundLevel1: Color,
     val backgroundLevel2: Color,
     val backgroundLevel3: Color,
+    val backgroundLevel4: Color,
     val lineNormal: Color,
     val lineNeutral: Color,
     val lineAlternative: Color,
@@ -84,12 +82,12 @@ internal object ChallaColorScheme {
             labelStrong = ColorTokens.LabelStrong,
             labelNeutral = ColorTokens.LabelNeutral,
             labelAlternative = ColorTokens.LabelAlternative,
-            labelAssistive = ColorTokens.LabelAssistive,
             labelDisable = ColorTokens.LabelDisable,
             backgroundSurface = ColorTokens.BackgroundSurface,
             backgroundLevel1 = ColorTokens.BackgroundLevel1,
             backgroundLevel2 = ColorTokens.BackgroundLevel2,
             backgroundLevel3 = ColorTokens.BackgroundLevel3,
+            backgroundLevel4 = ColorTokens.BackgroundLevel4,
             lineNormal = ColorTokens.LineNormal,
             lineNeutral = ColorTokens.LineNeutral,
             lineAlternative = ColorTokens.LineAlternative,
@@ -104,8 +102,9 @@ internal object ChallaColorScheme {
             labelStrong = ColorTokens.StaticBlack,
             backgroundSurface = ColorTokens.StaticWhite,
             backgroundLevel1 = ColorTokens.StaticWhite,
-            backgroundLevel2 = ColorTokens.LightBackgroundLevel2,
-            backgroundLevel3 = ColorTokens.LightBackgroundLevel3,
+            backgroundLevel2 = ColorTokens.BackgroundLevel2,
+            backgroundLevel3 = ColorTokens.BackgroundLevel3,
+            backgroundLevel4 = ColorTokens.BackgroundLevel4,
         )
 }
 
@@ -120,13 +119,13 @@ val LabelNormal = ColorTokens.LabelNormal
 val LabelStrong = ColorTokens.LabelStrong
 val LabelNeutral = ColorTokens.LabelNeutral
 val LabelAlternative = ColorTokens.LabelAlternative
-val LabelAssistive = ColorTokens.LabelAssistive
 val LabelDisable = ColorTokens.LabelDisable
 
 val BackgroundSurface = ColorTokens.BackgroundSurface
 val BackgroundLevel1 = ColorTokens.BackgroundLevel1
 val BackgroundLevel2 = ColorTokens.BackgroundLevel2
 val BackgroundLevel3 = ColorTokens.BackgroundLevel3
+val BackgroundLevel4 = ColorTokens.BackgroundLevel4
 
 val LineNormal = ColorTokens.LineNormal
 val LineNeutral = ColorTokens.LineNeutral
