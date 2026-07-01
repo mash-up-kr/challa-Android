@@ -14,6 +14,9 @@ object ChallaIcons {
     val Camera = R.drawable.ic_camera
 
     @DrawableRes
+    val Close = R.drawable.ic_close
+
+    @DrawableRes
     val Kakao = R.drawable.ic_kakao
 
     @DrawableRes
