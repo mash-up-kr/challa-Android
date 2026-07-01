@@ -23,10 +23,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.happyhouse.challa.presentation.designsystem.foundation.typography.DirtylineFamily
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.designsystem.theme.DirtylineFontFamily
 
 @Composable
 fun ChallaBrandTopBar(
@@ -48,7 +48,7 @@ fun ChallaBrandTopBar(
             color = ChallaTheme.colors.primaryYellow,
             style =
                 TextStyle(
-                    fontFamily = DirtylineFontFamily,
+                    fontFamily = DirtylineFamily,
                     fontSize = 36.sp,
                 ),
         )
