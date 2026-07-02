@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.designsystem.foundation.typography
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 
 data class ChallaTextStyle(
@@ -10,13 +9,12 @@ data class ChallaTextStyle(
     val fontFamily: ChallaFontFamily = ChallaFontFamily.SUIT,
     val letterSpacing: ChallaFontLetterSpacing = ChallaFontLetterSpacing.NORMAL,
 ) {
-    @Composable
     fun toTextStyle(): TextStyle =
         TextStyle(
             fontFamily = fontFamily.value,
             fontWeight = fontWeight.value,
-            fontSize = fontSize.sp,
-            lineHeight = lineHeight.sp,
+            fontSize = fontSize.value,
+            lineHeight = lineHeight.value,
             letterSpacing = letterSpacing.value,
         )
 }

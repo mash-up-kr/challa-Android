@@ -21,7 +21,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 internal object ChallaTypographyScheme {
-    @Composable
     fun default() =
         ChallaTypography(
             family1 = ChallaTextStyles.Family1.toTextStyle(),
