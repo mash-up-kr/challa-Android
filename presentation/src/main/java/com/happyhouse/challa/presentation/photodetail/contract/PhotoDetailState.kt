@@ -10,6 +10,7 @@ data class PhotoDetailState(
     val initialPhotoId: Long = 0L,
     val roomName: String = "",
     val photoInfo: PhotoInfo = PhotoInfo.Loading,
+    val isSaving: Boolean = false,
 ) : UiState {
     @Immutable
     sealed interface PhotoInfo {
