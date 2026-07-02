@@ -14,6 +14,7 @@ import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.login.LoginScreen
 import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
+import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
 
@@ -64,6 +65,13 @@ fun ChallaNavHost(
                             navigator.navigate(ChallaRoute.Camera(roomId = 1L))
                         },
                         onGalleryClick = {},
+                    )
+                }
+                entry<ChallaRoute.PhotoDetail> { route ->
+                    PhotoDetailRoute(
+                        roomId = route.roomId,
+                        photoId = route.photoId,
+                        onBackClick = { navigator.goBack() },
                     )
                 }
                 entry<ChallaRoute.Onboarding> {
