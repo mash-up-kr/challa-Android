@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -37,8 +38,8 @@ fun CameraPermissionDeniedContent(
                     .systemBarsPadding()
                     .padding(horizontal = 24.dp, vertical = 12.dp),
             onBackClick = onBackClick,
-            remainingCount = 24,
-            totalCount = 24,
+            remainingCount = ROOM_REQUIRED_PHOTO_COUNT,
+            totalCount = ROOM_REQUIRED_PHOTO_COUNT,
             onFlashClick = {},
         )
         CameraPermissionGuide(

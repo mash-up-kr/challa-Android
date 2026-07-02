@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -189,7 +190,7 @@ private fun CameraTopBarPreview() {
                 .padding(horizontal = 28.dp, vertical = 14.dp),
         onBackClick = {},
         remainingCount = 12,
-        totalCount = 24,
+        totalCount = ROOM_REQUIRED_PHOTO_COUNT,
         onFlashClick = {},
     )
 }

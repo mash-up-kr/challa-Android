@@ -2,10 +2,10 @@ package com.happyhouse.challa.presentation.camera
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
+import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
-import com.happyhouse.challa.presentation.camera.contract.CameraUiIntent
-import com.happyhouse.challa.presentation.camera.contract.CameraUiSideEffect
-import com.happyhouse.challa.presentation.camera.contract.CameraUiState
+import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
+import com.happyhouse.challa.presentation.camera.contract.CameraState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -15,23 +15,23 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
-) : BaseViewModel<CameraUiState, CameraUiIntent, CameraUiSideEffect>(
+) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
         initialState =
-            CameraUiState(
+            CameraState(
                 roomId = roomId,
             ),
     ) {
     init {
-        onIntent(CameraUiIntent.FetchData(roomId))
+        onIntent(CameraIntent.FetchData(roomId))
     }
 
-    override fun onIntent(intent: CameraUiIntent) {
+    override fun onIntent(intent: CameraIntent) {
         when (intent) {
-            is CameraUiIntent.FetchData -> fetchData(intent.roomId)
-            CameraUiIntent.FlashClick -> handleFlashClick()
-            CameraUiIntent.SwitchCameraClick -> handleSwitchCameraClick()
-            CameraUiIntent.ShutterClick -> handleShutterClick()
-            is CameraUiIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
+            is CameraIntent.FetchData -> fetchData(intent.roomId)
+            CameraIntent.FlashClick -> handleFlashClick()
+            CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
+            CameraIntent.ShutterClick -> handleShutterClick()
+            is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
         }
     }
 
@@ -43,7 +43,9 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun handleFlashClick() {
         if (!currentState.hasFlashUnit) {
-            sendSideEffect(CameraUiSideEffect.FlashNotAvailable)
+            viewModelScope.launch {
+                sendEffect(CameraSideEffect.FlashNotAvailable)
+            }
             return
         }
 
@@ -51,13 +53,15 @@ class CameraViewModel @AssistedInject constructor(
             copy(isFlashOn = !isFlashOn)
         }
 
-        sendSideEffect(
-            if (currentState.isFlashOn) {
-                CameraUiSideEffect.FlashEnabled
-            } else {
-                CameraUiSideEffect.FlashDisabled
-            },
-        )
+        viewModelScope.launch {
+            sendEffect(
+                if (currentState.isFlashOn) {
+                    CameraSideEffect.FlashEnabled
+                } else {
+                    CameraSideEffect.FlashDisabled
+                },
+            )
+        }
     }
 
     private fun handleSwitchCameraClick() {
@@ -81,12 +85,6 @@ class CameraViewModel @AssistedInject constructor(
                 hasFlashUnit = isAvailable,
                 isFlashOn = isFlashOn && isAvailable,
             )
-        }
-    }
-
-    private fun sendSideEffect(sideEffect: CameraUiSideEffect) {
-        viewModelScope.launch {
-            sendEffect(sideEffect)
         }
     }
 

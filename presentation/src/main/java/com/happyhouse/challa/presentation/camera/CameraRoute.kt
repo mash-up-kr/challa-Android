@@ -10,7 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.camera.contract.CameraUiSideEffect
+import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
 
 @Composable
@@ -37,9 +37,9 @@ fun CameraRoute(
         viewModel.uiEffect.collect { effect ->
             val message =
                 when (effect) {
-                    CameraUiSideEffect.FlashNotAvailable -> flashNotAvailableMessage
-                    CameraUiSideEffect.FlashEnabled -> flashEnabledMessage
-                    CameraUiSideEffect.FlashDisabled -> flashDisabledMessage
+                    CameraSideEffect.FlashNotAvailable -> flashNotAvailableMessage
+                    CameraSideEffect.FlashEnabled -> flashEnabledMessage
+                    CameraSideEffect.FlashDisabled -> flashDisabledMessage
                 }
 
             snackbarHostState.showSnackbar(message)
