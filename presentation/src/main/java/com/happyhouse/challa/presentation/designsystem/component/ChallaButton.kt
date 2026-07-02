@@ -61,8 +61,10 @@ fun ChallaButton(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = onClick,
-                )
-                .padding(horizontal = sizeSpec.horizontalPadding, vertical = sizeSpec.verticalPadding),
+                ).padding(
+                    horizontal = sizeSpec.horizontalPadding,
+                    vertical = sizeSpec.verticalPadding,
+                ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
