@@ -21,7 +21,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 internal object ChallaTypographyScheme {
-    fun default() =
+    val Default =
         ChallaTypography(
             family1 = ChallaTextStyles.Family1.toTextStyle(),
             family2 = ChallaTextStyles.Family2.toTextStyle(),

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +35,6 @@ enum class ChallaButtonVariant {
 enum class ChallaButtonSize {
     LARGE,
     MEDIUM,
-    SMALL,
 }
 
 @Composable
@@ -54,14 +53,15 @@ fun ChallaButton(
     Box(
         modifier =
             modifier
-                .height(sizeSpec.height)
+                .heightIn(min = sizeSpec.minHeight)
                 .clip(shape)
                 .background(colorSpec.containerColor)
                 .noRippleClickOnce(
                     enabled = enabled,
                     role = Role.Button,
                     onClick = onClick,
-                ).padding(
+                )
+                .padding(
                     horizontal = sizeSpec.horizontalPadding,
                     vertical = sizeSpec.verticalPadding,
                 ),
@@ -76,26 +76,8 @@ fun ChallaButton(
     }
 }
 
-@Composable
-fun ChallaActionButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
-) {
-    ChallaButton(
-        text = text,
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled,
-        variant = variant,
-        size = ChallaButtonSize.LARGE,
-    )
-}
-
 private data class ChallaButtonSizeSpec(
-    val height: Dp,
+    val minHeight: Dp,
     val horizontalPadding: Dp,
     val verticalPadding: Dp,
     val cornerRadius: Dp,
@@ -113,32 +95,24 @@ private val ChallaButtonSize.spec: ChallaButtonSizeSpec
         when (this) {
             ChallaButtonSize.LARGE ->
                 ChallaButtonSizeSpec(
-                    height = 52.dp,
+                    minHeight = 54.dp,
                     horizontalPadding = 20.dp,
-                    verticalPadding = 16.dp,
+                    verticalPadding = 15.dp,
                     cornerRadius = 12.dp,
-                    textStyle = ChallaTheme.typography.bodyMedium,
+                    textStyle = ChallaTheme.typography.bodyLarge,
                 )
 
             ChallaButtonSize.MEDIUM ->
                 ChallaButtonSizeSpec(
-                    height = 44.dp,
-                    horizontalPadding = 14.dp,
-                    verticalPadding = 14.dp,
+                    minHeight = 40.dp,
+                    horizontalPadding = 16.dp,
+                    verticalPadding = 12.dp,
                     cornerRadius = 12.dp,
                     textStyle = ChallaTheme.typography.bodySmall,
                 )
-
-            ChallaButtonSize.SMALL ->
-                ChallaButtonSizeSpec(
-                    height = 34.dp,
-                    horizontalPadding = 10.dp,
-                    verticalPadding = 10.dp,
-                    cornerRadius = 8.dp,
-                    textStyle = ChallaTheme.typography.descriptionLarge,
-                )
         }
 
+// TODO: 디자이너랑 회의예정
 @Composable
 private fun ChallaButtonVariant.colorSpec(enabled: Boolean): ChallaButtonColorSpec =
     when (this) {
@@ -184,19 +158,21 @@ private fun ChallaButtonPreview() {
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun ChallaActionButtonPreview() {
+private fun ChallaFullWidthButtonPreview() {
     Column(
         modifier = Modifier.width(360.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ChallaActionButton(
+        ChallaButton(
             text = "버튼명",
             onClick = {},
+            modifier = Modifier.fillMaxWidth(),
             variant = ChallaButtonVariant.PRIMARY,
         )
-        ChallaActionButton(
+        ChallaButton(
             text = "버튼명",
             onClick = {},
+            modifier = Modifier.fillMaxWidth(),
             variant = ChallaButtonVariant.NEUTRAL,
         )
     }

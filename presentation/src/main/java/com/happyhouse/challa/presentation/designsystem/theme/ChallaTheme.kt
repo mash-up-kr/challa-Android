@@ -32,7 +32,7 @@ fun ChallaTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (isDarkTheme) ChallaColorScheme.Dark else ChallaColorScheme.Light
-    val typographyScheme = ChallaTypographyScheme.default()
+    val typographyScheme = ChallaTypographyScheme.Default
 
     CompositionLocalProvider(
         LocalChallaColors provides colorScheme,
