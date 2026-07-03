@@ -33,8 +33,9 @@ internal object ChallaColorScheme {
             primarySky = ColorTokens.PrimarySky,
             primaryBlue = ColorTokens.PrimaryBlue,
             primaryPurple = ColorTokens.PrimaryPurple,
-            labelNormal = ColorTokens.LabelNormal,
             labelStrong = ColorTokens.LabelStrong,
+            labelNormal = ColorTokens.LabelNormal,
+            labelSubtle = ColorTokens.labelSubtle,
             labelNeutral = ColorTokens.LabelNeutral,
             labelAlternative = ColorTokens.LabelAlternative,
             labelDisable = ColorTokens.LabelDisable,
@@ -91,8 +92,9 @@ private fun ChallaColorPreview() {
                 title = "Label",
                 colors =
                     persistentListOf(
-                        "Normal" to ChallaTheme.colors.labelNormal,
                         "Strong" to ChallaTheme.colors.labelStrong,
+                        "Normal" to ChallaTheme.colors.labelNormal,
+                        "Subtle" to ChallaTheme.colors.labelSubtle,
                         "Neutral" to ChallaTheme.colors.labelNeutral,
                         "Alternative" to ChallaTheme.colors.labelAlternative,
                         "Disable" to ChallaTheme.colors.labelDisable,
@@ -147,13 +149,13 @@ private fun ColorGroup(
     Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Text(
             text = title,
-            color = ChallaTheme.colors.labelNormal,
+            color = ChallaTheme.colors.labelStrong,
             style = ChallaTheme.typography.bodyMedium,
         )
         subtitle?.let {
             Text(
                 text = it,
-                color = ChallaTheme.colors.labelNormal,
+                color = ChallaTheme.colors.labelStrong,
                 style = ChallaTheme.typography.descriptionLarge,
             )
         }
@@ -177,14 +179,13 @@ private fun ColorSwatch(
     color: Color,
 ) {
     Column(
-        modifier = Modifier.width(60.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
             modifier =
                 Modifier
-                    .size(58.dp)
+                    .size(64.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(color)
                     .border(

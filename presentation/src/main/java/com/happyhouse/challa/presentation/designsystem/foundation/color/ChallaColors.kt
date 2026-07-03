@@ -13,8 +13,9 @@ data class ChallaColors(
     val primaryBlue: Color,
     val primaryPurple: Color,
     // Label
-    val labelNormal: Color,
     val labelStrong: Color,
+    val labelNormal: Color,
+    val labelSubtle: Color,
     val labelNeutral: Color,
     val labelAlternative: Color,
     val labelDisable: Color,
