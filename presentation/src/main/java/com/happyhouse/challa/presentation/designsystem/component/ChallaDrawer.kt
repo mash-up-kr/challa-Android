@@ -22,6 +22,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButton
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -187,7 +190,7 @@ private fun ChallaDrawerHandle() {
             Modifier
                 .size(width = 52.dp, height = 4.dp)
                 .clip(shape = RoundedCornerShape(1000.dp))
-                .background(Color(0xFF6C6F81))
+                .background(Color(0xFF6C6F81)),
     )
 }
 

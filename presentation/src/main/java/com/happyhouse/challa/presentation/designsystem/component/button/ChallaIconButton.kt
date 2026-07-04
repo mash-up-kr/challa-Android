@@ -1,23 +1,19 @@
-package com.happyhouse.challa.presentation.designsystem.component
+package com.happyhouse.challa.presentation.designsystem.component.button
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
 fun ChallaIconButton(
@@ -40,31 +35,26 @@ fun ChallaIconButton(
     size: ChallaButtonSize = ChallaButtonSize.LARGE,
 ) {
     val sizeSpec = size.iconSpec
-    val colorSpec = variant.colorSpec(enabled)
 
-    Box(
-        modifier =
-            modifier
-                .clip(shape = RoundedCornerShape(12.dp))
-                .background(colorSpec.containerColor)
-                .noRippleClickOnce(
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClick = onClick,
-                )
-                .padding(sizeSpec.padding),
-        contentAlignment = Alignment.Center,
+    ChallaButtonBase(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        variant = variant,
+        minHeight = sizeSpec.minHeight,
+        contentPadding = PaddingValues(sizeSpec.padding),
     ) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
             modifier = Modifier.size(sizeSpec.iconSize),
-            tint = colorSpec.contentColor,
+            tint = it,
         )
     }
 }
 
 private data class ChallaIconButtonSizeSpec(
+    val minHeight: Dp,
     val iconSize: Dp,
     val padding: Dp,
 )
@@ -74,12 +64,14 @@ private val ChallaButtonSize.iconSpec: ChallaIconButtonSizeSpec
         when (this) {
             ChallaButtonSize.LARGE ->
                 ChallaIconButtonSizeSpec(
+                    minHeight = 54.dp,
                     iconSize = 24.dp,
                     padding = 15.dp,
                 )
 
             ChallaButtonSize.MEDIUM ->
                 ChallaIconButtonSizeSpec(
+                    minHeight = 40.dp,
                     iconSize = 20.dp,
                     padding = 10.dp,
                 )
