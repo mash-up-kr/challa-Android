@@ -23,7 +23,7 @@ internal object ColorTokens {
 
     val LabelStrong = Color(0xFFFFFFFF)
     val LabelNormal = Color(0xFFF7F7F8)
-    val labelSubtle = Color(0xFFCCCDD4)
+    val LabelSubtle = Color(0xFFCCCDD4)
     val LabelNeutral = Color(0xFFAEAFB4)
     val LabelAlternative = Color(0xFF74767B)
     val LabelDisable = Color(0xFF444549)

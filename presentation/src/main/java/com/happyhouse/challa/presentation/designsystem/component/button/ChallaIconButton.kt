@@ -42,12 +42,12 @@ fun ChallaIconButton(
         variant = variant,
         minHeight = sizeSpec.minHeight,
         contentPadding = PaddingValues(sizeSpec.padding),
-    ) {
+    ) { contentColor ->
         Icon(
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
             modifier = Modifier.size(sizeSpec.iconSize),
-            tint = it,
+            tint = contentColor,
         )
     }
 }

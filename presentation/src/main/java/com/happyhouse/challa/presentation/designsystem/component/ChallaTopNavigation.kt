@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.designsystem.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,23 +7,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
 import com.happyhouse.challa.presentation.designsystem.foundation.typography.DirtylineFamily
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewItem
@@ -133,29 +128,6 @@ private fun ChallaSubTopNavigation(
     }
 }
 
-@Composable
-fun ChallaTopNavigationIconButton(
-    @DrawableRes icon: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    contentDescription: String? = null,
-    enabled: Boolean = true,
-    tint: Color = ChallaTheme.colors.labelNeutral,
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier.size(40.dp),
-        enabled = enabled,
-    ) {
-        Icon(
-            painter = painterResource(id = icon),
-            contentDescription = contentDescription,
-            modifier = Modifier.size(ChallaIconSize.MEDIUM.dp),
-            tint = tint,
-        )
-    }
-}
-
 @Preview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
@@ -174,9 +146,10 @@ private fun ChallaMainTopNavigationPreview() {
                 title = "home",
                 variant = ChallaTopNavigationVariant.MAIN,
                 trailingIcon = {
-                    ChallaTopNavigationIconButton(
+                    ChallaIconButton(
                         icon = ChallaIcons.Blank,
                         onClick = {},
+                        variant = ChallaButtonVariant.TRANSPARENT,
                     )
                 },
             )
@@ -228,9 +201,10 @@ private fun ChallaSubTopNavigationPreviewItem(
             leadingIcon =
                 if (leadingIcon) {
                     {
-                        ChallaTopNavigationIconButton(
+                        ChallaIconButton(
                             icon = ChallaIcons.Blank,
                             onClick = {},
+                            variant = ChallaButtonVariant.TRANSPARENT,
                         )
                     }
                 } else {
@@ -239,9 +213,10 @@ private fun ChallaSubTopNavigationPreviewItem(
             trailingIcon =
                 if (trailingIcon) {
                     {
-                        ChallaTopNavigationIconButton(
+                        ChallaIconButton(
                             icon = ChallaIcons.Blank,
                             onClick = {},
+                            variant = ChallaButtonVariant.TRANSPARENT,
                         )
                     }
                 } else {

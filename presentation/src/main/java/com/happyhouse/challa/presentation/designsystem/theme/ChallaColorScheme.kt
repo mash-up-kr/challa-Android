@@ -34,7 +34,7 @@ internal object ChallaColorScheme {
             primaryPurple = ColorTokens.PrimaryPurple,
             labelStrong = ColorTokens.LabelStrong,
             labelNormal = ColorTokens.LabelNormal,
-            labelSubtle = ColorTokens.labelSubtle,
+            labelSubtle = ColorTokens.LabelSubtle,
             labelNeutral = ColorTokens.LabelNeutral,
             labelAlternative = ColorTokens.LabelAlternative,
             labelDisable = ColorTokens.LabelDisable,
