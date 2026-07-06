@@ -6,6 +6,6 @@ sealed interface PhotoDetailIntent : UiIntent {
     data object PhotosLoad : PhotoDetailIntent
 
     data class PhotoSave(
-        val imageUrl: String,
+        val photo: PhotoDetailUiModel,
     ) : PhotoDetailIntent
 }

@@ -13,12 +13,14 @@ import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBa
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
 fun PhotoDetailScreen(
     state: PhotoDetailState,
     onIntent: (PhotoDetailIntent) -> Unit,
+    onSaveClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -41,6 +43,7 @@ fun PhotoDetailScreen(
                     .padding(innerPadding),
             state = state,
             onIntent = onIntent,
+            onSaveClick = onSaveClick,
         )
     }
 }
@@ -57,6 +60,7 @@ private fun PhotoDetailScreenPreview() {
                 photoInfo = PhotoInfo.Loaded(previewPhotoDetailPhotos()),
             ),
         onIntent = {},
+        onSaveClick = {},
         onBackClick = {},
         onMoreClick = {},
     )

@@ -20,6 +20,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -27,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun PhotoDetailContent(
     state: PhotoDetailState,
     onIntent: (PhotoDetailIntent) -> Unit,
+    onSaveClick: (PhotoDetailUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -56,7 +58,7 @@ fun PhotoDetailContent(
                     modifier = Modifier.fillMaxSize(),
                     photos = photoInfo.photos,
                     initialPhotoId = state.initialPhotoId,
-                    onSaveClick = { imageUrl -> onIntent(PhotoDetailIntent.PhotoSave(imageUrl)) },
+                    onSaveClick = onSaveClick,
                 )
             }
         }
@@ -97,6 +99,7 @@ private fun PhotoDetailContentLoadedPreview() {
                 photoInfo = PhotoInfo.Loaded(previewPhotoDetailPhotos()),
             ),
         onIntent = {},
+        onSaveClick = {},
     )
 }
 
@@ -108,6 +111,7 @@ private fun PhotoDetailContentLoadingPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Loading),
         onIntent = {},
+        onSaveClick = {},
     )
 }
 
@@ -119,6 +123,7 @@ private fun PhotoDetailContentErrorPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Error),
         onIntent = {},
+        onSaveClick = {},
     )
 }
 
@@ -130,5 +135,6 @@ private fun PhotoDetailContentEmptyPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Empty),
         onIntent = {},
+        onSaveClick = {},
     )
 }

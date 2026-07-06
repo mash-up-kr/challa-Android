@@ -11,7 +11,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
+import com.happyhouse.challa.presentation.photodetail.permission.rememberPhotoSavePermissionGate
 
 @Composable
 fun PhotoDetailRoute(
@@ -30,16 +32,21 @@ fun PhotoDetailRoute(
     val saveSuccessMessage = stringResource(R.string.photo_detail_save_success)
     val saveFailureMessage = stringResource(R.string.photo_detail_save_failure)
 
+    // 저장 실행/결과는 ViewModel이 담당하고, 여기서는 저장소 권한만 확인한 뒤 저장 인텐트를 올린다.
+    val requestSave =
+        rememberPhotoSavePermissionGate(
+            onDenied = { Toast.makeText(context, saveFailureMessage, Toast.LENGTH_SHORT).show() },
+            onGranted = { photo -> viewModel.onIntent(PhotoDetailIntent.PhotoSave(photo)) },
+        )
+
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is PhotoDetailSideEffect.SavePhotoToDevice -> {
-                    // TODO: 권한 처리 + 실제 저장은 후속 이슈에서 구현
-                    val result = savePhotoToMediaStore(context, effect.imageUrl)
-                    val message = if (result.isSuccess) saveSuccessMessage else saveFailureMessage
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            val message =
+                when (effect) {
+                    PhotoDetailSideEffect.SaveSucceeded -> saveSuccessMessage
+                    PhotoDetailSideEffect.SaveFailed -> saveFailureMessage
                 }
-            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -47,6 +54,7 @@ fun PhotoDetailRoute(
         modifier = Modifier.fillMaxSize(),
         state = state,
         onIntent = viewModel::onIntent,
+        onSaveClick = requestSave,
         onBackClick = onBackClick,
         onMoreClick = {},
     )

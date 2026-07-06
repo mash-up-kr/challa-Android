@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.photodetail
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
@@ -11,6 +12,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
@@ -22,6 +24,7 @@ import timber.log.Timber
 class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
     @Assisted("initialPhotoId") private val initialPhotoId: Long,
+    @ApplicationContext private val context: Context,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
@@ -32,7 +35,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     override fun onIntent(intent: PhotoDetailIntent) {
         when (intent) {
             PhotoDetailIntent.PhotosLoad -> handlePhotosLoad()
-            is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.imageUrl)
+            is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.photo)
         }
     }
 
@@ -56,10 +59,15 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handlePhotoSave(imageUrl: String) {
-        // TODO: 저장 중복 방지(isSaving 가드)는 후속 이슈에서 추가
+    private fun handlePhotoSave(photo: PhotoDetailUiModel) {
         viewModelScope.launch {
-            sendEffect(PhotoDetailSideEffect.SavePhotoToDevice(imageUrl))
+            // 취소 예외는 savePhotoToMediaStore가 경계에서 되던지므로 여기선 실패만 다룬다.
+            savePhotoToMediaStore(context, photo.imageUrl)
+                .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
+                .onFailure { throwable ->
+                    Timber.e(throwable, "사진 저장 실패")
+                    sendEffect(PhotoDetailSideEffect.SaveFailed)
+                }
         }
     }
 
