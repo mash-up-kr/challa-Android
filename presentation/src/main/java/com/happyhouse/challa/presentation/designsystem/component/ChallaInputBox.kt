@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -36,7 +35,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
 private enum class ChallaInputBoxState {
     PLACEHOLDER,
-    FOCUSED,
+    TYPING,
     TYPED,
 }
 
@@ -48,17 +47,17 @@ fun ChallaInputBox(
     placeholder: String = "",
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    onDone: KeyboardActionScope.() -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    val inputBoxState = resolveChallaInputBoxState(value, isFocused)
+    val isTyping by interactionSource.collectIsFocusedAsState()
+    val inputBoxState = resolveChallaInputBoxState(value, isTyping)
     val inputBoxKeyboardActions =
         KeyboardActions(
             onDone = {
                 focusManager.clearFocus()
-                keyboardActions.onDone?.invoke(this)
+                onDone()
             },
         )
 
@@ -93,7 +92,6 @@ private fun ChallaInputBoxContent(
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(52.dp)
                 .clip(shape = RoundedCornerShape(12.dp))
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .border(
@@ -101,13 +99,12 @@ private fun ChallaInputBoxContent(
                     color = inputBoxState.borderColor,
                     shape = RoundedCornerShape(12.dp),
                 )
-                .padding(horizontal = 16.dp),
+                .padding(16.dp),
         enabled = enabled,
         singleLine = true,
         textStyle =
             ChallaTheme.typography.bodyMedium.copy(
                 color = ChallaTheme.colors.labelNormal,
-                textAlign = TextAlign.Center,
             ),
         cursorBrush = SolidColor(ChallaTheme.colors.primaryYellow),
         keyboardOptions = keyboardOptions,
@@ -116,13 +113,12 @@ private fun ChallaInputBoxContent(
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.CenterStart,
             ) {
                 if (value.isEmpty() && placeholder.isNotEmpty()) {
                     Text(
                         text = placeholder,
                         color = ChallaTheme.colors.labelAlternative,
-                        textAlign = TextAlign.Center,
                         style = ChallaTheme.typography.bodyMedium,
                     )
                 }
@@ -134,10 +130,10 @@ private fun ChallaInputBoxContent(
 
 private fun resolveChallaInputBoxState(
     value: String,
-    isFocused: Boolean,
+    isTyping: Boolean,
 ): ChallaInputBoxState =
     when {
-        isFocused -> ChallaInputBoxState.FOCUSED
+        isTyping -> ChallaInputBoxState.TYPING
         value.isNotEmpty() -> ChallaInputBoxState.TYPED
         else -> ChallaInputBoxState.PLACEHOLDER
     }
@@ -145,7 +141,7 @@ private fun resolveChallaInputBoxState(
 private val ChallaInputBoxState.borderColor: Color
     @Composable
     get() =
-        if (this == ChallaInputBoxState.FOCUSED) {
+        if (this == ChallaInputBoxState.TYPING) {
             ChallaTheme.colors.primaryYellow
         } else {
             Color.Transparent
@@ -168,7 +164,7 @@ private fun ChallaInputBoxStatePreview() {
             ChallaInputBoxPreviewItem(
                 value = "",
                 placeholder = "내용을 입력해 주세요.",
-                inputBoxState = ChallaInputBoxState.FOCUSED,
+                inputBoxState = ChallaInputBoxState.TYPING,
             )
             ChallaInputBoxPreviewItem(
                 value = "텍스트",
@@ -184,12 +180,21 @@ private fun ChallaInputBoxPreviewItem(
     inputBoxState: ChallaInputBoxState,
     placeholder: String = "",
 ) {
-    ChallaInputBoxContent(
-        value = value,
-        onValueChange = {},
-        inputBoxState = inputBoxState,
-        placeholder = placeholder,
-    )
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = inputBoxState.name,
+            color = ChallaTheme.colors.labelNormal,
+            style = ChallaTheme.typography.bodyMedium,
+        )
+        ChallaInputBoxContent(
+            value = value,
+            onValueChange = {},
+            inputBoxState = inputBoxState,
+            placeholder = placeholder,
+        )
+    }
 }
 
 @Preview(showBackground = true)
