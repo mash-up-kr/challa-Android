@@ -32,7 +32,6 @@ fun PhotoDetailRoute(
     val saveSuccessMessage = stringResource(R.string.photo_detail_save_success)
     val saveFailureMessage = stringResource(R.string.photo_detail_save_failure)
 
-    // 저장 실행/결과는 ViewModel이 담당하고, 여기서는 저장소 권한만 확인한 뒤 저장 인텐트를 올린다.
     val requestSave =
         rememberPhotoSavePermissionGate(
             onDenied = { Toast.makeText(context, saveFailureMessage, Toast.LENGTH_SHORT).show() },

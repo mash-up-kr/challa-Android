@@ -62,15 +62,12 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {
-        // 저장 진행 중이거나(동시 요청), 직전 저장 직후의 빠른 연타(쿨다운)면 무시한다.
         val now = System.currentTimeMillis()
         if (currentState.isSaving || now - lastSaveRequestAt < SAVE_COOLDOWN_MS) return
         lastSaveRequestAt = now
-        // 가드가 원자적으로 동작하도록 launch 이전에 동기적으로 플래그를 세운다.
         updateState { copy(isSaving = true) }
         viewModelScope.launch {
             try {
-                // 취소 예외는 savePhotoToMediaStore가 경계에서 되던지므로 여기선 실패만 다룬다.
                 savePhotoToMediaStore(context, photo.imageUrl)
                     .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
                     .onFailure { throwable ->
