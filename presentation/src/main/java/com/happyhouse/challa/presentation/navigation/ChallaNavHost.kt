@@ -12,6 +12,7 @@ import com.happyhouse.challa.presentation.camera.CameraRoute
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
+import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginScreen
 import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
@@ -107,8 +108,18 @@ fun ChallaNavHost(
                         onClose = {
                             navigator.goBack()
                         },
-                        onRoomCreated = { _, _ ->
-                            // TODO JH: ShareInvite 화면 구현되면 replace로 연결. 임시로 Home으로 복귀.
+                        onRoomCreated = { roomId, roomName ->
+                            navigator.replace(
+                                ChallaRoute.ShareInvite(roomId = roomId, roomName = roomName),
+                            )
+                        },
+                    )
+                }
+                entry<ChallaRoute.ShareInvite> { route ->
+                    ShareInviteScreen(
+                        roomId = route.roomId,
+                        roomName = route.roomName,
+                        onClose = {
                             navigator.goBack()
                         },
                     )

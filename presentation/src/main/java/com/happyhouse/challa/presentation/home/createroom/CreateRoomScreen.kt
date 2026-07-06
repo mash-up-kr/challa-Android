@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.home.createroom
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -34,7 +33,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +45,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 /**
@@ -72,16 +69,11 @@ fun CreateRoomScreen(
     viewModel: CreateRoomViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is CreateRoomSideEffect.RoomCreated -> {
-                    // TODO JH 방 생성 완료 피드백용 임시 토스트 - ShareInvite 화면 연결 시 제거 예정
-                    Toast
-                        .makeText(context, "${effect.roomName} 방 생성 완료", Toast.LENGTH_SHORT)
-                        .show()
                     onRoomCreated(effect.roomId, effect.roomName)
                 }
             }
@@ -310,7 +302,7 @@ private fun SubmitButton(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(6.dp))
                 .background(bg)
-                .clickOnce(enabled = enabled) { onClick() }
+                .noRippleClickOnce(enabled = enabled) { onClick() }
                 .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
