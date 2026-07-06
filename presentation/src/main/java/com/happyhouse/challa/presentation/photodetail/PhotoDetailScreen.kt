@@ -42,6 +42,7 @@ fun PhotoDetailScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
             state = state,
+            isSaving = state.isSaving,
             onIntent = onIntent,
             onSaveClick = onSaveClick,
         )

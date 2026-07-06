@@ -28,6 +28,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
+    private var lastSaveRequestAt = 0L
+
     init {
         onIntent(PhotoDetailIntent.PhotosLoad)
     }
@@ -60,14 +62,24 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {
+        // 저장 진행 중이거나(동시 요청), 직전 저장 직후의 빠른 연타(쿨다운)면 무시한다.
+        val now = System.currentTimeMillis()
+        if (currentState.isSaving || now - lastSaveRequestAt < SAVE_COOLDOWN_MS) return
+        lastSaveRequestAt = now
+        // 가드가 원자적으로 동작하도록 launch 이전에 동기적으로 플래그를 세운다.
+        updateState { copy(isSaving = true) }
         viewModelScope.launch {
-            // 취소 예외는 savePhotoToMediaStore가 경계에서 되던지므로 여기선 실패만 다룬다.
-            savePhotoToMediaStore(context, photo.imageUrl)
-                .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
-                .onFailure { throwable ->
-                    Timber.e(throwable, "사진 저장 실패")
-                    sendEffect(PhotoDetailSideEffect.SaveFailed)
-                }
+            try {
+                // 취소 예외는 savePhotoToMediaStore가 경계에서 되던지므로 여기선 실패만 다룬다.
+                savePhotoToMediaStore(context, photo.imageUrl)
+                    .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
+                    .onFailure { throwable ->
+                        Timber.e(throwable, "사진 저장 실패")
+                        sendEffect(PhotoDetailSideEffect.SaveFailed)
+                    }
+            } finally {
+                updateState { copy(isSaving = false) }
+            }
         }
     }
 
@@ -94,6 +106,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     companion object {
+        private const val SAVE_COOLDOWN_MS = 1_000L
         private const val MOCK_PHOTO_COUNT = 24
         private const val MOCK_LOAD_DELAY_MS = 300L
         private const val MOCK_ROOM_NAME = "길고양이를찍으러가자"

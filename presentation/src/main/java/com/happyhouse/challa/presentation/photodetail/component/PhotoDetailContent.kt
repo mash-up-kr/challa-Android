@@ -30,6 +30,7 @@ fun PhotoDetailContent(
     onIntent: (PhotoDetailIntent) -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     modifier: Modifier = Modifier,
+    isSaving: Boolean = false,
 ) {
     Box(modifier = modifier) {
         when (val photoInfo = state.photoInfo) {
@@ -58,6 +59,7 @@ fun PhotoDetailContent(
                     modifier = Modifier.fillMaxSize(),
                     photos = photoInfo.photos,
                     initialPhotoId = state.initialPhotoId,
+                    isSaving = isSaving,
                     onSaveClick = onSaveClick,
                 )
             }
