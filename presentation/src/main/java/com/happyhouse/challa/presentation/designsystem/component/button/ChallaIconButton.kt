@@ -9,18 +9,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewLabel
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
@@ -98,7 +97,7 @@ private fun IconButtonPreviewHeaderRow() {
     ) {
         Box(modifier = Modifier.width(72.dp))
         ChallaButtonVariant.entries.forEach { variant ->
-            PreviewLabel(
+            ChallaPreviewLabel(
                 text = variant.name,
                 modifier = Modifier.width(100.dp),
                 textAlign = TextAlign.Center,
@@ -110,7 +109,7 @@ private fun IconButtonPreviewHeaderRow() {
 @Composable
 private fun IconButtonPreviewGroup(size: ChallaButtonSize) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        PreviewLabel(
+        ChallaPreviewLabel(
             text = size.name,
             style = ChallaTheme.typography.bodyLarge,
         )
@@ -137,7 +136,7 @@ private fun IconButtonPreviewStateRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(60.dp),
     ) {
-        PreviewLabel(
+        ChallaPreviewLabel(
             text = label,
             modifier = Modifier.width(60.dp),
         )
@@ -169,20 +168,4 @@ private fun PreviewIconButtonItem(
             size = size,
         )
     }
-}
-
-@Composable
-private fun PreviewLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-    style: TextStyle = ChallaTheme.typography.descriptionLarge,
-    textAlign: TextAlign? = null,
-) {
-    Text(
-        modifier = modifier,
-        text = text,
-        color = ChallaTheme.colors.labelNormal,
-        textAlign = textAlign,
-        style = style,
-    )
 }

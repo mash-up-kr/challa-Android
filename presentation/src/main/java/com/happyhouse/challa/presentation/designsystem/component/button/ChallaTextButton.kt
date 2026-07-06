@@ -10,29 +10,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewLabel
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
-enum class ChallaButtonVariant {
-    NEUTRAL,
-    PRIMARY,
-    TRANSPARENT,
-}
-
-enum class ChallaButtonSize {
-    LARGE,
-    MEDIUM,
-}
-
 @Composable
-fun ChallaButton(
+fun ChallaTextButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -63,24 +52,19 @@ fun ChallaButton(
     }
 }
 
-private data class ChallaButtonSizeSpec(
+private data class ChallaTextButtonSizeSpec(
     val minHeight: Dp,
     val horizontalPadding: Dp,
     val verticalPadding: Dp,
     val textStyle: TextStyle,
 )
 
-internal data class ChallaButtonColorSpec(
-    val containerColor: Color,
-    val contentColor: Color,
-)
-
-private val ChallaButtonSize.spec: ChallaButtonSizeSpec
+private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
     @Composable
     get() =
         when (this) {
             ChallaButtonSize.LARGE ->
-                ChallaButtonSizeSpec(
+                ChallaTextButtonSizeSpec(
                     minHeight = 54.dp,
                     horizontalPadding = 20.dp,
                     verticalPadding = 15.dp,
@@ -88,7 +72,7 @@ private val ChallaButtonSize.spec: ChallaButtonSizeSpec
                 )
 
             ChallaButtonSize.MEDIUM ->
-                ChallaButtonSizeSpec(
+                ChallaTextButtonSizeSpec(
                     minHeight = 40.dp,
                     horizontalPadding = 16.dp,
                     verticalPadding = 12.dp,
@@ -96,40 +80,10 @@ private val ChallaButtonSize.spec: ChallaButtonSizeSpec
                 )
         }
 
-@Composable
-internal fun ChallaButtonVariant.colorSpec(enabled: Boolean): ChallaButtonColorSpec {
-    if (!enabled) {
-        return ChallaButtonColorSpec(
-            containerColor = ChallaTheme.colors.backgroundLevel2,
-            contentColor = ChallaTheme.colors.labelDisable,
-        )
-    }
-
-    return when (this) {
-        ChallaButtonVariant.NEUTRAL ->
-            ChallaButtonColorSpec(
-                containerColor = ChallaTheme.colors.backgroundLevel3,
-                contentColor = ChallaTheme.colors.labelNormal,
-            )
-
-        ChallaButtonVariant.PRIMARY ->
-            ChallaButtonColorSpec(
-                containerColor = ChallaTheme.colors.labelNormal,
-                contentColor = ChallaTheme.colors.labelDisable,
-            )
-
-        ChallaButtonVariant.TRANSPARENT ->
-            ChallaButtonColorSpec(
-                containerColor = Color.Transparent,
-                contentColor = ChallaTheme.colors.labelNormal,
-            )
-    }
-}
-
 @Preview(widthDp = 480)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun ChallaButtonPreview() {
+private fun ChallaTextButtonPreview() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -147,7 +101,7 @@ private fun ButtonPreviewHeaderRow() {
     ) {
         Box(modifier = Modifier.width(72.dp))
         ChallaButtonVariant.entries.forEach { variant ->
-            PreviewLabel(
+            ChallaPreviewLabel(
                 text = variant.name,
                 modifier = Modifier.width(100.dp),
                 textAlign = TextAlign.Center,
@@ -159,7 +113,7 @@ private fun ButtonPreviewHeaderRow() {
 @Composable
 private fun ButtonPreviewGroup(size: ChallaButtonSize) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        PreviewLabel(
+        ChallaPreviewLabel(
             text = size.name,
             style = ChallaTheme.typography.bodyLarge,
         )
@@ -186,7 +140,7 @@ private fun ButtonPreviewStateRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        PreviewLabel(
+        ChallaPreviewLabel(
             text = label,
             modifier = Modifier.width(72.dp),
         )
@@ -210,7 +164,7 @@ private fun PreviewButtonItem(
         modifier = Modifier.width(100.dp),
         contentAlignment = Alignment.Center,
     ) {
-        ChallaButton(
+        ChallaTextButton(
             text = "버튼명",
             onClick = {},
             enabled = enabled,
@@ -218,20 +172,4 @@ private fun PreviewButtonItem(
             size = size,
         )
     }
-}
-
-@Composable
-private fun PreviewLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-    style: TextStyle = ChallaTheme.typography.descriptionLarge,
-    textAlign: TextAlign? = null,
-) {
-    Text(
-        modifier = modifier,
-        text = text,
-        color = ChallaTheme.colors.labelNormal,
-        textAlign = textAlign,
-        style = style,
-    )
 }
