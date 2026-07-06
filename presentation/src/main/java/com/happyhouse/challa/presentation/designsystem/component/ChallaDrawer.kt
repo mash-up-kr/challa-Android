@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.designsystem.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +23,10 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButton
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -40,10 +42,7 @@ fun ChallaDrawer(
     modifier: Modifier = Modifier,
     variant: ChallaDrawerVariant = ChallaDrawerVariant.COMPACT,
     title: String = "",
-    instanceSlot: (@Composable () -> Unit)? = null,
-    primaryButton: @Composable () -> Unit,
-    neutralButton: @Composable () -> Unit,
-    transparentButton: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     ChallaDrawerContainer(
         onDismissRequest = onDismissRequest,
@@ -53,10 +52,7 @@ fun ChallaDrawer(
             title = title,
             onDismissRequest = onDismissRequest,
             modifier = modifier,
-            instanceSlot = instanceSlot,
-            primaryButton = primaryButton,
-            neutralButton = neutralButton,
-            transparentButton = transparentButton,
+            content = content,
         )
     }
 }
@@ -85,16 +81,13 @@ private fun ChallaDrawerSurface(
     title: String,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    instanceSlot: (@Composable () -> Unit)? = null,
-    primaryButton: @Composable () -> Unit,
-    neutralButton: @Composable () -> Unit,
-    transparentButton: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+                .padding(bottom = 12.dp)
                 .clip(shape = RoundedCornerShape(32.dp))
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .padding(horizontal = 16.dp),
@@ -102,85 +95,57 @@ private fun ChallaDrawerSurface(
     ) {
         when (variant) {
             ChallaDrawerVariant.COMPACT ->
-                ChallaCompactDrawerContent(
-                    primaryButton = primaryButton,
-                    neutralButton = neutralButton,
-                    transparentButton = transparentButton,
-                )
+                ChallaCompactDrawerContent(content = content)
 
             ChallaDrawerVariant.RICH ->
                 ChallaRichDrawerContent(
                     title = title,
                     onDismissRequest = onDismissRequest,
-                    instanceSlot = instanceSlot,
-                    primaryButton = primaryButton,
-                    neutralButton = neutralButton,
-                    transparentButton = transparentButton,
+                    content = content,
                 )
         }
     }
 }
 
 @Composable
-private fun ChallaCompactDrawerContent(
-    primaryButton: @Composable () -> Unit,
-    neutralButton: @Composable () -> Unit,
-    transparentButton: @Composable () -> Unit,
-) {
+private fun ChallaCompactDrawerContent(content: @Composable () -> Unit) {
     Spacer(modifier = Modifier.height(12.dp))
     ChallaDrawerHandle()
     Spacer(modifier = Modifier.height(24.dp))
-    ChallaDrawerActions(
-        primaryButton = primaryButton,
-        neutralButton = neutralButton,
-        transparentButton = transparentButton,
-    )
+    content()
+    Spacer(modifier = Modifier.height(24.dp))
 }
 
 @Composable
 private fun ChallaRichDrawerContent(
     title: String,
     onDismissRequest: () -> Unit,
-    instanceSlot: (@Composable () -> Unit)?,
-    primaryButton: @Composable () -> Unit,
-    neutralButton: @Composable () -> Unit,
-    transparentButton: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
-    ChallaTopNavigation(
-        title = title,
-        variant = ChallaTopNavigationVariant.MAIN,
-        trailingIcon = {
-            ChallaTopNavigationIconButton(
-                icon = ChallaIcons.Close,
-                onClick = onDismissRequest,
-                contentDescription = "닫기",
-            )
-        },
-    )
-    HorizontalDivider(color = ChallaTheme.colors.lineNeutral)
-    instanceSlot?.let { slot ->
-        Spacer(modifier = Modifier.height(20.dp))
-        slot()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            modifier =
+                Modifier
+                    .padding(vertical = 24.dp)
+                    .weight(1f),
+            color = ChallaTheme.colors.labelNormal,
+            style = ChallaTheme.typography.bodyLarge,
+        )
+        ChallaIconButton(
+            icon = ChallaIcons.Close,
+            onClick = onDismissRequest,
+            contentDescription = "닫기",
+            variant = ChallaButtonVariant.TRANSPARENT,
+            size = ChallaButtonSize.LARGE,
+        )
     }
+    HorizontalDivider(color = ChallaTheme.colors.lineNeutral)
+    content()
     Spacer(modifier = Modifier.height(24.dp))
-    ChallaDrawerActions(
-        primaryButton = primaryButton,
-        neutralButton = neutralButton,
-        transparentButton = transparentButton,
-    )
-}
-
-@Composable
-private fun ChallaDrawerActions(
-    primaryButton: @Composable () -> Unit,
-    neutralButton: @Composable () -> Unit,
-    transparentButton: @Composable () -> Unit,
-) {
-    primaryButton()
-    Spacer(modifier = Modifier.height(8.dp))
-    neutralButton()
-    Spacer(modifier = Modifier.height(8.dp))
-    transparentButton()
 }
 
 @Composable
@@ -202,10 +167,9 @@ private fun ChallaCompactDrawerPreview() {
         onDismissRequest = {},
         variant = ChallaDrawerVariant.COMPACT,
         title = "",
-        primaryButton = { ChallaDrawerPreviewPrimaryButton() },
-        neutralButton = { ChallaDrawerPreviewNeutralButton() },
-        transparentButton = { ChallaDrawerPreviewTransparentButton() },
-    )
+    ) {
+        ChallaDrawerPreviewActions()
+    }
 }
 
 @Preview(widthDp = 390, heightDp = 720)
@@ -216,22 +180,35 @@ private fun ChallaRichDrawerPreview() {
         variant = ChallaDrawerVariant.RICH,
         title = "타이틀",
         onDismissRequest = {},
-        instanceSlot = {
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 text = "Instance Slot",
                 color = ChallaTheme.colors.labelNormal,
                 style = ChallaTheme.typography.bodySmall,
             )
-        },
-        primaryButton = { ChallaDrawerPreviewPrimaryButton() },
-        neutralButton = { ChallaDrawerPreviewNeutralButton() },
-        transparentButton = { ChallaDrawerPreviewTransparentButton() },
-    )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        ChallaDrawerPreviewActions()
+    }
+}
+
+@Composable
+private fun ChallaDrawerPreviewActions() {
+    ChallaDrawerPreviewPrimaryButton()
+    Spacer(modifier = Modifier.height(8.dp))
+    ChallaDrawerPreviewNeutralButton()
+    Spacer(modifier = Modifier.height(8.dp))
+    ChallaDrawerPreviewTransparentButton()
 }
 
 @Composable
 private fun ChallaDrawerPreviewPrimaryButton() {
-    ChallaButton(
+    ChallaTextButton(
         text = "버튼명",
         onClick = {},
         modifier = Modifier.fillMaxWidth(),
@@ -240,7 +217,7 @@ private fun ChallaDrawerPreviewPrimaryButton() {
 
 @Composable
 private fun ChallaDrawerPreviewNeutralButton() {
-    ChallaButton(
+    ChallaTextButton(
         text = "버튼명",
         onClick = {},
         modifier = Modifier.fillMaxWidth(),
@@ -250,7 +227,7 @@ private fun ChallaDrawerPreviewNeutralButton() {
 
 @Composable
 private fun ChallaDrawerPreviewTransparentButton() {
-    ChallaButton(
+    ChallaTextButton(
         text = "보조 액션",
         onClick = {},
         modifier = Modifier.fillMaxWidth(),
