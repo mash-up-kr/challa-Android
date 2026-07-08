@@ -14,8 +14,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.Black
-import com.happyhouse.challa.presentation.designsystem.theme.White
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.rememberClickOnce
 import com.happyhouse.challa.presentation.model.RoomStatus
 import com.happyhouse.challa.presentation.room.main.util.isRoomMainActionButtonEnabled
@@ -50,8 +49,8 @@ internal fun RoomMainActionButton(
         shape = RoundedCornerShape(8.dp),
         colors =
             ButtonDefaults.buttonColors(
-                containerColor = Black,
-                contentColor = White,
+                containerColor = ChallaTheme.colors.staticBlack,
+                contentColor = ChallaTheme.colors.staticWhite,
             ),
     ) {
         Text(

@@ -21,10 +21,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.Black
-import com.happyhouse.challa.presentation.designsystem.theme.Gray100
-import com.happyhouse.challa.presentation.designsystem.theme.Gray300
-import com.happyhouse.challa.presentation.designsystem.theme.Gray700
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
 @Composable
 internal fun PhotoProgress(
@@ -47,13 +44,13 @@ internal fun PhotoProgress(
                 buildAnnotatedString {
                     withStyle(
                         SpanStyle(
-                            color = Black,
+                            color = ChallaTheme.colors.staticBlack,
                             fontSize = 58.sp,
                         ),
                     ) {
                         append(currentCount.toString())
                     }
-                    withStyle(SpanStyle(color = Gray300)) {
+                    withStyle(SpanStyle(color = ChallaTheme.colors.labelNeutral)) {
                         append("/$totalCount")
                     }
                 },
@@ -63,7 +60,7 @@ internal fun PhotoProgress(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "찍은 사진",
-            color = Gray700,
+            color = ChallaTheme.colors.labelAlternative,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -74,7 +71,7 @@ internal fun PhotoProgress(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Gray100),
+                    .background(ChallaTheme.colors.labelNormal),
         ) {
             Box(
                 modifier =
@@ -82,7 +79,7 @@ internal fun PhotoProgress(
                         .fillMaxWidth(progress)
                         .height(8.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(Black),
+                        .background(ChallaTheme.colors.staticBlack),
             )
         }
     }
