@@ -14,7 +14,6 @@ import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginScreen
-import com.happyhouse.challa.presentation.onboarding.OnboardingScreen
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
@@ -73,14 +72,6 @@ fun ChallaNavHost(
                         roomId = route.roomId,
                         photoId = route.photoId,
                         onBackClick = { navigator.goBack() },
-                    )
-                }
-                entry<ChallaRoute.Onboarding> {
-                    OnboardingScreen(
-                        onComplete = {
-                            // login화면으로 보내지 않고 SampleScreen으로 보냄
-                            navigator.replace(ChallaRoute.Sample)
-                        },
                     )
                 }
                 entry<ChallaRoute.Login> {
