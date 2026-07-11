@@ -41,6 +41,7 @@ fun ChallaIconButton(
         enabled = enabled,
         variant = variant,
         minHeight = sizeSpec.minHeight,
+        cornerRadius = size.cornerRadius,
         contentPadding = PaddingValues(sizeSpec.padding),
     ) { contentColor ->
         Icon(
@@ -74,6 +75,13 @@ private val ChallaButtonSize.iconSpec: ChallaIconButtonSizeSpec
                     iconSize = 20.dp,
                     padding = 10.dp,
                 )
+
+            ChallaButtonSize.SMALL ->
+                ChallaIconButtonSizeSpec(
+                    minHeight = 32.dp,
+                    iconSize = 16.dp,
+                    padding = 8.dp,
+                )
         }
 
 @Preview(widthDp = 480)
@@ -86,6 +94,7 @@ private fun ChallaIconButtonPreview() {
         IconButtonPreviewHeaderRow()
         IconButtonPreviewGroup(size = ChallaButtonSize.LARGE)
         IconButtonPreviewGroup(size = ChallaButtonSize.MEDIUM)
+        IconButtonPreviewGroup(size = ChallaButtonSize.SMALL)
     }
 }
 

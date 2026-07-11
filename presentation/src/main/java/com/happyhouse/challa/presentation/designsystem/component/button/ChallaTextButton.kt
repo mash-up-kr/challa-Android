@@ -37,6 +37,7 @@ fun ChallaTextButton(
         enabled = enabled,
         variant = variant,
         minHeight = sizeSpec.minHeight,
+        cornerRadius = size.cornerRadius,
         contentPadding =
             PaddingValues(
                 horizontal = sizeSpec.horizontalPadding,
@@ -78,6 +79,14 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     verticalPadding = 12.dp,
                     textStyle = ChallaTheme.typography.bodySmall,
                 )
+
+            ChallaButtonSize.SMALL ->
+                ChallaTextButtonSizeSpec(
+                    minHeight = 32.dp,
+                    horizontalPadding = 10.dp,
+                    verticalPadding = 8.dp,
+                    textStyle = ChallaTheme.typography.bodySmall,
+                )
         }
 
 @Preview(widthDp = 480)
@@ -90,6 +99,7 @@ private fun ChallaTextButtonPreview() {
         ButtonPreviewHeaderRow()
         ButtonPreviewGroup(size = ChallaButtonSize.LARGE)
         ButtonPreviewGroup(size = ChallaButtonSize.MEDIUM)
+        ButtonPreviewGroup(size = ChallaButtonSize.SMALL)
     }
 }
 

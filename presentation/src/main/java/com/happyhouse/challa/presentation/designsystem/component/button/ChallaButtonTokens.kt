@@ -2,6 +2,8 @@ package com.happyhouse.challa.presentation.designsystem.component.button
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
 enum class ChallaButtonVariant {
@@ -13,7 +15,16 @@ enum class ChallaButtonVariant {
 enum class ChallaButtonSize {
     LARGE,
     MEDIUM,
+    SMALL,
 }
+
+internal val ChallaButtonSize.cornerRadius: Dp
+    get() =
+        when (this) {
+            ChallaButtonSize.LARGE -> 12.dp
+            ChallaButtonSize.MEDIUM -> 10.dp
+            ChallaButtonSize.SMALL -> 8.dp
+        }
 
 internal data class ChallaButtonColorSpec(
     val containerColor: Color,
