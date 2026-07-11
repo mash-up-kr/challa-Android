@@ -43,6 +43,9 @@ internal object ChallaColorScheme {
             backgroundLevel2 = ColorTokens.BackgroundLevel2,
             backgroundLevel3 = ColorTokens.BackgroundLevel3,
             backgroundLevel4 = ColorTokens.BackgroundLevel4,
+            statusPositive = ColorTokens.StatusPositive,
+            statusCautionary = ColorTokens.StatusCautionary,
+            statusDestructive = ColorTokens.StatusDestructive,
             lineNormal = ColorTokens.LineNormal,
             lineNeutral = ColorTokens.LineNeutral,
             lineAlternative = ColorTokens.LineAlternative,
@@ -109,6 +112,15 @@ private fun ChallaColorPreview() {
                         "Level 2" to ChallaTheme.colors.backgroundLevel2,
                         "Level 3" to ChallaTheme.colors.backgroundLevel3,
                         "Level 4" to ChallaTheme.colors.backgroundLevel4,
+                    ),
+            )
+            ColorGroup(
+                title = "Status",
+                colors =
+                    persistentListOf(
+                        "Positive" to ChallaTheme.colors.statusPositive,
+                        "Cautionary" to ChallaTheme.colors.statusCautionary,
+                        "Destructive" to ChallaTheme.colors.statusDestructive,
                     ),
             )
             ColorGroup(

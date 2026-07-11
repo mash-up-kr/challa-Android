@@ -34,6 +34,10 @@ internal object ColorTokens {
     val BackgroundLevel3 = Color(0xFF2F2F2F)
     val BackgroundLevel4 = Color(0xFF3B3B3B)
 
+    val StatusPositive = Color(0xFF00E467)
+    val StatusCautionary = Color(0xFFFFB200)
+    val StatusDestructive = Color(0xFFED4C4C)
+
     val LineNormal = Color(0xFF818181).copy(alpha = 0.22f)
     val LineNeutral = Color(0xFF7E7E7E).copy(alpha = 0.16f)
     val LineAlternative = Color(0xFF7E7E7E).copy(alpha = 0.08f)
