@@ -13,6 +13,7 @@ data class ChallaTypography(
     val weightMedium: TextStyle,
     val weightRegular: TextStyle,
     // Heading
+    val headingHome: TextStyle,
     val headingXLarge: TextStyle,
     val headingLarge: TextStyle,
     val headingMedium: TextStyle,

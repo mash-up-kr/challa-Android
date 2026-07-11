@@ -34,6 +34,7 @@ enum class ChallaFontSize(
     V20(20.sp),
     V24(24.sp),
     V28(28.sp),
+    V36(36.sp),
     V44(44.sp),
     V48(48.sp),
     V60(60.sp),

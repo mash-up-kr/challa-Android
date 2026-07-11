@@ -28,6 +28,7 @@ internal object ChallaTypographyScheme {
             weightBold = ChallaTextStyles.WeightBold.toTextStyle(),
             weightMedium = ChallaTextStyles.WeightMedium.toTextStyle(),
             weightRegular = ChallaTextStyles.WeightRegular.toTextStyle(),
+            headingHome = ChallaTextStyles.HeadingHome.toTextStyle(),
             headingXLarge = ChallaTextStyles.HeadingXLarge.toTextStyle(),
             headingLarge = ChallaTextStyles.HeadingLarge.toTextStyle(),
             headingMedium = ChallaTextStyles.HeadingMedium.toTextStyle(),
@@ -56,7 +57,7 @@ private fun ChallaTypographyFamilyPreview() {
     }
 }
 
-@Preview(widthDp = 800, heightDp = 200)
+@Preview(widthDp = 800, heightDp = 180)
 @Composable
 private fun ChallaTypographyWeightPreview() {
     ChallaTheme {
@@ -72,7 +73,7 @@ private fun ChallaTypographyWeightPreview() {
     }
 }
 
-@Preview(widthDp = 960, heightDp = 320)
+@Preview(widthDp = 960, heightDp = 380)
 @Composable
 private fun ChallaTypographyHeadingPreview() {
     ChallaTheme {
@@ -80,6 +81,7 @@ private fun ChallaTypographyHeadingPreview() {
             title = "Heading",
             items =
                 persistentListOf(
+                    "Heading Home" to ChallaTheme.typography.headingHome,
                     "Heading XLarge" to ChallaTheme.typography.headingXLarge,
                     "Heading Large" to ChallaTheme.typography.headingLarge,
                     "Heading Medium" to ChallaTheme.typography.headingMedium,
@@ -89,7 +91,7 @@ private fun ChallaTypographyHeadingPreview() {
     }
 }
 
-@Preview(widthDp = 800, heightDp = 200)
+@Preview(widthDp = 800, heightDp = 180)
 @Composable
 private fun ChallaTypographyBodyPreview() {
     ChallaTheme {
@@ -105,7 +107,7 @@ private fun ChallaTypographyBodyPreview() {
     }
 }
 
-@Preview(widthDp = 800, heightDp = 200)
+@Preview(widthDp = 800, heightDp = 160)
 @Composable
 private fun ChallaTypographyDescriptionPreview() {
     ChallaTheme {

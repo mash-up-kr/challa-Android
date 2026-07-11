@@ -38,6 +38,14 @@ internal object ChallaTextStyles {
             lineHeight = ChallaFontLineHeight.V20,
         )
 
+    val HeadingHome: ChallaTextStyle =
+        ChallaTextStyle(
+            fontFamily = ChallaFontFamily.DIRTYLINE,
+            fontWeight = ChallaFontWeight.REGULAR,
+            fontSize = ChallaFontSize.V36,
+            lineHeight = ChallaFontLineHeight.V60,
+        )
+
     val HeadingXLarge: ChallaTextStyle =
         ChallaTextStyle(
             fontFamily = ChallaFontFamily.DIRTYLINE,
@@ -69,43 +77,43 @@ internal object ChallaTextStyles {
 
     val BodyLarge: ChallaTextStyle =
         ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V18,
             lineHeight = ChallaFontLineHeight.V24,
         )
 
     val BodyMedium: ChallaTextStyle =
         ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V16,
             lineHeight = ChallaFontLineHeight.V20,
         )
 
     val BodySmall: ChallaTextStyle =
         ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V14,
             lineHeight = ChallaFontLineHeight.V16,
         )
 
     val DescriptionLarge: ChallaTextStyle =
         ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V12,
             lineHeight = ChallaFontLineHeight.V14,
         )
 
     val DescriptionMedium: ChallaTextStyle =
         ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V11,
             lineHeight = ChallaFontLineHeight.V13,
         )
 
     val DescriptionSmall: ChallaTextStyle =
         ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V10,
-            lineHeight = ChallaFontLineHeight.V12,
+            lineHeight = ChallaFontLineHeight.V13,
         )
 }
