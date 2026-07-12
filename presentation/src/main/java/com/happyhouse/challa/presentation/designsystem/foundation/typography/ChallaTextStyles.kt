@@ -71,6 +71,13 @@ internal object ChallaTextStyles {
     val HeadingSmall: ChallaTextStyle =
         ChallaTextStyle(
             fontWeight = ChallaFontWeight.BOLD,
+            fontSize = ChallaFontSize.V22,
+            lineHeight = ChallaFontLineHeight.V30,
+        )
+
+    val HeadingXSmall: ChallaTextStyle =
+        ChallaTextStyle(
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V20,
             lineHeight = ChallaFontLineHeight.V28,
         )
@@ -90,6 +97,13 @@ internal object ChallaTextStyles {
         )
 
     val BodySmall: ChallaTextStyle =
+        ChallaTextStyle(
+            fontWeight = ChallaFontWeight.BOLD,
+            fontSize = ChallaFontSize.V15,
+            lineHeight = ChallaFontLineHeight.V18,
+        )
+
+    val BodyXSmall: ChallaTextStyle =
         ChallaTextStyle(
             fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V14,

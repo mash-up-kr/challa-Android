@@ -18,10 +18,12 @@ data class ChallaTypography(
     val headingLarge: TextStyle,
     val headingMedium: TextStyle,
     val headingSmall: TextStyle,
+    val headingXSmall: TextStyle,
     // Body
     val bodyLarge: TextStyle,
     val bodyMedium: TextStyle,
     val bodySmall: TextStyle,
+    val bodyXSmall: TextStyle,
     // Description
     val descriptionLarge: TextStyle,
     val descriptionMedium: TextStyle,

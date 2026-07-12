@@ -33,9 +33,11 @@ internal object ChallaTypographyScheme {
             headingLarge = ChallaTextStyles.HeadingLarge.toTextStyle(),
             headingMedium = ChallaTextStyles.HeadingMedium.toTextStyle(),
             headingSmall = ChallaTextStyles.HeadingSmall.toTextStyle(),
+            headingXSmall = ChallaTextStyles.HeadingXSmall.toTextStyle(),
             bodyLarge = ChallaTextStyles.BodyLarge.toTextStyle(),
             bodyMedium = ChallaTextStyles.BodyMedium.toTextStyle(),
             bodySmall = ChallaTextStyles.BodySmall.toTextStyle(),
+            bodyXSmall = ChallaTextStyles.BodyXSmall.toTextStyle(),
             descriptionLarge = ChallaTextStyles.DescriptionLarge.toTextStyle(),
             descriptionMedium = ChallaTextStyles.DescriptionMedium.toTextStyle(),
             descriptionSmall = ChallaTextStyles.DescriptionSmall.toTextStyle(),
@@ -73,7 +75,7 @@ private fun ChallaTypographyWeightPreview() {
     }
 }
 
-@Preview(widthDp = 960, heightDp = 380)
+@Preview(widthDp = 960, heightDp = 420)
 @Composable
 private fun ChallaTypographyHeadingPreview() {
     ChallaTheme {
@@ -86,12 +88,13 @@ private fun ChallaTypographyHeadingPreview() {
                     "Heading Large" to ChallaTheme.typography.headingLarge,
                     "Heading Medium" to ChallaTheme.typography.headingMedium,
                     "Heading Small" to ChallaTheme.typography.headingSmall,
+                    "Heading XSmall" to ChallaTheme.typography.headingXSmall,
                 ),
         )
     }
 }
 
-@Preview(widthDp = 800, heightDp = 180)
+@Preview(widthDp = 800, heightDp = 220)
 @Composable
 private fun ChallaTypographyBodyPreview() {
     ChallaTheme {
@@ -102,6 +105,7 @@ private fun ChallaTypographyBodyPreview() {
                     "Body Large" to ChallaTheme.typography.bodyLarge,
                     "Body Medium" to ChallaTheme.typography.bodyMedium,
                     "Body Small" to ChallaTheme.typography.bodySmall,
+                    "Body XSmall" to ChallaTheme.typography.bodyXSmall,
                 ),
         )
     }
