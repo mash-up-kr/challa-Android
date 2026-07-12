@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.designsystem.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -17,9 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
+import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -50,7 +49,7 @@ fun ChallaList(
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(ChallaIconSize.XSMALL.dp),
                 tint = ChallaTheme.colors.labelNeutral,
             )
         }
@@ -76,13 +75,17 @@ fun ChallaList(
                     )
                 }
                 trailingIcon?.let { icon ->
-                    ChallaIconButton(
-                        icon = icon,
-                        onClick = onClick,
-                        contentDescription = null,
-                        variant = ChallaButtonVariant.TRANSPARENT,
-                        size = ChallaButtonSize.SMALL,
-                    )
+                    Box(
+                        modifier = Modifier.size(32.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(ChallaIconSize.XXSMALL.dp),
+                            tint = ChallaTheme.colors.labelNeutral,
+                        )
+                    }
                 }
             }
         }

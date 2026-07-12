@@ -85,7 +85,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     minHeight = 32.dp,
                     horizontalPadding = 10.dp,
                     verticalPadding = 8.dp,
-                    textStyle = ChallaTheme.typography.bodySmall.bold,
+                    textStyle = ChallaTheme.typography.bodyXSmall.bold,
                 )
         }
 

@@ -28,7 +28,7 @@ internal object ChallaTextStyles {
     val HeadingXLarge: ChallaTextStyle =
         ChallaTextStyle(
             fontFamily = ChallaFontFamily.DIRTYLINE,
-            fontWeight = ChallaFontWeight.REGULAR,
+            fontWeight = ChallaFontWeight.BOLD,
             fontSize = ChallaFontSize.V60,
             lineHeight = ChallaFontLineHeight.V60,
         )
