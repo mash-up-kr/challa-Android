@@ -21,7 +21,7 @@ fun ChallaPreviewItem(
         text = label,
         modifier = modifier,
         color = Color.White,
-        style = ChallaTheme.typography.bodySmall,
+        style = ChallaTheme.typography.bodySmall.bold,
     )
     Spacer(modifier = Modifier.height(12.dp))
     content()
@@ -31,7 +31,7 @@ fun ChallaPreviewItem(
 fun ChallaPreviewLabel(
     text: String,
     modifier: Modifier = Modifier,
-    style: TextStyle = ChallaTheme.typography.descriptionLarge,
+    style: TextStyle = ChallaTheme.typography.descriptionLarge.bold,
     textAlign: TextAlign? = null,
 ) {
     Text(

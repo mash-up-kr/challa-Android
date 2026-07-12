@@ -120,7 +120,7 @@ private fun IconButtonPreviewGroup(size: ChallaButtonSize) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         ChallaPreviewLabel(
             text = size.name,
-            style = ChallaTheme.typography.bodyLarge,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
         IconButtonPreviewStateRow(
             label = "Enabled",

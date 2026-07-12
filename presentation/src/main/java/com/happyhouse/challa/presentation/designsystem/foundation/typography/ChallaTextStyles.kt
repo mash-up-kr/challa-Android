@@ -17,27 +17,6 @@ internal object ChallaTextStyles {
             lineHeight = ChallaFontLineHeight.V48,
         )
 
-    val WeightBold: ChallaTextStyle =
-        ChallaTextStyle(
-            fontWeight = ChallaFontWeight.BOLD,
-            fontSize = ChallaFontSize.V15,
-            lineHeight = ChallaFontLineHeight.V20,
-        )
-
-    val WeightMedium: ChallaTextStyle =
-        ChallaTextStyle(
-            fontWeight = ChallaFontWeight.SEMI_BOLD,
-            fontSize = ChallaFontSize.V15,
-            lineHeight = ChallaFontLineHeight.V20,
-        )
-
-    val WeightRegular: ChallaTextStyle =
-        ChallaTextStyle(
-            fontWeight = ChallaFontWeight.REGULAR,
-            fontSize = ChallaFontSize.V15,
-            lineHeight = ChallaFontLineHeight.V20,
-        )
-
     val HeadingHome: ChallaTextStyle =
         ChallaTextStyle(
             fontFamily = ChallaFontFamily.DIRTYLINE,

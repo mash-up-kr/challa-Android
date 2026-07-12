@@ -69,7 +69,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     minHeight = 54.dp,
                     horizontalPadding = 20.dp,
                     verticalPadding = 15.dp,
-                    textStyle = ChallaTheme.typography.bodyLarge,
+                    textStyle = ChallaTheme.typography.bodyLarge.bold,
                 )
 
             ChallaButtonSize.MEDIUM ->
@@ -77,7 +77,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     minHeight = 40.dp,
                     horizontalPadding = 16.dp,
                     verticalPadding = 12.dp,
-                    textStyle = ChallaTheme.typography.bodySmall,
+                    textStyle = ChallaTheme.typography.bodySmall.bold,
                 )
 
             ChallaButtonSize.SMALL ->
@@ -85,7 +85,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     minHeight = 32.dp,
                     horizontalPadding = 10.dp,
                     verticalPadding = 8.dp,
-                    textStyle = ChallaTheme.typography.bodySmall,
+                    textStyle = ChallaTheme.typography.bodySmall.bold,
                 )
         }
 
@@ -125,7 +125,7 @@ private fun ButtonPreviewGroup(size: ChallaButtonSize) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         ChallaPreviewLabel(
             text = size.name,
-            style = ChallaTheme.typography.bodyLarge,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
         ButtonPreviewStateRow(
             label = "Enabled",

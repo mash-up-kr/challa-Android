@@ -60,7 +60,7 @@ fun ChallaList(
             modifier = Modifier.weight(1f),
             color = ChallaTheme.colors.labelSubtle,
             overflow = TextOverflow.Ellipsis,
-            style = ChallaTheme.typography.bodyMedium,
+            style = ChallaTheme.typography.bodyMedium.bold,
         )
 
         if (trailingText != null || trailingIcon != null) {
@@ -72,7 +72,7 @@ fun ChallaList(
                         text = text,
                         color = ChallaTheme.colors.primaryYellow,
                         overflow = TextOverflow.Ellipsis,
-                        style = ChallaTheme.typography.bodyMedium,
+                        style = ChallaTheme.typography.bodyMedium.bold,
                     )
                 }
                 trailingIcon?.let { icon ->

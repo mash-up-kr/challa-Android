@@ -161,13 +161,13 @@ private fun ColorGroup(
         Text(
             text = title,
             color = ChallaTheme.colors.labelStrong,
-            style = ChallaTheme.typography.bodyMedium,
+            style = ChallaTheme.typography.bodyMedium.bold,
         )
         subtitle?.let {
             Text(
                 text = it,
                 color = ChallaTheme.colors.labelStrong,
-                style = ChallaTheme.typography.descriptionLarge,
+                style = ChallaTheme.typography.descriptionLarge.bold,
             )
         }
         FlowRow(
@@ -208,7 +208,7 @@ private fun ColorSwatch(
         Text(
             text = name,
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.descriptionLarge,
+            style = ChallaTheme.typography.descriptionLarge.bold,
         )
     }
 }
