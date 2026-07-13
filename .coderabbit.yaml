@@ -13,6 +13,10 @@ reviews:
     - "**/*.kts"
     - "**/AndroidManifest.xml"
     - "**/libs.versions.toml"
+    # CI 워크플로와 CodeRabbit 설정 자체도 리뷰 대상에 포함한다
+    # (빠뜨리면 워크플로만 고치는 PR이 리뷰 없이 지나가고, actionlint도 검사할 파일이 없어진다)
+    - "**/*.yml"
+    - "**/*.yaml"
     - "!**/build/**"
     - "!**/.gradle/**"
     - "!**/generated/**"
@@ -64,6 +68,16 @@ reviews:
         - UseCase / DataSource는 기본으로 만들지 않는다. 비즈니스 로직이 있거나
           여러 repository를 결합할 때만 추가한다. 단순 위임만 하는 UseCase 추가는 지적할 것.
         - 반대로 UseCase가 없다는 이유만으로 추가를 권하지 말 것.
+
+        제안하지 말아야 할 것 (팀 방침):
+        - 팀에서 아직 확정하지 않은 사항이다. 새 패턴이나 도입을 먼저 제안하지 말 것.
+          BaseViewModel 구조, API 에러 처리 방식, Navigation3 도입 여부, 카카오 등 외부 로그인.
+          이미 있는 구조를 따르지 않은 코드만 지적하고, 구조 자체를 바꾸라는 제안은 하지 않는다.
+        - 새 라이브러리 추가를 제안하지 말 것. 기존 스택(Compose, Hilt, Coroutine+Flow, Retrofit,
+          Room, DataStore, Coil)으로 해결 가능한지를 먼저 본다.
+        - 현재 단계에서 테스트 코드는 필수가 아니다. 테스트가 없다는 이유로 지적하거나
+          테스트 추가를 요구하지 말 것.
+        - 신규 XML 레이아웃 작성은 금지다. Jetpack Compose로만 UI를 짠다.
 
     # ── domain: 순수 Kotlin ────────────────────────────────────────
     - path: "domain/**/*.kt"
@@ -222,6 +236,15 @@ reviews:
         - intent-filter(deeplink scheme/host)가 과도하게 넓지 않은지 확인한다.
         - android:debuggable, usesCleartextTraffic, allowBackup이 의도와 일치하는지 확인한다.
         - 백업 정책이 토큰 등 민감 데이터를 제외하는지 확인한다.
+
+    # ── CI 워크플로 ────────────────────────────────────────────────
+    - path: ".github/workflows/*.yml"
+      instructions: |
+        GitHub Actions 워크플로 리뷰.
+        - CI는 develop 대상 PR에서 빌드 + ktlint를 돌린다. 이 두 검증이 빠지지 않았는지 확인한다.
+        - 시크릿을 로그에 출력하거나 PR 제목·브랜치명 등 외부 입력을 셸에 그대로 치환하지 않는지 확인한다.
+          (스크립트 인젝션 위험)
+        - actions는 신뢰 가능한 버전으로 고정하고, 필요한 최소 permissions만 부여한다.
 
     # ── 테스트 ─────────────────────────────────────────────────────
     - path: "**/{test,androidTest}/**/*.kt"
