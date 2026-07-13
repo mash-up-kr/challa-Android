@@ -8,16 +8,31 @@ object ChallaIcons {
     val Apple = R.drawable.ic_apple
 
     @DrawableRes
+    val Bell = R.drawable.ic_bell
+
+    @DrawableRes
     val Blank = R.drawable.ic_blank
 
     @DrawableRes
     val Camera = R.drawable.ic_camera
 
     @DrawableRes
+    val Carrot = R.drawable.ic_carrot
+
+    @DrawableRes
+    val Chat = R.drawable.ic_chat
+
+    @DrawableRes
     val Check = R.drawable.ic_check
 
     @DrawableRes
+    val Circle = R.drawable.ic_circle
+
+    @DrawableRes
     val Close = R.drawable.ic_close
+
+    @DrawableRes
+    val Error = R.drawable.ic_error
 
     @DrawableRes
     val Kakao = R.drawable.ic_kakao
@@ -32,13 +47,22 @@ object ChallaIcons {
     val LightOn = R.drawable.ic_light_on
 
     @DrawableRes
+    val Palette = R.drawable.ic_palette
+
+    @DrawableRes
+    val Profile = R.drawable.ic_profile
+
+    @DrawableRes
     val Refresh = R.drawable.ic_refresh
 
     @DrawableRes
-    val right = R.drawable.ic_right
+    val Right = R.drawable.ic_right
 
     @DrawableRes
     val Setting = R.drawable.ic_setting
+
+    @DrawableRes
+    val SignOut = R.drawable.ic_sign_out
 
     @DrawableRes
     val UnfoldMore = R.drawable.ic_unfold_more

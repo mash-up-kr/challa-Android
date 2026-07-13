@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewLabel
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
@@ -41,12 +42,13 @@ fun ChallaIconButton(
         enabled = enabled,
         variant = variant,
         minHeight = sizeSpec.minHeight,
+        cornerRadius = size.cornerRadius,
         contentPadding = PaddingValues(sizeSpec.padding),
     ) { contentColor ->
         Icon(
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
-            modifier = Modifier.size(sizeSpec.iconSize),
+            modifier = Modifier.size(sizeSpec.iconSize.dp),
             tint = contentColor,
         )
     }
@@ -54,7 +56,7 @@ fun ChallaIconButton(
 
 private data class ChallaIconButtonSizeSpec(
     val minHeight: Dp,
-    val iconSize: Dp,
+    val iconSize: ChallaIconSize,
     val padding: Dp,
 )
 
@@ -64,15 +66,22 @@ private val ChallaButtonSize.iconSpec: ChallaIconButtonSizeSpec
             ChallaButtonSize.LARGE ->
                 ChallaIconButtonSizeSpec(
                     minHeight = 54.dp,
-                    iconSize = 24.dp,
+                    iconSize = ChallaIconSize.MEDIUM,
                     padding = 15.dp,
                 )
 
             ChallaButtonSize.MEDIUM ->
                 ChallaIconButtonSizeSpec(
                     minHeight = 40.dp,
-                    iconSize = 20.dp,
+                    iconSize = ChallaIconSize.SMALL,
                     padding = 10.dp,
+                )
+
+            ChallaButtonSize.SMALL ->
+                ChallaIconButtonSizeSpec(
+                    minHeight = 32.dp,
+                    iconSize = ChallaIconSize.XXSMALL,
+                    padding = 8.dp,
                 )
         }
 
@@ -86,6 +95,7 @@ private fun ChallaIconButtonPreview() {
         IconButtonPreviewHeaderRow()
         IconButtonPreviewGroup(size = ChallaButtonSize.LARGE)
         IconButtonPreviewGroup(size = ChallaButtonSize.MEDIUM)
+        IconButtonPreviewGroup(size = ChallaButtonSize.SMALL)
     }
 }
 
@@ -111,7 +121,7 @@ private fun IconButtonPreviewGroup(size: ChallaButtonSize) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         ChallaPreviewLabel(
             text = size.name,
-            style = ChallaTheme.typography.bodyLarge,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
         IconButtonPreviewStateRow(
             label = "Enabled",

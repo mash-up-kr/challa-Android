@@ -65,13 +65,13 @@ private fun CameraPermissionGuide(
         Text(
             text = stringResource(R.string.camera_permission_required_title),
             color = Color.White,
-            style = ChallaTheme.typography.headingSmall,
+            style = ChallaTheme.typography.headingSmall.bold,
         )
         Text(
             modifier = Modifier.padding(top = 8.dp),
             text = stringResource(R.string.camera_permission_required_description),
             color = Color.White,
-            style = ChallaTheme.typography.bodyMedium,
+            style = ChallaTheme.typography.bodyMedium.bold,
         )
         Button(
             modifier = Modifier.padding(top = 24.dp),

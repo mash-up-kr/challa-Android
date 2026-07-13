@@ -116,7 +116,7 @@ private fun ChallaSubTopNavigation(
             modifier = Modifier.align(Alignment.Center),
             color = ChallaTheme.colors.labelNormal,
             textAlign = TextAlign.Center,
-            style = ChallaTheme.typography.bodyLarge,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
 
         Box(
