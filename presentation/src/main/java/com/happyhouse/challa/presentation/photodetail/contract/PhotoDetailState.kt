@@ -1,8 +1,10 @@
 package com.happyhouse.challa.presentation.photodetail.contract
 
+import android.os.Parcelable
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.parcelize.Parcelize
 
 @Immutable
 data class PhotoDetailState(
@@ -27,9 +29,10 @@ data class PhotoDetailState(
 }
 
 @Immutable
+@Parcelize
 data class PhotoDetailUiModel(
     val id: Long,
     val imageUrl: String,
     val photographer: String,
     val capturedDate: String,
-)
+) : Parcelable

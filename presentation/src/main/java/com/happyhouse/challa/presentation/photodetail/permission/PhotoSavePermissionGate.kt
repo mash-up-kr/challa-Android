@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -31,10 +30,7 @@ fun rememberPhotoSavePermissionGate(
     val currentOnDenied by rememberUpdatedState(onDenied)
     val currentOnGranted by rememberUpdatedState(onGranted)
 
-    @Suppress("RemoveExplicitTypeArguments")
-    var pendingPhoto by rememberSaveable(stateSaver = PendingPhotoStateSaver) {
-        mutableStateOf<PhotoDetailUiModel?>(null)
-    }
+    var pendingPhoto by rememberSaveable { mutableStateOf<PhotoDetailUiModel?>(null) }
 
     val permissionLauncher =
         rememberLauncherForActivityResult(
@@ -65,23 +61,3 @@ private fun Context.isStorageAccessAllowed(): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ||
         ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
         PackageManager.PERMISSION_GRANTED
-
-private val PendingPhotoStateSaver =
-    listSaver<PhotoDetailUiModel?, Any>(
-        save = { photo ->
-            photo?.let { listOf(it.id, it.imageUrl, it.photographer, it.capturedDate) }
-                ?: emptyList()
-        },
-        restore = { saved ->
-            if (saved.isEmpty()) {
-                null
-            } else {
-                PhotoDetailUiModel(
-                    id = saved[0] as Long,
-                    imageUrl = saved[1] as String,
-                    photographer = saved[2] as String,
-                    capturedDate = saved[3] as String,
-                )
-            }
-        },
-    )
