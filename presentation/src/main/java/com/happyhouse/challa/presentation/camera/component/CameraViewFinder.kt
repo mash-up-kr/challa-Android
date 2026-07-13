@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.camera.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.R
 
@@ -48,7 +46,7 @@ private fun ViewFinderFrame(
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
-        modifier = modifier.border(width = 1.dp, color = Color(0xFF444444)),
+        modifier = modifier,
         contentAlignment = contentAlignment,
         content = content,
     )

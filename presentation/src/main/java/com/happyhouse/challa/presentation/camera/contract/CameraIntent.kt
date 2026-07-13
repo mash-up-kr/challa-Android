@@ -13,6 +13,10 @@ sealed interface CameraIntent : UiIntent {
 
     data object ShutterClick : CameraIntent
 
+    data class FilterClick(
+        val index: Int,
+    ) : CameraIntent
+
     data class FlashAvailabilityChanged(
         val isAvailable: Boolean,
     ) : CameraIntent

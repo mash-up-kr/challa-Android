@@ -31,6 +31,7 @@ class CameraViewModel @AssistedInject constructor(
             CameraIntent.FlashClick -> handleFlashClick()
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             CameraIntent.ShutterClick -> handleShutterClick()
+            is CameraIntent.FilterClick -> handleFilterClick(intent.index)
             is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
         }
     }
@@ -78,6 +79,12 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun handleShutterClick() = Unit
+
+    private fun handleFilterClick(index: Int) {
+        updateState {
+            copy(selectedFilterIndex = index.coerceIn(0, 4))
+        }
+    }
 
     private fun handleFlashAvailabilityChanged(isAvailable: Boolean) {
         updateState {

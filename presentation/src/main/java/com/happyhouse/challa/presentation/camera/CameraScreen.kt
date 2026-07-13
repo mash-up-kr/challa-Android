@@ -88,7 +88,6 @@ fun CameraScreen(
                     CameraContent(
                         modifier = Modifier.fillMaxSize(),
                         state = state,
-                        onBackClick = onBackClick,
                         onIntent = onIntent,
                     )
                 }

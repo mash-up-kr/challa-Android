@@ -20,6 +20,12 @@
     <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
     <string name="camera_flash_enabled_message">플래시가 켜졌어요.</string>
     <string name="camera_flash_disabled_message">플래시가 꺼졌어요.</string>
+    <string name="camera_filter_name">필터%1$d</string>
+    <string name="camera_room_selector_description">방 선택</string>
+    <string name="camera_remaining_count">%1$d장 남음</string>
+    <string name="camera_total_count">" /%1$d장"</string>
+    <string name="camera_zoom_level">1x</string>
+    <string name="camera_photo_limit_reached">앗.. 장수를 다 사용했어요!</string>
 
     <!-- galleryScreen -->
     <string name="sample_gallery_button">갤러리 보기</string>
