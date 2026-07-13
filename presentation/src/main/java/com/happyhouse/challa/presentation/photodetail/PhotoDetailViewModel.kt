@@ -1,7 +1,7 @@
 package com.happyhouse.challa.presentation.photodetail
 
-import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
@@ -12,7 +12,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
@@ -24,7 +23,7 @@ import timber.log.Timber
 class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
     @Assisted("initialPhotoId") private val initialPhotoId: Long,
-    @ApplicationContext private val context: Context,
+    private val photoRepository: PhotoRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
@@ -68,7 +67,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
         updateState { copy(isSaving = true) }
         viewModelScope.launch {
             try {
-                savePhotoToMediaStore(context, photo.imageUrl)
+                photoRepository
+                    .savePhoto(photo.imageUrl)
                     .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
                     .onFailure { throwable ->
                         Timber.e(throwable, "사진 저장 실패")
