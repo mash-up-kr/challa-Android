@@ -6,10 +6,14 @@ import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
+import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
@@ -18,7 +22,7 @@ class CameraViewModel @AssistedInject constructor(
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
         initialState =
             CameraState(
-                roomId = roomId,
+                selectedRoomId = roomId,
             ),
     ) {
     init {
@@ -30,17 +34,53 @@ class CameraViewModel @AssistedInject constructor(
             is CameraIntent.FetchData -> fetchData(intent.roomId)
             CameraIntent.FlashClick -> handleFlashClick()
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
-            CameraIntent.ShutterClick -> handleShutterClick()
+            is CameraIntent.ShutterClick -> handleShutterClick(intent.roomId)
+            CameraIntent.ZoomClick -> handleZoomClick()
+            is CameraIntent.RoomClick -> handleRoomClick(intent.roomId)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
             is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
         }
     }
 
     private fun fetchData(roomId: Long) {
+        val rooms = createMockRooms(roomId)
+        val selectedRoom = rooms.first()
+
         updateState {
-            copy(roomId = roomId)
+            copy(
+                selectedRoomId = selectedRoom.id,
+                rooms = rooms,
+            )
         }
     }
+
+    private fun createMockRooms(roomId: Long) =
+        persistentListOf(
+            CameraRoomUiModel(
+                id = roomId,
+                name = "방이름1",
+                remainingCount = ROOM_REQUIRED_PHOTO_COUNT,
+                totalCount = ROOM_REQUIRED_PHOTO_COUNT,
+            ),
+            CameraRoomUiModel(
+                id = roomId + 1,
+                name = "방이름방이름방이름2",
+                remainingCount = 6,
+                totalCount = 24,
+            ),
+            CameraRoomUiModel(
+                id = roomId + 2,
+                name = "방이름방이름방이름3방이름",
+                remainingCount = 3,
+                totalCount = 48,
+            ),
+            CameraRoomUiModel(
+                id = roomId + 3,
+                name = "방이름방이름방이름4",
+                remainingCount = 3,
+                totalCount = 48,
+            ),
+        )
 
     private fun handleFlashClick() {
         if (!currentState.hasFlashUnit) {
@@ -78,11 +118,63 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleShutterClick() = Unit
+    private fun handleShutterClick(roomId: Long) {
+        val room = currentState.rooms.firstOrNull { it.id == roomId } ?: return
+        if (room.remainingCount <= 0) return
+
+        viewModelScope.launch {
+            sendEffect(CameraSideEffect.CapturePhoto(roomId))
+        }
+    }
+
+    fun onPhotoCaptureResult(
+        roomId: Long,
+        succeeded: Boolean,
+    ) {
+        if (!succeeded) {
+            viewModelScope.launch {
+                sendEffect(CameraSideEffect.PhotoCaptureFailed)
+            }
+            return
+        }
+
+        val capturedRoom = currentState.rooms.firstOrNull { it.id == roomId } ?: return
+        if (capturedRoom.remainingCount <= 0) return
+
+        updateState {
+            copy(
+                rooms =
+                    rooms
+                        .map { room ->
+                            if (room.id == roomId) {
+                                room.copy(remainingCount = room.remainingCount - 1)
+                            } else {
+                                room
+                            }
+                        }.toPersistentList(),
+            )
+        }
+    }
+
+    private fun handleZoomClick() {
+        updateState {
+            copy(
+                zoomLevel = if (zoomLevel == MAX_ZOOM_LEVEL) MIN_ZOOM_LEVEL else zoomLevel + 1,
+            )
+        }
+    }
+
+    private fun handleRoomClick(roomId: Long) {
+        val selectedRoom = currentState.rooms.firstOrNull { it.id == roomId } ?: return
+
+        updateState {
+            copy(selectedRoomId = selectedRoom.id)
+        }
+    }
 
     private fun handleFilterClick(index: Int) {
         updateState {
-            copy(selectedFilterIndex = index.coerceIn(0, 4))
+            copy(selectedFilterIndex = index.coerceIn(0, (filterCount - 1).coerceAtLeast(0)))
         }
     }
 
@@ -98,5 +190,10 @@ class CameraViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(roomId: Long): CameraViewModel
+    }
+
+    private companion object {
+        const val MIN_ZOOM_LEVEL = 1
+        const val MAX_ZOOM_LEVEL = 4
     }
 }

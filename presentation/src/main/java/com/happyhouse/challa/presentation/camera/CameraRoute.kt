@@ -4,14 +4,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
+import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
+import kotlinx.coroutines.launch
 
 @Composable
 fun CameraRoute(
@@ -28,20 +33,39 @@ fun CameraRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
+    var captureRequest by remember { mutableStateOf<PhotoCaptureRequest?>(null) }
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val flashEnabledMessage = stringResource(R.string.camera_flash_enabled_message)
     val flashDisabledMessage = stringResource(R.string.camera_flash_disabled_message)
+    val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
 
     LaunchedEffect(viewModel) {
+        var nextCaptureRequestId = 0L
+
         viewModel.uiEffect.collect { effect ->
             val message =
                 when (effect) {
-                    CameraSideEffect.FlashNotAvailable -> flashNotAvailableMessage
-                    CameraSideEffect.FlashEnabled -> flashEnabledMessage
+                    is CameraSideEffect.CapturePhoto -> {
+                        nextCaptureRequestId += 1
+                        captureRequest =
+                            PhotoCaptureRequest(
+                                requestId = nextCaptureRequestId,
+                                roomId = effect.roomId,
+                            )
+                        null
+                    }
+
+                    CameraSideEffect.PhotoCaptureFailed -> photoCaptureFailedMessage
                     CameraSideEffect.FlashDisabled -> flashDisabledMessage
+                    CameraSideEffect.FlashEnabled -> flashEnabledMessage
+                    CameraSideEffect.FlashNotAvailable -> flashNotAvailableMessage
                 }
 
-            snackbarHostState.showSnackbar(message)
+            if (message != null) {
+                launch {
+                    snackbarHostState.showSnackbar(message)
+                }
+            }
         }
     }
 
@@ -50,7 +74,9 @@ fun CameraRoute(
         state = state.value,
         permissionState = permissionController.state,
         snackbarHostState = snackbarHostState,
+        captureRequest = captureRequest,
         onRequestPermissionClick = permissionController.requestPermission,
+        onPhotoCaptureResult = viewModel::onPhotoCaptureResult,
         onIntent = viewModel::onIntent,
     )
 }

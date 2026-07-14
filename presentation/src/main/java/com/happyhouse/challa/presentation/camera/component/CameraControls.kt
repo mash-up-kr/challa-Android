@@ -3,7 +3,6 @@ package com.happyhouse.challa.presentation.camera.component
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -69,7 +69,7 @@ private fun RoundIconButton(
                 .size(52.dp)
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.backgroundLevel4)
-                .clickable(
+                .noRippleClickOnce(
                     role = Role.Button,
                     onClickLabel = contentDescription,
                     onClick = onClick,
@@ -104,7 +104,7 @@ private fun ShutterButton(
                     .size(64.dp)
                     .clip(CircleShape)
                     .background(ChallaTheme.colors.labelNormal)
-                    .clickable(
+                    .noRippleClickOnce(
                         enabled = enabled,
                         role = Role.Button,
                         onClickLabel = stringResource(R.string.camera_shutter_description),

@@ -2,19 +2,24 @@ package com.happyhouse.challa.presentation.camera.contract
 
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
-import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
+import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Immutable
 data class CameraState(
-    val roomId: Long = 0L,
-    val roomName: String = "해피하우스강릉여행",
+    val selectedRoomId: Long = 0L,
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashOn: Boolean = false,
     val hasFlashUnit: Boolean = false,
-    val selectedFilterIndex: Int = 2,
-    val remainingCount: Int = 12,
-    val totalCount: Int = ROOM_REQUIRED_PHOTO_COUNT,
-) : UiState
+    val zoomLevel: Int = 1,
+    val filterCount: Int = 8,
+    val selectedFilterIndex: Int = 0,
+    val rooms: ImmutableList<CameraRoomUiModel> = persistentListOf(),
+) : UiState {
+    val selectedRoom: CameraRoomUiModel?
+        get() = rooms.firstOrNull { it.id == selectedRoomId }
+}
 
 enum class CameraLensFacing {
     BACK,

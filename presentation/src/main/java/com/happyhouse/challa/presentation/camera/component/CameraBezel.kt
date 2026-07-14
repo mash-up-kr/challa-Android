@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -19,10 +20,14 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.dashedRoundedBorder
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
 fun CameraBezel(
     isPhotoLimitReached: Boolean,
+    isShutterEffectVisible: Boolean,
+    zoomLevel: Int,
+    onZoomClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
@@ -31,7 +36,7 @@ fun CameraBezel(
             modifier
                 .clip(RoundedCornerShape(60.dp))
                 .background(ChallaTheme.colors.staticBlack)
-                .border(4.dp, ChallaTheme.colors.staticWhite, RoundedCornerShape(64.dp))
+                .border(4.dp, ChallaTheme.colors.staticWhite, RoundedCornerShape(60.dp))
                 .padding(all = 24.dp),
     ) {
         Box(
@@ -63,16 +68,29 @@ fun CameraBezel(
                 }
             } else {
                 Text(
-                    text = stringResource(R.string.camera_zoom_level),
+                    text = stringResource(R.string.camera_zoom_level, zoomLevel),
                     modifier =
                         Modifier
                             .align(Alignment.BottomEnd)
                             .padding(12.dp)
                             .clip(RoundedCornerShape(650.dp))
                             .background(ChallaTheme.colors.backgroundLevel4)
+                            .noRippleClickOnce(
+                                role = Role.Button,
+                                onClick = onZoomClick,
+                            )
                             .padding(horizontal = 12.dp, vertical = 7.dp),
                     color = ChallaTheme.colors.labelNormal,
                     style = ChallaTheme.typography.bodyMedium.bold,
+                )
+            }
+
+            if (isShutterEffectVisible) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(ChallaTheme.colors.staticBlack),
                 )
             }
         }
@@ -92,6 +110,9 @@ private fun CameraBezelPreview() {
         CameraBezel(
             modifier = Modifier.fillMaxSize(),
             isPhotoLimitReached = false,
+            isShutterEffectVisible = false,
+            zoomLevel = 1,
+            onZoomClick = {},
             viewFinder = { MockViewFinder(it) },
         )
     }
@@ -110,6 +131,9 @@ private fun CameraBezelLimitReachedPreview() {
         CameraBezel(
             modifier = Modifier.fillMaxSize(),
             isPhotoLimitReached = true,
+            isShutterEffectVisible = false,
+            zoomLevel = 4,
+            onZoomClick = {},
             viewFinder = { MockViewFinder(it) },
         )
     }

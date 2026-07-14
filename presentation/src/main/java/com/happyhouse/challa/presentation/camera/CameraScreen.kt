@@ -14,9 +14,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.happyhouse.challa.presentation.camera.component.CameraBackgroundTopColor
 import com.happyhouse.challa.presentation.camera.component.CameraContent
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 
 @Composable
@@ -24,8 +26,10 @@ fun CameraScreen(
     state: CameraState,
     permissionState: CameraPermissionState,
     snackbarHostState: SnackbarHostState,
+    captureRequest: PhotoCaptureRequest?,
     modifier: Modifier = Modifier,
     onRequestPermissionClick: () -> Unit,
+    onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val activity = LocalActivity.current as? ComponentActivity
@@ -34,7 +38,7 @@ fun CameraScreen(
         activity?.enableEdgeToEdge(
             statusBarStyle =
                 SystemBarStyle.dark(
-                    scrim = Color.Transparent.toArgb(),
+                    scrim = CameraBackgroundTopColor.toArgb(),
                 ),
             navigationBarStyle =
                 SystemBarStyle.dark(
@@ -60,7 +64,7 @@ fun CameraScreen(
 
     Scaffold(
         modifier = modifier,
-        containerColor = Color.Black,
+        containerColor = CameraBackgroundTopColor,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
@@ -72,7 +76,9 @@ fun CameraScreen(
                     .padding(innerPadding),
             state = state,
             permissionState = permissionState,
+            captureRequest = captureRequest,
             onRequestPermissionClick = onRequestPermissionClick,
+            onPhotoCaptureResult = onPhotoCaptureResult,
             onIntent = onIntent,
         )
     }

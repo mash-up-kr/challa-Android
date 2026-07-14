@@ -1,59 +1,103 @@
 package com.happyhouse.challa.presentation.camera.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.camera.core.ImageCapture
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.PreviewWrapper
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
+import kotlinx.coroutines.delay
 import androidx.camera.core.Camera as CameraXCamera
-import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
+private const val SHUTTER_EFFECT_DURATION_MILLIS = 120L
 
 @Composable
 fun CameraContent(
     modifier: Modifier = Modifier,
     state: CameraState,
     permissionState: CameraPermissionState,
+    captureRequest: PhotoCaptureRequest?,
     onRequestPermissionClick: () -> Unit,
+    onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
+    val context = LocalContext.current
+    val mainExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
+    val selectedRoom = state.selectedRoom
+    val remainingCount = selectedRoom?.remainingCount ?: 0
     var camera by remember { mutableStateOf<CameraXCamera?>(null) }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var isCapturing by remember { mutableStateOf(false) }
+    var isShutterEffectVisible by remember { mutableStateOf(false) }
+    var isRoomSelectionVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isShutterEffectVisible) {
+        if (isShutterEffectVisible) {
+            delay(SHUTTER_EFFECT_DURATION_MILLIS)
+            isShutterEffectVisible = false
+        }
+    }
 
     LaunchedEffect(camera, state.isFlashOn, state.hasFlashUnit) {
         camera?.cameraControl?.enableTorch(state.isFlashOn && state.hasFlashUnit)
     }
 
+    LaunchedEffect(camera, state.zoomLevel) {
+        val boundCamera = camera ?: return@LaunchedEffect
+        val zoomState = boundCamera.cameraInfo.zoomState.value ?: return@LaunchedEffect
+        val supportedZoomRatio =
+            state.zoomLevel
+                .toFloat()
+                .coerceIn(zoomState.minZoomRatio, zoomState.maxZoomRatio)
+
+        boundCamera.cameraControl.setZoomRatio(supportedZoomRatio)
+    }
+
+    LaunchedEffect(captureRequest?.requestId) {
+        val request = captureRequest ?: return@LaunchedEffect
+        val boundImageCapture = imageCapture
+
+        if (boundImageCapture == null || isCapturing) {
+            onPhotoCaptureResult(request.roomId, false)
+            return@LaunchedEffect
+        }
+
+        isCapturing = true
+        isShutterEffectVisible = true
+        boundImageCapture.capturePhoto(
+            executor = mainExecutor,
+            onCaptureResult = { succeeded ->
+                isCapturing = false
+                onPhotoCaptureResult(request.roomId, succeeded)
+            },
+        )
+    }
+
     CameraContentLayout(
         modifier = modifier,
-        roomName = state.roomName,
-        remainingCount = state.remainingCount,
-        totalCount = state.totalCount,
+        roomName = selectedRoom?.name.orEmpty(),
+        remainingCount = remainingCount,
+        totalCount = selectedRoom?.totalCount ?: 0,
+        filterCount = state.filterCount,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashOn = state.isFlashOn,
+        shutterEnabled = remainingCount > 0 && imageCapture != null && !isCapturing,
+        isShutterEffectVisible = isShutterEffectVisible,
+        zoomLevel = state.zoomLevel,
         onFlashClick = { onIntent(CameraIntent.FlashClick) },
         onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
-        onShutterClick = { onIntent(CameraIntent.ShutterClick) },
+        onShutterClick = { onIntent(CameraIntent.ShutterClick(state.selectedRoomId)) },
+        onZoomClick = { onIntent(CameraIntent.ZoomClick) },
         onFilterClick = { onIntent(CameraIntent.FilterClick(it)) },
+        onRoomInfoClick = { isRoomSelectionVisible = true },
     ) { viewFinderModifier ->
         when (permissionState) {
             CameraPermissionState.Unchecked -> {
@@ -69,7 +113,10 @@ fun CameraContent(
                     modifier = viewFinderModifier,
                     lensFacing = state.lensFacing,
                     onCameraBound = { camera = it },
-                    onFlashAvailabilityChanged = { onIntent(CameraIntent.FlashAvailabilityChanged(it)) },
+                    onImageCaptureBound = { imageCapture = it },
+                    onFlashAvailabilityChanged = {
+                        onIntent(CameraIntent.FlashAvailabilityChanged(it))
+                    },
                 )
             }
 
@@ -82,100 +129,16 @@ fun CameraContent(
             }
         }
     }
-}
 
-@Composable
-fun CameraContentLayout(
-    roomName: String,
-    remainingCount: Int,
-    totalCount: Int,
-    selectedFilterIndex: Int,
-    isFlashOn: Boolean,
-    onFlashClick: () -> Unit,
-    onSwitchCameraClick: () -> Unit,
-    onShutterClick: () -> Unit,
-    onFilterClick: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-    viewFinder: @Composable (Modifier) -> Unit,
-) {
-    Column(
-        modifier = modifier.background(ChallaTheme.colors.staticBlack),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        CameraBezel(
-            isPhotoLimitReached = remainingCount <= 0,
-            modifier =
-                Modifier
-                    .padding(start = 36.dp, top = 40.dp, end = 36.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
-            viewFinder = viewFinder,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        CameraControls(
-            modifier = Modifier,
-            isFlashOn = isFlashOn,
-            shutterEnabled = remainingCount > 0,
-            onFlashClick = onFlashClick,
-            onSwitchCameraClick = onSwitchCameraClick,
-            onShutterClick = onShutterClick,
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        CameraFilterSelector(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            selectedFilterIndex = selectedFilterIndex,
-            onFilterClick = onFilterClick,
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        CameraRoomInfo(
-            roomName = roomName,
-            remainingCount = remainingCount,
-            totalCount = totalCount,
-            modifier = Modifier.padding(bottom = 40.dp),
+    if (isRoomSelectionVisible) {
+        CameraRoomSelectionBottomSheet(
+            rooms = state.rooms,
+            selectedRoomId = state.selectedRoomId,
+            onRoomClick = { roomId ->
+                onIntent(CameraIntent.RoomClick(roomId))
+                isRoomSelectionVisible = false
+            },
+            onDismissRequest = { isRoomSelectionVisible = false },
         )
     }
-}
-
-@ComposePreview
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun CameraContentLayoutPreview() {
-    CameraContentLayout(
-        modifier = Modifier.fillMaxSize(),
-        roomName = "해피하우스강릉여행",
-        remainingCount = 6,
-        totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-        selectedFilterIndex = 2,
-        isFlashOn = false,
-        onFlashClick = {},
-        onSwitchCameraClick = {},
-        onShutterClick = {},
-        onFilterClick = {},
-        viewFinder = { MockViewFinder(it) },
-    )
-}
-
-@ComposePreview
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun CameraContentLimitReachedPreview() {
-    CameraContentLayout(
-        modifier = Modifier.fillMaxSize(),
-        roomName = "방이름방이름방이름3",
-        remainingCount = 0,
-        totalCount = 48,
-        selectedFilterIndex = 2,
-        isFlashOn = false,
-        onFlashClick = {},
-        onSwitchCameraClick = {},
-        onShutterClick = {},
-        onFilterClick = {},
-        viewFinder = { MockViewFinder(it) },
-    )
 }

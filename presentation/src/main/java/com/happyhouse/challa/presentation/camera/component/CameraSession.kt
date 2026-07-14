@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.camera.component
 
 import android.content.Context
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -23,6 +24,7 @@ fun CameraSession(
     modifier: Modifier = Modifier,
     lensFacing: CameraLensFacing,
     onCameraBound: (CameraXCamera?) -> Unit,
+    onImageCaptureBound: (ImageCapture?) -> Unit,
     onFlashAvailabilityChanged: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -47,17 +49,21 @@ fun CameraSession(
 
                     provider.unbindAll()
 
+                    val imageCapture = createImageCapture()
                     val boundCamera =
-                        bindPreviewUseCase(
+                        bindCameraUseCases(
                             cameraProvider = provider,
                             lifecycleOwner = lifecycleOwner,
                             previewView = previewView,
                             lensFacing = lensFacing,
+                            imageCapture = imageCapture,
                         )
                     onCameraBound(boundCamera)
+                    onImageCaptureBound(imageCapture)
                     onFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
                 }.onFailure { throwable ->
                     onCameraBound(null)
+                    onImageCaptureBound(null)
                     onFlashAvailabilityChanged(false)
                     Timber.e(throwable)
                 }
@@ -68,6 +74,7 @@ fun CameraSession(
         onDispose {
             isDisposed = true
             onCameraBound(null)
+            onImageCaptureBound(null)
             onFlashAvailabilityChanged(false)
             cameraProvider?.unbindAll()
         }
@@ -86,11 +93,12 @@ private fun createPreviewView(context: Context): PreviewView =
         scaleType = PreviewView.ScaleType.FILL_CENTER
     }
 
-private fun bindPreviewUseCase(
+private fun bindCameraUseCases(
     cameraProvider: ProcessCameraProvider,
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
     lensFacing: CameraLensFacing,
+    imageCapture: ImageCapture,
 ): CameraXCamera {
     val preview = createPreview(previewView)
     val cameraSelector = createCameraSelector(lensFacing)
@@ -99,8 +107,14 @@ private fun bindPreviewUseCase(
         lifecycleOwner,
         cameraSelector,
         preview,
+        imageCapture,
     )
 }
+
+private fun createImageCapture(): ImageCapture =
+    ImageCapture.Builder()
+        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+        .build()
 
 private fun createPreview(previewView: PreviewView): Preview =
     Preview.Builder()

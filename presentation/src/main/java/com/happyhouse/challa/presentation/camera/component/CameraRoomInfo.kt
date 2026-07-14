@@ -20,11 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -32,6 +34,7 @@ fun CameraRoomInfo(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -43,6 +46,11 @@ fun CameraRoomInfo(
                 Modifier
                     .clip(RoundedCornerShape(1000.dp))
                     .background(ChallaTheme.colors.backgroundLevel3)
+                    .noRippleClickOnce(
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.camera_room_selector_description),
+                        onClick = onClick,
+                    )
                     .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -114,6 +122,7 @@ private fun CameraRoomInfoPreviewContent(remainingCount: Int) {
                 roomName = "해피하우스강릉여행",
                 remainingCount = remainingCount,
                 totalCount = 24,
+                onClick = {},
             )
         }
     }
