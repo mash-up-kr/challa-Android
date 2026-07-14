@@ -16,7 +16,6 @@ import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermis
 @Composable
 fun CameraRoute(
     roomId: Long,
-    onBackClick: () -> Unit,
     viewModel: CameraViewModel =
         hiltViewModel<CameraViewModel, CameraViewModel.Factory>(
             creationCallback = { factory ->
@@ -51,7 +50,6 @@ fun CameraRoute(
         state = state.value,
         permissionState = permissionController.state,
         snackbarHostState = snackbarHostState,
-        onBackClick = onBackClick,
         onRequestPermissionClick = permissionController.requestPermission,
         onIntent = viewModel::onIntent,
     )

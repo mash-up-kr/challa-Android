@@ -4,22 +4,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.happyhouse.challa.presentation.camera.component.CameraContent
-import com.happyhouse.challa.presentation.camera.component.CameraPermissionDeniedContent
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -30,7 +25,6 @@ fun CameraScreen(
     permissionState: CameraPermissionState,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit,
     onRequestPermissionClick: () -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
@@ -71,38 +65,15 @@ fun CameraScreen(
             SnackbarHost(hostState = snackbarHostState)
         },
     ) { innerPadding ->
-        Box(
+        CameraContent(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-        ) {
-            when (permissionState) {
-                CameraPermissionState.Unchecked -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                    )
-                }
-
-                CameraPermissionState.Granted -> {
-                    CameraContent(
-                        modifier = Modifier.fillMaxSize(),
-                        state = state,
-                        onIntent = onIntent,
-                    )
-                }
-
-                CameraPermissionState.NotGranted -> {
-                    CameraPermissionDeniedContent(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .background(Color.Black),
-                        onBackClick = onBackClick,
-                        onRequestPermissionClick = onRequestPermissionClick,
-                    )
-                }
-            }
-        }
+            state = state,
+            permissionState = permissionState,
+            onRequestPermissionClick = onRequestPermissionClick,
+            onIntent = onIntent,
+        )
     }
 }

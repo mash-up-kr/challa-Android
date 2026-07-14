@@ -58,7 +58,7 @@ fun CameraControls(
 }
 
 @Composable
-internal fun RoundIconButton(
+private fun RoundIconButton(
     @DrawableRes iconRes: Int,
     contentDescription: String,
     onClick: () -> Unit,

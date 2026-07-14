@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
@@ -32,6 +33,8 @@ private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
 fun CameraContent(
     modifier: Modifier = Modifier,
     state: CameraState,
+    permissionState: CameraPermissionState,
+    onRequestPermissionClick: () -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     var camera by remember { mutableStateOf<CameraXCamera?>(null) }
@@ -52,12 +55,32 @@ fun CameraContent(
         onShutterClick = { onIntent(CameraIntent.ShutterClick) },
         onFilterClick = { onIntent(CameraIntent.FilterClick(it)) },
     ) { viewFinderModifier ->
-        CameraSession(
-            modifier = viewFinderModifier,
-            lensFacing = state.lensFacing,
-            onCameraBound = { camera = it },
-            onFlashAvailabilityChanged = { onIntent(CameraIntent.FlashAvailabilityChanged(it)) },
-        )
+        when (permissionState) {
+            CameraPermissionState.Unchecked -> {
+                CameraPermissionOverlay(
+                    modifier = viewFinderModifier,
+                    isCheckingPermission = true,
+                    onRequestPermissionClick = onRequestPermissionClick,
+                )
+            }
+
+            CameraPermissionState.Granted -> {
+                CameraSession(
+                    modifier = viewFinderModifier,
+                    lensFacing = state.lensFacing,
+                    onCameraBound = { camera = it },
+                    onFlashAvailabilityChanged = { onIntent(CameraIntent.FlashAvailabilityChanged(it)) },
+                )
+            }
+
+            CameraPermissionState.NotGranted -> {
+                CameraPermissionOverlay(
+                    modifier = viewFinderModifier,
+                    isCheckingPermission = false,
+                    onRequestPermissionClick = onRequestPermissionClick,
+                )
+            }
+        }
     }
 }
 
@@ -138,7 +161,7 @@ private fun CameraContentLayoutPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, widthDp = 342, heightDp = 754)
+@ComposePreview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun CameraContentLimitReachedPreview() {
