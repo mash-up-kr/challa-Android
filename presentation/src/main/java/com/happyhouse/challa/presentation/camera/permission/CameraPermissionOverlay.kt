@@ -24,9 +24,9 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 @Composable
 internal fun CameraPermissionOverlay(
     isCheckingPermission: Boolean,
-    isPermanentlyDenied: Boolean = false,
     onRequestPermissionClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isPermanentlyDenied: Boolean = false,
 ) {
     Box(
         modifier = modifier.background(ChallaTheme.colors.backgroundLevel1),
@@ -92,9 +92,9 @@ internal fun CameraPermissionOverlay(
 private fun CameraPermissionCheckingPreview() {
     ChallaTheme {
         CameraPermissionOverlay(
-            modifier = Modifier.fillMaxSize(),
             isCheckingPermission = true,
             onRequestPermissionClick = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -109,9 +109,9 @@ private fun CameraPermissionCheckingPreview() {
 private fun CameraPermissionRequestPreview() {
     ChallaTheme {
         CameraPermissionOverlay(
-            modifier = Modifier.fillMaxSize(),
             isCheckingPermission = false,
             onRequestPermissionClick = {},
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -126,10 +126,10 @@ private fun CameraPermissionRequestPreview() {
 private fun CameraPermissionPermanentlyDeniedPreview() {
     ChallaTheme {
         CameraPermissionOverlay(
-            modifier = Modifier.fillMaxSize(),
             isCheckingPermission = false,
-            isPermanentlyDenied = true,
             onRequestPermissionClick = {},
+            modifier = Modifier.fillMaxSize(),
+            isPermanentlyDenied = true,
         )
     }
 }

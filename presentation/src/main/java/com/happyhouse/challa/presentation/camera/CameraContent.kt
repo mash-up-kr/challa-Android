@@ -20,6 +20,13 @@ import kotlinx.coroutines.delay
 
 private const val SHUTTER_EFFECT_DURATION_MILLIS = 120L
 
+/**
+ * 카메라 화면의 UI 상태와 사용자 이벤트를 조정합니다.
+ *
+ * CameraX 객체와 촬영 과정은 [CameraSession]에 위임하고, 이 함수는 세션이 전달한
+ * 준비·촬영 상태로 셔터 활성화를 결정합니다. 셔터 암전과 방 선택 시트처럼 화면 표현에만
+ * 필요한 상태는 여기에서 관리합니다.
+ */
 @Composable
 internal fun CameraContent(
     modifier: Modifier = Modifier,
@@ -67,9 +74,9 @@ internal fun CameraContent(
         when (permissionState) {
             CameraPermissionState.Unchecked -> {
                 CameraPermissionOverlay(
-                    modifier = viewFinderModifier,
                     isCheckingPermission = true,
                     onRequestPermissionClick = onRequestPermissionClick,
+                    modifier = viewFinderModifier,
                 )
             }
 
@@ -91,18 +98,18 @@ internal fun CameraContent(
 
             CameraPermissionState.NotGranted -> {
                 CameraPermissionOverlay(
-                    modifier = viewFinderModifier,
                     isCheckingPermission = false,
                     onRequestPermissionClick = onRequestPermissionClick,
+                    modifier = viewFinderModifier,
                 )
             }
 
             CameraPermissionState.PermanentlyDenied -> {
                 CameraPermissionOverlay(
-                    modifier = viewFinderModifier,
                     isCheckingPermission = false,
-                    isPermanentlyDenied = true,
                     onRequestPermissionClick = onRequestPermissionClick,
+                    modifier = viewFinderModifier,
+                    isPermanentlyDenied = true,
                 )
             }
         }
