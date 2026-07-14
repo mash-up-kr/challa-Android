@@ -1,8 +1,10 @@
-package com.happyhouse.challa.presentation.camera.component
+package com.happyhouse.challa.presentation.camera.camerax
 
 import android.content.Context
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -17,10 +19,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import timber.log.Timber
+import java.util.concurrent.Executor
 import androidx.camera.core.Camera as CameraXCamera
 
 @Composable
-fun CameraSession(
+internal fun CameraSession(
     modifier: Modifier = Modifier,
     lensFacing: CameraLensFacing,
     onCameraBound: (CameraXCamera?) -> Unit,
@@ -133,3 +136,23 @@ private fun CameraLensFacing.toCameraSelectorLensFacing(): Int =
         CameraLensFacing.BACK -> CameraSelector.LENS_FACING_BACK
         CameraLensFacing.FRONT -> CameraSelector.LENS_FACING_FRONT
     }
+
+internal fun ImageCapture.capturePhoto(
+    executor: Executor,
+    onCaptureResult: (Boolean) -> Unit,
+) {
+    takePicture(
+        executor,
+        object : ImageCapture.OnImageCapturedCallback() {
+            override fun onCaptureSuccess(image: ImageProxy) {
+                image.close()
+                onCaptureResult(true)
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                Timber.e(exception)
+                onCaptureResult(false)
+            }
+        },
+    )
+}

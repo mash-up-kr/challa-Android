@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera.component
+package com.happyhouse.challa.presentation.camera
 
 import androidx.camera.core.ImageCapture
 import androidx.compose.runtime.Composable
@@ -10,9 +10,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import com.happyhouse.challa.presentation.camera.camerax.CameraSession
+import com.happyhouse.challa.presentation.camera.camerax.capturePhoto
+import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
+import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
+import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import kotlinx.coroutines.delay
 import androidx.camera.core.Camera as CameraXCamera
@@ -20,7 +25,7 @@ import androidx.camera.core.Camera as CameraXCamera
 private const val SHUTTER_EFFECT_DURATION_MILLIS = 120L
 
 @Composable
-fun CameraContent(
+internal fun CameraContent(
     modifier: Modifier = Modifier,
     state: CameraState,
     permissionState: CameraPermissionState,
@@ -37,7 +42,7 @@ fun CameraContent(
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
-    var isRoomSelectionVisible by remember { mutableStateOf(false) }
+    var isRoomSelectionSheetVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(isShutterEffectVisible) {
         if (isShutterEffectVisible) {
@@ -97,7 +102,7 @@ fun CameraContent(
         onShutterClick = { onIntent(CameraIntent.ShutterClick(state.selectedRoomId)) },
         onZoomClick = { onIntent(CameraIntent.ZoomClick) },
         onFilterClick = { onIntent(CameraIntent.FilterClick(it)) },
-        onRoomInfoClick = { isRoomSelectionVisible = true },
+        onRoomInfoClick = { isRoomSelectionSheetVisible = true },
     ) { viewFinderModifier ->
         when (permissionState) {
             CameraPermissionState.Unchecked -> {
@@ -130,15 +135,15 @@ fun CameraContent(
         }
     }
 
-    if (isRoomSelectionVisible) {
+    if (isRoomSelectionSheetVisible) {
         CameraRoomSelectionBottomSheet(
             rooms = state.rooms,
             selectedRoomId = state.selectedRoomId,
             onRoomClick = { roomId ->
                 onIntent(CameraIntent.RoomClick(roomId))
-                isRoomSelectionVisible = false
+                isRoomSelectionSheetVisible = false
             },
-            onDismissRequest = { isRoomSelectionVisible = false },
+            onDismissRequest = { isRoomSelectionSheetVisible = false },
         )
     }
 }

@@ -93,16 +93,6 @@ class CameraViewModel @AssistedInject constructor(
         updateState {
             copy(isFlashOn = !isFlashOn)
         }
-
-        viewModelScope.launch {
-            sendEffect(
-                if (currentState.isFlashOn) {
-                    CameraSideEffect.FlashEnabled
-                } else {
-                    CameraSideEffect.FlashDisabled
-                },
-            )
-        }
     }
 
     private fun handleSwitchCameraClick() {
@@ -194,6 +184,6 @@ class CameraViewModel @AssistedInject constructor(
 
     private companion object {
         const val MIN_ZOOM_LEVEL = 1
-        const val MAX_ZOOM_LEVEL = 4
+        const val MAX_ZOOM_LEVEL = 2
     }
 }

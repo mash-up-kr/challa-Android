@@ -35,8 +35,6 @@ fun CameraRoute(
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     var captureRequest by remember { mutableStateOf<PhotoCaptureRequest?>(null) }
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
-    val flashEnabledMessage = stringResource(R.string.camera_flash_enabled_message)
-    val flashDisabledMessage = stringResource(R.string.camera_flash_disabled_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
 
     LaunchedEffect(viewModel) {
@@ -56,8 +54,6 @@ fun CameraRoute(
                     }
 
                     CameraSideEffect.PhotoCaptureFailed -> photoCaptureFailedMessage
-                    CameraSideEffect.FlashDisabled -> flashDisabledMessage
-                    CameraSideEffect.FlashEnabled -> flashEnabledMessage
                     CameraSideEffect.FlashNotAvailable -> flashNotAvailableMessage
                 }
 

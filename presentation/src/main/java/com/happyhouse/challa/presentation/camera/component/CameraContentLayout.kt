@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.camera.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -13,13 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.camera.camerax.MockViewFinder
+import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 
 private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
 
 @Composable
-fun CameraContentLayout(
+internal fun CameraContentLayout(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,
@@ -38,7 +41,7 @@ fun CameraContentLayout(
     modifier: Modifier = Modifier,
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
-    androidx.compose.foundation.layout.Box(modifier = modifier) {
+    Box(modifier = modifier) {
         CameraBackground(modifier = Modifier.fillMaxSize())
 
         Column(

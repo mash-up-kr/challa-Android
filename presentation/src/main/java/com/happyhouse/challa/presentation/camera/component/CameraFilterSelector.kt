@@ -27,7 +27,7 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
-fun CameraFilterSelector(
+internal fun CameraFilterSelector(
     filterCount: Int,
     selectedFilterIndex: Int,
     onFilterClick: (Int) -> Unit,

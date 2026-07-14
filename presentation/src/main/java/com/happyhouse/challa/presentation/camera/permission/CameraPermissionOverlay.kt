@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera.component
+package com.happyhouse.challa.presentation.camera.permission
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +22,7 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTe
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
 @Composable
-fun CameraPermissionOverlay(
+internal fun CameraPermissionOverlay(
     isCheckingPermission: Boolean,
     onRequestPermissionClick: () -> Unit,
     modifier: Modifier = Modifier,

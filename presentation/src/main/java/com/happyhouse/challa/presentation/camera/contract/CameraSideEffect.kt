@@ -9,9 +9,5 @@ sealed interface CameraSideEffect : UiSideEffect {
 
     data object PhotoCaptureFailed : CameraSideEffect
 
-    data object FlashDisabled : CameraSideEffect
-
-    data object FlashEnabled : CameraSideEffect
-
     data object FlashNotAvailable : CameraSideEffect
 }

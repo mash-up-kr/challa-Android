@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera.component
+package com.happyhouse.challa.presentation.camera.component.room
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,7 +30,7 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
-fun CameraRoomInfo(
+internal fun CameraRoomInfo(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,

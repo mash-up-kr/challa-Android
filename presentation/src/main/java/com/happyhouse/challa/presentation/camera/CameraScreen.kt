@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.happyhouse.challa.presentation.camera.component.CameraBackgroundTopColor
-import com.happyhouse.challa.presentation.camera.component.CameraContent
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest

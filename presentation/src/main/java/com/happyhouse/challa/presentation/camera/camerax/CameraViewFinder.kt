@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera.component
+package com.happyhouse.challa.presentation.camera.camerax
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.R
 
 @Composable
-fun ViewFinder(
+internal fun ViewFinder(
     modifier: Modifier = Modifier,
     previewContent: @Composable (Modifier) -> Unit,
 ) {
@@ -25,7 +25,7 @@ fun ViewFinder(
 }
 
 @Composable
-fun MockViewFinder(modifier: Modifier = Modifier) {
+internal fun MockViewFinder(modifier: Modifier = Modifier) {
     ViewFinderFrame(
         modifier = modifier.background(Color.Black),
         contentAlignment = Alignment.Center,
