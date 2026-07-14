@@ -10,7 +10,13 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -18,25 +24,43 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
+import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import timber.log.Timber
 import java.util.concurrent.Executor
 import androidx.camera.core.Camera as CameraXCamera
+
+@Immutable
+internal data class CameraSessionState(
+    val isReady: Boolean = false,
+    val isCapturing: Boolean = false,
+)
 
 @Composable
 internal fun CameraSession(
     modifier: Modifier = Modifier,
     lensFacing: CameraLensFacing,
-    onCameraBound: (CameraXCamera?) -> Unit,
-    onImageCaptureBound: (ImageCapture?) -> Unit,
+    isFlashOn: Boolean,
+    zoomLevel: Int,
+    captureRequest: PhotoCaptureRequest?,
+    onStateChanged: (CameraSessionState) -> Unit,
+    onCaptureStarted: () -> Unit,
+    onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
     onFlashAvailabilityChanged: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember(context) { createPreviewView(context) }
+    val mainExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
+    val currentOnStateChanged by rememberUpdatedState(onStateChanged)
+    val currentOnCaptureStarted by rememberUpdatedState(onCaptureStarted)
+    val currentOnPhotoCaptureResult by rememberUpdatedState(onPhotoCaptureResult)
+    val currentOnFlashAvailabilityChanged by rememberUpdatedState(onFlashAvailabilityChanged)
+    var camera by remember { mutableStateOf<CameraXCamera?>(null) }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var sessionState by remember { mutableStateOf(CameraSessionState()) }
 
     DisposableEffect(context, lifecycleOwner, previewView, lensFacing) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        val mainExecutor = ContextCompat.getMainExecutor(context)
         var cameraProvider: ProcessCameraProvider? = null
         var isDisposed = false
 
@@ -52,22 +76,26 @@ internal fun CameraSession(
 
                     provider.unbindAll()
 
-                    val imageCapture = createImageCapture()
+                    val boundImageCapture = createImageCapture()
                     val boundCamera =
                         bindCameraUseCases(
                             cameraProvider = provider,
                             lifecycleOwner = lifecycleOwner,
                             previewView = previewView,
                             lensFacing = lensFacing,
-                            imageCapture = imageCapture,
+                            imageCapture = boundImageCapture,
                         )
-                    onCameraBound(boundCamera)
-                    onImageCaptureBound(imageCapture)
-                    onFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
+                    camera = boundCamera
+                    imageCapture = boundImageCapture
+                    sessionState = sessionState.copy(isReady = true)
+                    currentOnStateChanged(sessionState)
+                    currentOnFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
                 }.onFailure { throwable ->
-                    onCameraBound(null)
-                    onImageCaptureBound(null)
-                    onFlashAvailabilityChanged(false)
+                    camera = null
+                    imageCapture = null
+                    sessionState = CameraSessionState()
+                    currentOnStateChanged(sessionState)
+                    currentOnFlashAvailabilityChanged(false)
                     Timber.e(throwable)
                 }
             },
@@ -76,11 +104,53 @@ internal fun CameraSession(
 
         onDispose {
             isDisposed = true
-            onCameraBound(null)
-            onImageCaptureBound(null)
-            onFlashAvailabilityChanged(false)
+            camera = null
+            imageCapture = null
+            sessionState = CameraSessionState()
+            currentOnStateChanged(sessionState)
+            currentOnFlashAvailabilityChanged(false)
             cameraProvider?.unbindAll()
         }
+    }
+
+    LaunchedEffect(camera, isFlashOn) {
+        val boundCamera = camera ?: return@LaunchedEffect
+        boundCamera.cameraControl.enableTorch(
+            isFlashOn && boundCamera.cameraInfo.hasFlashUnit(),
+        )
+    }
+
+    LaunchedEffect(camera, zoomLevel) {
+        val boundCamera = camera ?: return@LaunchedEffect
+        val zoomState = boundCamera.cameraInfo.zoomState.value ?: return@LaunchedEffect
+        val supportedZoomRatio =
+            zoomLevel
+                .toFloat()
+                .coerceIn(zoomState.minZoomRatio, zoomState.maxZoomRatio)
+
+        boundCamera.cameraControl.setZoomRatio(supportedZoomRatio)
+    }
+
+    LaunchedEffect(captureRequest?.requestId) {
+        val request = captureRequest ?: return@LaunchedEffect
+        val boundImageCapture = imageCapture
+
+        if (boundImageCapture == null || sessionState.isCapturing) {
+            currentOnPhotoCaptureResult(request.roomId, false)
+            return@LaunchedEffect
+        }
+
+        sessionState = sessionState.copy(isCapturing = true)
+        currentOnStateChanged(sessionState)
+        currentOnCaptureStarted()
+        boundImageCapture.capturePhoto(
+            executor = mainExecutor,
+            onCaptureResult = { succeeded ->
+                sessionState = sessionState.copy(isCapturing = false)
+                currentOnStateChanged(sessionState)
+                currentOnPhotoCaptureResult(request.roomId, succeeded)
+            },
+        )
     }
 
     ViewFinder(modifier = modifier) { previewModifier ->
@@ -137,7 +207,7 @@ private fun CameraLensFacing.toCameraSelectorLensFacing(): Int =
         CameraLensFacing.FRONT -> CameraSelector.LENS_FACING_FRONT
     }
 
-internal fun ImageCapture.capturePhoto(
+private fun ImageCapture.capturePhoto(
     executor: Executor,
     onCaptureResult: (Boolean) -> Unit,
 ) {

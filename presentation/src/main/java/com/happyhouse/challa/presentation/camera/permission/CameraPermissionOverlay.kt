@@ -24,6 +24,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 @Composable
 internal fun CameraPermissionOverlay(
     isCheckingPermission: Boolean,
+    isPermanentlyDenied: Boolean = false,
     onRequestPermissionClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -47,7 +48,14 @@ internal fun CameraPermissionOverlay(
                     style = ChallaTheme.typography.bodyLarge.bold,
                 )
                 Text(
-                    text = stringResource(R.string.camera_permission_required_description),
+                    text =
+                        stringResource(
+                            if (isPermanentlyDenied) {
+                                R.string.camera_permission_settings_description
+                            } else {
+                                R.string.camera_permission_required_description
+                            },
+                        ),
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -57,7 +65,14 @@ internal fun CameraPermissionOverlay(
                     style = ChallaTheme.typography.bodyXSmall.medium,
                 )
                 ChallaTextButton(
-                    text = stringResource(R.string.camera_permission_request_button),
+                    text =
+                        stringResource(
+                            if (isPermanentlyDenied) {
+                                R.string.camera_permission_settings_button
+                            } else {
+                                R.string.camera_permission_request_button
+                            },
+                        ),
                     onClick = onRequestPermissionClick,
                     modifier = Modifier.padding(top = 40.dp),
                     size = ChallaButtonSize.MEDIUM,
@@ -96,6 +111,24 @@ private fun CameraPermissionRequestPreview() {
         CameraPermissionOverlay(
             modifier = Modifier.fillMaxSize(),
             isCheckingPermission = false,
+            onRequestPermissionClick = {},
+        )
+    }
+}
+
+@Preview(
+    name = "권한 영구 거부",
+    showBackground = true,
+    widthDp = 265,
+    heightDp = 353,
+)
+@Composable
+private fun CameraPermissionPermanentlyDeniedPreview() {
+    ChallaTheme {
+        CameraPermissionOverlay(
+            modifier = Modifier.fillMaxSize(),
+            isCheckingPermission = false,
+            isPermanentlyDenied = true,
             onRequestPermissionClick = {},
         )
     }

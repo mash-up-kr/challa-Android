@@ -8,6 +8,8 @@
     <string name="camera_permission_required_title">카메라 권한이 필요합니다</string>
     <string name="camera_permission_required_description">사진을 촬영하려면 \n카메라 권한을 허용해주세요</string>
     <string name="camera_permission_request_button">권한 요청하기</string>
+    <string name="camera_permission_settings_description">앱 설정에서 \n카메라 권한을 허용해주세요</string>
+    <string name="camera_permission_settings_button">설정으로 이동</string>
     <string name="camera_remaining_counter">%1$d/%2$d</string>
     <string name="camera_close_icon">×</string>
     <string name="camera_flash_icon">⚡</string>

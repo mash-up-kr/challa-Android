@@ -9,4 +9,6 @@ sealed interface CameraPermissionState {
     data object Granted : CameraPermissionState
 
     data object NotGranted : CameraPermissionState
+
+    data object PermanentlyDenied : CameraPermissionState
 }
