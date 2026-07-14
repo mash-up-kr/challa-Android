@@ -1,0 +1,275 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: ko-KR
+early_access: false
+
+reviews:
+  profile: chill
+  high_level_summary: true
+  collapse_walkthrough: true
+  poem: false
+
+  path_filters:
+    - "**/*.kt"
+    - "**/*.kts"
+    - "**/AndroidManifest.xml"
+    - "**/libs.versions.toml"
+    # CI 워크플로와 CodeRabbit 설정 자체도 리뷰 대상에 포함한다
+    # (빠뜨리면 워크플로만 고치는 PR이 리뷰 없이 지나가고, actionlint도 검사할 파일이 없어진다)
+    # glob의 *는 보통 `.`으로 시작하는 경로를 매치하지 않으므로 점을 리터럴로 적는다
+    # (`**/*.yml`로 적으면 .github/ 아래가 안 잡힐 수 있음)
+    - ".github/workflows/*.yml"
+    - ".github/workflows/*.yaml"
+    - ".coderabbit.yaml"
+    - "!**/build/**"
+    - "!**/.gradle/**"
+    - "!**/generated/**"
+    - "!**/ksp/**"
+    - "!**/kapt/**"
+    - "!**/*.md"
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - develop
+      - main
+
+  path_instructions:
+    # ── 전 모듈 공통 ────────────────────────────────────────────────
+    - path: "**/*.kt"
+      instructions: |
+        challa-Android 공통 리뷰 기준.
+
+        포맷/스타일:
+        - 포맷과 스타일은 CI의 ktlint가 담당한다. 들여쓰기, 임포트 정렬, 줄바꿈,
+          trailing comma 같은 포맷 nitpick은 리뷰하지 말 것.
+        - 로직, 아키텍처, 버그, 컨벤션 위반에만 집중한다.
+
+        모듈 경계 (4모듈: app / data / domain / presentation):
+        - domain은 순수 Kotlin이다. presentation이나 data를 참조하면 안 된다.
+        - presentation은 data 구현체를 직접 참조하지 않고 domain의 repository 인터페이스에만 의존한다.
+        - 모델 흐름은 `~Response` → domain 모델 → `~UiModel` → `UiState` 순서를 따른다.
+          이 경계를 건너뛰고 Response나 Entity가 presentation까지 흘러가면 지적할 것.
+
+        Kotlin:
+        - nullable 처리를 적절히 하고 `!!` 단언은 쓰지 않는다.
+        - var보다 val, 가변 컬렉션보다 immutable 컬렉션을 우선한다.
+        - 상호 배타적인 상태는 Boolean 플래그 나열이 아니라 sealed interface로 모델링한다.
+        - DTO/값 객체는 data class로 표현한다.
+
+        Coroutine / Flow:
+        - GlobalScope, runBlocking 금지. viewModelScope 등 구조화된 스코프를 쓴다.
+        - blocking I/O는 Dispatchers.IO, CPU 작업은 Dispatchers.Default.
+        - Flow collect 누락, 취소 전파 누락, 스코프 누수를 확인한다.
+
+        에러 처리 / 보안:
+        - 예외를 조용히 삼키지 않는다. 실패는 Result나 sealed 타입으로 표현한다.
+        - API 키, 시크릿, 토큰을 코드나 로그에 하드코딩하지 않는다.
+
+        오버엔지니어링 지양:
+        - UseCase / DataSource는 기본으로 만들지 않는다. 비즈니스 로직이 있거나
+          여러 repository를 결합할 때만 추가한다. 단순 위임만 하는 UseCase 추가는 지적할 것.
+        - 반대로 UseCase가 없다는 이유만으로 추가를 권하지 말 것.
+
+        제안하지 말아야 할 것 (팀 방침):
+        - 팀에서 아직 확정하지 않은 사항이다. 새 패턴이나 도입을 먼저 제안하지 말 것.
+          BaseViewModel 구조, API 에러 처리 방식, Navigation3 도입 여부, 카카오 등 외부 로그인.
+          이미 있는 구조를 따르지 않은 코드만 지적하고, 구조 자체를 바꾸라는 제안은 하지 않는다.
+        - 새 라이브러리 추가를 제안하지 말 것. 기존 스택(Compose, Hilt, Coroutine+Flow, Retrofit,
+          Room, DataStore, Coil)으로 해결 가능한지를 먼저 본다.
+        - 현재 단계에서 테스트 코드는 필수가 아니다. 테스트가 없다는 이유로 지적하거나
+          테스트 추가를 요구하지 말 것.
+        - 신규 XML 레이아웃 작성은 금지다. Jetpack Compose로만 UI를 짠다.
+
+    # ── domain: 순수 Kotlin ────────────────────────────────────────
+    - path: "domain/**/*.kt"
+      instructions: |
+        domain 모듈은 순수 Kotlin이며 JVM 단독 테스트가 가능해야 한다.
+
+        - android.* / androidx.* / Context / Uri / Bitmap 등 안드로이드 의존성이 들어오면
+          반드시 지적한다. 이건 머지를 막아야 하는 결함이다.
+        - Retrofit, Room, Hilt 안드로이드 컴포넌트 등 프레임워크 타입도 domain에 노출되면 안 된다.
+        - repository는 인터페이스만 정의하고 구현은 data 모듈에 둔다.
+        - 반환 타입은 프레임워크 중립적인 domain 모델이어야 한다.
+
+    # ── data: Repository 구현 / 네트워크 / 매퍼 ─────────────────────
+    - path: "data/**/*.kt"
+      instructions: |
+        data 모듈 리뷰 기준.
+
+        - domain의 repository 인터페이스를 구현하고, `~Response`를 domain 모델로 매핑한 뒤 반환한다.
+          Response 타입이 그대로 domain 경계 밖으로 새어 나가면 지적할 것.
+        - 매퍼는 mapper 패키지에 두고, 매핑 누락이나 잘못된 기본값 처리를 확인한다.
+        - 네트워크 실패, 파싱 실패, 권한 실패가 호출자에게 명시적으로 전달되는지 확인한다.
+          (예외를 삼키고 빈 값을 반환하는 코드는 지적)
+        - 파일 저장, MediaStore 접근 같은 플랫폼 작업은 data 레이어에 두고 suspend로 결과를 반환한다.
+        - Dispatchers.IO 등 적절한 디스패처에서 blocking 작업을 수행하는지 확인한다.
+
+    # ── presentation: MVI ViewModel ────────────────────────────────
+    - path: "presentation/**/*ViewModel.kt"
+      instructions: |
+        MVI(UDF) 패턴의 ViewModel이다. presentation/base의 BaseViewModel 패턴을 따른다.
+
+        네이밍 컨벤션 (팀 합의 사항):
+        - `onXXX` = 외부에서 들어오는 진입점 (예: `onIntent`)
+        - `handleXXX` = 받은 인텐트를 내부에서 처리하는 함수 (예: `handlePhotoClick`)
+        - 이 규칙을 벗어난 네이밍은 지적한다.
+
+        Intent 설계:
+        - Intent는 "사용자 의도"만 표현한다. 저장 성공/실패 같은 작업 결과를 다시 Intent로 올리는
+          역류 구조(예: `PhotoSaveResult(isSuccess)`)는 금지. 결과는 VM 내부에서 처리하고
+          화면 통지가 필요하면 SideEffect로만 내보낸다.
+        - 클릭 핸들러는 식별자(id)가 아니라 대상 객체를 통째로 넘긴다.
+          id를 넘겨서 VM에서 state 재조회 → 캐스팅 → null 분기가 생기면 지적한다.
+        - 결과가 필요한 작업은 suspend로 VM이 직접 결과를 받는 구조를 우선한다.
+          Route에서 effect → intent 왕복하는 구조는 지적한다.
+
+        상태:
+        - UiState는 단일 immutable 객체. 로딩/에러/빈/성공처럼 동시에 성립할 수 없는 상태는
+          `isLoading`/`isError` 같은 독립 Boolean 플래그가 아니라 sealed interface로 모델링한다.
+        - MutableStateFlow는 private으로 캡슐화하고 StateFlow만 노출한다.
+        - `when` / `as?` 분기에서 silent `?: return` 금지. 사용자 입장에서 아무 반응 없는 경로를
+          남기지 않는다. 처리 불가 상황도 SideEffect나 로깅으로 이어져야 한다.
+
+        SideEffect 네이밍:
+        - 사실 전달형으로 짓는다. `SaveSucceeded` / `SaveFailed` (O), `ShowSaveResult(isSuccess)` (X)
+
+        누수:
+        - Activity / Fragment / Context 참조를 ViewModel 필드에 보관하지 않는다.
+        - 의존성은 @HiltViewModel + @Inject 생성자 주입으로만 받는다.
+
+    # ── presentation: MVI Contract (Intent / State / SideEffect) ───
+    - path: "presentation/**/contract/**/*.kt"
+      instructions: |
+        MVI Contract(Intent / UiState / SideEffect) 정의다.
+
+        - Intent 네이밍은 `대상 + 이벤트` 순서 (`LoginClick`, `PhotoClick`, `PhotosLoad`).
+          `ClickLogin` 같은 역순은 지적한다.
+        - Intent는 사용자 의도만. 시스템 콜백이나 작업 결과를 Intent로 표현하면 지적한다.
+        - SideEffect는 사실 전달형(`SaveSucceeded`)으로. 명령형 `Show~`는 지적한다.
+        - 상호 배타적 상태는 sealed interface로. 불가능한 상태 조합(에러 + 데이터 공존 등)이
+          타입 수준에서 표현 가능하면 지적한다.
+        - UiState에 담기는 모델은 `~UiModel`이어야 한다. domain 모델이나 Response가 직접 들어오면 지적.
+
+    # ── presentation: 화면 (Route / Screen) ────────────────────────
+    - path: "presentation/**/*{Route,Screen}.kt"
+      instructions: |
+        Compose 화면이다. 팀 합의된 Compose 컨벤션을 따른다.
+
+        구조:
+        - 상단바/화면 구조는 Scaffold 슬롯(topBar 등) + Material3 컴포넌트(TopAppBar 등)를 우선한다.
+          Box/Column으로 직접 짠 상단바는 표준으로 안 되는 이유가 없으면 지적한다.
+        - WindowInsets(상태바 등)는 Scaffold의 content 패딩이나 Material3 컴포넌트에 맡긴다.
+          inset 수동 계산은 지적하고 statusBarsPadding() 등 표준 API를 권한다.
+        - Route(stateful) / Screen(stateless) 분리를 유지한다. Screen이 ViewModel을 직접 참조하면 지적.
+
+        상태:
+        - ViewModel의 비즈니스 상태를 컴포저블 안에서 remember로 들고 있지 않는다.
+        - `remember { mutableStateOf(...) }`는 정말 UI-local일 때만. 구성 변경에서 살아남아야 하는
+          상태는 rememberSaveable을 쓴다.
+        - LaunchedEffect / DisposableEffect의 key가 의도와 일치하는지(key 변경 = 재실행) 확인한다.
+        - SideEffect 수집은 라이프사이클을 인지하는 방식으로 하고, 중복 수집이 없는지 확인한다.
+
+        Preview:
+        - stateless Screen에는 @Preview를 단다. 디자인 시스템 프리뷰 래퍼 `ChallaPreviewWrapper`를 쓴다.
+        - 상태가 여러 개면(로딩/에러/빈/성공) 상태별로 프리뷰를 만든다. 누락 시 지적한다.
+
+        기타:
+        - 하드코딩된 색상(0xFFxxxxxx)이나 문자열 대신 디자인 토큰과 stringResource를 쓴다.
+        - 의미 있는 contentDescription, 최소 48dp 터치 영역을 확인한다.
+        - 신규 XML 레이아웃 작성은 금지다.
+
+    # ── presentation: 디자인 시스템 / 재사용 컴포넌트 ────────────────
+    - path: "presentation/**/{designsystem,component}/**/*.kt"
+      instructions: |
+        디자인 시스템 및 재사용 컴포넌트다. 디자인 시스템은 presentation 모듈 안에서 관리한다.
+
+        - @Composable 함수명은 PascalCase.
+        - Modifier 파라미터는 기본값 `Modifier`를 갖고 첫 번째 옵셔널 위치에 둔다.
+          호출자가 넘긴 Modifier를 루트에 적용하지 않고 흘리는 코드는 지적한다.
+        - 재사용 Composable에는 @Preview를 반드시 단다(`ChallaPreviewWrapper` 사용).
+          상태가 여러 개면 상태별 프리뷰를 만든다.
+        - 색상/타이포/간격은 디자인 토큰과 테마를 통해 쓴다. 토큰을 우회한 하드코딩
+          (0xFFxxxxxx, 임의 dp)은 토큰 추출을 권한다.
+        - 파라미터로 받는 데이터 클래스에 @Stable / @Immutable이 필요한지, 불필요한 recomposition이
+          발생하지 않는지 검토한다.
+        - LazyColumn/LazyRow items에 안정적인 key를 부여했는지 확인한다.
+
+    # ── Hilt DI 모듈 ────────────────────────────────────────────────
+    - path: "**/*Module.kt"
+      instructions: |
+        Hilt DI 모듈이다.
+
+        - @Module과 @InstallIn을 함께 명시하고, 컴포넌트 스코프(SingletonComponent 등)가 적절한지 확인한다.
+        - 인터페이스 바인딩은 @Provides보다 @Binds를 우선한다.
+        - Application Context가 필요하면 @ApplicationContext 한정자를 쓴다.
+          Activity Context를 SingletonComponent에 주입하려 하면 지적한다.
+        - 싱글턴이어야 할 의존성(Retrofit, OkHttp, Room DB 등)에 스코프가 빠지지 않았는지 확인한다.
+
+    # ── Gradle ─────────────────────────────────────────────────────
+    - path: "**/*.gradle.kts"
+      instructions: |
+        Gradle Kotlin DSL 리뷰.
+
+        - 새 라이브러리는 임의로 추가하지 않는다. 이미 쓰는 스택
+          (Compose, Hilt, Coroutine+Flow, Retrofit, Room, DataStore, Coil, Crashlytics, Flipper)으로
+          해결 가능한데 새 의존성을 들여오면 그 이유를 묻는다.
+        - 버전 하드코딩 대신 libs.versions.toml(version catalog)을 쓴다.
+        - signing config에 평문 keystore 비밀번호가 들어가면 안 된다. 환경변수/시크릿으로 분리한다.
+        - debugImplementation과 releaseImplementation 분리를 확인한다(Flipper는 debug 전용).
+        - minSdk 26 기준. 그 이하 API를 가정한 분기나 minSdk 변경은 지적한다.
+        - jcenter() 사용 금지, deprecated Gradle API 사용 시 마이그레이션을 코멘트한다.
+
+    - path: "**/libs.versions.toml"
+      instructions: |
+        Version catalog 리뷰.
+        - versions / libraries / plugins / bundles 구획이 정리되어 있는지 확인한다.
+        - 동일 라이브러리 중복 정의나 버전 충돌을 확인한다.
+        - 새 의존성 추가 시 기존 스택으로 대체 가능한지 먼저 묻는다.
+
+    # ── AndroidManifest ────────────────────────────────────────────
+    - path: "**/AndroidManifest.xml"
+      instructions: |
+        AndroidManifest 리뷰.
+
+        - 새로 추가된 위험 권한(CAMERA, READ_MEDIA_IMAGES, ACCESS_FINE_LOCATION 등)에 대해
+          런타임 권한 요청 코드가 같은 PR에 함께 있는지 확인한다.
+        - exported 컴포넌트에 android:exported가 명시되어 있고, 노출이 의도된 것인지 확인한다.
+        - intent-filter(deeplink scheme/host)가 과도하게 넓지 않은지 확인한다.
+        - android:debuggable, usesCleartextTraffic, allowBackup이 의도와 일치하는지 확인한다.
+        - 백업 정책이 토큰 등 민감 데이터를 제외하는지 확인한다.
+
+    # ── CI 워크플로 ────────────────────────────────────────────────
+    - path: ".github/workflows/*.yml"
+      instructions: |
+        GitHub Actions 워크플로 리뷰.
+        - CI는 develop 대상 PR에서 빌드 + ktlint를 돌린다. 이 두 검증이 빠지지 않았는지 확인한다.
+        - 시크릿을 로그에 출력하거나 PR 제목·브랜치명 등 외부 입력을 셸에 그대로 치환하지 않는지 확인한다.
+          (스크립트 인젝션 위험)
+        - actions는 신뢰 가능한 버전으로 고정하고, 필요한 최소 permissions만 부여한다.
+
+    # ── 테스트 ─────────────────────────────────────────────────────
+    - path: "**/{test,androidTest}/**/*.kt"
+      instructions: |
+        테스트 코드 리뷰. 현재 단계에서 테스트는 필수가 아니므로 테스트가 없다는 이유로 지적하지 않는다.
+        작성된 테스트에 대해서만 아래를 본다.
+
+        - 테스트 이름에 시나리오와 기대 결과가 드러나는지 (예: `photoSave_failure_emitsSaveFailed`)
+        - Arrange-Act-Assert 패턴, 테스트 간 공유 가변 상태 없음
+        - 코루틴 테스트는 runTest + 주입된 TestDispatcher로 결정론적으로 작성
+        - 테스트는 domain 레이어 위주로 작성하는 것이 팀 방침이다.
+
+  tools:
+    # detekt는 이 프로젝트에서 사용하지 않는다 (포맷/린트는 CI의 ktlint가 담당)
+    detekt:
+      enabled: false
+    # 시크릿 스캐닝: local.properties / gradle.properties에 키가 섞이는 사고 방지
+    gitleaks:
+      enabled: true
+    # GitHub Actions 워크플로 문법 검사
+    actionlint:
+      enabled: true
+
+chat:
+  auto_reply: true
