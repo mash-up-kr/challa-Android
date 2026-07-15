@@ -28,7 +28,7 @@ internal fun CameraContentLayout(
     totalCount: Int,
     filterCount: Int,
     selectedFilterIndex: Int,
-    isFlashOn: Boolean,
+    isFlashEnabled: Boolean,
     isCameraSwitchEnabled: Boolean,
     shutterEnabled: Boolean,
     isShutterEffectVisible: Boolean,
@@ -65,7 +65,7 @@ internal fun CameraContentLayout(
             Spacer(modifier = Modifier.height(20.dp))
 
             CameraControls(
-                isFlashOn = isFlashOn,
+                isFlashEnabled = isFlashEnabled,
                 isCameraSwitchEnabled = isCameraSwitchEnabled,
                 shutterEnabled = shutterEnabled,
                 onFlashClick = onFlashClick,
@@ -106,7 +106,7 @@ private fun CameraContentLayoutPreview() {
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
         filterCount = 10,
         selectedFilterIndex = 0,
-        isFlashOn = false,
+        isFlashEnabled = false,
         isCameraSwitchEnabled = true,
         shutterEnabled = true,
         isShutterEffectVisible = false,
@@ -132,7 +132,7 @@ private fun CameraContentLimitReachedPreview() {
         totalCount = 48,
         filterCount = 10,
         selectedFilterIndex = 0,
-        isFlashOn = false,
+        isFlashEnabled = false,
         isCameraSwitchEnabled = true,
         shutterEnabled = false,
         isShutterEffectVisible = false,

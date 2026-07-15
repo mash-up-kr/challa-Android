@@ -42,26 +42,34 @@ internal data class CameraSessionState(
     val isCapturing: Boolean = false,
 )
 
+private data class BoundCameraUseCases(
+    val camera: CameraXCamera,
+    val preview: Preview,
+    val imageCapture: ImageCapture,
+)
+
 /**
  * CameraX Preview와 [ImageCapture]의 생성, 바인딩, 제어를 담당합니다.
  *
  * [lensFacing]이 변경되면 기존 UseCase를 해제하고 새 카메라에 다시 바인딩합니다.
- * 플래시와 줌 제어가 완료될 때까지 비동기로 기다리며, 실패한 제어 요청은 기록합니다.
+ * 촬영 플래시 모드를 적용하고 줌 제어가 완료될 때까지 비동기로 기다리며, 실패한 제어 요청은 기록합니다.
  * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 성공 여부만
  * 반환합니다. Composable이 Composition에서 제거되면 진행 중인 초기화와 촬영 대기가 취소되며,
  * 취소 이후 도착한 촬영 결과는 CameraX가 닫아 정리합니다.
  *
+ * @param modifier 카메라 Preview에 적용할 [Modifier]
  * @param lensFacing 바인딩할 전면 또는 후면 렌즈
- * @param isFlashOn 바인딩된 카메라에 적용할 torch 활성화 여부
+ * @param isFlashEnabled 사진 촬영 순간에 플래시를 사용할지 여부
+ * @param zoomLevel 카메라에 요청할 줌 배율. 실제 적용 값은 기기가 지원하는 범위로 제한됩니다.
  * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
  * 새 요청으로 처리하며, 세션 재진입 시 재처리를 막기 위해 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
- * @param onEvent 준비·촬영·플래시 상태처럼 세션에서 발생한 이벤트를 전달합니다.
+ * @param onEvent 준비·촬영 상태와 플래시 지원 여부처럼 세션에서 발생한 이벤트를 전달합니다.
  */
 @Composable
 internal fun CameraSession(
     modifier: Modifier = Modifier,
     lensFacing: CameraLensFacing,
-    isFlashOn: Boolean,
+    isFlashEnabled: Boolean,
     zoomLevel: Int,
     captureRequest: PhotoCaptureRequest?,
     onEvent: (CameraSessionEvent) -> Unit,
@@ -79,31 +87,31 @@ internal fun CameraSession(
         try {
             val provider = ProcessCameraProvider.awaitInstance(context)
 
-            try {
-                provider.unbindAll()
+            val boundUseCases =
+                bindCameraUseCases(
+                    cameraProvider = provider,
+                    lifecycleOwner = lifecycleOwner,
+                    previewView = previewView,
+                    lensFacing = lensFacing,
+                )
 
-                val boundImageCapture = createImageCapture()
-                val boundCamera =
-                    bindCameraUseCases(
-                        cameraProvider = provider,
-                        lifecycleOwner = lifecycleOwner,
-                        previewView = previewView,
-                        lensFacing = lensFacing,
-                        imageCapture = boundImageCapture,
-                    )
-                camera = boundCamera
-                imageCapture = boundImageCapture
+            try {
+                camera = boundUseCases.camera
+                imageCapture = boundUseCases.imageCapture
                 sessionState = sessionState.copy(isReady = true)
                 currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
                 currentOnEvent(
                     CameraSessionEvent.FlashAvailabilityChanged(
-                        boundCamera.cameraInfo.hasFlashUnit(),
+                        boundUseCases.camera.cameraInfo.hasFlashUnit(),
                     ),
                 )
 
                 awaitCancellation()
             } finally {
-                provider.unbindAll()
+                provider.unbind(
+                    boundUseCases.preview,
+                    boundUseCases.imageCapture,
+                )
             }
         } catch (cancellationException: CancellationException) {
             throw cancellationException
@@ -118,22 +126,18 @@ internal fun CameraSession(
         }
     }
 
-    // CameraX 객체가 준비된 이후에만 현재 UI의 플래시 상태를 반영합니다.
-    LaunchedEffect(camera, isFlashOn) {
+    // ImageCapture가 준비된 이후에만 사진 촬영 순간에 사용할 플래시 모드를 반영합니다.
+    LaunchedEffect(camera, imageCapture, isFlashEnabled) {
         val boundCamera = camera ?: return@LaunchedEffect
+        val boundImageCapture = imageCapture ?: return@LaunchedEffect
+        val shouldEnableFlash = isFlashEnabled && boundCamera.cameraInfo.hasFlashUnit()
 
-        try {
-            val shouldEnableTorch = isFlashOn && boundCamera.cameraInfo.hasFlashUnit()
-            boundCamera.cameraControl
-                .enableTorch(shouldEnableTorch)
-                .await()
-            currentOnEvent(CameraSessionEvent.FlashStateChanged(shouldEnableTorch))
-        } catch (cancellationException: CancellationException) {
-            throw cancellationException
-        } catch (throwable: Throwable) {
-            Timber.e(throwable, "Failed to update camera torch")
-            currentOnEvent(CameraSessionEvent.FlashStateChanged(false))
-        }
+        boundImageCapture.flashMode =
+            if (shouldEnableFlash) {
+                ImageCapture.FLASH_MODE_ON
+            } else {
+                ImageCapture.FLASH_MODE_OFF
+            }
     }
 
     // 기기가 지원하는 줌 범위를 벗어나지 않도록 실제 적용 비율을 제한합니다.
@@ -216,16 +220,22 @@ private fun bindCameraUseCases(
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
     lensFacing: CameraLensFacing,
-    imageCapture: ImageCapture,
-): CameraXCamera {
+): BoundCameraUseCases {
     val preview = createPreview(previewView)
+    val imageCapture = createImageCapture()
     val cameraSelector = createCameraSelector(lensFacing)
+    val camera =
+        cameraProvider.bindToLifecycle(
+            lifecycleOwner,
+            cameraSelector,
+            preview,
+            imageCapture,
+        )
 
-    return cameraProvider.bindToLifecycle(
-        lifecycleOwner,
-        cameraSelector,
-        preview,
-        imageCapture,
+    return BoundCameraUseCases(
+        camera = camera,
+        preview = preview,
+        imageCapture = imageCapture,
     )
 }
 

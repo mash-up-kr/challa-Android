@@ -38,6 +38,7 @@ fun CameraRoute(
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
 
     LaunchedEffect(viewModel) {
+        // CameraSession이 연속 요청을 구분할 수 있도록 생산자가 요청마다 식별자를 증가시킵니다.
         var nextCaptureRequestId = 0L
 
         viewModel.uiEffect.collect { effect ->

@@ -10,7 +10,7 @@ import kotlinx.collections.immutable.persistentListOf
 data class CameraState(
     val selectedRoomId: Long = 0L,
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
-    val isFlashOn: Boolean = false,
+    val isFlashEnabled: Boolean = false,
     val hasFlashUnit: Boolean = false,
     val isCapturePending: Boolean = false,
     val zoomLevel: Int = 1,

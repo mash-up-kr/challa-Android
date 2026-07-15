@@ -39,31 +39,38 @@ fun rememberCameraPermissionController(): CameraPermissionController {
             contract = ActivityResultContracts.StartActivityForResult(),
         ) {
             permissionState =
-                if (context.hasCameraPermission()) {
-                    CameraPermissionState.Granted
-                } else {
-                    CameraPermissionState.PermanentlyDenied
-                }
+                resolveCameraPermissionState(
+                    isGranted = context.hasCameraPermission(),
+                    hasRequestedPermission = hasRequestedPermission,
+                    shouldShowRationale = activity.shouldShowCameraPermissionRationale(),
+                )
         }
     val permissionLauncher =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(),
         ) { isGranted ->
             permissionState =
-                if (isGranted) {
-                    CameraPermissionState.Granted
-                } else if (activity.canRequestCameraPermissionAgain()) {
-                    CameraPermissionState.NotGranted
-                } else {
-                    CameraPermissionState.PermanentlyDenied
-                }
+                resolveCameraPermissionState(
+                    isGranted = isGranted,
+                    hasRequestedPermission = hasRequestedPermission,
+                    shouldShowRationale = activity.shouldShowCameraPermissionRationale(),
+                )
         }
 
     LaunchedEffect(context) {
-        if (context.hasCameraPermission()) {
-            permissionState = CameraPermissionState.Granted
-        } else {
-            permissionState = CameraPermissionState.NotGranted
+        val isGranted = context.hasCameraPermission()
+        val shouldShowRationale = activity.shouldShowCameraPermissionRationale()
+        val hasPreviouslyRequestedPermission = hasRequestedPermission || shouldShowRationale
+
+        hasRequestedPermission = hasPreviouslyRequestedPermission
+        permissionState =
+            resolveCameraPermissionState(
+                isGranted = isGranted,
+                hasRequestedPermission = hasPreviouslyRequestedPermission,
+                shouldShowRationale = shouldShowRationale,
+            )
+
+        if (!isGranted && !hasPreviouslyRequestedPermission) {
             hasRequestedPermission = true
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
@@ -72,12 +79,17 @@ fun rememberCameraPermissionController(): CameraPermissionController {
     return CameraPermissionController(
         state = permissionState,
         requestPermission = {
-            val cannotRequestPermissionAgain =
-                hasRequestedPermission && !activity.canRequestCameraPermissionAgain()
+            val currentPermissionState =
+                resolveCameraPermissionState(
+                    isGranted = context.hasCameraPermission(),
+                    hasRequestedPermission = hasRequestedPermission,
+                    shouldShowRationale = activity.shouldShowCameraPermissionRationale(),
+                )
+            permissionState = currentPermissionState
 
-            if (permissionState == CameraPermissionState.PermanentlyDenied || cannotRequestPermissionAgain) {
+            if (currentPermissionState == CameraPermissionState.PermanentlyDenied) {
                 settingsLauncher.launch(context.cameraPermissionSettingsIntent())
-            } else {
+            } else if (currentPermissionState != CameraPermissionState.Granted) {
                 hasRequestedPermission = true
                 permissionLauncher.launch(Manifest.permission.CAMERA)
             }
@@ -101,12 +113,23 @@ private fun Context.hasCameraPermission(): Boolean =
         Manifest.permission.CAMERA,
     ) == PackageManager.PERMISSION_GRANTED
 
-private fun Activity?.canRequestCameraPermissionAgain(): Boolean =
+private fun Activity?.shouldShowCameraPermissionRationale(): Boolean =
     this != null &&
         ActivityCompat.shouldShowRequestPermissionRationale(
             this,
             Manifest.permission.CAMERA,
         )
+
+internal fun resolveCameraPermissionState(
+    isGranted: Boolean,
+    hasRequestedPermission: Boolean,
+    shouldShowRationale: Boolean,
+): CameraPermissionState =
+    when {
+        isGranted -> CameraPermissionState.Granted
+        hasRequestedPermission && !shouldShowRationale -> CameraPermissionState.PermanentlyDenied
+        else -> CameraPermissionState.NotGranted
+    }
 
 private fun Context.cameraPermissionSettingsIntent(): Intent =
     Intent(

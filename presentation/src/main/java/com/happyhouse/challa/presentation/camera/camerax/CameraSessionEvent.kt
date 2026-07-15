@@ -3,7 +3,7 @@ package com.happyhouse.challa.presentation.camera.camerax
 /**
  * CameraX 세션에서 발생해 상위 UI로 전달되는 이벤트입니다.
  *
- * 카메라 준비·촬영 상태와 사진 촬영 결과, 플래시 지원 및 활성 상태 변화를 전달합니다.
+ * 카메라 준비·촬영 상태와 사진 촬영 결과, 플래시 지원 여부를 전달합니다.
  */
 internal sealed interface CameraSessionEvent {
     /**
@@ -49,14 +49,5 @@ internal sealed interface CameraSessionEvent {
      */
     data class FlashAvailabilityChanged(
         val isAvailable: Boolean,
-    ) : CameraSessionEvent
-
-    /**
-     * 토치 제어가 완료된 뒤 UI에 반영할 플래시 활성 상태를 전달합니다.
-     *
-     * @property isEnabled 플래시 활성화 여부
-     */
-    data class FlashStateChanged(
-        val isEnabled: Boolean,
     ) : CameraSessionEvent
 }

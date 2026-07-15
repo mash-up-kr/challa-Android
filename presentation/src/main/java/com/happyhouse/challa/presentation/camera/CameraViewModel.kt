@@ -39,7 +39,6 @@ class CameraViewModel @AssistedInject constructor(
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
             is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
-            is CameraIntent.FlashStateChanged -> handleFlashStateChanged(intent.isEnabled)
         }
     }
 
@@ -92,7 +91,7 @@ class CameraViewModel @AssistedInject constructor(
         }
 
         updateState {
-            copy(isFlashOn = !isFlashOn)
+            copy(isFlashEnabled = !isFlashEnabled)
         }
     }
 
@@ -104,7 +103,7 @@ class CameraViewModel @AssistedInject constructor(
                         CameraLensFacing.BACK -> CameraLensFacing.FRONT
                         CameraLensFacing.FRONT -> CameraLensFacing.BACK
                     },
-                isFlashOn = false,
+                isFlashEnabled = false,
             )
         }
     }
@@ -183,14 +182,8 @@ class CameraViewModel @AssistedInject constructor(
         updateState {
             copy(
                 hasFlashUnit = isAvailable,
-                isFlashOn = isFlashOn && isAvailable,
+                isFlashEnabled = isFlashEnabled && isAvailable,
             )
-        }
-    }
-
-    private fun handleFlashStateChanged(isEnabled: Boolean) {
-        updateState {
-            copy(isFlashOn = isEnabled && hasFlashUnit)
         }
     }
 

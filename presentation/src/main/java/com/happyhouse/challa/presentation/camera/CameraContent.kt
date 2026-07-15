@@ -60,7 +60,7 @@ internal fun CameraContent(
         totalCount = selectedRoom?.totalCount ?: 0,
         filterCount = state.filterCount,
         selectedFilterIndex = state.selectedFilterIndex,
-        isFlashOn = state.isFlashOn,
+        isFlashEnabled = state.isFlashEnabled,
         isCameraSwitchEnabled =
             !state.isCapturePending &&
                 !cameraSessionState.isCapturing,
@@ -91,7 +91,7 @@ internal fun CameraContent(
                 CameraSession(
                     modifier = viewFinderModifier,
                     lensFacing = state.lensFacing,
-                    isFlashOn = state.isFlashOn,
+                    isFlashEnabled = state.isFlashEnabled,
                     zoomLevel = state.zoomLevel,
                     captureRequest = captureRequest,
                     onEvent = { event ->
@@ -114,10 +114,6 @@ internal fun CameraContent(
 
                             is CameraSessionEvent.FlashAvailabilityChanged -> {
                                 onIntent(CameraIntent.FlashAvailabilityChanged(event.isAvailable))
-                            }
-
-                            is CameraSessionEvent.FlashStateChanged -> {
-                                onIntent(CameraIntent.FlashStateChanged(event.isEnabled))
                             }
                         }
                     },

@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
 internal fun CameraControls(
-    isFlashOn: Boolean,
+    isFlashEnabled: Boolean,
     isCameraSwitchEnabled: Boolean,
     shutterEnabled: Boolean,
     onFlashClick: () -> Unit,
@@ -42,7 +42,7 @@ internal fun CameraControls(
         horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally),
     ) {
         RoundIconButton(
-            iconRes = if (isFlashOn) R.drawable.ic_light_on else R.drawable.ic_light_off,
+            iconRes = if (isFlashEnabled) R.drawable.ic_light_on else R.drawable.ic_light_off,
             contentDescription = stringResource(R.string.camera_flash_description),
             onClick = onFlashClick,
         )
@@ -129,7 +129,7 @@ private fun CameraControlsPreview() {
                     .padding(12.dp),
         ) {
             CameraControls(
-                isFlashOn = false,
+                isFlashEnabled = false,
                 isCameraSwitchEnabled = true,
                 shutterEnabled = true,
                 onFlashClick = {},
