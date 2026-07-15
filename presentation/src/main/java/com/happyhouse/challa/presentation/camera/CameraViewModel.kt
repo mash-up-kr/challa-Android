@@ -36,7 +36,7 @@ class CameraViewModel @AssistedInject constructor(
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             is CameraIntent.ShutterClick -> handleShutterClick(intent.roomId)
             CameraIntent.ZoomClick -> handleZoomClick()
-            is CameraIntent.RoomClick -> handleRoomClick(intent.roomId)
+            is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
             is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
         }
@@ -113,7 +113,7 @@ class CameraViewModel @AssistedInject constructor(
         if (room.remainingCount <= 0) return
 
         viewModelScope.launch {
-            sendEffect(CameraSideEffect.CapturePhoto(roomId))
+            sendEffect(CameraSideEffect.PhotoCaptureRequested(roomId))
         }
     }
 
@@ -154,11 +154,9 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleRoomClick(roomId: Long) {
-        val selectedRoom = currentState.rooms.firstOrNull { it.id == roomId } ?: return
-
+    private fun handleRoomClick(room: CameraRoomUiModel) {
         updateState {
-            copy(selectedRoomId = selectedRoom.id)
+            copy(selectedRoomId = room.id)
         }
     }
 

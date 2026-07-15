@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 @Composable
 internal fun CameraControls(
     isFlashOn: Boolean,
+    isCameraSwitchEnabled: Boolean,
     shutterEnabled: Boolean,
     onFlashClick: () -> Unit,
     onSwitchCameraClick: () -> Unit,
@@ -52,6 +53,7 @@ internal fun CameraControls(
         RoundIconButton(
             iconRes = R.drawable.ic_switch_camera,
             contentDescription = stringResource(R.string.camera_switch_description),
+            enabled = isCameraSwitchEnabled,
             onClick = onSwitchCameraClick,
         )
     }
@@ -61,6 +63,7 @@ internal fun CameraControls(
 private fun RoundIconButton(
     @DrawableRes iconRes: Int,
     contentDescription: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Box(
@@ -70,6 +73,7 @@ private fun RoundIconButton(
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.backgroundLevel4)
                 .noRippleClickOnce(
+                    enabled = enabled,
                     role = Role.Button,
                     onClickLabel = contentDescription,
                     onClick = onClick,
@@ -126,6 +130,7 @@ private fun CameraControlsPreview() {
         ) {
             CameraControls(
                 isFlashOn = false,
+                isCameraSwitchEnabled = true,
                 shutterEnabled = true,
                 onFlashClick = {},
                 onSwitchCameraClick = {},

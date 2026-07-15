@@ -15,6 +15,7 @@ import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
+import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import kotlinx.coroutines.delay
 
@@ -58,6 +59,7 @@ internal fun CameraContent(
         filterCount = state.filterCount,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashOn = state.isFlashOn,
+        isCameraSwitchEnabled = !cameraSessionState.isCapturing,
         shutterEnabled =
             remainingCount > 0 &&
                 cameraSessionState.isReady &&
@@ -74,7 +76,7 @@ internal fun CameraContent(
         when (permissionState) {
             CameraPermissionState.Unchecked -> {
                 CameraPermissionOverlay(
-                    isCheckingPermission = true,
+                    state = CameraPermissionOverlayState.Checking,
                     onRequestPermissionClick = onRequestPermissionClick,
                     modifier = viewFinderModifier,
                 )
@@ -98,7 +100,7 @@ internal fun CameraContent(
 
             CameraPermissionState.NotGranted -> {
                 CameraPermissionOverlay(
-                    isCheckingPermission = false,
+                    state = CameraPermissionOverlayState.Requestable,
                     onRequestPermissionClick = onRequestPermissionClick,
                     modifier = viewFinderModifier,
                 )
@@ -106,10 +108,9 @@ internal fun CameraContent(
 
             CameraPermissionState.PermanentlyDenied -> {
                 CameraPermissionOverlay(
-                    isCheckingPermission = false,
+                    state = CameraPermissionOverlayState.PermanentlyDenied,
                     onRequestPermissionClick = onRequestPermissionClick,
                     modifier = viewFinderModifier,
-                    isPermanentlyDenied = true,
                 )
             }
         }
@@ -119,8 +120,8 @@ internal fun CameraContent(
         CameraRoomSelectionBottomSheet(
             rooms = state.rooms,
             selectedRoomId = state.selectedRoomId,
-            onRoomClick = { roomId ->
-                onIntent(CameraIntent.RoomClick(roomId))
+            onRoomClick = { room ->
+                onIntent(CameraIntent.RoomClick(room))
                 isRoomSelectionSheetVisible = false
             },
             onDismissRequest = { isRoomSelectionSheetVisible = false },

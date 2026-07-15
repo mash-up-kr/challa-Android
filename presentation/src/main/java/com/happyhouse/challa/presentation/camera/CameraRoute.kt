@@ -41,25 +41,26 @@ fun CameraRoute(
         var nextCaptureRequestId = 0L
 
         viewModel.uiEffect.collect { effect ->
-            val message =
-                when (effect) {
-                    is CameraSideEffect.CapturePhoto -> {
-                        nextCaptureRequestId += 1
-                        captureRequest =
-                            PhotoCaptureRequest(
-                                requestId = nextCaptureRequestId,
-                                roomId = effect.roomId,
-                            )
-                        null
-                    }
-
-                    CameraSideEffect.PhotoCaptureFailed -> photoCaptureFailedMessage
-                    CameraSideEffect.FlashNotAvailable -> flashNotAvailableMessage
+            when (effect) {
+                is CameraSideEffect.PhotoCaptureRequested -> {
+                    nextCaptureRequestId += 1
+                    captureRequest =
+                        PhotoCaptureRequest(
+                            requestId = nextCaptureRequestId,
+                            roomId = effect.roomId,
+                        )
                 }
 
-            if (message != null) {
-                launch {
-                    snackbarHostState.showSnackbar(message)
+                CameraSideEffect.PhotoCaptureFailed -> {
+                    launch {
+                        snackbarHostState.showSnackbar(photoCaptureFailedMessage)
+                    }
+                }
+
+                CameraSideEffect.FlashNotAvailable -> {
+                    launch {
+                        snackbarHostState.showSnackbar(flashNotAvailableMessage)
+                    }
                 }
             }
         }
@@ -72,7 +73,10 @@ fun CameraRoute(
         snackbarHostState = snackbarHostState,
         captureRequest = captureRequest,
         onRequestPermissionClick = permissionController.requestPermission,
-        onPhotoCaptureResult = viewModel::onPhotoCaptureResult,
+        onPhotoCaptureResult = { roomId, succeeded ->
+            captureRequest = null
+            viewModel.onPhotoCaptureResult(roomId, succeeded)
+        },
         onIntent = viewModel::onIntent,
     )
 }

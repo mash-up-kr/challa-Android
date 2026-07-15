@@ -48,8 +48,8 @@ internal data class CameraSessionState(
  * 플래시와 줌 값은 바인딩된 CameraX 객체에 반영하며, 새로운 [captureRequest]가 전달되면
  * 이미지를 저장하지 않고 메모리에서 한 장 촬영한 뒤 성공 여부만 반환합니다.
  *
- * @param captureRequest 처리할 촬영 요청. 같은 요청의 중복 처리는
- * [PhotoCaptureRequest.requestId]로 구분합니다.
+ * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
+ * 새 요청으로 처리하며, 세션 재진입 시 재처리를 막기 위해 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
  * @param onStateChanged 카메라 준비 또는 촬영 상태가 변경될 때 호출됩니다.
  * @param onCaptureStarted 촬영이 시작된 순간 호출되며 셔터 UI 효과에 사용됩니다.
  * @param onPhotoCaptureResult 촬영 대상 방 ID와 촬영 성공 여부를 전달합니다.

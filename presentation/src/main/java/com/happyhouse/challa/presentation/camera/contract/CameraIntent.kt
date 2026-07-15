@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.camera.contract
 
 import com.happyhouse.challa.presentation.base.UiIntent
+import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 
 sealed interface CameraIntent : UiIntent {
     data class FetchData(
@@ -18,7 +19,7 @@ sealed interface CameraIntent : UiIntent {
     data object ZoomClick : CameraIntent
 
     data class RoomClick(
-        val roomId: Long,
+        val room: CameraRoomUiModel,
     ) : CameraIntent
 
     data class FilterClick(

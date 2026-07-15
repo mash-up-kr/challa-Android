@@ -41,7 +41,7 @@ import kotlinx.collections.immutable.persistentListOf
 internal fun CameraRoomSelectionBottomSheet(
     rooms: ImmutableList<CameraRoomUiModel>,
     selectedRoomId: Long,
-    onRoomClick: (Long) -> Unit,
+    onRoomClick: (CameraRoomUiModel) -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     ChallaBottomSheet(
@@ -87,7 +87,7 @@ internal fun CameraRoomSelectionBottomSheet(
                 CameraRoomSelectionItem(
                     room = room,
                     selected = room.id == selectedRoomId,
-                    onClick = { onRoomClick(room.id) },
+                    onClick = { onRoomClick(room) },
                 )
             }
         }
