@@ -55,11 +55,7 @@ internal data class CameraSessionState(
  * @param isFlashOn 바인딩된 카메라에 적용할 torch 활성화 여부
  * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
  * 새 요청으로 처리하며, 세션 재진입 시 재처리를 막기 위해 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
- * @param onStateChanged 카메라 준비 또는 촬영 상태가 변경될 때 호출됩니다. 세션이 해제되면 기본 상태를 전달합니다.
- * @param onCaptureStarted 카메라가 촬영 프레임의 노출을 시작할 때 호출되며 셔터 UI 효과에 사용됩니다.
- * @param onPhotoCaptureResult 완료된 촬영의 대상 방 ID와 성공 여부를 전달합니다. 촬영이 취소되면 호출하지 않습니다.
- * @param onFlashAvailabilityChanged 바인딩된 렌즈의 플래시 지원 여부를 전달합니다. 세션이 해제되면 false를 전달합니다.
- * @param onFlashStateChanged 토치 제어가 완료된 뒤 실제 UI에 반영할 플래시 상태를 전달합니다.
+ * @param onEvent 준비·촬영·플래시 상태처럼 세션에서 발생한 이벤트를 전달합니다.
  */
 @Composable
 internal fun CameraSession(
@@ -68,20 +64,12 @@ internal fun CameraSession(
     isFlashOn: Boolean,
     zoomLevel: Int,
     captureRequest: PhotoCaptureRequest?,
-    onStateChanged: (CameraSessionState) -> Unit,
-    onCaptureStarted: () -> Unit,
-    onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
-    onFlashAvailabilityChanged: (Boolean) -> Unit,
-    onFlashStateChanged: (Boolean) -> Unit,
+    onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember(context) { createPreviewView(context) }
-    val currentOnStateChanged by rememberUpdatedState(onStateChanged)
-    val currentOnCaptureStarted by rememberUpdatedState(onCaptureStarted)
-    val currentOnPhotoCaptureResult by rememberUpdatedState(onPhotoCaptureResult)
-    val currentOnFlashAvailabilityChanged by rememberUpdatedState(onFlashAvailabilityChanged)
-    val currentOnFlashStateChanged by rememberUpdatedState(onFlashStateChanged)
+    val currentOnEvent by rememberUpdatedState(onEvent)
     var camera by remember { mutableStateOf<CameraXCamera?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var sessionState by remember { mutableStateOf(CameraSessionState()) }
@@ -106,8 +94,12 @@ internal fun CameraSession(
                 camera = boundCamera
                 imageCapture = boundImageCapture
                 sessionState = sessionState.copy(isReady = true)
-                currentOnStateChanged(sessionState)
-                currentOnFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
+                currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
+                currentOnEvent(
+                    CameraSessionEvent.FlashAvailabilityChanged(
+                        boundCamera.cameraInfo.hasFlashUnit(),
+                    ),
+                )
 
                 awaitCancellation()
             } finally {
@@ -121,8 +113,8 @@ internal fun CameraSession(
             camera = null
             imageCapture = null
             sessionState = CameraSessionState()
-            currentOnStateChanged(sessionState)
-            currentOnFlashAvailabilityChanged(false)
+            currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
+            currentOnEvent(CameraSessionEvent.FlashAvailabilityChanged(false))
         }
     }
 
@@ -135,12 +127,12 @@ internal fun CameraSession(
             boundCamera.cameraControl
                 .enableTorch(shouldEnableTorch)
                 .await()
-            currentOnFlashStateChanged(shouldEnableTorch)
+            currentOnEvent(CameraSessionEvent.FlashStateChanged(shouldEnableTorch))
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
             Timber.e(throwable, "Failed to update camera torch")
-            currentOnFlashStateChanged(false)
+            currentOnEvent(CameraSessionEvent.FlashStateChanged(false))
         }
     }
 
@@ -168,29 +160,44 @@ internal fun CameraSession(
         val boundImageCapture = imageCapture
 
         if (boundImageCapture == null || sessionState.isCapturing) {
-            currentOnPhotoCaptureResult(request.roomId, false)
+            currentOnEvent(
+                CameraSessionEvent.PhotoCaptureResult(
+                    roomId = request.roomId,
+                    succeeded = false,
+                ),
+            )
             return@LaunchedEffect
         }
 
         sessionState = sessionState.copy(isCapturing = true)
-        currentOnStateChanged(sessionState)
+        currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
         val succeeded =
             try {
                 boundImageCapture
-                    .takePicture(onCaptureStarted = { currentOnCaptureStarted() })
+                    .takePicture(
+                        onCaptureStarted = {
+                            currentOnEvent(CameraSessionEvent.CaptureStarted)
+                        },
+                    )
                     .close()
                 true
             } catch (cancellationException: CancellationException) {
+                currentOnEvent(CameraSessionEvent.PhotoCaptureCancelled(request.roomId))
                 throw cancellationException
             } catch (exception: ImageCaptureException) {
                 Timber.e(exception)
                 false
             } finally {
                 sessionState = sessionState.copy(isCapturing = false)
-                currentOnStateChanged(sessionState)
+                currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
             }
 
-        currentOnPhotoCaptureResult(request.roomId, succeeded)
+        currentOnEvent(
+            CameraSessionEvent.PhotoCaptureResult(
+                roomId = request.roomId,
+                succeeded = succeeded,
+            ),
+        )
     }
 
     AndroidView(

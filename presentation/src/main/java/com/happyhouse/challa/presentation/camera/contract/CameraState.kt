@@ -12,6 +12,7 @@ data class CameraState(
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashOn: Boolean = false,
     val hasFlashUnit: Boolean = false,
+    val isCapturePending: Boolean = false,
     val zoomLevel: Int = 1,
     val filterCount: Int = 8,
     val selectedFilterIndex: Int = 0,

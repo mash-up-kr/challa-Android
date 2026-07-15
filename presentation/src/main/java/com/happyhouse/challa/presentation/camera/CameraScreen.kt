@@ -29,6 +29,7 @@ fun CameraScreen(
     modifier: Modifier = Modifier,
     onRequestPermissionClick: () -> Unit,
     onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureCancelled: () -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val activity = LocalActivity.current as? ComponentActivity
@@ -78,6 +79,7 @@ fun CameraScreen(
             captureRequest = captureRequest,
             onRequestPermissionClick = onRequestPermissionClick,
             onPhotoCaptureResult = onPhotoCaptureResult,
+            onPhotoCaptureCancelled = onPhotoCaptureCancelled,
             onIntent = onIntent,
         )
     }

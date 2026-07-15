@@ -110,9 +110,14 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun handleShutterClick(roomId: Long) {
+        if (currentState.isCapturePending) return
+
         val room = currentState.rooms.firstOrNull { it.id == roomId } ?: return
         if (room.remainingCount <= 0) return
 
+        updateState {
+            copy(isCapturePending = true)
+        }
         viewModelScope.launch {
             sendEffect(CameraSideEffect.PhotoCaptureRequested(roomId))
         }
@@ -123,27 +128,34 @@ class CameraViewModel @AssistedInject constructor(
         succeeded: Boolean,
     ) {
         if (!succeeded) {
+            updateState {
+                copy(isCapturePending = false)
+            }
             viewModelScope.launch {
                 sendEffect(CameraSideEffect.PhotoCaptureFailed)
             }
             return
         }
 
-        val capturedRoom = currentState.rooms.firstOrNull { it.id == roomId } ?: return
-        if (capturedRoom.remainingCount <= 0) return
-
         updateState {
             copy(
+                isCapturePending = false,
                 rooms =
                     rooms
                         .map { room ->
-                            if (room.id == roomId) {
+                            if (room.id == roomId && room.remainingCount > 0) {
                                 room.copy(remainingCount = room.remainingCount - 1)
                             } else {
                                 room
                             }
                         }.toPersistentList(),
             )
+        }
+    }
+
+    fun onPhotoCaptureCancelled() {
+        updateState {
+            copy(isCapturePending = false)
         }
     }
 
@@ -178,7 +190,7 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun handleFlashStateChanged(isEnabled: Boolean) {
         updateState {
-            copy(isFlashOn = isEnabled)
+            copy(isFlashOn = isEnabled && hasFlashUnit)
         }
     }
 

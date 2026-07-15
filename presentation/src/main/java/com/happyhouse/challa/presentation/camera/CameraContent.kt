@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.happyhouse.challa.presentation.camera.camerax.CameraSession
+import com.happyhouse.challa.presentation.camera.camerax.CameraSessionEvent
 import com.happyhouse.challa.presentation.camera.camerax.CameraSessionState
 import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
@@ -36,6 +37,7 @@ internal fun CameraContent(
     captureRequest: PhotoCaptureRequest?,
     onRequestPermissionClick: () -> Unit,
     onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureCancelled: () -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val selectedRoom = state.selectedRoom
@@ -59,10 +61,13 @@ internal fun CameraContent(
         filterCount = state.filterCount,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashOn = state.isFlashOn,
-        isCameraSwitchEnabled = !cameraSessionState.isCapturing,
+        isCameraSwitchEnabled =
+            !state.isCapturePending &&
+                !cameraSessionState.isCapturing,
         shutterEnabled =
             remainingCount > 0 &&
                 cameraSessionState.isReady &&
+                !state.isCapturePending &&
                 !cameraSessionState.isCapturing,
         isShutterEffectVisible = isShutterEffectVisible,
         zoomLevel = state.zoomLevel,
@@ -89,14 +94,32 @@ internal fun CameraContent(
                     isFlashOn = state.isFlashOn,
                     zoomLevel = state.zoomLevel,
                     captureRequest = captureRequest,
-                    onStateChanged = { cameraSessionState = it },
-                    onCaptureStarted = { isShutterEffectVisible = true },
-                    onPhotoCaptureResult = onPhotoCaptureResult,
-                    onFlashAvailabilityChanged = {
-                        onIntent(CameraIntent.FlashAvailabilityChanged(it))
-                    },
-                    onFlashStateChanged = {
-                        onIntent(CameraIntent.FlashStateChanged(it))
+                    onEvent = { event ->
+                        when (event) {
+                            is CameraSessionEvent.StateChanged -> {
+                                cameraSessionState = event.state
+                            }
+
+                            CameraSessionEvent.CaptureStarted -> {
+                                isShutterEffectVisible = true
+                            }
+
+                            is CameraSessionEvent.PhotoCaptureResult -> {
+                                onPhotoCaptureResult(event.roomId, event.succeeded)
+                            }
+
+                            is CameraSessionEvent.PhotoCaptureCancelled -> {
+                                onPhotoCaptureCancelled()
+                            }
+
+                            is CameraSessionEvent.FlashAvailabilityChanged -> {
+                                onIntent(CameraIntent.FlashAvailabilityChanged(event.isAvailable))
+                            }
+
+                            is CameraSessionEvent.FlashStateChanged -> {
+                                onIntent(CameraIntent.FlashStateChanged(event.isEnabled))
+                            }
+                        }
                     },
                 )
             }

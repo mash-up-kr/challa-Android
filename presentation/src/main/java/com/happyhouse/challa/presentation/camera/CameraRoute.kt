@@ -77,6 +77,10 @@ fun CameraRoute(
             captureRequest = null
             viewModel.onPhotoCaptureResult(roomId, succeeded)
         },
+        onPhotoCaptureCancelled = {
+            captureRequest = null
+            viewModel.onPhotoCaptureCancelled()
+        },
         onIntent = viewModel::onIntent,
     )
 }
