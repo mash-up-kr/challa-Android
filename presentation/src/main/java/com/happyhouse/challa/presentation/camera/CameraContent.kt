@@ -28,6 +28,8 @@ private const val SHUTTER_EFFECT_DURATION_MILLIS = 120L
  * CameraX 객체와 촬영 과정은 [CameraSession]에 위임하고, 이 함수는 세션이 전달한
  * 준비·촬영 상태로 셔터 활성화를 결정합니다. 셔터 암전과 방 선택 시트처럼 화면 표현에만
  * 필요한 상태는 여기에서 관리합니다.
+ *
+ * @param captureRequest [CameraSession]이 소비할 촬영 요청. 대기 중인 요청이 없으면 null
  */
 @Composable
 internal fun CameraContent(

@@ -152,6 +152,7 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
+    /** CameraX 촬영이 취소됐음을 반영하고 대기 중 상태를 해제합니다. */
     fun onPhotoCaptureCancelled() {
         updateState {
             copy(isCapturePending = false)

@@ -53,17 +53,11 @@ private data class BoundCameraUseCases(
  *
  * [lensFacing]이 변경되면 기존 UseCase를 해제하고 새 카메라에 다시 바인딩합니다.
  * 촬영 플래시 모드를 적용하고 줌 제어가 완료될 때까지 비동기로 기다리며, 실패한 제어 요청은 기록합니다.
- * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 성공 여부만
- * 반환합니다. Composable이 Composition에서 제거되면 진행 중인 초기화와 촬영 대기가 취소되며,
- * 취소 이후 도착한 촬영 결과는 CameraX가 닫아 정리합니다.
+ * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 성공 여부만 반환합니다.
+ * Composable이 Composition에서 제거되면 진행 중인 초기화와 촬영 코루틴도 취소됩니다.
  *
- * @param modifier 카메라 Preview에 적용할 [Modifier]
- * @param lensFacing 바인딩할 전면 또는 후면 렌즈
- * @param isFlashEnabled 사진 촬영 순간에 플래시를 사용할지 여부
- * @param zoomLevel 카메라에 요청할 줌 배율. 실제 적용 값은 기기가 지원하는 범위로 제한됩니다.
  * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
  * 새 요청으로 처리하며, 세션 재진입 시 재처리를 막기 위해 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
- * @param onEvent 준비·촬영 상태와 플래시 지원 여부처럼 세션에서 발생한 이벤트를 전달합니다.
  */
 @Composable
 internal fun CameraSession(

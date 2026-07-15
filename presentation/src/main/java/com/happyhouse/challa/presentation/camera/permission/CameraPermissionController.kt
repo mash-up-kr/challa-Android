@@ -24,9 +24,10 @@ import androidx.core.content.ContextCompat
 /**
  * 카메라 권한 상태와 현재 상태에 맞는 권한 요청 동작을 제공합니다.
  *
- * 최초 진입 시 시스템 권한 요청을 실행합니다. 사용자가 영구 거부하여 시스템 다이얼로그를
- * 다시 표시할 수 없으면 [CameraPermissionController.requestPermission]이 앱 설정 화면을 엽니다.
- * 설정 화면에서 돌아오면 권한 보유 여부를 다시 확인합니다.
+ * 저장된 요청 이력이나 시스템 rationale이 없는 진입에서만 시스템 권한 요청을 실행합니다.
+ * Activity가 재생성되면 확인 가능한 요청 이력으로 권한 상태만 복원하며 요청을 자동으로 반복하지 않습니다.
+ * 시스템 다이얼로그를 다시 표시할 수 없으면 [CameraPermissionController.requestPermission]이 앱 설정
+ * 화면을 열고, 설정에서 돌아오면 권한 상태를 다시 판정합니다.
  */
 @Composable
 fun rememberCameraPermissionController(): CameraPermissionController {
@@ -120,6 +121,17 @@ private fun Activity?.shouldShowCameraPermissionRationale(): Boolean =
             Manifest.permission.CAMERA,
         )
 
+/**
+ * 시스템 권한과 이전 요청 이력으로 카메라 화면에 표시할 권한 상태를 결정합니다.
+ *
+ * 권한이 없고 이전 요청 이력이 있는데 rationale도 표시할 수 없으면 시스템 권한 다이얼로그를
+ * 다시 열 수 없는 상태로 판단합니다.
+ *
+ * @param isGranted 현재 카메라 권한 보유 여부
+ * @param hasRequestedPermission 이전에 카메라 권한을 요청했는지 여부
+ * @param shouldShowRationale 시스템이 권한 요청 전 설명 UI 표시를 권장하는지 여부
+ * @return 카메라 화면에 표시할 권한 상태
+ */
 internal fun resolveCameraPermissionState(
     isGranted: Boolean,
     hasRequestedPermission: Boolean,

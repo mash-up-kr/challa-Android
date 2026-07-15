@@ -24,5 +24,6 @@ data class CameraState(
 
 enum class CameraLensFacing {
     BACK,
+
     FRONT,
 }
