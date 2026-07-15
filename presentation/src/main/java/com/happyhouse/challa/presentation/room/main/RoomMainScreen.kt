@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.White
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.model.Room
 import com.happyhouse.challa.presentation.model.RoomStatus
 import com.happyhouse.challa.presentation.room.main.component.MemberCard
@@ -59,7 +59,7 @@ fun RoomMainRoute(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
-        containerColor = White,
+        containerColor = ChallaTheme.colors.staticWhite,
     ) { innerPadding ->
         RoomMainScreen(
             uiState = uiState,
@@ -81,7 +81,7 @@ fun RoomMainScreen(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(White),
+                .background(ChallaTheme.colors.staticWhite),
     ) {
         when (uiState) {
             RoomMainState.Loading -> {
