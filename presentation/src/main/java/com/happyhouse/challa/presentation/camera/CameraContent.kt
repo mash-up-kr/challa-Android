@@ -47,6 +47,9 @@ internal fun CameraContent(
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
     var isRoomSelectionSheetVisible by remember { mutableStateOf(false) }
+    val isCameraIdle = !state.isCapturePending && !cameraSessionState.isCapturing
+    val canControlCamera = cameraSessionState.isReady && isCameraIdle
+    val canCapture = remainingCount > 0 && canControlCamera
 
     LaunchedEffect(isShutterEffectVisible) {
         if (isShutterEffectVisible) {
@@ -63,14 +66,8 @@ internal fun CameraContent(
         filterCount = state.filterCount,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashEnabled = state.isFlashEnabled,
-        isCameraSwitchEnabled =
-            !state.isCapturePending &&
-                !cameraSessionState.isCapturing,
-        shutterEnabled =
-            remainingCount > 0 &&
-                cameraSessionState.isReady &&
-                !state.isCapturePending &&
-                !cameraSessionState.isCapturing,
+        isCameraSwitchEnabled = canControlCamera,
+        shutterEnabled = canCapture,
         isShutterEffectVisible = isShutterEffectVisible,
         zoomLevel = state.zoomLevel,
         onFlashClick = { onIntent(CameraIntent.FlashClick) },
