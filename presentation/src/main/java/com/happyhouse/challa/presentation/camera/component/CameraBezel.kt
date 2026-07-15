@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.camera.camerax.MockViewFinder
+import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.dashedRoundedBorder
@@ -114,7 +114,7 @@ private fun CameraBezelPreview() {
             isShutterEffectVisible = false,
             zoomLevel = 1,
             onZoomClick = {},
-            viewFinder = { MockViewFinder(it) },
+            viewFinder = { PreviewViewfinderPlaceholder(it) },
         )
     }
 }
@@ -135,7 +135,7 @@ private fun CameraBezelLimitReachedPreview() {
             isShutterEffectVisible = false,
             zoomLevel = 2,
             onZoomClick = {},
-            viewFinder = { MockViewFinder(it) },
+            viewFinder = { PreviewViewfinderPlaceholder(it) },
         )
     }
 }

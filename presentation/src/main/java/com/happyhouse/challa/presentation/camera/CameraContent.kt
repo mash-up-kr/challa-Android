@@ -95,6 +95,9 @@ internal fun CameraContent(
                     onFlashAvailabilityChanged = {
                         onIntent(CameraIntent.FlashAvailabilityChanged(it))
                     },
+                    onFlashStateChanged = {
+                        onIntent(CameraIntent.FlashStateChanged(it))
+                    },
                 )
             }
 

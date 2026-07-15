@@ -39,6 +39,7 @@ class CameraViewModel @AssistedInject constructor(
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
             is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
+            is CameraIntent.FlashStateChanged -> handleFlashStateChanged(intent.isEnabled)
         }
     }
 
@@ -172,6 +173,12 @@ class CameraViewModel @AssistedInject constructor(
                 hasFlashUnit = isAvailable,
                 isFlashOn = isFlashOn && isAvailable,
             )
+        }
+    }
+
+    private fun handleFlashStateChanged(isEnabled: Boolean) {
+        updateState {
+            copy(isFlashOn = isEnabled)
         }
     }
 

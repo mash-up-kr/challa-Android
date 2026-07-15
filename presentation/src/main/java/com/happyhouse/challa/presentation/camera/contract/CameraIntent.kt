@@ -29,4 +29,8 @@ sealed interface CameraIntent : UiIntent {
     data class FlashAvailabilityChanged(
         val isAvailable: Boolean,
     ) : CameraIntent
+
+    data class FlashStateChanged(
+        val isEnabled: Boolean,
+    ) : CameraIntent
 }

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.camera.camerax.MockViewFinder
+import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
@@ -117,7 +117,7 @@ private fun CameraContentLayoutPreview() {
         onZoomClick = {},
         onFilterClick = {},
         onRoomInfoClick = {},
-        viewFinder = { MockViewFinder(it) },
+        viewFinder = { PreviewViewfinderPlaceholder(it) },
     )
 }
 
@@ -143,6 +143,6 @@ private fun CameraContentLimitReachedPreview() {
         onZoomClick = {},
         onFilterClick = {},
         onRoomInfoClick = {},
-        viewFinder = { MockViewFinder(it) },
+        viewFinder = { PreviewViewfinderPlaceholder(it) },
     )
 }
