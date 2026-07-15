@@ -7,9 +7,9 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.lifecycle.awaitInstance
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,6 +25,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.awaitCancellation
 import timber.log.Timber
 import java.util.concurrent.Executor
 import androidx.camera.core.Camera as CameraXCamera
@@ -80,51 +82,35 @@ internal fun CameraSession(
     var sessionState by remember { mutableStateOf(CameraSessionState()) }
 
     // Composable 및 렌즈의 생명주기에 맞춰 CameraX UseCase를 바인딩하고 해제합니다.
-    DisposableEffect(context, lifecycleOwner, previewView, lensFacing) {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+    LaunchedEffect(context, lifecycleOwner, previewView, lensFacing) {
         var cameraProvider: ProcessCameraProvider? = null
-        var isDisposed = false
 
-        cameraProviderFuture.addListener(
-            {
-                runCatching {
-                    val provider = cameraProviderFuture.get()
-                    cameraProvider = provider
+        try {
+            val provider = ProcessCameraProvider.awaitInstance(context)
+            cameraProvider = provider
+            provider.unbindAll()
 
-                    if (isDisposed) {
-                        return@runCatching
-                    }
+            val boundImageCapture = createImageCapture()
+            val boundCamera =
+                bindCameraUseCases(
+                    cameraProvider = provider,
+                    lifecycleOwner = lifecycleOwner,
+                    previewView = previewView,
+                    lensFacing = lensFacing,
+                    imageCapture = boundImageCapture,
+                )
+            camera = boundCamera
+            imageCapture = boundImageCapture
+            sessionState = sessionState.copy(isReady = true)
+            currentOnStateChanged(sessionState)
+            currentOnFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
 
-                    provider.unbindAll()
-
-                    val boundImageCapture = createImageCapture()
-                    val boundCamera =
-                        bindCameraUseCases(
-                            cameraProvider = provider,
-                            lifecycleOwner = lifecycleOwner,
-                            previewView = previewView,
-                            lensFacing = lensFacing,
-                            imageCapture = boundImageCapture,
-                        )
-                    camera = boundCamera
-                    imageCapture = boundImageCapture
-                    sessionState = sessionState.copy(isReady = true)
-                    currentOnStateChanged(sessionState)
-                    currentOnFlashAvailabilityChanged(boundCamera.cameraInfo.hasFlashUnit())
-                }.onFailure { throwable ->
-                    camera = null
-                    imageCapture = null
-                    sessionState = CameraSessionState()
-                    currentOnStateChanged(sessionState)
-                    currentOnFlashAvailabilityChanged(false)
-                    Timber.e(throwable)
-                }
-            },
-            mainExecutor,
-        )
-
-        onDispose {
-            isDisposed = true
+            awaitCancellation()
+        } catch (cancellationException: CancellationException) {
+            throw cancellationException
+        } catch (throwable: Throwable) {
+            Timber.e(throwable)
+        } finally {
             camera = null
             imageCapture = null
             sessionState = CameraSessionState()
