@@ -34,13 +34,16 @@ class PhotoRepositoryImpl @Inject constructor(
         val imageLoader = SingletonImageLoader.get(context)
         val diskCache = imageLoader.diskCache ?: error("Coil 디스크 캐시를 사용할 수 없습니다")
 
-        readFromDiskCache(diskCache, imageUrl)?.let { return it to sniffImageFormat(it) }
+        val bytes =
+            readFromDiskCache(diskCache, imageUrl) ?: run {
+                val result = imageLoader.execute(ImageRequest.Builder(context).data(imageUrl).build())
+                if (result is ErrorResult) throw result.throwable
+                val cacheKey = (result as SuccessResult).diskCacheKey ?: imageUrl
+                readFromDiskCache(diskCache, cacheKey) ?: error("이미지를 캐시에서 찾을 수 없습니다")
+            }
 
-        val result = imageLoader.execute(ImageRequest.Builder(context).data(imageUrl).build())
-        if (result is ErrorResult) throw result.throwable
-        val cacheKey = (result as SuccessResult).diskCacheKey ?: imageUrl
-        val bytes = readFromDiskCache(diskCache, cacheKey) ?: error("이미지를 캐시에서 찾을 수 없습니다")
-        return bytes to sniffImageFormat(bytes)
+        val format = sniffImageFormat(bytes) ?: error("지원하지 않는 이미지 포맷입니다")
+        return bytes to format
     }
 
     private fun readFromDiskCache(
@@ -51,7 +54,7 @@ class PhotoRepositoryImpl @Inject constructor(
             snapshot.data.toFile().readBytes()
         }
 
-    private fun sniffImageFormat(bytes: ByteArray): ImageFormat =
+    private fun sniffImageFormat(bytes: ByteArray): ImageFormat? =
         when {
             bytes.size >= 3 &&
                 bytes[0] == 0xFF.toByte() &&
@@ -74,7 +77,7 @@ class PhotoRepositoryImpl @Inject constructor(
                 bytes[10] == 'B'.code.toByte() &&
                 bytes[11] == 'P'.code.toByte() -> ImageFormat.WEBP
 
-            else -> ImageFormat.JPEG
+            else -> null
         }
 
     private fun writeToMediaStore(
