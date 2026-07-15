@@ -77,7 +77,7 @@ fun ChallaBottomSheet(
                         text = title,
                         modifier = Modifier.weight(1f),
                         color = ChallaTheme.colors.labelNormal,
-                        style = ChallaTheme.typography.bodyLarge,
+                        style = ChallaTheme.typography.bodyLarge.bold,
                     )
                     Box(
                         modifier = Modifier.size(40.dp),
@@ -116,12 +116,12 @@ private fun ChallaBottomSheetPreview() {
                     Text(
                         text = "함께 챌린지를 진행할 방을 만들어 보세요.",
                         color = ChallaTheme.colors.labelNormal,
-                        style = ChallaTheme.typography.bodyMedium,
+                        style = ChallaTheme.typography.bodyMedium.bold,
                     )
                     Text(
                         text = "방을 만들면 초대 코드가 발급되며, 코드를 공유해 친구들을 초대할 수 있어요.",
                         color = ChallaTheme.colors.labelSubtle,
-                        style = ChallaTheme.typography.bodyMedium,
+                        style = ChallaTheme.typography.bodyMedium.bold,
                     )
                     ChallaTextButton(
                         text = "방 만들기",
