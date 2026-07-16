@@ -20,6 +20,8 @@
     <string name="camera_flash_description">플래시 토글</string>
     <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
     <string name="camera_photo_capture_failed_message">사진 촬영에 실패했어요.</string>
+    <string name="camera_binding_failed_message">카메라를 시작하지 못했어요.</string>
+    <string name="camera_retry">재시도</string>
     <string name="camera_filter_name">필터%1$d</string>
     <string name="camera_room_selector_description">방 선택</string>
     <string name="camera_room_sheet_title">방 선택하기</string>

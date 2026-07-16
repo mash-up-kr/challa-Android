@@ -43,10 +43,12 @@ internal fun CameraRoomSelectionBottomSheet(
     selectedRoomId: Long,
     onRoomClick: (CameraRoomUiModel) -> Unit,
     onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     ChallaBottomSheet(
         title = stringResource(R.string.camera_room_sheet_title),
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
         icon = {
             val closeDescription = stringResource(R.string.camera_room_sheet_close_description)
             Box(

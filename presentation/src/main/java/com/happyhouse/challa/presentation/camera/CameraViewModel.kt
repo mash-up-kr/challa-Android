@@ -136,6 +136,7 @@ class CameraViewModel @AssistedInject constructor(
             return
         }
 
+        // TODO: 실제 연동 시 CameraX 촬영 성공이 아니라 사진 업로드 성공 응답을 기준으로 갱신합니다.
         updateState {
             copy(
                 isCapturePending = false,

@@ -37,7 +37,9 @@ internal fun CameraContent(
     state: CameraState,
     permissionState: CameraPermissionState,
     captureRequest: PhotoCaptureRequest?,
+    cameraBindingRetryKey: Int,
     onRequestPermissionClick: () -> Unit,
+    onCameraBindingFailed: () -> Unit,
     onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
     onPhotoCaptureCancelled: () -> Unit,
     onIntent: (CameraIntent) -> Unit,
@@ -93,10 +95,15 @@ internal fun CameraContent(
                     isFlashEnabled = state.isFlashEnabled,
                     zoomLevel = state.zoomLevel,
                     captureRequest = captureRequest,
+                    bindingRetryKey = cameraBindingRetryKey,
                     onEvent = { event ->
                         when (event) {
                             is CameraSessionEvent.StateChanged -> {
                                 cameraSessionState = event.state
+                            }
+
+                            CameraSessionEvent.BindingFailed -> {
+                                onCameraBindingFailed()
                             }
 
                             CameraSessionEvent.CaptureStarted -> {

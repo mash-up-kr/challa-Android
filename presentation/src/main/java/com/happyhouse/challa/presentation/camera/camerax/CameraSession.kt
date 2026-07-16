@@ -58,6 +58,7 @@ private data class BoundCameraUseCases(
  *
  * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
  * 새 요청으로 처리하며, 세션 재진입 시 재처리를 막기 위해 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
+ * @param bindingRetryKey 바인딩 실패 후 같은 렌즈로 재시도할 때 변경하는 키
  */
 @Composable
 internal fun CameraSession(
@@ -66,6 +67,7 @@ internal fun CameraSession(
     isFlashEnabled: Boolean,
     zoomLevel: Int,
     captureRequest: PhotoCaptureRequest?,
+    bindingRetryKey: Int,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
@@ -77,7 +79,7 @@ internal fun CameraSession(
     var sessionState by remember { mutableStateOf(CameraSessionState()) }
 
     // Composable 및 렌즈의 생명주기에 맞춰 CameraX UseCase를 바인딩하고 해제합니다.
-    LaunchedEffect(context, lifecycleOwner, previewView, lensFacing) {
+    LaunchedEffect(context, lifecycleOwner, previewView, lensFacing, bindingRetryKey) {
         try {
             val provider = ProcessCameraProvider.awaitInstance(context)
 
@@ -110,7 +112,8 @@ internal fun CameraSession(
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
-            Timber.e(throwable)
+            Timber.e(throwable, "카메라 UseCase 바인딩에 실패했습니다")
+            currentOnEvent(CameraSessionEvent.BindingFailed)
         } finally {
             camera = null
             imageCapture = null
@@ -148,7 +151,7 @@ internal fun CameraSession(
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
-            Timber.e(throwable, "Failed to update camera zoom")
+            Timber.e(throwable, "카메라 줌 변경에 실패했습니다")
         }
     }
 
@@ -177,13 +180,13 @@ internal fun CameraSession(
                             currentOnEvent(CameraSessionEvent.CaptureStarted)
                         },
                     )
-                    .close()
+                    .close() // TODO: 필터 처리 및 업로드 구현 전까지 촬영 결과를 즉시 해제
                 true
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(CameraSessionEvent.PhotoCaptureCancelled(request.roomId))
                 throw cancellationException
             } catch (exception: ImageCaptureException) {
-                Timber.e(exception)
+                Timber.e(exception, "사진 촬영에 실패했습니다")
                 false
             } finally {
                 sessionState = sessionState.copy(isCapturing = false)

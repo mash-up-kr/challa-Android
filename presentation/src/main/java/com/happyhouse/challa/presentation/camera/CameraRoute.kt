@@ -2,11 +2,13 @@ package com.happyhouse.challa.presentation.camera
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,11 +33,15 @@ fun CameraRoute(
         ),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     var captureRequest by remember { mutableStateOf<PhotoCaptureRequest?>(null) }
+    var cameraBindingRetryKey by remember { mutableStateOf(0) }
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
+    val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
+    val retryLabel = stringResource(R.string.camera_retry)
 
     LaunchedEffect(viewModel) {
         // CameraSession이 연속 요청을 구분할 수 있도록 생산자가 요청마다 식별자를 증가시킵니다.
@@ -73,7 +79,20 @@ fun CameraRoute(
         permissionState = permissionController.state,
         snackbarHostState = snackbarHostState,
         captureRequest = captureRequest,
+        cameraBindingRetryKey = cameraBindingRetryKey,
         onRequestPermissionClick = permissionController.requestPermission,
+        onCameraBindingFailed = {
+            coroutineScope.launch {
+                val result =
+                    snackbarHostState.showSnackbar(
+                        message = cameraBindingFailedMessage,
+                        actionLabel = retryLabel,
+                    )
+                if (result == SnackbarResult.ActionPerformed) {
+                    cameraBindingRetryKey += 1
+                }
+            }
+        },
         onPhotoCaptureResult = { roomId, succeeded ->
             captureRequest = null
             viewModel.onPhotoCaptureResult(roomId, succeeded)
