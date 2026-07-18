@@ -6,6 +6,7 @@ import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
@@ -167,7 +168,12 @@ class CameraViewModel @AssistedInject constructor(
     private fun handleZoomClick() {
         updateState {
             copy(
-                zoomLevel = if (zoomLevel == MAX_ZOOM_LEVEL) MIN_ZOOM_LEVEL else zoomLevel + 1,
+                zoomLevel =
+                    when (zoomLevel) {
+                        DEFAULT_ZOOM_LEVEL -> DOUBLE_ZOOM_LEVEL
+                        DOUBLE_ZOOM_LEVEL -> TRIPLE_ZOOM_LEVEL
+                        else -> DEFAULT_ZOOM_LEVEL
+                    },
             )
         }
     }
@@ -180,7 +186,7 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun handleFilterClick(index: Int) {
         updateState {
-            copy(selectedFilterIndex = index.coerceIn(0, (filterCount - 1).coerceAtLeast(0)))
+            copy(selectedFilterIndex = index.coerceIn(0, CameraFilter.availableFilters.lastIndex))
         }
     }
 
@@ -190,7 +196,8 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private companion object {
-        const val MIN_ZOOM_LEVEL = 1
-        const val MAX_ZOOM_LEVEL = 2
+        const val DEFAULT_ZOOM_LEVEL = 1f
+        const val DOUBLE_ZOOM_LEVEL = 2f
+        const val TRIPLE_ZOOM_LEVEL = 3f
     }
 }

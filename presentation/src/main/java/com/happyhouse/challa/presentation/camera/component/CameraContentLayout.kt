@@ -16,8 +16,10 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
+import kotlinx.collections.immutable.ImmutableList
 
 private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
 
@@ -26,13 +28,13 @@ internal fun CameraContentLayout(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,
-    filterCount: Int,
+    filters: ImmutableList<CameraFilter>,
     selectedFilterIndex: Int,
     isFlashEnabled: Boolean,
     isCameraSwitchEnabled: Boolean,
     shutterEnabled: Boolean,
     isShutterEffectVisible: Boolean,
-    zoomLevel: Int,
+    zoomLevel: Float,
     onFlashClick: () -> Unit,
     onSwitchCameraClick: () -> Unit,
     onShutterClick: () -> Unit,
@@ -77,7 +79,7 @@ internal fun CameraContentLayout(
 
             CameraFilterSelector(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                filterCount = filterCount,
+                filters = filters,
                 selectedFilterIndex = selectedFilterIndex,
                 onFilterClick = onFilterClick,
             )
@@ -104,13 +106,13 @@ private fun CameraContentLayoutPreview() {
         roomName = "해피하우스강릉여행",
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-        filterCount = 10,
+        filters = CameraFilter.availableFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
         shutterEnabled = true,
         isShutterEffectVisible = false,
-        zoomLevel = 1,
+        zoomLevel = 1f,
         onFlashClick = {},
         onSwitchCameraClick = {},
         onShutterClick = {},
@@ -130,13 +132,13 @@ private fun CameraContentLimitReachedPreview() {
         roomName = "방이름방이름방이름3",
         remainingCount = 0,
         totalCount = 48,
-        filterCount = 10,
+        filters = CameraFilter.availableFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
         shutterEnabled = false,
         isShutterEffectVisible = false,
-        zoomLevel = 1,
+        zoomLevel = 1f,
         onFlashClick = {},
         onSwitchCameraClick = {},
         onShutterClick = {},

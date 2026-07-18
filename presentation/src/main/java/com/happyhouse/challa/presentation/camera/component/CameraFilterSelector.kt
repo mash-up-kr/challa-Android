@@ -20,20 +20,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
 internal fun CameraFilterSelector(
-    filterCount: Int,
+    filters: ImmutableList<CameraFilter>,
     selectedFilterIndex: Int,
     onFilterClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (filterCount >= SCROLLABLE_FILTER_COUNT) {
+    if (filters.size >= SCROLLABLE_FILTER_COUNT) {
         val listState = rememberLazyListState()
 
         LazyRow(
@@ -46,11 +47,11 @@ internal fun CameraFilterSelector(
             horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING),
         ) {
             items(
-                count = filterCount,
-                key = { it },
+                count = filters.size,
+                key = { filters[it].name },
             ) { index ->
                 CameraFilterItem(
-                    index = index,
+                    filter = filters[index],
                     selected = index == selectedFilterIndex,
                     onClick = { onFilterClick(index) },
                 )
@@ -61,9 +62,9 @@ internal fun CameraFilterSelector(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING, Alignment.CenterHorizontally),
         ) {
-            repeat(filterCount) { index ->
+            filters.forEachIndexed { index, filter ->
                 CameraFilterItem(
-                    index = index,
+                    filter = filter,
                     selected = index == selectedFilterIndex,
                     onClick = { onFilterClick(index) },
                 )
@@ -74,12 +75,12 @@ internal fun CameraFilterSelector(
 
 @Composable
 private fun CameraFilterItem(
-    index: Int,
+    filter: CameraFilter,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
     Text(
-        text = stringResource(R.string.camera_filter_name, index + 1),
+        text = stringResource(filter.labelResId),
         modifier =
             Modifier.noRippleClickOnce(
                 role = Role.Tab,
@@ -117,7 +118,7 @@ private fun Modifier.fadingHorizontalEdges(): Modifier =
 @Composable
 private fun CameraFilterSelectorPreview() {
     CameraFilterSelector(
-        filterCount = 10,
+        filters = CameraFilter.availableFilters,
         selectedFilterIndex = 0,
         onFilterClick = {},
     )

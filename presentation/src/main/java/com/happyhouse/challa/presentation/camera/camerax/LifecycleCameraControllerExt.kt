@@ -37,7 +37,9 @@ internal suspend fun LifecycleCameraController.takePicture(
 
                         override fun onCaptureSuccess(image: ImageProxy) {
                             delegatingCallback.dispose()
-                            continuation.resume(image)
+                            continuation.resume(image) { _, imageToClose, _ ->
+                                imageToClose.close()
+                            }
                         }
 
                         override fun onError(exception: ImageCaptureException) {
