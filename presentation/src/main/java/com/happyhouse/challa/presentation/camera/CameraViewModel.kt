@@ -7,6 +7,7 @@ import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
+import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -25,6 +26,8 @@ class CameraViewModel @AssistedInject constructor(
                 selectedRoomId = roomId,
             ),
     ) {
+    private var nextCaptureRequestId = 0L
+
     init {
         onIntent(CameraIntent.FetchData(roomId))
     }
@@ -113,22 +116,24 @@ class CameraViewModel @AssistedInject constructor(
         val room = currentState.rooms.firstOrNull { it.id == roomId } ?: return
         if (room.remainingCount <= 0) return
 
-        updateState {
-            copy(isCapturePending = true)
-        }
-        viewModelScope.launch {
-            sendEffect(CameraSideEffect.PhotoCaptureRequested(roomId))
-        }
+        nextCaptureRequestId += 1
+        val captureRequest =
+            PhotoCaptureRequest(
+                requestId = nextCaptureRequestId,
+                roomId = roomId,
+            )
+        updateState { copy(captureRequest = captureRequest) }
     }
 
     fun onPhotoCaptureResult(
-        roomId: Long,
+        requestId: Long,
         succeeded: Boolean,
     ) {
+        val captureRequest =
+            currentState.captureRequest?.takeIf { it.requestId == requestId } ?: return
+
         if (!succeeded) {
-            updateState {
-                copy(isCapturePending = false)
-            }
+            updateState { copy(captureRequest = null) }
             viewModelScope.launch {
                 sendEffect(CameraSideEffect.PhotoCaptureFailed)
             }
@@ -138,11 +143,11 @@ class CameraViewModel @AssistedInject constructor(
         // TODO: 실제 연동 시 CameraX 촬영 성공이 아니라 사진 업로드 성공 응답을 기준으로 갱신합니다.
         updateState {
             copy(
-                isCapturePending = false,
+                captureRequest = null,
                 rooms =
                     rooms
                         .map { room ->
-                            if (room.id == roomId && room.remainingCount > 0) {
+                            if (room.id == captureRequest.roomId && room.remainingCount > 0) {
                                 room.copy(remainingCount = room.remainingCount - 1)
                             } else {
                                 room
@@ -153,10 +158,10 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     /** CameraX 촬영이 취소됐음을 반영하고 대기 중 상태를 해제합니다. */
-    fun onPhotoCaptureCancelled() {
-        updateState {
-            copy(isCapturePending = false)
-        }
+    fun onPhotoCaptureCancelled(requestId: Long) {
+        if (currentState.captureRequest?.requestId != requestId) return
+
+        updateState { copy(captureRequest = null) }
     }
 
     private fun handleZoomClick() {

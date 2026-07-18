@@ -17,7 +17,6 @@ import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
-import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -31,22 +30,20 @@ private const val SHUTTER_EFFECT_DURATION_MILLIS = 120L
  * CameraX 객체와 촬영 과정은 [CameraSession]에 위임하고, 이 함수는 세션이 전달한
  * 준비·촬영 상태로 셔터 활성화를 결정합니다. 셔터 암전과 방 선택 시트처럼 화면 표현에만
  * 필요한 상태는 여기에서 관리합니다.
- *
- * @param captureRequest [CameraSession]이 소비할 촬영 요청. 대기 중인 요청이 없으면 null
  */
 @Composable
 internal fun CameraContent(
     modifier: Modifier = Modifier,
     state: CameraState,
     permissionState: CameraPermissionState,
-    captureRequest: PhotoCaptureRequest?,
     cameraBindingRetryKey: Int,
     onRequestPermissionClick: () -> Unit,
     onCameraBindingFailed: (CameraBindingFailure) -> Unit,
-    onPhotoCaptureResult: (requestId: Long, roomId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureResult: (requestId: Long, succeeded: Boolean) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
+    val captureRequest = state.captureRequest
     val selectedRoom = state.selectedRoom
     val remainingCount = selectedRoom?.remainingCount ?: 0
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
@@ -108,16 +105,13 @@ internal fun CameraContent(
                     zoomLevel = state.zoomLevel,
                     captureRequest = captureRequest,
                     bindingRetryKey = cameraBindingRetryKey,
-                    onStateChanged = { newState ->
-                        cameraSessionState = newState
-                        val bindingFailure =
-                            (newState.bindingState as? CameraBindingState.Failed)?.reason
-                        if (bindingFailure != null) {
-                            onCameraBindingFailed(bindingFailure)
-                        }
-                    },
+                    onStateChanged = { cameraSessionState = it },
                     onEvent = { event ->
                         when (event) {
+                            is CameraSessionEvent.BindingFailed -> {
+                                onCameraBindingFailed(event.reason)
+                            }
+
                             is CameraSessionEvent.CaptureStarted -> {
                                 if (captureRequest?.requestId == event.requestId) {
                                     isShutterEffectVisible = true
@@ -127,11 +121,11 @@ internal fun CameraContent(
                             is CameraSessionEvent.CaptureCompleted -> {
                                 when (event.result) {
                                     CameraCaptureResult.Success -> {
-                                        onPhotoCaptureResult(event.requestId, event.roomId, true)
+                                        onPhotoCaptureResult(event.requestId, true)
                                     }
 
                                     is CameraCaptureResult.Failed -> {
-                                        onPhotoCaptureResult(event.requestId, event.roomId, false)
+                                        onPhotoCaptureResult(event.requestId, false)
                                     }
 
                                     CameraCaptureResult.Cancelled -> {

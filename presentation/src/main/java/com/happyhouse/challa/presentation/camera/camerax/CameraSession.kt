@@ -3,15 +3,13 @@ package com.happyhouse.challa.presentation.camera.camerax
 import android.content.Context
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
-import androidx.camera.core.takePicture
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.lifecycle.awaitInstance
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -20,32 +18,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.concurrent.futures.await
-import androidx.lifecycle.LifecycleOwner
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.awaitCancellation
 import timber.log.Timber
-import androidx.camera.core.Camera as CameraXCamera
-
-private data class BoundCameraUseCases(
-    val camera: CameraXCamera,
-    val preview: Preview,
-    val imageCapture: ImageCapture,
-)
 
 /**
- * CameraX Preview와 [ImageCapture]의 생성, 바인딩, 제어를 담당합니다.
+ * [LifecycleCameraController]로 CameraX Preview, 촬영, 렌즈, 플래시, 줌을 관리합니다.
  *
- * [lensFacing]이 변경되면 기존 UseCase를 해제하고 새 카메라에 다시 바인딩합니다.
- * 촬영 플래시 모드를 적용하고 줌 제어가 완료될 때까지 비동기로 기다리며, 실패한 제어 요청은 기록합니다.
- * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 성공 여부만 반환합니다.
- * Composable이 Composition에서 제거되면 진행 중인 초기화와 촬영 코루틴도 취소됩니다.
+ * [lensFacing]이 변경되면 Controller가 새 렌즈로 UseCase를 다시 바인딩합니다.
+ * [bindingRetryKey]가 바뀐 때는 Controller와 PreviewView를 재생성해 초기화부터 재시도합니다.
+ * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
+ * 실패한 제어 요청은 기록합니다.
+ * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
+ * Composable이 Composition에서 제거되면 Controller를 해제하고 진행 중인 촬영 코루틴을 취소합니다.
  *
  * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
- * 새 요청으로 처리하며, 세션 재진입 시 재처리를 막기 위해 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
- * @param bindingRetryKey 바인딩 실패 후 같은 렌즈로 재시도할 때 변경하는 키
+ * 새 요청으로 처리하며, 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
+ * @param bindingRetryKey 카메라 초기화·바인딩 실패 후 Controller를 재생성해 재시도할 때 변경하는 키
+ * @param onStateChanged 바인딩·촬영 상태가 바뀐 때 최신 [CameraSessionState]를 전달하는 콜백
+ * @param onEvent 바인딩 실패와 촬영 시작·완료처럼 한 번만 소비할 [CameraSessionEvent]를 전달하는 콜백
  */
 @Composable
 internal fun CameraSession(
@@ -60,15 +55,16 @@ internal fun CameraSession(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember(context) { createPreviewView(context) }
+    val cameraController = remember(context, bindingRetryKey) { createCameraController(context) }
+    val previewView =
+        remember(context, cameraController) { createPreviewView(context, cameraController) }
+    val callbackExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
     val currentOnStateChanged by rememberUpdatedState(onStateChanged)
     val currentOnEvent by rememberUpdatedState(onEvent)
-    var camera by remember { mutableStateOf<CameraXCamera?>(null) }
-    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     var sessionState by remember { mutableStateOf(CameraSessionState()) }
 
-    // Composable 및 렌즈의 생명주기에 맞춰 CameraX UseCase를 바인딩하고 해제합니다.
-    LaunchedEffect(context, lifecycleOwner, previewView, lensFacing, bindingRetryKey) {
+    // Controller 초기화 후 선택한 렌즈를 Lifecycle에 바인딩하고 세션 해제 시 unbind합니다.
+    LaunchedEffect(cameraController, lifecycleOwner, previewView, lensFacing) {
         sessionState =
             CameraSessionState(
                 bindingState = CameraBindingState.Binding(lensFacing),
@@ -76,70 +72,61 @@ internal fun CameraSession(
         currentOnStateChanged(sessionState)
 
         try {
-            val provider = ProcessCameraProvider.awaitInstance(context)
+            cameraController.initializationFuture.await()
 
-            val cameraSelector = createCameraSelector(lensFacing)
-            if (!provider.hasCamera(cameraSelector)) {
+            val cameraSelector = lensFacing.toCameraSelector()
+            if (!cameraController.hasCamera(cameraSelector)) {
                 throw CameraUnavailableException()
             }
 
-            val boundUseCases =
-                bindCameraUseCases(
-                    cameraProvider = provider,
-                    lifecycleOwner = lifecycleOwner,
-                    previewView = previewView,
-                    cameraSelector = cameraSelector,
-                )
+            cameraController.cameraSelector = cameraSelector
+            cameraController.bindToLifecycle(lifecycleOwner)
+            val cameraInfo =
+                checkNotNull(cameraController.cameraInfo) {
+                    "Controller 바인딩 후 CameraInfo를 확인할 수 없습니다"
+                }
 
-            try {
-                camera = boundUseCases.camera
-                imageCapture = boundUseCases.imageCapture
-                sessionState =
-                    CameraSessionState(
-                        bindingState =
-                            CameraBindingState.Ready(
-                                lensFacing = lensFacing,
-                                hasFlashUnit = boundUseCases.camera.cameraInfo.hasFlashUnit(),
-                            ),
-                    )
-                currentOnStateChanged(sessionState)
-
-                awaitCancellation()
-            } finally {
-                provider.unbind(
-                    boundUseCases.preview,
-                    boundUseCases.imageCapture,
+            sessionState =
+                CameraSessionState(
+                    bindingState =
+                        CameraBindingState.Ready(
+                            lensFacing = lensFacing,
+                            hasFlashUnit = cameraInfo.hasFlashUnit(),
+                        ),
                 )
-            }
+            currentOnStateChanged(sessionState)
+            awaitCancellation()
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
-            Timber.e(throwable, "카메라 UseCase 바인딩에 실패했습니다")
+            cameraController.unbind()
+            Timber.e(throwable, "카메라 Controller 초기화 또는 바인딩에 실패했습니다")
+            val bindingFailure = throwable.toCameraBindingFailure()
             sessionState =
                 CameraSessionState(
                     bindingState =
                         CameraBindingState.Failed(
                             lensFacing = lensFacing,
-                            reason = throwable.toCameraBindingFailure(),
+                            reason = bindingFailure,
                         ),
                 )
             currentOnStateChanged(sessionState)
+            currentOnEvent(CameraSessionEvent.BindingFailed(bindingFailure))
             awaitCancellation()
         } finally {
-            camera = null
-            imageCapture = null
+            cameraController.unbind()
             sessionState = CameraSessionState()
             currentOnStateChanged(sessionState)
         }
     }
 
-    // ImageCapture가 준비된 이후에만 사진 촬영 순간에 사용할 플래시 모드를 반영합니다.
-    LaunchedEffect(camera, imageCapture, isFlashEnabled) {
-        val boundCamera = camera ?: return@LaunchedEffect
-        val boundImageCapture = imageCapture ?: return@LaunchedEffect
-        val shouldEnableFlash = isFlashEnabled && boundCamera.cameraInfo.hasFlashUnit()
+    // Controller에 바인딩된 렌즈의 플래시 지원 여부를 확인한 뒤 촬영 플래시를 설정합니다.
+    LaunchedEffect(cameraController, sessionState.bindingState, isFlashEnabled) {
+        if (!sessionState.isReady) return@LaunchedEffect
 
-        boundImageCapture.flashMode =
+        val shouldEnableFlash =
+            isFlashEnabled && cameraController.cameraInfo?.hasFlashUnit() == true
+        cameraController.imageCaptureFlashMode =
             if (shouldEnableFlash) {
                 ImageCapture.FLASH_MODE_ON
             } else {
@@ -147,17 +134,18 @@ internal fun CameraSession(
             }
     }
 
-    // 기기가 지원하는 줌 범위를 벗어나지 않도록 실제 적용 비율을 제한합니다.
-    LaunchedEffect(camera, zoomLevel) {
-        val boundCamera = camera ?: return@LaunchedEffect
-        val zoomState = boundCamera.cameraInfo.zoomState.value ?: return@LaunchedEffect
+    // 기기가 지원하는 줌 범위를 벗어나지 않도록 제한한 배율을 Controller에 적용합니다.
+    LaunchedEffect(cameraController, sessionState.bindingState, zoomLevel) {
+        if (!sessionState.isReady) return@LaunchedEffect
+
+        val zoomState = cameraController.zoomState.value ?: return@LaunchedEffect
         val supportedZoomRatio =
             zoomLevel
                 .toFloat()
                 .coerceIn(zoomState.minZoomRatio, zoomState.maxZoomRatio)
 
         try {
-            boundCamera.cameraControl.setZoomRatio(supportedZoomRatio).await()
+            cameraController.setZoomRatio(supportedZoomRatio).await()
         } catch (cancellationException: CancellationException) {
             throw cancellationException
         } catch (throwable: Throwable) {
@@ -165,20 +153,18 @@ internal fun CameraSession(
         }
     }
 
-    // requestId가 바뀐 경우에만 새로운 촬영 요청으로 소비합니다.
-    LaunchedEffect(captureRequest?.requestId) {
+    // requestId가 바뀐 경우에만 Controller에 새로운 촬영을 요청합니다.
+    LaunchedEffect(cameraController, lensFacing, captureRequest?.requestId) {
         val request = captureRequest ?: return@LaunchedEffect
-        val boundImageCapture = imageCapture
 
-        if (boundImageCapture == null || sessionState.isCapturing) {
+        if (!sessionState.isReady || sessionState.isCapturing) {
             currentOnEvent(
                 CameraSessionEvent.CaptureCompleted(
                     requestId = request.requestId,
-                    roomId = request.roomId,
                     result =
                         CameraCaptureResult.Failed(
                             reason =
-                                if (boundImageCapture == null) {
+                                if (!sessionState.isReady) {
                                     CameraCaptureFailure.SESSION_NOT_READY
                                 } else {
                                     CameraCaptureFailure.CAPTURE_ALREADY_RUNNING
@@ -193,27 +179,26 @@ internal fun CameraSession(
         currentOnStateChanged(sessionState)
         val result =
             try {
-                boundImageCapture
+                cameraController
                     .takePicture(
+                        executor = callbackExecutor,
                         onCaptureStarted = {
                             currentOnEvent(
                                 CameraSessionEvent.CaptureStarted(request.requestId),
                             )
                         },
-                    )
-                    .close() // TODO: 필터 처리 및 업로드 구현 전까지 촬영 결과를 즉시 해제
+                    ).close() // TODO: 필터 처리 및 저장 구현 전까지 촬영 결과를 즉시 해제
                 CameraCaptureResult.Success
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(
                     CameraSessionEvent.CaptureCompleted(
                         requestId = request.requestId,
-                        roomId = request.roomId,
                         result = CameraCaptureResult.Cancelled,
                     ),
                 )
                 throw cancellationException
-            } catch (exception: ImageCaptureException) {
-                Timber.e(exception, "사진 촬영에 실패했습니다")
+            } catch (throwable: Throwable) {
+                Timber.e(throwable, "사진 촬영에 실패했습니다")
                 CameraCaptureResult.Failed(CameraCaptureFailure.CAMERA_ERROR)
             } finally {
                 sessionState = sessionState.copy(isCapturing = false)
@@ -223,67 +208,39 @@ internal fun CameraSession(
         currentOnEvent(
             CameraSessionEvent.CaptureCompleted(
                 requestId = request.requestId,
-                roomId = request.roomId,
                 result = result,
             ),
         )
     }
 
-    AndroidView(
-        modifier = modifier,
-        factory = { previewView },
-    )
+    key(previewView) {
+        AndroidView(
+            modifier = modifier,
+            factory = { previewView },
+        )
+    }
 }
 
-private fun createPreviewView(context: Context): PreviewView =
-    PreviewView(context).apply {
-        scaleType = PreviewView.ScaleType.FILL_CENTER
+private fun createCameraController(context: Context): LifecycleCameraController =
+    LifecycleCameraController(context).apply {
+        setEnabledUseCases(CameraController.IMAGE_CAPTURE)
+        isPinchToZoomEnabled = false
+        imageCaptureMode = ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
     }
 
-private fun bindCameraUseCases(
-    cameraProvider: ProcessCameraProvider,
-    lifecycleOwner: LifecycleOwner,
-    previewView: PreviewView,
-    cameraSelector: CameraSelector,
-): BoundCameraUseCases {
-    val preview = createPreview(previewView)
-    val imageCapture = createImageCapture()
-    val camera =
-        cameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview,
-            imageCapture,
-        )
+private fun createPreviewView(
+    context: Context,
+    cameraController: LifecycleCameraController,
+): PreviewView =
+    PreviewView(context).apply {
+        scaleType = PreviewView.ScaleType.FILL_CENTER
+        controller = cameraController
+    }
 
-    return BoundCameraUseCases(
-        camera = camera,
-        preview = preview,
-        imageCapture = imageCapture,
-    )
-}
-
-private fun createImageCapture(): ImageCapture =
-    ImageCapture.Builder()
-        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-        .build()
-
-private fun createPreview(previewView: PreviewView): Preview =
-    Preview.Builder()
-        .build()
-        .also { preview ->
-            preview.surfaceProvider = previewView.surfaceProvider
-        }
-
-private fun createCameraSelector(lensFacing: CameraLensFacing): CameraSelector =
-    CameraSelector.Builder()
-        .requireLensFacing(lensFacing.toCameraSelectorLensFacing())
-        .build()
-
-private fun CameraLensFacing.toCameraSelectorLensFacing(): Int =
+private fun CameraLensFacing.toCameraSelector(): CameraSelector =
     when (this) {
-        CameraLensFacing.BACK -> CameraSelector.LENS_FACING_BACK
-        CameraLensFacing.FRONT -> CameraSelector.LENS_FACING_FRONT
+        CameraLensFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
+        CameraLensFacing.FRONT -> CameraSelector.DEFAULT_FRONT_CAMERA
     }
 
 private class CameraUnavailableException : IllegalStateException()

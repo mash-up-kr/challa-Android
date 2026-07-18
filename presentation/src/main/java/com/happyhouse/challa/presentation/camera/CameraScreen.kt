@@ -18,7 +18,6 @@ import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
 import com.happyhouse.challa.presentation.camera.component.CameraBackgroundTopColor
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
-import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 
 @Composable
@@ -26,12 +25,11 @@ fun CameraScreen(
     state: CameraState,
     permissionState: CameraPermissionState,
     snackbarHostState: SnackbarHostState,
-    captureRequest: PhotoCaptureRequest?,
     cameraBindingRetryKey: Int,
     modifier: Modifier = Modifier,
     onRequestPermissionClick: () -> Unit,
     onCameraBindingFailed: (CameraBindingFailure) -> Unit,
-    onPhotoCaptureResult: (requestId: Long, roomId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureResult: (requestId: Long, succeeded: Boolean) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
@@ -79,7 +77,6 @@ fun CameraScreen(
                     .padding(innerPadding),
             state = state,
             permissionState = permissionState,
-            captureRequest = captureRequest,
             cameraBindingRetryKey = cameraBindingRetryKey,
             onRequestPermissionClick = onRequestPermissionClick,
             onCameraBindingFailed = onCameraBindingFailed,

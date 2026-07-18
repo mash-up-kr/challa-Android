@@ -1,7 +1,12 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
-/** CameraX 세션에서 발생해 상위 UI가 한 번만 소비하는 촬영 이벤트입니다. */
+/** CameraX 세션에서 발생해 상위 UI가 한 번만 소비하는 이벤트입니다. */
 internal sealed interface CameraSessionEvent {
+    /** Controller 초기화 또는 Lifecycle 바인딩 실패를 전달합니다. */
+    data class BindingFailed(
+        val reason: CameraBindingFailure,
+    ) : CameraSessionEvent
+
     /** 카메라가 요청한 프레임의 노출을 시작했음을 전달합니다. */
     data class CaptureStarted(
         val requestId: Long,
@@ -10,7 +15,6 @@ internal sealed interface CameraSessionEvent {
     /** 촬영 요청 처리가 완료됐음을 전달합니다. */
     data class CaptureCompleted(
         val requestId: Long,
-        val roomId: Long,
         val result: CameraCaptureResult,
     ) : CameraSessionEvent
 }

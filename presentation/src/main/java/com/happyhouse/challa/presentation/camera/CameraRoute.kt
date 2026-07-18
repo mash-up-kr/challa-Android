@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -17,7 +16,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
-import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
 import kotlinx.coroutines.launch
 
@@ -37,7 +35,6 @@ fun CameraRoute(
     val coroutineScope = rememberCoroutineScope()
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
-    var captureRequest by remember { mutableStateOf<PhotoCaptureRequest?>(null) }
     var cameraBindingRetryKey by remember { mutableIntStateOf(0) }
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
@@ -45,20 +42,8 @@ fun CameraRoute(
     val retryLabel = stringResource(R.string.camera_retry)
 
     LaunchedEffect(viewModel) {
-        // CameraSession이 연속 요청을 구분할 수 있도록 생산자가 요청마다 식별자를 증가시킵니다.
-        var nextCaptureRequestId = 0L
-
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is CameraSideEffect.PhotoCaptureRequested -> {
-                    nextCaptureRequestId += 1
-                    captureRequest =
-                        PhotoCaptureRequest(
-                            requestId = nextCaptureRequestId,
-                            roomId = effect.roomId,
-                        )
-                }
-
                 CameraSideEffect.PhotoCaptureFailed -> {
                     launch {
                         snackbarHostState.showSnackbar(photoCaptureFailedMessage)
@@ -79,7 +64,6 @@ fun CameraRoute(
         state = state.value,
         permissionState = permissionController.state,
         snackbarHostState = snackbarHostState,
-        captureRequest = captureRequest,
         cameraBindingRetryKey = cameraBindingRetryKey,
         onRequestPermissionClick = permissionController.requestPermission,
         onCameraBindingFailed = { _ ->
@@ -94,18 +78,8 @@ fun CameraRoute(
                 }
             }
         },
-        onPhotoCaptureResult = { requestId, roomId, succeeded ->
-            if (captureRequest?.requestId == requestId) {
-                captureRequest = null
-                viewModel.onPhotoCaptureResult(roomId, succeeded)
-            }
-        },
-        onPhotoCaptureCancelled = { requestId ->
-            if (captureRequest?.requestId == requestId) {
-                captureRequest = null
-                viewModel.onPhotoCaptureCancelled()
-            }
-        },
+        onPhotoCaptureResult = viewModel::onPhotoCaptureResult,
+        onPhotoCaptureCancelled = viewModel::onPhotoCaptureCancelled,
         onIntent = viewModel::onIntent,
     )
 }
