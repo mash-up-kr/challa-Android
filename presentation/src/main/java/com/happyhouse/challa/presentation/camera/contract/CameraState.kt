@@ -20,7 +20,7 @@ data class CameraState(
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashEnabled: Boolean = false,
     val captureRequest: PhotoCaptureRequest? = null,
-    val zoomLevel: Int = 1,
+    val zoomLevel: Float = 1f,
     val filterCount: Int = 8,
     val selectedFilterIndex: Int = 0,
     val rooms: ImmutableList<CameraRoomUiModel> = persistentListOf(),

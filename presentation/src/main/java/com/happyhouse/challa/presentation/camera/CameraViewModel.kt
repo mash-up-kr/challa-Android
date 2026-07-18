@@ -167,7 +167,12 @@ class CameraViewModel @AssistedInject constructor(
     private fun handleZoomClick() {
         updateState {
             copy(
-                zoomLevel = if (zoomLevel == MAX_ZOOM_LEVEL) MIN_ZOOM_LEVEL else zoomLevel + 1,
+                zoomLevel =
+                    when (zoomLevel) {
+                        DEFAULT_ZOOM_LEVEL -> MAX_ZOOM_LEVEL
+                        MAX_ZOOM_LEVEL -> ULTRA_WIDE_ZOOM_LEVEL
+                        else -> DEFAULT_ZOOM_LEVEL
+                    },
             )
         }
     }
@@ -190,7 +195,8 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private companion object {
-        const val MIN_ZOOM_LEVEL = 1
-        const val MAX_ZOOM_LEVEL = 2
+        const val ULTRA_WIDE_ZOOM_LEVEL = 0.5f
+        const val DEFAULT_ZOOM_LEVEL = 1f
+        const val MAX_ZOOM_LEVEL = 2f
     }
 }

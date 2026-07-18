@@ -47,7 +47,7 @@ internal fun CameraSession(
     modifier: Modifier = Modifier,
     lensFacing: CameraLensFacing,
     isFlashEnabled: Boolean,
-    zoomLevel: Int,
+    zoomLevel: Float,
     captureRequest: PhotoCaptureRequest?,
     bindingRetryKey: Int,
     onStateChanged: (CameraSessionState) -> Unit,
@@ -141,7 +141,6 @@ internal fun CameraSession(
         val zoomState = cameraController.zoomState.value ?: return@LaunchedEffect
         val supportedZoomRatio =
             zoomLevel
-                .toFloat()
                 .coerceIn(zoomState.minZoomRatio, zoomState.maxZoomRatio)
 
         try {

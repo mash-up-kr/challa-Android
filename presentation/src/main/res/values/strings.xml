@@ -28,7 +28,7 @@
     <string name="camera_room_sheet_close_description">방 선택 닫기</string>
     <string name="camera_remaining_count">%1$d장 남음</string>
     <string name="camera_total_count">" /%1$d장"</string>
-    <string name="camera_zoom_level">%1$dx</string>
+    <string name="camera_zoom_level">%1$sx</string>
     <string name="camera_photo_limit_reached">앗.. 장수를 다 사용했어요!</string>
 
     <!-- galleryScreen -->

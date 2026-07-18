@@ -27,7 +27,7 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 internal fun CameraBezel(
     isPhotoLimitReached: Boolean,
     isShutterEffectVisible: Boolean,
-    zoomLevel: Int,
+    zoomLevel: Float,
     onZoomClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewFinder: @Composable (Modifier) -> Unit,
@@ -69,7 +69,11 @@ internal fun CameraBezel(
                 }
             } else {
                 Text(
-                    text = stringResource(R.string.camera_zoom_level, zoomLevel),
+                    text =
+                        stringResource(
+                            R.string.camera_zoom_level,
+                            zoomLevel.toDisplayText(),
+                        ),
                     modifier =
                         Modifier
                             .align(Alignment.BottomEnd)
@@ -112,7 +116,7 @@ private fun CameraBezelPreview() {
             modifier = Modifier.fillMaxSize(),
             isPhotoLimitReached = false,
             isShutterEffectVisible = false,
-            zoomLevel = 1,
+            zoomLevel = 1f,
             onZoomClick = {},
             viewFinder = { PreviewViewfinderPlaceholder(it) },
         )
@@ -133,9 +137,16 @@ private fun CameraBezelLimitReachedPreview() {
             modifier = Modifier.fillMaxSize(),
             isPhotoLimitReached = true,
             isShutterEffectVisible = false,
-            zoomLevel = 2,
+            zoomLevel = 2f,
             onZoomClick = {},
             viewFinder = { PreviewViewfinderPlaceholder(it) },
         )
     }
 }
+
+private fun Float.toDisplayText(): String =
+    if (this % 1f == 0f) {
+        toInt().toString()
+    } else {
+        toString()
+    }
