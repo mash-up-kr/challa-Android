@@ -6,6 +6,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,7 +38,7 @@ fun CameraRoute(
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     var captureRequest by remember { mutableStateOf<PhotoCaptureRequest?>(null) }
-    var cameraBindingRetryKey by remember { mutableStateOf(0) }
+    var cameraBindingRetryKey by remember { mutableIntStateOf(0) }
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
@@ -81,7 +82,7 @@ fun CameraRoute(
         captureRequest = captureRequest,
         cameraBindingRetryKey = cameraBindingRetryKey,
         onRequestPermissionClick = permissionController.requestPermission,
-        onCameraBindingFailed = {
+        onCameraBindingFailed = { _ ->
             coroutineScope.launch {
                 val result =
                     snackbarHostState.showSnackbar(
@@ -93,13 +94,17 @@ fun CameraRoute(
                 }
             }
         },
-        onPhotoCaptureResult = { roomId, succeeded ->
-            captureRequest = null
-            viewModel.onPhotoCaptureResult(roomId, succeeded)
+        onPhotoCaptureResult = { requestId, roomId, succeeded ->
+            if (captureRequest?.requestId == requestId) {
+                captureRequest = null
+                viewModel.onPhotoCaptureResult(roomId, succeeded)
+            }
         },
-        onPhotoCaptureCancelled = {
-            captureRequest = null
-            viewModel.onPhotoCaptureCancelled()
+        onPhotoCaptureCancelled = { requestId ->
+            if (captureRequest?.requestId == requestId) {
+                captureRequest = null
+                viewModel.onPhotoCaptureCancelled()
+            }
         },
         onIntent = viewModel::onIntent,
     )

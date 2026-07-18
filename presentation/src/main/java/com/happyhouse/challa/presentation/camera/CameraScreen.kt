@@ -14,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
 import com.happyhouse.challa.presentation.camera.component.CameraBackgroundTopColor
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
@@ -29,9 +30,9 @@ fun CameraScreen(
     cameraBindingRetryKey: Int,
     modifier: Modifier = Modifier,
     onRequestPermissionClick: () -> Unit,
-    onCameraBindingFailed: () -> Unit,
-    onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
-    onPhotoCaptureCancelled: () -> Unit,
+    onCameraBindingFailed: (CameraBindingFailure) -> Unit,
+    onPhotoCaptureResult: (requestId: Long, roomId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val activity = LocalActivity.current as? ComponentActivity

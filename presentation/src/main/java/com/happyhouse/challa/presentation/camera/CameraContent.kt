@@ -7,6 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
+import com.happyhouse.challa.presentation.camera.camerax.CameraBindingState
+import com.happyhouse.challa.presentation.camera.camerax.CameraCaptureResult
 import com.happyhouse.challa.presentation.camera.camerax.CameraSession
 import com.happyhouse.challa.presentation.camera.camerax.CameraSessionEvent
 import com.happyhouse.challa.presentation.camera.camerax.CameraSessionState
@@ -39,9 +42,9 @@ internal fun CameraContent(
     captureRequest: PhotoCaptureRequest?,
     cameraBindingRetryKey: Int,
     onRequestPermissionClick: () -> Unit,
-    onCameraBindingFailed: () -> Unit,
-    onPhotoCaptureResult: (roomId: Long, succeeded: Boolean) -> Unit,
-    onPhotoCaptureCancelled: () -> Unit,
+    onCameraBindingFailed: (CameraBindingFailure) -> Unit,
+    onPhotoCaptureResult: (requestId: Long, roomId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val selectedRoom = state.selectedRoom
@@ -50,7 +53,14 @@ internal fun CameraContent(
     var isShutterEffectVisible by remember { mutableStateOf(false) }
     var isRoomSelectionSheetVisible by remember { mutableStateOf(false) }
     val isCameraIdle = !state.isCapturePending && !cameraSessionState.isCapturing
-    val canControlCamera = cameraSessionState.isReady && isCameraIdle
+    val canControlCamera =
+        cameraSessionState.isReady &&
+            cameraSessionState.boundLensFacing == state.lensFacing &&
+            isCameraIdle
+    val canSwitchCamera =
+        canControlCamera ||
+            (cameraSessionState.bindingState as? CameraBindingState.Failed)?.reason ==
+            CameraBindingFailure.CAMERA_UNAVAILABLE
     val canCapture = remainingCount > 0 && canControlCamera
 
     LaunchedEffect(isShutterEffectVisible) {
@@ -67,12 +77,14 @@ internal fun CameraContent(
         totalCount = selectedRoom?.totalCount ?: 0,
         filterCount = state.filterCount,
         selectedFilterIndex = state.selectedFilterIndex,
-        isFlashEnabled = state.isFlashEnabled,
-        isCameraSwitchEnabled = canControlCamera,
+        isFlashEnabled = state.isFlashEnabled && cameraSessionState.hasFlashUnit,
+        isCameraSwitchEnabled = canSwitchCamera,
         shutterEnabled = canCapture,
         isShutterEffectVisible = isShutterEffectVisible,
         zoomLevel = state.zoomLevel,
-        onFlashClick = { onIntent(CameraIntent.FlashClick) },
+        onFlashClick = {
+            onIntent(CameraIntent.FlashClick(cameraSessionState.hasFlashUnit))
+        },
         onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
         onShutterClick = { onIntent(CameraIntent.ShutterClick(state.selectedRoomId)) },
         onZoomClick = { onIntent(CameraIntent.ZoomClick) },
@@ -96,30 +108,36 @@ internal fun CameraContent(
                     zoomLevel = state.zoomLevel,
                     captureRequest = captureRequest,
                     bindingRetryKey = cameraBindingRetryKey,
+                    onStateChanged = { newState ->
+                        cameraSessionState = newState
+                        val bindingFailure =
+                            (newState.bindingState as? CameraBindingState.Failed)?.reason
+                        if (bindingFailure != null) {
+                            onCameraBindingFailed(bindingFailure)
+                        }
+                    },
                     onEvent = { event ->
                         when (event) {
-                            is CameraSessionEvent.StateChanged -> {
-                                cameraSessionState = event.state
+                            is CameraSessionEvent.CaptureStarted -> {
+                                if (captureRequest?.requestId == event.requestId) {
+                                    isShutterEffectVisible = true
+                                }
                             }
 
-                            CameraSessionEvent.BindingFailed -> {
-                                onCameraBindingFailed()
-                            }
+                            is CameraSessionEvent.CaptureCompleted -> {
+                                when (event.result) {
+                                    CameraCaptureResult.Success -> {
+                                        onPhotoCaptureResult(event.requestId, event.roomId, true)
+                                    }
 
-                            CameraSessionEvent.CaptureStarted -> {
-                                isShutterEffectVisible = true
-                            }
+                                    is CameraCaptureResult.Failed -> {
+                                        onPhotoCaptureResult(event.requestId, event.roomId, false)
+                                    }
 
-                            is CameraSessionEvent.PhotoCaptureResult -> {
-                                onPhotoCaptureResult(event.roomId, event.succeeded)
-                            }
-
-                            is CameraSessionEvent.PhotoCaptureCancelled -> {
-                                onPhotoCaptureCancelled()
-                            }
-
-                            is CameraSessionEvent.FlashAvailabilityChanged -> {
-                                onIntent(CameraIntent.FlashAvailabilityChanged(event.isAvailable))
+                                    CameraCaptureResult.Cancelled -> {
+                                        onPhotoCaptureCancelled(event.requestId)
+                                    }
+                                }
                             }
                         }
                     },

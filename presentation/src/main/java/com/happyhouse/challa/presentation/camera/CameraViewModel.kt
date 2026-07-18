@@ -32,13 +32,12 @@ class CameraViewModel @AssistedInject constructor(
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
             is CameraIntent.FetchData -> fetchData(intent.roomId)
-            CameraIntent.FlashClick -> handleFlashClick()
+            is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             is CameraIntent.ShutterClick -> handleShutterClick(intent.roomId)
             CameraIntent.ZoomClick -> handleZoomClick()
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
-            is CameraIntent.FlashAvailabilityChanged -> handleFlashAvailabilityChanged(intent.isAvailable)
         }
     }
 
@@ -82,8 +81,8 @@ class CameraViewModel @AssistedInject constructor(
             ),
         )
 
-    private fun handleFlashClick() {
-        if (!currentState.hasFlashUnit) {
+    private fun handleFlashClick(isAvailable: Boolean) {
+        if (!isAvailable) {
             viewModelScope.launch {
                 sendEffect(CameraSideEffect.FlashNotAvailable)
             }
@@ -177,15 +176,6 @@ class CameraViewModel @AssistedInject constructor(
     private fun handleFilterClick(index: Int) {
         updateState {
             copy(selectedFilterIndex = index.coerceIn(0, (filterCount - 1).coerceAtLeast(0)))
-        }
-    }
-
-    private fun handleFlashAvailabilityChanged(isAvailable: Boolean) {
-        updateState {
-            copy(
-                hasFlashUnit = isAvailable,
-                isFlashEnabled = isFlashEnabled && isAvailable,
-            )
         }
     }
 

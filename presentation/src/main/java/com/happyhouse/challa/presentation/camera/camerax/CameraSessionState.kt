@@ -1,0 +1,73 @@
+package com.happyhouse.challa.presentation.camera.camerax
+
+import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
+
+/**
+ * CameraX 세션에서 UI가 알아야 하는 최소 상태입니다.
+ *
+ * @property bindingState CameraX UseCase 바인딩 상태
+ * @property isCapturing 사진 한 장의 촬영 요청을 처리하고 있는지 여부
+ * @property isReady UseCase 바인딩이 완료되어 촬영할 수 있는지 여부
+ * @property hasFlashUnit 현재 바인딩된 렌즈가 플래시를 지원하는지 여부.
+ * [CameraBindingState.Ready]가 아니면 false입니다.
+ * @property boundLensFacing 현재 바인딩된 렌즈. [CameraBindingState.Ready]가 아니면 null입니다.
+ */
+@Immutable
+internal data class CameraSessionState(
+    val bindingState: CameraBindingState = CameraBindingState.Idle,
+    val isCapturing: Boolean = false,
+) {
+    val isReady: Boolean
+        get() = bindingState is CameraBindingState.Ready
+
+    val hasFlashUnit: Boolean
+        get() = (bindingState as? CameraBindingState.Ready)?.hasFlashUnit == true
+
+    val boundLensFacing: CameraLensFacing?
+        get() = (bindingState as? CameraBindingState.Ready)?.lensFacing
+}
+
+/** CameraX UseCase의 바인딩 생명주기 상태입니다. */
+@Immutable
+internal sealed interface CameraBindingState {
+    /** 바인딩할 UseCase가 없는 초기 또는 세션 해제 상태입니다. */
+    data object Idle : CameraBindingState
+
+    /** [lensFacing] 렌즈에 Preview와 ImageCapture를 바인딩하고 있는 상태입니다. */
+    data class Binding(
+        val lensFacing: CameraLensFacing,
+    ) : CameraBindingState
+
+    /**
+     * [lensFacing] 렌즈에 UseCase 바인딩을 완료한 상태입니다.
+     *
+     * @property hasFlashUnit 바인딩된 렌즈의 플래시 하드웨어 지원 여부
+     */
+    data class Ready(
+        val lensFacing: CameraLensFacing,
+        val hasFlashUnit: Boolean,
+    ) : CameraBindingState
+
+    /**
+     * [lensFacing] 렌즈에 UseCase를 바인딩하지 못한 상태입니다.
+     *
+     * @property reason 상위 UI가 복구 방법을 결정할 수 있도록 분류한 실패 원인
+     */
+    data class Failed(
+        val lensFacing: CameraLensFacing,
+        val reason: CameraBindingFailure,
+    ) : CameraBindingState
+}
+
+/** CameraX UseCase 바인딩 실패 원인입니다. */
+enum class CameraBindingFailure {
+    /** 요청한 렌즈를 기기에서 사용할 수 없습니다. */
+    CAMERA_UNAVAILABLE,
+
+    /** 카메라 권한이 없어 UseCase를 바인딩할 수 없습니다. */
+    PERMISSION_DENIED,
+
+    /** 위 원인을 제외한 CameraX 초기화 또는 Lifecycle 바인딩 오류입니다. */
+    BINDING_ERROR,
+}

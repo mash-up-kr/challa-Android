@@ -1,48 +1,37 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
-/**
- * CameraX 세션에서 발생해 상위 UI로 전달되는 이벤트입니다.
- *
- * 카메라 준비·촬영 상태와 바인딩 실패, 사진 촬영 결과, 플래시 지원 여부를 전달합니다.
- */
+/** CameraX 세션에서 발생해 상위 UI가 한 번만 소비하는 촬영 이벤트입니다. */
 internal sealed interface CameraSessionEvent {
-    /**
-     * 카메라 준비 또는 촬영 상태가 변경됐음을 전달합니다.
-     *
-     * 세션이 해제되면 기본 [CameraSessionState]가 전달됩니다.
-     */
-    data class StateChanged(
-        val state: CameraSessionState,
+    /** 카메라가 요청한 프레임의 노출을 시작했음을 전달합니다. */
+    data class CaptureStarted(
+        val requestId: Long,
     ) : CameraSessionEvent
 
-    /** CameraX UseCase를 Lifecycle에 바인딩하지 못했음을 전달합니다. */
-    data object BindingFailed : CameraSessionEvent
-
-    /** 카메라가 촬영할 프레임의 노출을 시작했음을 전달합니다. */
-    data object CaptureStarted : CameraSessionEvent
-
-    /**
-     * CameraX 촬영 성공 여부를 전달합니다.
-     *
-     * 진행 중인 촬영 코루틴이 취소된 경우에는 [PhotoCaptureCancelled]가 전달됩니다.
-     * [succeeded]는 CameraX가 이미지를 정상적으로 캡처했는지만 나타내며, 파일 저장이나 서버 업로드 성공을 의미하지 않습니다.
-     */
-    data class PhotoCaptureResult(
+    /** 촬영 요청 처리가 완료됐음을 전달합니다. */
+    data class CaptureCompleted(
+        val requestId: Long,
         val roomId: Long,
-        val succeeded: Boolean,
+        val result: CameraCaptureResult,
     ) : CameraSessionEvent
+}
 
-    /** 진행 중인 촬영 코루틴이 취소됐음을 전달합니다. */
-    data class PhotoCaptureCancelled(
-        val roomId: Long,
-    ) : CameraSessionEvent
+/** CameraX 촬영 요청의 최종 처리 결과입니다. */
+internal sealed interface CameraCaptureResult {
+    /** CameraX가 이미지를 정상적으로 캡처했습니다. */
+    data object Success : CameraCaptureResult
 
-    /**
-     * 현재 바인딩된 렌즈가 플래시 하드웨어를 지원하는지 전달합니다.
-     *
-     * 세션이 해제되면 [isAvailable]은 false로 전달됩니다.
-     */
-    data class FlashAvailabilityChanged(
-        val isAvailable: Boolean,
-    ) : CameraSessionEvent
+    /** CameraX가 촬영 요청을 완료하지 못했습니다. */
+    data class Failed(
+        val reason: CameraCaptureFailure,
+    ) : CameraCaptureResult
+
+    /** 세션 해제 등으로 진행 중인 촬영 코루틴이 취소됐습니다. */
+    data object Cancelled : CameraCaptureResult
+}
+
+/** 촬영 요청 실패 원인입니다. */
+internal enum class CameraCaptureFailure {
+    SESSION_NOT_READY,
+    CAPTURE_ALREADY_RUNNING,
+    CAMERA_ERROR,
 }

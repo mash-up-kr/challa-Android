@@ -10,7 +10,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,18 +28,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.awaitCancellation
 import timber.log.Timber
 import androidx.camera.core.Camera as CameraXCamera
-
-/**
- * CameraX 세션에서 UI가 알아야 하는 최소 상태입니다.
- *
- * @property isReady Preview와 [ImageCapture]가 바인딩되어 촬영할 수 있는지 여부
- * @property isCapturing 사진 한 장의 촬영 요청을 처리하고 있는지 여부
- */
-@Immutable
-internal data class CameraSessionState(
-    val isReady: Boolean = false,
-    val isCapturing: Boolean = false,
-)
 
 private data class BoundCameraUseCases(
     val camera: CameraXCamera,
@@ -68,11 +55,13 @@ internal fun CameraSession(
     zoomLevel: Int,
     captureRequest: PhotoCaptureRequest?,
     bindingRetryKey: Int,
+    onStateChanged: (CameraSessionState) -> Unit,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember(context) { createPreviewView(context) }
+    val currentOnStateChanged by rememberUpdatedState(onStateChanged)
     val currentOnEvent by rememberUpdatedState(onEvent)
     var camera by remember { mutableStateOf<CameraXCamera?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
@@ -80,27 +69,40 @@ internal fun CameraSession(
 
     // Composable 및 렌즈의 생명주기에 맞춰 CameraX UseCase를 바인딩하고 해제합니다.
     LaunchedEffect(context, lifecycleOwner, previewView, lensFacing, bindingRetryKey) {
+        sessionState =
+            CameraSessionState(
+                bindingState = CameraBindingState.Binding(lensFacing),
+            )
+        currentOnStateChanged(sessionState)
+
         try {
             val provider = ProcessCameraProvider.awaitInstance(context)
+
+            val cameraSelector = createCameraSelector(lensFacing)
+            if (!provider.hasCamera(cameraSelector)) {
+                throw CameraUnavailableException()
+            }
 
             val boundUseCases =
                 bindCameraUseCases(
                     cameraProvider = provider,
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView,
-                    lensFacing = lensFacing,
+                    cameraSelector = cameraSelector,
                 )
 
             try {
                 camera = boundUseCases.camera
                 imageCapture = boundUseCases.imageCapture
-                sessionState = sessionState.copy(isReady = true)
-                currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
-                currentOnEvent(
-                    CameraSessionEvent.FlashAvailabilityChanged(
-                        boundUseCases.camera.cameraInfo.hasFlashUnit(),
-                    ),
-                )
+                sessionState =
+                    CameraSessionState(
+                        bindingState =
+                            CameraBindingState.Ready(
+                                lensFacing = lensFacing,
+                                hasFlashUnit = boundUseCases.camera.cameraInfo.hasFlashUnit(),
+                            ),
+                    )
+                currentOnStateChanged(sessionState)
 
                 awaitCancellation()
             } finally {
@@ -113,13 +115,21 @@ internal fun CameraSession(
             throw cancellationException
         } catch (throwable: Throwable) {
             Timber.e(throwable, "카메라 UseCase 바인딩에 실패했습니다")
-            currentOnEvent(CameraSessionEvent.BindingFailed)
+            sessionState =
+                CameraSessionState(
+                    bindingState =
+                        CameraBindingState.Failed(
+                            lensFacing = lensFacing,
+                            reason = throwable.toCameraBindingFailure(),
+                        ),
+                )
+            currentOnStateChanged(sessionState)
+            awaitCancellation()
         } finally {
             camera = null
             imageCapture = null
             sessionState = CameraSessionState()
-            currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
-            currentOnEvent(CameraSessionEvent.FlashAvailabilityChanged(false))
+            currentOnStateChanged(sessionState)
         }
     }
 
@@ -162,41 +172,59 @@ internal fun CameraSession(
 
         if (boundImageCapture == null || sessionState.isCapturing) {
             currentOnEvent(
-                CameraSessionEvent.PhotoCaptureResult(
+                CameraSessionEvent.CaptureCompleted(
+                    requestId = request.requestId,
                     roomId = request.roomId,
-                    succeeded = false,
+                    result =
+                        CameraCaptureResult.Failed(
+                            reason =
+                                if (boundImageCapture == null) {
+                                    CameraCaptureFailure.SESSION_NOT_READY
+                                } else {
+                                    CameraCaptureFailure.CAPTURE_ALREADY_RUNNING
+                                },
+                        ),
                 ),
             )
             return@LaunchedEffect
         }
 
         sessionState = sessionState.copy(isCapturing = true)
-        currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
-        val succeeded =
+        currentOnStateChanged(sessionState)
+        val result =
             try {
                 boundImageCapture
                     .takePicture(
                         onCaptureStarted = {
-                            currentOnEvent(CameraSessionEvent.CaptureStarted)
+                            currentOnEvent(
+                                CameraSessionEvent.CaptureStarted(request.requestId),
+                            )
                         },
                     )
                     .close() // TODO: 필터 처리 및 업로드 구현 전까지 촬영 결과를 즉시 해제
-                true
+                CameraCaptureResult.Success
             } catch (cancellationException: CancellationException) {
-                currentOnEvent(CameraSessionEvent.PhotoCaptureCancelled(request.roomId))
+                currentOnEvent(
+                    CameraSessionEvent.CaptureCompleted(
+                        requestId = request.requestId,
+                        roomId = request.roomId,
+                        result = CameraCaptureResult.Cancelled,
+                    ),
+                )
                 throw cancellationException
             } catch (exception: ImageCaptureException) {
                 Timber.e(exception, "사진 촬영에 실패했습니다")
-                false
+                CameraCaptureResult.Failed(CameraCaptureFailure.CAMERA_ERROR)
             } finally {
                 sessionState = sessionState.copy(isCapturing = false)
-                currentOnEvent(CameraSessionEvent.StateChanged(sessionState))
+                currentOnStateChanged(sessionState)
             }
 
         currentOnEvent(
-            CameraSessionEvent.PhotoCaptureResult(
+            CameraSessionEvent.CaptureCompleted(
+                requestId = request.requestId,
                 roomId = request.roomId,
-                succeeded = succeeded,
+                result = result,
             ),
         )
     }
@@ -216,11 +244,10 @@ private fun bindCameraUseCases(
     cameraProvider: ProcessCameraProvider,
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
-    lensFacing: CameraLensFacing,
+    cameraSelector: CameraSelector,
 ): BoundCameraUseCases {
     val preview = createPreview(previewView)
     val imageCapture = createImageCapture()
-    val cameraSelector = createCameraSelector(lensFacing)
     val camera =
         cameraProvider.bindToLifecycle(
             lifecycleOwner,
@@ -257,4 +284,13 @@ private fun CameraLensFacing.toCameraSelectorLensFacing(): Int =
     when (this) {
         CameraLensFacing.BACK -> CameraSelector.LENS_FACING_BACK
         CameraLensFacing.FRONT -> CameraSelector.LENS_FACING_FRONT
+    }
+
+private class CameraUnavailableException : IllegalStateException()
+
+private fun Throwable.toCameraBindingFailure(): CameraBindingFailure =
+    when (this) {
+        is CameraUnavailableException -> CameraBindingFailure.CAMERA_UNAVAILABLE
+        is SecurityException -> CameraBindingFailure.PERMISSION_DENIED
+        else -> CameraBindingFailure.BINDING_ERROR
     }
