@@ -45,6 +45,9 @@ logger = "2.2.0"
 retrofit = "3.0.0"
 okhttp = "5.4.0"
 
+# Auth
+kakao = "2.20.6"
+
 # Test
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -107,6 +110,9 @@ retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", n
 # OkHttp
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
+# Kakao
+kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }
