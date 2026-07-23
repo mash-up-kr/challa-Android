@@ -3,7 +3,7 @@ package com.happyhouse.challa.presentation.login
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,21 +16,22 @@ class LoginViewModel
         ) {
         override fun onIntent(intent: LoginIntent) {
             when (intent) {
-                LoginIntent.LoginClick -> handleLoginClick()
+                is LoginIntent.LoginClick -> handleLoginClick(intent.acquireKakaoToken)
             }
         }
 
-        private fun handleLoginClick() {
+        private fun handleLoginClick(acquireKakaoToken: suspend () -> String) {
             if (currentState.isLoading) return
             viewModelScope.launch {
                 updateState { copy(isLoading = true) }
                 try {
-                    delay(1000L) // TODO JH: API 호출
-                    LoginSideEffect.LoginSuccess
+                    // TODO JH: API 연동
+                    val kakaoAccessToken = acquireKakaoToken()
+                    sendEffect(LoginSideEffect.LoginSuccess)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    LoginSideEffect.LoginFailed
-                }.also { sideEffect ->
-                    sendEffect(sideEffect)
+                    sendEffect(LoginSideEffect.LoginFailed)
                 }
                 updateState { copy(isLoading = false) }
             }

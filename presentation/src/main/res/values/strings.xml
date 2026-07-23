@@ -37,13 +37,8 @@
 
     <string name="app_name_kr">찰나</string>
     <string name="app_name_en">Challa</string>
-    <string name="login_logo_placeholder">[로고 placeholder]</string>
+    <string name="login_brand" translatable="false">challa</string>
     <string name="login_kakao">카카오로 시작하기</string>
-    <string name="login_terms_prefix">"시작 시 "</string>
-    <string name="login_terms_of_service">이용약관</string>
-    <string name="login_terms_middle">" 및 "</string>
-    <string name="login_privacy_policy">개인정보처리방침</string>
-    <string name="login_terms_suffix">에 동의한 것으로 간주됩니다.</string>
 
     <string name="home_greeting">안녕하세요, %1$s 님</string>
     <string name="home_invite_code">초대 코드</string>

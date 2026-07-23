@@ -1,52 +1,51 @@
 package com.happyhouse.challa.presentation.login
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 
-/**
- * TODO JH 하드코딩한 색상은 디자인이 완성되면 제거 예정
- */
-private val TextPrimary = Color(0xFF111111)
-private val TextSecondary = Color(0xFF888888)
-private val PlaceholderBg = Color(0xFFEEEEEE)
+// 카카오 브랜드 컬러. 카카오 로그인 버튼 외에는 쓰지 않으므로 이 화면에만 둔다.
 private val KakaoYellow = Color(0xFFFEE500)
 
 @Composable
@@ -57,6 +56,7 @@ fun LoginScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val activity = context.findActivity()
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -72,130 +72,124 @@ fun LoginScreen(
 
     LoginContent(
         state = state,
-        onIntent = viewModel::onIntent,
+        // 카카오 SDK 호출은 Activity 가 필요하므로 여기서 클로저로 감싸 ViewModel 에 넘긴다.
+        onLoginClick = { viewModel.onIntent(LoginIntent.LoginClick { KakaoLoginClient.login(activity) }) },
         modifier = modifier,
     )
 }
 
+private tailrec fun Context.findActivity(): Activity =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> error("Activity 를 찾을 수 없습니다: $this")
+    }
+
 @Composable
 private fun LoginContent(
     state: LoginState,
-    onIntent: (LoginIntent) -> Unit,
+    onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Box(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(ChallaTheme.colors.backgroundSurface),
     ) {
-        Column(
+        BrandingContent(
             modifier =
                 Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = stringResource(id = R.string.app_name_kr),
-                color = TextPrimary,
-                fontSize = 40.sp,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = stringResource(id = R.string.app_name_en),
-                color = TextSecondary,
-                fontSize = 13.sp,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Box(
-                modifier =
-                    Modifier
-                        .size(width = 160.dp, height = 120.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(PlaceholderBg),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(id = R.string.login_logo_placeholder),
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                )
-            }
-        }
+                    .align(Alignment.Center)
+                    // 디자인상 브랜딩 영역은 투명도 10%로 표현된다.
+                    .alpha(0.1f),
+        )
 
-        Column(
+        KakaoLoginButton(
+            isLoading = state.isLoading,
+            onClick = onLoginClick,
             modifier =
                 Modifier
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(
-                onClick = { onIntent(LoginIntent.LoginClick) },
-                enabled = !state.isLoading,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                shape = RoundedCornerShape(6.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = KakaoYellow,
-                        contentColor = Color.Black,
-                    ),
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = Color.Black,
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Text(
-                        text = stringResource(id = R.string.login_kakao),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-            }
-            Text(
-                text = termsAnnotatedString(),
-                color = TextSecondary,
-                fontSize = 11.sp,
-                lineHeight = 16.sp,
-                textAlign = TextAlign.Center,
-            )
-        }
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 8.dp, bottom = 8.dp),
+        )
     }
 }
 
 @Composable
-private fun termsAnnotatedString(): AnnotatedString =
-    buildAnnotatedString {
-        append(stringResource(id = R.string.login_terms_prefix))
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append(stringResource(id = R.string.login_terms_of_service))
-        }
-        append(stringResource(id = R.string.login_terms_middle))
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append(stringResource(id = R.string.login_privacy_policy))
-        }
-        append(stringResource(id = R.string.login_terms_suffix))
+private fun BrandingContent(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(id = R.string.login_brand),
+            color = ChallaTheme.colors.staticWhite,
+            style = ChallaTheme.typography.headingXLarge,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        Image(
+            painter = painterResource(id = R.drawable.img_login_logo),
+            contentDescription = null,
+            modifier =
+                Modifier
+                    .size(300.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop,
+        )
     }
+}
+
+@Composable
+private fun KakaoLoginButton(
+    isLoading: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(KakaoYellow)
+                .clickOnce(enabled = !isLoading, onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = ChallaTheme.colors.staticBlack,
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Icon(
+                painter = painterResource(id = ChallaIcons.Kakao),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = ChallaTheme.colors.staticBlack,
+            )
+            Text(
+                text = stringResource(id = R.string.login_kakao),
+                color = ChallaTheme.colors.staticBlack,
+                style = ChallaTheme.typography.bodyLarge,
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true, name = "Login")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun LoginScreenPreview() {
-    LoginContent(
-        state = LoginState(isLoading = false),
-        onIntent = {},
-    )
+    ChallaTheme {
+        LoginContent(
+            state = LoginState(isLoading = false),
+            onLoginClick = {},
+        )
+    }
 }
