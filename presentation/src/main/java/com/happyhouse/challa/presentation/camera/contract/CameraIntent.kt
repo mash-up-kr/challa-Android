@@ -20,9 +20,7 @@ sealed interface CameraIntent : UiIntent {
 
     data object SwitchCameraClick : CameraIntent
 
-    data class ShutterClick(
-        val roomId: Long,
-    ) : CameraIntent
+    data object ShutterClick : CameraIntent
 
     data object ZoomClick : CameraIntent
 
