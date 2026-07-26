@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.designsystem.component
+package com.happyhouse.challa.presentation.designsystem.component.snackbar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -46,6 +47,51 @@ fun ChallaSnackbar(
     onActionClick: (() -> Unit)? = null,
     onCloseClick: (() -> Unit)? = null,
 ) {
+    ChallaMessageContent(
+        heading = heading,
+        description = description,
+        modifier = modifier.fillMaxWidth(),
+        icon = icon,
+        iconTint = iconTint,
+        actionLabel = actionLabel,
+        onActionClick = onActionClick,
+        onCloseClick = onCloseClick,
+        fillTextWidth = true,
+    )
+}
+
+@Composable
+fun ChallaToast(
+    heading: String,
+    modifier: Modifier = Modifier,
+    @DrawableRes icon: Int? = null,
+    iconTint: Color? = null,
+) {
+    ChallaMessageContent(
+        heading = heading,
+        description = null,
+        modifier = modifier.wrapContentWidth(),
+        icon = icon,
+        iconTint = iconTint,
+        actionLabel = null,
+        onActionClick = null,
+        onCloseClick = null,
+        fillTextWidth = false,
+    )
+}
+
+@Composable
+private fun ChallaMessageContent(
+    heading: String?,
+    description: String?,
+    modifier: Modifier,
+    @DrawableRes icon: Int?,
+    iconTint: Color?,
+    actionLabel: String?,
+    onActionClick: (() -> Unit)?,
+    onCloseClick: (() -> Unit)?,
+    fillTextWidth: Boolean,
+) {
     require(!heading.isNullOrBlank() || !description.isNullOrBlank()) {
         "heading 또는 description 둘 중 하나는 필요합니다."
     }
@@ -53,7 +99,6 @@ fun ChallaSnackbar(
     Row(
         modifier =
             modifier
-                .fillMaxWidth()
                 .heightIn(min = if (heading != null && description != null) 65.dp else 50.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(ChallaTheme.colors.backgroundLevel1.copy(alpha = 0.77f))
@@ -73,14 +118,16 @@ fun ChallaSnackbar(
         Column(
             modifier =
                 Modifier
-                    .weight(1f)
+                    .weight(
+                        weight = 1f,
+                        fill = fillTextWidth,
+                    )
                     .padding(vertical = 9.dp),
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             heading?.let {
                 Text(
                     text = it,
-                    modifier = Modifier,
                     color = ChallaTheme.colors.labelNormal,
                     overflow = TextOverflow.Ellipsis,
                     style = ChallaTheme.typography.bodySmall.medium,
@@ -90,7 +137,6 @@ fun ChallaSnackbar(
             description?.let {
                 Text(
                     text = it,
-                    modifier = Modifier,
                     color = ChallaTheme.colors.labelSubtle,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -192,10 +238,10 @@ private fun ChallaToastPreview() {
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        ChallaSnackbar(
+        ChallaToast(
             heading = "마침표를 붙이지 않아요",
         )
-        ChallaSnackbar(
+        ChallaToast(
             heading = "마침표를 붙이지 않아요",
             icon = ChallaIcons.Error,
             iconTint = ChallaTheme.colors.statusDestructive,

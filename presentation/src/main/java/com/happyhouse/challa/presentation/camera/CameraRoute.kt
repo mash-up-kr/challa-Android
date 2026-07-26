@@ -12,11 +12,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -42,6 +46,7 @@ fun CameraRoute(
     val noRemainingCapturesMessage = stringResource(R.string.camera_no_remaining_captures_message)
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
     val retryLabel = stringResource(R.string.camera_retry)
+    val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -54,7 +59,14 @@ fun CameraRoute(
 
                 CameraSideEffect.PhotoCaptureFailed -> {
                     launch {
-                        snackbarHostState.showSnackbar(photoCaptureFailedMessage)
+                        snackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = photoCaptureFailedMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = 112.dp,
+                            ),
+                        )
                     }
                 }
 
@@ -66,7 +78,14 @@ fun CameraRoute(
 
                 CameraSideEffect.NoRemainingCaptures -> {
                     launch {
-                        snackbarHostState.showSnackbar(noRemainingCapturesMessage)
+                        snackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = noRemainingCapturesMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = 112.dp,
+                            ),
+                        )
                     }
                 }
             }

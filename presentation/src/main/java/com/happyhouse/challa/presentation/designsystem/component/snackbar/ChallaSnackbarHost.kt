@@ -1,0 +1,85 @@
+package com.happyhouse.challa.presentation.designsystem.component.snackbar
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun ChallaSnackbarHost(
+    hostState: SnackbarHostState,
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 12.dp,
+) {
+    SnackbarHost(
+        hostState = hostState,
+        modifier = modifier.fillMaxSize(),
+    ) { data ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (val visuals = data.visuals) {
+                is ChallaToastVisuals ->
+                    ChallaToast(
+                        heading = visuals.message,
+                        modifier =
+                            Modifier
+                                .align(
+                                    if (visuals.topOffset != null) {
+                                        Alignment.TopCenter
+                                    } else {
+                                        Alignment.BottomCenter
+                                    },
+                                )
+                                .challaMessageTopOffset(visuals.topOffset)
+                                .padding(horizontal = horizontalPadding),
+                        icon = visuals.icon,
+                        iconTint = visuals.iconTint,
+                    )
+
+                is ChallaSnackbarVisuals ->
+                    ChallaSnackbar(
+                        heading = visuals.message,
+                        modifier =
+                            Modifier
+                                .align(
+                                    if (visuals.topOffset != null) {
+                                        Alignment.TopCenter
+                                    } else {
+                                        Alignment.BottomCenter
+                                    },
+                                )
+                                .challaMessageTopOffset(visuals.topOffset)
+                                .padding(horizontal = horizontalPadding),
+                        icon = visuals.icon,
+                        iconTint = visuals.iconTint,
+                        actionLabel = visuals.actionLabel,
+                        onActionClick =
+                            visuals.actionLabel?.let {
+                                data::performAction
+                            },
+                        onCloseClick =
+                            data::dismiss.takeIf {
+                                visuals.withDismissAction
+                            },
+                    )
+
+                else ->
+                    Snackbar(
+                        snackbarData = data,
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                    )
+            }
+        }
+    }
+}
+
+private fun Modifier.challaMessageTopOffset(topOffset: Dp?): Modifier =
+    topOffset?.let {
+        padding(top = it)
+    } ?: this
