@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 개발 서버가 HTTPS 미지원이라 해당 도메인만 평문 HTTP 를 허용한다. (앱 전체는 여전히 차단) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ec2-13-125-238-185.ap-northeast-2.compute.amazonaws.com</domain>
+    </domain-config>
+</network-security-config>
