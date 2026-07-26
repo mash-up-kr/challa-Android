@@ -68,7 +68,7 @@ internal fun CameraRoomInfo(
             Icon(
                 painter = painterResource(R.drawable.ic_unfold_more),
                 contentDescription = stringResource(R.string.camera_room_selector_description),
-                modifier = Modifier.size(ChallaIconSize.SMALL.dp),
+                modifier = Modifier.size(ChallaIconSize.V20.dp),
                 tint = ChallaTheme.colors.labelNeutral,
             )
         }

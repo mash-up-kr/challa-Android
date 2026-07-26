@@ -81,7 +81,7 @@ private fun RoundIconButton(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            modifier = Modifier.size(ChallaIconSize.MEDIUM.dp),
+            modifier = Modifier.size(ChallaIconSize.V24.dp),
             painter = painterResource(iconRes),
             contentDescription = contentDescription,
             tint = ChallaTheme.colors.labelNeutral,
