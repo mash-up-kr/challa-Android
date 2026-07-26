@@ -8,4 +8,6 @@ sealed interface CameraSideEffect : UiSideEffect {
     data object PhotoCaptureFailed : CameraSideEffect
 
     data object FlashNotAvailable : CameraSideEffect
+
+    data object NoRemainingCaptures : CameraSideEffect
 }

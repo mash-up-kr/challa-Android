@@ -106,7 +106,12 @@ class CameraViewModel @AssistedInject constructor(
                 Timber.w("선택된 방이 없어 촬영 요청을 무시합니다")
                 return
             }
-        if (room.remainingCount <= 0) return
+        if (room.remainingCount <= 0) {
+            viewModelScope.launch {
+                sendEffect(CameraSideEffect.NoRemainingCaptures)
+            }
+            return
+        }
 
         nextCaptureRequestId += 1
         val captureRequest =

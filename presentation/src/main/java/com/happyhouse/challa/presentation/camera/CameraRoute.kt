@@ -39,6 +39,7 @@ fun CameraRoute(
     val roomLoadFailedMessage = stringResource(R.string.camera_room_load_failed_message)
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
+    val noRemainingCapturesMessage = stringResource(R.string.camera_no_remaining_captures_message)
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
     val retryLabel = stringResource(R.string.camera_retry)
 
@@ -60,6 +61,12 @@ fun CameraRoute(
                 CameraSideEffect.FlashNotAvailable -> {
                     launch {
                         snackbarHostState.showSnackbar(flashNotAvailableMessage)
+                    }
+                }
+
+                CameraSideEffect.NoRemainingCaptures -> {
+                    launch {
+                        snackbarHostState.showSnackbar(noRemainingCapturesMessage)
                     }
                 }
             }
