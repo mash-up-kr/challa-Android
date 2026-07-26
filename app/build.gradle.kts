@@ -79,6 +79,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":presentation"))
 
@@ -89,6 +90,7 @@ dependencies {
     implementation(libs.logger)
     implementation(libs.kakao.user)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.androidx.compose)
     ksp(libs.hilt.android.compiler)

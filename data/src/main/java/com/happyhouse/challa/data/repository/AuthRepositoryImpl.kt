@@ -9,6 +9,7 @@ import com.happyhouse.challa.domain.repository.AuthRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
 import com.happyhouse.challa.domain.result.onSuccess
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,6 +40,8 @@ class AuthRepositoryImpl
                 }.onSuccess { tokens ->
                     tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
                 }
+
+        override suspend fun isLoggedIn(): Boolean = tokenDataStore.accessToken.first() != null
 
         companion object {
             // 안드로이드 앱은 카카오 로그인만 지원한다. (서버 스펙상 APPLE 도 있으나 미구현)
