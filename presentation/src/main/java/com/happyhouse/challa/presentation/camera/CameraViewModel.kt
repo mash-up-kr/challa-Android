@@ -18,6 +18,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Instant
 
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
@@ -47,8 +48,11 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun fetchData(roomId: Long) {
-        val rooms = createMockRooms(roomId)
-        val selectedRoom = rooms.first()
+        val rooms =
+            createMockRooms(roomId)
+                .sortedByDescending(CameraRoomUiModel::createdAt)
+                .toPersistentList()
+        val selectedRoom = rooms.firstOrNull { it.id == roomId } ?: rooms.first()
 
         updateState {
             copy(
@@ -65,24 +69,28 @@ class CameraViewModel @AssistedInject constructor(
                 name = "방이름1",
                 remainingCount = ROOM_REQUIRED_PHOTO_COUNT,
                 totalCount = ROOM_REQUIRED_PHOTO_COUNT,
+                createdAt = Instant.parse("2026-07-23T09:00:00Z"),
             ),
             CameraRoomUiModel(
                 id = roomId + 1,
                 name = "방이름방이름방이름2",
                 remainingCount = 6,
                 totalCount = 24,
+                createdAt = Instant.parse("2026-07-26T09:00:00Z"),
             ),
             CameraRoomUiModel(
                 id = roomId + 2,
                 name = "방이름방이름방이름3방이름",
                 remainingCount = 3,
                 totalCount = 48,
+                createdAt = Instant.parse("2026-07-25T09:00:00Z"),
             ),
             CameraRoomUiModel(
                 id = roomId + 3,
                 name = "방이름방이름방이름4",
                 remainingCount = 3,
                 totalCount = 48,
+                createdAt = Instant.parse("2026-07-24T09:00:00Z"),
             ),
         )
 

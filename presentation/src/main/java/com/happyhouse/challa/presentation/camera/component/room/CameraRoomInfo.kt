@@ -45,6 +45,7 @@ internal fun CameraRoomInfo(
         Row(
             modifier =
                 Modifier
+                    .widthIn(max = 240.dp)
                     .clip(RoundedCornerShape(1000.dp))
                     .background(ChallaTheme.colors.backgroundLevel3)
                     .noRippleClickOnce(
@@ -56,7 +57,7 @@ internal fun CameraRoomInfo(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                modifier = Modifier.widthIn(max = 240.dp),
+                modifier = Modifier.weight(weight = 1f, fill = false),
                 text = roomName,
                 color = ChallaTheme.colors.labelNormal,
                 overflow = TextOverflow.Ellipsis,
@@ -115,7 +116,7 @@ private fun CameraRoomInfoPreviewContent(remainingCount: Int) {
                     .padding(12.dp),
         ) {
             CameraRoomInfo(
-                roomName = "해피하우스강릉여행",
+                roomName = "해피하우스강릉여행해피하우스강릉여행",
                 remainingCount = remainingCount,
                 totalCount = 24,
                 onClick = {},

@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,12 +31,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
+import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.designsystem.component.ChallaBottomSheet
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,30 +75,107 @@ internal fun CameraRoomSelectionBottomSheet(
             }
         },
     ) {
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 12.dp),
-            color = ChallaTheme.colors.lineAlternative,
+        CameraRoomSelectionContent(
+            rooms = rooms,
+            selectedRoomId = selectedRoomId,
+            onRoomClick = onRoomClick,
         )
-        LazyColumn(
-            modifier =
-                Modifier
-                    .weight(weight = 1f, fill = false)
-                    .padding(vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            items(
-                items = rooms,
-                key = CameraRoomUiModel::id,
-            ) { room ->
-                CameraRoomSelectionItem(
-                    room = room,
-                    selected = room.id == selectedRoomId,
-                    onClick = { onRoomClick(room) },
-                )
-            }
+    }
+}
+
+@Composable
+private fun ColumnScope.CameraRoomSelectionContent(
+    rooms: ImmutableList<CameraRoomUiModel>,
+    selectedRoomId: Long,
+    onRoomClick: (CameraRoomUiModel) -> Unit,
+) {
+    HorizontalDivider(
+        modifier = Modifier.padding(top = 12.dp),
+        color = ChallaTheme.colors.lineAlternative,
+    )
+    LazyColumn(
+        modifier =
+            Modifier
+                .weight(weight = 1f, fill = false)
+                .heightIn(max = 268.dp)
+                .padding(vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(
+            items = rooms,
+            key = CameraRoomUiModel::id,
+        ) { room ->
+            CameraRoomSelectionItem(
+                room = room,
+                selected = room.id == selectedRoomId,
+                onClick = { onRoomClick(room) },
+            )
         }
     }
 }
+
+@Preview(
+    name = "방 선택 본문",
+    showBackground = true,
+    backgroundColor = 0xFF1A1A1A,
+)
+@Composable
+private fun CameraRoomSelectionContentPreview() {
+    ChallaTheme {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(ChallaTheme.colors.backgroundLevel1)
+                    .padding(horizontal = 16.dp),
+        ) {
+            CameraRoomSelectionContent(
+                rooms = cameraRoomSelectionPreviewRooms,
+                selectedRoomId = 3L,
+                onRoomClick = {},
+            )
+        }
+    }
+}
+
+private val cameraRoomSelectionPreviewRooms =
+    persistentListOf(
+        CameraRoomUiModel(
+            id = 2L,
+            name = "방이름2방이름2",
+            remainingCount = 6,
+            totalCount = 24,
+            createdAt = Instant.parse("2026-07-26T09:00:00Z"),
+        ),
+        CameraRoomUiModel(
+            id = 3L,
+            name = "방이동먹자골목방이동먹자골목방이동",
+            remainingCount = 5,
+            totalCount = 48,
+            createdAt = Instant.parse("2026-07-25T09:00:00Z"),
+        ),
+        CameraRoomUiModel(
+            id = 4L,
+            name = "방이름3방이름3방이름3",
+            remainingCount = 0,
+            totalCount = 48,
+            createdAt = Instant.parse("2026-07-24T09:00:00Z"),
+        ),
+        CameraRoomUiModel(
+            id = 5L,
+            name = "방이름4",
+            remainingCount = 12,
+            totalCount = 24,
+            createdAt = Instant.parse("2026-07-23T09:00:00Z"),
+        ),
+        CameraRoomUiModel(
+            id = 1L,
+            name = "방이름1",
+            remainingCount = 6,
+            totalCount = 24,
+            createdAt = Instant.parse("2026-07-21T09:00:00Z"),
+        ),
+    )
 
 @Composable
 private fun CameraRoomSelectionItem(
@@ -142,12 +223,7 @@ private fun CameraRoomSelectionItem(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(R.string.camera_remaining_count, room.remainingCount),
-                color =
-                    when {
-                        room.remainingCount <= 0 -> ChallaTheme.colors.labelDisable
-                        room.remainingCount <= 3 -> ChallaTheme.colors.primaryOrange
-                        else -> ChallaTheme.colors.primaryYellow
-                    },
+                color = room.remainingCaptureStatus.toContentColor(),
                 style = ChallaTheme.typography.bodyXSmall.medium,
             )
             Text(
@@ -156,24 +232,5 @@ private fun CameraRoomSelectionItem(
                 style = ChallaTheme.typography.bodyXSmall.medium,
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CameraRoomSelectionBottomSheetPreview() {
-    ChallaTheme {
-        CameraRoomSelectionBottomSheet(
-            rooms =
-                persistentListOf(
-                    CameraRoomUiModel(1L, "방이름1", 6, 24),
-                    CameraRoomUiModel(2L, "방이름2방이름2", 6, 24),
-                    CameraRoomUiModel(3L, "방이동먹자골목방이동먹자골목방이동", 3, 48),
-                    CameraRoomUiModel(4L, "방이름3방이름3방이름3", 3, 48),
-                ),
-            selectedRoomId = 3L,
-            onRoomClick = {},
-            onDismissRequest = {},
-        )
     }
 }
