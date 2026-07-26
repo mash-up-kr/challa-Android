@@ -45,7 +45,6 @@ fun ChallaNavHost(
                 entry<ChallaRoute.Camera> { route ->
                     CameraRoute(
                         roomId = route.roomId,
-                        onBackClick = { navigator.goBack() },
                     )
                 }
                 entry<ChallaRoute.Gallery> { route ->

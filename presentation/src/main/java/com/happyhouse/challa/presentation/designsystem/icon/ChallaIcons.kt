@@ -53,9 +53,6 @@ object ChallaIcons {
     val Profile = R.drawable.ic_profile
 
     @DrawableRes
-    val Refresh = R.drawable.ic_refresh
-
-    @DrawableRes
     val Right = R.drawable.ic_right
 
     @DrawableRes
@@ -63,6 +60,9 @@ object ChallaIcons {
 
     @DrawableRes
     val SignOut = R.drawable.ic_sign_out
+
+    @DrawableRes
+    val SwitchCamera = R.drawable.ic_switch_camera
 
     @DrawableRes
     val UnfoldMore = R.drawable.ic_unfold_more

@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.designsystem.component
 
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -15,18 +16,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
@@ -55,39 +62,85 @@ fun ChallaBottomSheet(
         modifier = modifier,
         sheetState = sheetState,
         containerColor = Color.Transparent,
+        scrimColor = ChallaTheme.colors.materialDimmer,
         dragHandle = null,
         contentWindowInsets = { WindowInsets.navigationBars },
+        properties =
+            ModalBottomSheetProperties(
+                isAppearanceLightStatusBars = false,
+                isAppearanceLightNavigationBars = false,
+            ),
     ) {
-        Surface(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
-            shape = RoundedCornerShape(32.dp),
-            color = ChallaTheme.colors.backgroundLevel1,
+        ChallaBottomSheetSystemBars()
+        ChallaBottomSheetSurface(
+            title = title,
+            icon = icon,
+            content = content,
+        )
+    }
+}
+
+@Composable
+@Suppress("DEPRECATION")
+private fun ChallaBottomSheetSystemBars() {
+    val view = LocalView.current
+    val navigationBarColor = ChallaTheme.colors.staticBlack
+
+    SideEffect {
+        val window =
+            when {
+                view is DialogWindowProvider -> view.window
+                view.parent is DialogWindowProvider -> (view.parent as DialogWindowProvider).window
+                else -> null
+            } ?: return@SideEffect
+
+        window.statusBarColor = Color.Transparent.toArgb()
+        window.navigationBarColor = navigationBarColor.toArgb()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
+    }
+}
+
+@Composable
+private fun ChallaBottomSheetSurface(
+    title: String,
+    icon: @Composable BoxScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+        shape = RoundedCornerShape(32.dp),
+        color = ChallaTheme.colors.backgroundLevel1,
+    ) {
+        Column(
+            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                Text(
+                    text = title,
+                    modifier = Modifier.weight(1f),
+                    color = ChallaTheme.colors.labelNormal,
+                    style = ChallaTheme.typography.bodyLarge.bold,
+                )
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = title,
-                        modifier = Modifier.weight(1f),
-                        color = ChallaTheme.colors.labelNormal,
-                        style = ChallaTheme.typography.bodyLarge.bold,
-                    )
-                    Box(
-                        modifier = Modifier.size(40.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        icon()
-                    }
+                    icon()
                 }
-                content()
             }
+            content()
         }
     }
 }
