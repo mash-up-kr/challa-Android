@@ -70,4 +70,7 @@ dependencies {
     implementation(libs.coil.singleton)
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+
+    debugImplementation(libs.bundles.flipper)
+    releaseImplementation(libs.flipper.noop)
 }
