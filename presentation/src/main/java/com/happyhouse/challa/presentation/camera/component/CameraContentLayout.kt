@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import kotlinx.collections.immutable.ImmutableList
@@ -44,6 +45,8 @@ internal fun CameraContentLayout(
     modifier: Modifier = Modifier,
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
+    val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
+
     Box(modifier = modifier) {
         CameraBackground(modifier = Modifier.fillMaxSize())
 
@@ -52,7 +55,7 @@ internal fun CameraContentLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             CameraBezel(
-                isPhotoLimitReached = remainingCount <= 0,
+                isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
                 isShutterEffectVisible = isShutterEffectVisible,
                 zoomLevel = zoomLevel,
                 onZoomClick = onZoomClick,

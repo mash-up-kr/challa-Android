@@ -18,6 +18,8 @@ import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelect
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
+import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -47,6 +49,8 @@ internal fun CameraContent(
     val captureRequest = state.captureRequest
     val selectedRoom = state.selectedRoom
     val remainingCount = selectedRoom?.remainingCount ?: 0
+    val remainingCaptureStatus =
+        selectedRoom?.remainingCaptureStatus ?: RemainingCaptureStatus.UNAVAILABLE
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
     var isRoomSelectionSheetVisible by remember { mutableStateOf(false) }
@@ -59,7 +63,7 @@ internal fun CameraContent(
         canControlCamera ||
             (cameraSessionState.bindingState as? CameraBindingState.Failed)?.reason ==
             CameraBindingFailure.CAMERA_UNAVAILABLE
-    val canCapture = remainingCount > 0 && canControlCamera
+    val canCapture = remainingCaptureStatus.isCaptureAvailable && canControlCamera
 
     LaunchedEffect(isShutterEffectVisible) {
         if (isShutterEffectVisible) {
