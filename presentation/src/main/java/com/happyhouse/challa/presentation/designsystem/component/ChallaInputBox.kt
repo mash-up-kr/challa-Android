@@ -96,7 +96,7 @@ private fun ChallaInputBoxContent(
         enabled = enabled,
         singleLine = true,
         textStyle =
-            ChallaTheme.typography.bodyMedium.copy(
+            ChallaTheme.typography.bodyMedium.bold.copy(
                 color = ChallaTheme.colors.labelNormal,
             ),
         cursorBrush = SolidColor(ChallaTheme.colors.primaryYellow),
@@ -112,7 +112,7 @@ private fun ChallaInputBoxContent(
                     Text(
                         text = placeholder,
                         color = ChallaTheme.colors.labelAlternative,
-                        style = ChallaTheme.typography.bodyMedium,
+                        style = ChallaTheme.typography.bodyMedium.bold,
                     )
                 }
                 innerTextField()
@@ -177,7 +177,7 @@ private fun ChallaInputBoxPreviewItem(
         Text(
             text = label,
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.bodyMedium,
+            style = ChallaTheme.typography.bodyMedium.bold,
         )
         ChallaInputBoxContent(
             value = value,

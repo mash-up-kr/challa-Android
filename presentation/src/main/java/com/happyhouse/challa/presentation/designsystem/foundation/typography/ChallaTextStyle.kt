@@ -17,4 +17,11 @@ data class ChallaTextStyle(
             lineHeight = lineHeight.value,
             letterSpacing = letterSpacing.value,
         )
+
+    fun toTextStyleSet(): ChallaTextStyleSet =
+        ChallaTextStyleSet(
+            bold = copy(fontWeight = ChallaFontWeight.BOLD).toTextStyle(),
+            medium = copy(fontWeight = ChallaFontWeight.SEMI_BOLD).toTextStyle(),
+            regular = copy(fontWeight = ChallaFontWeight.REGULAR).toTextStyle(),
+        )
 }

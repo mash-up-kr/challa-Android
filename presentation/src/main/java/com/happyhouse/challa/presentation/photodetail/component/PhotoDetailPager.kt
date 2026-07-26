@@ -24,8 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun PhotoDetailPager(
     photos: ImmutableList<PhotoDetailUiModel>,
     initialPhotoId: Long,
-    onSaveClick: (String) -> Unit,
+    onSaveClick: (PhotoDetailUiModel) -> Unit,
     modifier: Modifier = Modifier,
+    isSaving: Boolean = false,
 ) {
     val initialPage = photos.indexOfFirst { it.id == initialPhotoId }.coerceAtLeast(0)
     val pagerState = rememberPagerState(initialPage = initialPage) { photos.size }
@@ -47,7 +48,8 @@ fun PhotoDetailPager(
                 Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 24.dp),
-            onClick = { onSaveClick(photos[pagerState.currentPage].imageUrl) },
+            enabled = !isSaving,
+            onClick = { onSaveClick(photos[pagerState.currentPage]) },
         ) {
             Text(text = stringResource(R.string.photo_detail_save))
         }
@@ -62,6 +64,19 @@ private fun PhotoDetailPagerPreview() {
         modifier = Modifier.fillMaxSize(),
         photos = previewPhotoDetailPhotos(),
         initialPhotoId = 0L,
+        onSaveClick = {},
+    )
+}
+
+@ComposePreview(showBackground = true, backgroundColor = 0xFF000000, name = "PhotoDetailPager - Saving")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoDetailPagerSavingPreview() {
+    PhotoDetailPager(
+        modifier = Modifier.fillMaxSize(),
+        photos = previewPhotoDetailPhotos(),
+        initialPhotoId = 0L,
+        isSaving = true,
         onSaveClick = {},
     )
 }

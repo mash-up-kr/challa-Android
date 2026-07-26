@@ -25,6 +25,10 @@ data class ChallaColors(
     val backgroundLevel2: Color,
     val backgroundLevel3: Color,
     val backgroundLevel4: Color,
+    // Status
+    val statusPositive: Color,
+    val statusCautionary: Color,
+    val statusDestructive: Color,
     // Line
     val lineNormal: Color,
     val lineNeutral: Color,

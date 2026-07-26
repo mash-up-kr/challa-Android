@@ -13,7 +13,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
@@ -23,6 +22,7 @@ internal fun ChallaButtonBase(
     enabled: Boolean = true,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
     minHeight: Dp,
+    cornerRadius: Dp,
     contentPadding: PaddingValues,
     content: @Composable (contentColor: Color) -> Unit,
 ) {
@@ -32,7 +32,7 @@ internal fun ChallaButtonBase(
         modifier =
             modifier
                 .heightIn(min = minHeight)
-                .clip(shape = RoundedCornerShape(12.dp))
+                .clip(shape = RoundedCornerShape(cornerRadius))
                 .background(colorSpec.containerColor)
                 .noRippleClickOnce(
                     enabled = enabled,

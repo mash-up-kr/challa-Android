@@ -4,22 +4,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.LocalActivity
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.happyhouse.challa.presentation.camera.component.CameraContent
-import com.happyhouse.challa.presentation.camera.component.CameraPermissionDeniedContent
+import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
+import com.happyhouse.challa.presentation.camera.component.CameraBackgroundTopColor
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -29,9 +25,12 @@ fun CameraScreen(
     state: CameraState,
     permissionState: CameraPermissionState,
     snackbarHostState: SnackbarHostState,
+    cameraBindingRetryKey: Int,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit,
     onRequestPermissionClick: () -> Unit,
+    onCameraBindingFailed: (CameraBindingFailure) -> Unit,
+    onPhotoCaptureResult: (requestId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val activity = LocalActivity.current as? ComponentActivity
@@ -40,7 +39,7 @@ fun CameraScreen(
         activity?.enableEdgeToEdge(
             statusBarStyle =
                 SystemBarStyle.dark(
-                    scrim = Color.Transparent.toArgb(),
+                    scrim = CameraBackgroundTopColor.toArgb(),
                 ),
             navigationBarStyle =
                 SystemBarStyle.dark(
@@ -66,44 +65,24 @@ fun CameraScreen(
 
     Scaffold(
         modifier = modifier,
-        containerColor = Color.Black,
+        containerColor = CameraBackgroundTopColor,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
     ) { innerPadding ->
-        Box(
+        CameraContent(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-        ) {
-            when (permissionState) {
-                CameraPermissionState.Unchecked -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                    )
-                }
-
-                CameraPermissionState.Granted -> {
-                    CameraContent(
-                        modifier = Modifier.fillMaxSize(),
-                        state = state,
-                        onBackClick = onBackClick,
-                        onIntent = onIntent,
-                    )
-                }
-
-                CameraPermissionState.NotGranted -> {
-                    CameraPermissionDeniedContent(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .background(Color.Black),
-                        onBackClick = onBackClick,
-                        onRequestPermissionClick = onRequestPermissionClick,
-                    )
-                }
-            }
-        }
+            state = state,
+            permissionState = permissionState,
+            cameraBindingRetryKey = cameraBindingRetryKey,
+            onRequestPermissionClick = onRequestPermissionClick,
+            onCameraBindingFailed = onCameraBindingFailed,
+            onPhotoCaptureResult = onPhotoCaptureResult,
+            onPhotoCaptureCancelled = onPhotoCaptureCancelled,
+            onIntent = onIntent,
+        )
     }
 }

@@ -133,7 +133,7 @@ private fun ChallaRichDrawerContent(
                     .padding(vertical = 24.dp)
                     .weight(1f),
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.bodyLarge,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
         ChallaIconButton(
             icon = ChallaIcons.Close,
@@ -189,7 +189,7 @@ private fun ChallaRichDrawerPreview() {
             Text(
                 text = "Instance Slot",
                 color = ChallaTheme.colors.labelNormal,
-                style = ChallaTheme.typography.bodySmall,
+                style = ChallaTheme.typography.bodySmall.bold,
             )
         }
         Spacer(modifier = Modifier.height(24.dp))

@@ -6,23 +6,29 @@ import androidx.compose.ui.text.TextStyle
 @Immutable
 data class ChallaTypography(
     // Family
-    val family1: TextStyle,
-    val family2: TextStyle,
-    // Weight
-    val weightBold: TextStyle,
-    val weightMedium: TextStyle,
-    val weightRegular: TextStyle,
+    val family1: ChallaTextStyleSet,
+    val family2: ChallaTextStyleSet,
     // Heading
-    val headingXLarge: TextStyle,
-    val headingLarge: TextStyle,
-    val headingMedium: TextStyle,
-    val headingSmall: TextStyle,
+    val headingHome: ChallaTextStyleSet,
+    val headingXLarge: ChallaTextStyleSet,
+    val headingLarge: ChallaTextStyleSet,
+    val headingMedium: ChallaTextStyleSet,
+    val headingSmall: ChallaTextStyleSet,
+    val headingXSmall: ChallaTextStyleSet,
     // Body
-    val bodyLarge: TextStyle,
-    val bodyMedium: TextStyle,
-    val bodySmall: TextStyle,
+    val bodyLarge: ChallaTextStyleSet,
+    val bodyMedium: ChallaTextStyleSet,
+    val bodySmall: ChallaTextStyleSet,
+    val bodyXSmall: ChallaTextStyleSet,
     // Description
-    val descriptionLarge: TextStyle,
-    val descriptionMedium: TextStyle,
-    val descriptionSmall: TextStyle,
+    val descriptionLarge: ChallaTextStyleSet,
+    val descriptionMedium: ChallaTextStyleSet,
+    val descriptionSmall: ChallaTextStyleSet,
+)
+
+@Immutable
+data class ChallaTextStyleSet(
+    val bold: TextStyle,
+    val medium: TextStyle,
+    val regular: TextStyle,
 )

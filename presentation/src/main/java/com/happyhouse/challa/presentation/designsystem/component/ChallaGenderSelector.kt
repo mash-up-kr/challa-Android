@@ -49,7 +49,7 @@ fun ChallaGenderSelector(
         Text(
             text = label,
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.bodySmall,
+            style = ChallaTheme.typography.bodySmall.bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(
@@ -76,7 +76,7 @@ fun ChallaGenderSelector(
         Text(
             text = description,
             color = ChallaTheme.colors.labelAlternative,
-            style = ChallaTheme.typography.descriptionLarge,
+            style = ChallaTheme.typography.descriptionLarge.bold,
         )
     }
 }
@@ -124,7 +124,7 @@ private fun GenderOption(
                     ChallaTheme.colors.labelNeutral
                 },
             textAlign = TextAlign.Center,
-            style = ChallaTheme.typography.descriptionLarge,
+            style = ChallaTheme.typography.descriptionLarge.bold,
         )
     }
 }

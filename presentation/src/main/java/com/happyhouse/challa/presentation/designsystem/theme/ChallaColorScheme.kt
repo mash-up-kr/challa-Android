@@ -43,6 +43,9 @@ internal object ChallaColorScheme {
             backgroundLevel2 = ColorTokens.BackgroundLevel2,
             backgroundLevel3 = ColorTokens.BackgroundLevel3,
             backgroundLevel4 = ColorTokens.BackgroundLevel4,
+            statusPositive = ColorTokens.StatusPositive,
+            statusCautionary = ColorTokens.StatusCautionary,
+            statusDestructive = ColorTokens.StatusDestructive,
             lineNormal = ColorTokens.LineNormal,
             lineNeutral = ColorTokens.LineNeutral,
             lineAlternative = ColorTokens.LineAlternative,
@@ -112,6 +115,15 @@ private fun ChallaColorPreview() {
                     ),
             )
             ColorGroup(
+                title = "Status",
+                colors =
+                    persistentListOf(
+                        "Positive" to ChallaTheme.colors.statusPositive,
+                        "Cautionary" to ChallaTheme.colors.statusCautionary,
+                        "Destructive" to ChallaTheme.colors.statusDestructive,
+                    ),
+            )
+            ColorGroup(
                 title = "Line",
                 colors =
                     persistentListOf(
@@ -149,13 +161,13 @@ private fun ColorGroup(
         Text(
             text = title,
             color = ChallaTheme.colors.labelStrong,
-            style = ChallaTheme.typography.bodyMedium,
+            style = ChallaTheme.typography.bodyMedium.bold,
         )
         subtitle?.let {
             Text(
                 text = it,
                 color = ChallaTheme.colors.labelStrong,
-                style = ChallaTheme.typography.descriptionLarge,
+                style = ChallaTheme.typography.descriptionLarge.bold,
             )
         }
         FlowRow(
@@ -196,7 +208,7 @@ private fun ColorSwatch(
         Text(
             text = name,
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.descriptionLarge,
+            style = ChallaTheme.typography.descriptionLarge.bold,
         )
     }
 }

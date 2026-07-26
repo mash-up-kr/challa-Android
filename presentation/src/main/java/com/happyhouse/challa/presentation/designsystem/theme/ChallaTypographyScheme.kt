@@ -23,21 +23,21 @@ import kotlinx.collections.immutable.persistentListOf
 internal object ChallaTypographyScheme {
     val Default =
         ChallaTypography(
-            family1 = ChallaTextStyles.Family1.toTextStyle(),
-            family2 = ChallaTextStyles.Family2.toTextStyle(),
-            weightBold = ChallaTextStyles.WeightBold.toTextStyle(),
-            weightMedium = ChallaTextStyles.WeightMedium.toTextStyle(),
-            weightRegular = ChallaTextStyles.WeightRegular.toTextStyle(),
-            headingXLarge = ChallaTextStyles.HeadingXLarge.toTextStyle(),
-            headingLarge = ChallaTextStyles.HeadingLarge.toTextStyle(),
-            headingMedium = ChallaTextStyles.HeadingMedium.toTextStyle(),
-            headingSmall = ChallaTextStyles.HeadingSmall.toTextStyle(),
-            bodyLarge = ChallaTextStyles.BodyLarge.toTextStyle(),
-            bodyMedium = ChallaTextStyles.BodyMedium.toTextStyle(),
-            bodySmall = ChallaTextStyles.BodySmall.toTextStyle(),
-            descriptionLarge = ChallaTextStyles.DescriptionLarge.toTextStyle(),
-            descriptionMedium = ChallaTextStyles.DescriptionMedium.toTextStyle(),
-            descriptionSmall = ChallaTextStyles.DescriptionSmall.toTextStyle(),
+            family1 = ChallaTextStyles.Family1.toTextStyleSet(),
+            family2 = ChallaTextStyles.Family2.toTextStyleSet(),
+            headingHome = ChallaTextStyles.HeadingHome.toTextStyleSet(),
+            headingXLarge = ChallaTextStyles.HeadingXLarge.toTextStyleSet(),
+            headingLarge = ChallaTextStyles.HeadingLarge.toTextStyleSet(),
+            headingMedium = ChallaTextStyles.HeadingMedium.toTextStyleSet(),
+            headingSmall = ChallaTextStyles.HeadingSmall.toTextStyleSet(),
+            headingXSmall = ChallaTextStyles.HeadingXSmall.toTextStyleSet(),
+            bodyLarge = ChallaTextStyles.BodyLarge.toTextStyleSet(),
+            bodyMedium = ChallaTextStyles.BodyMedium.toTextStyleSet(),
+            bodySmall = ChallaTextStyles.BodySmall.toTextStyleSet(),
+            bodyXSmall = ChallaTextStyles.BodyXSmall.toTextStyleSet(),
+            descriptionLarge = ChallaTextStyles.DescriptionLarge.toTextStyleSet(),
+            descriptionMedium = ChallaTextStyles.DescriptionMedium.toTextStyleSet(),
+            descriptionSmall = ChallaTextStyles.DescriptionSmall.toTextStyleSet(),
         )
 }
 
@@ -49,14 +49,14 @@ private fun ChallaTypographyFamilyPreview() {
             title = "Family",
             items =
                 persistentListOf(
-                    "Family 1" to ChallaTheme.typography.family1,
-                    "Family 2" to ChallaTheme.typography.family2,
+                    "Family 1" to ChallaTheme.typography.family1.regular,
+                    "Family 2" to ChallaTheme.typography.family2.regular,
                 ),
         )
     }
 }
 
-@Preview(widthDp = 800, heightDp = 200)
+@Preview(widthDp = 800, heightDp = 180)
 @Composable
 private fun ChallaTypographyWeightPreview() {
     ChallaTheme {
@@ -64,15 +64,15 @@ private fun ChallaTypographyWeightPreview() {
             title = "Weight",
             items =
                 persistentListOf(
-                    "Weight Bold" to ChallaTheme.typography.weightBold,
-                    "Weight Medium" to ChallaTheme.typography.weightMedium,
-                    "Weight Regular" to ChallaTheme.typography.weightRegular,
+                    "Weight Bold" to ChallaTheme.typography.bodySmall.bold,
+                    "Weight Medium" to ChallaTheme.typography.bodySmall.medium,
+                    "Weight Regular" to ChallaTheme.typography.bodySmall.regular,
                 ),
         )
     }
 }
 
-@Preview(widthDp = 960, heightDp = 320)
+@Preview(widthDp = 960, heightDp = 420)
 @Composable
 private fun ChallaTypographyHeadingPreview() {
     ChallaTheme {
@@ -80,16 +80,18 @@ private fun ChallaTypographyHeadingPreview() {
             title = "Heading",
             items =
                 persistentListOf(
-                    "Heading XLarge" to ChallaTheme.typography.headingXLarge,
-                    "Heading Large" to ChallaTheme.typography.headingLarge,
-                    "Heading Medium" to ChallaTheme.typography.headingMedium,
-                    "Heading Small" to ChallaTheme.typography.headingSmall,
+                    "Heading Home" to ChallaTheme.typography.headingHome.regular,
+                    "Heading XLarge" to ChallaTheme.typography.headingXLarge.regular,
+                    "Heading Large" to ChallaTheme.typography.headingLarge.bold,
+                    "Heading Medium" to ChallaTheme.typography.headingMedium.bold,
+                    "Heading Small" to ChallaTheme.typography.headingSmall.bold,
+                    "Heading XSmall" to ChallaTheme.typography.headingXSmall.bold,
                 ),
         )
     }
 }
 
-@Preview(widthDp = 800, heightDp = 200)
+@Preview(widthDp = 800, heightDp = 220)
 @Composable
 private fun ChallaTypographyBodyPreview() {
     ChallaTheme {
@@ -97,15 +99,16 @@ private fun ChallaTypographyBodyPreview() {
             title = "Body",
             items =
                 persistentListOf(
-                    "Body Large" to ChallaTheme.typography.bodyLarge,
-                    "Body Medium" to ChallaTheme.typography.bodyMedium,
-                    "Body Small" to ChallaTheme.typography.bodySmall,
+                    "Body Large" to ChallaTheme.typography.bodyLarge.bold,
+                    "Body Medium" to ChallaTheme.typography.bodyMedium.bold,
+                    "Body Small" to ChallaTheme.typography.bodySmall.bold,
+                    "Body XSmall" to ChallaTheme.typography.bodyXSmall.bold,
                 ),
         )
     }
 }
 
-@Preview(widthDp = 800, heightDp = 200)
+@Preview(widthDp = 800, heightDp = 160)
 @Composable
 private fun ChallaTypographyDescriptionPreview() {
     ChallaTheme {
@@ -113,9 +116,9 @@ private fun ChallaTypographyDescriptionPreview() {
             title = "Description",
             items =
                 persistentListOf(
-                    "Description Large" to ChallaTheme.typography.descriptionLarge,
-                    "Description Medium" to ChallaTheme.typography.descriptionMedium,
-                    "Description Small" to ChallaTheme.typography.descriptionSmall,
+                    "Description Large" to ChallaTheme.typography.descriptionLarge.bold,
+                    "Description Medium" to ChallaTheme.typography.descriptionMedium.bold,
+                    "Description Small" to ChallaTheme.typography.descriptionSmall.bold,
                 ),
         )
     }
@@ -137,7 +140,7 @@ private fun ChallaTypographyPreviewContent(
         Text(
             text = title,
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.bodyLarge,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
         HorizontalDivider(color = ChallaTheme.colors.lineNormal)
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -161,7 +164,7 @@ private fun ChallaTypographyPreviewRow(
             modifier = Modifier.width(180.dp),
             text = name,
             color = ChallaTheme.colors.labelNormal,
-            style = ChallaTheme.typography.descriptionLarge,
+            style = ChallaTheme.typography.descriptionLarge.bold,
         )
         Text(
             modifier = Modifier.weight(1f),

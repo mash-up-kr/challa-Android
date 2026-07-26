@@ -49,7 +49,7 @@ class GalleryViewModel @AssistedInject constructor(
                 }
             }.onFailure { throwable ->
                 if (throwable is CancellationException) throw throwable
-                Timber.e(throwable)
+                Timber.e(throwable, "갤러리 사진을 불러오지 못했습니다")
                 updateState { copy(photoInfo = PhotoInfo.Error) }
             }
         }
