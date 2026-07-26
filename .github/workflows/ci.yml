@@ -34,9 +34,13 @@ jobs:
       - name: Create local.properties
         env:
           DEBUG_BASE_URL: ${{ secrets.DEBUG_BASE_URL }}
+          RELEASE_KAKAO_NATIVE_APP_KEY: ${{ secrets.RELEASE_KAKAO_NATIVE_APP_KEY }}
+          DEBUG_KAKAO_NATIVE_APP_KEY: ${{ secrets.DEBUG_KAKAO_NATIVE_APP_KEY }}
         run: |
           echo "debug.base.url=${DEBUG_BASE_URL}" >> local.properties
           echo "release.base.url=${DEBUG_BASE_URL}" >> local.properties
+          echo "release.kakao.native.app.key=${RELEASE_KAKAO_NATIVE_APP_KEY}" >> local.properties
+          echo "debug.kakao.native.app.key=${DEBUG_KAKAO_NATIVE_APP_KEY}" >> local.properties
 
       - name: ktlint
         run: ./gradlew ktlintCheck
