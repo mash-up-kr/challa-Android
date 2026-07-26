@@ -128,7 +128,7 @@ private fun BrandingContent(modifier: Modifier = Modifier) {
         Text(
             text = stringResource(id = R.string.login_brand),
             color = ChallaTheme.colors.staticWhite,
-            style = ChallaTheme.typography.headingXLarge,
+            style = ChallaTheme.typography.headingXLarge.bold,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(20.dp))
@@ -176,7 +176,7 @@ private fun KakaoLoginButton(
             Text(
                 text = stringResource(id = R.string.login_kakao),
                 color = ChallaTheme.colors.staticBlack,
-                style = ChallaTheme.typography.bodyLarge,
+                style = ChallaTheme.typography.bodyLarge.bold,
             )
         }
     }
