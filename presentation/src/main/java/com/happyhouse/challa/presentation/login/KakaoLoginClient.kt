@@ -18,8 +18,15 @@ import kotlin.coroutines.resumeWithException
  * ViewModel 로 넘긴다. (data 레이어는 Activity 를 알 필요가 없다.)
  */
 object KakaoLoginClient {
-    /** 카카오 로그인을 수행하고 액세스 토큰을 반환한다. */
-    suspend fun login(activity: Activity): String = loginWithKakaoSdk(activity).accessToken
+    /**
+     * 카카오 로그인을 수행하고 ID 토큰(OIDC)을 반환한다.
+     *
+     * 서버 로그인 API 는 액세스 토큰이 아닌 ID 토큰을 요구한다. ID 토큰은 카카오 개발자 콘솔에서
+     * OpenID Connect 가 활성화돼 있어야 발급되므로, 없으면 로그인을 실패로 처리한다.
+     */
+    suspend fun login(activity: Activity): String =
+        loginWithKakaoSdk(activity).idToken
+            ?: throw IllegalStateException("카카오 ID 토큰이 비어 있습니다. (OpenID Connect 설정 확인)")
 
     /**
      * 카카오 SDK 로그인을 코루틴으로 감싼다.
