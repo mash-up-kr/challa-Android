@@ -17,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
@@ -38,7 +39,7 @@ class CameraViewModel @AssistedInject constructor(
             is CameraIntent.FetchData -> fetchData(intent.roomId)
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
-            is CameraIntent.ShutterClick -> handleShutterClick(intent.roomId)
+            CameraIntent.ShutterClick -> handleShutterClick()
             CameraIntent.ZoomClick -> handleZoomClick()
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
@@ -111,17 +112,21 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleShutterClick(roomId: Long) {
+    private fun handleShutterClick() {
         if (currentState.isCapturePending) return
 
-        val room = currentState.rooms.firstOrNull { it.id == roomId } ?: return
+        val room =
+            currentState.selectedRoom ?: run {
+                Timber.w("선택된 방이 없어 촬영 요청을 무시합니다")
+                return
+            }
         if (room.remainingCount <= 0) return
 
         nextCaptureRequestId += 1
         val captureRequest =
             PhotoCaptureRequest(
                 requestId = nextCaptureRequestId,
-                roomId = roomId,
+                roomId = room.id,
             )
         updateState { copy(captureRequest = captureRequest) }
     }

@@ -84,7 +84,7 @@ internal fun CameraContent(
             onIntent(CameraIntent.FlashClick(cameraSessionState.hasFlashUnit))
         },
         onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
-        onShutterClick = { onIntent(CameraIntent.ShutterClick(state.selectedRoomId)) },
+        onShutterClick = { onIntent(CameraIntent.ShutterClick) },
         onZoomClick = { onIntent(CameraIntent.ZoomClick) },
         onFilterClick = { onIntent(CameraIntent.FilterClick(it)) },
         onRoomInfoClick = { isRoomSelectionSheetVisible = true },
