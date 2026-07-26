@@ -38,7 +38,6 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,35 +144,30 @@ private val cameraRoomSelectionPreviewRooms =
             name = "방이름2방이름2",
             remainingCount = 6,
             totalCount = 24,
-            createdAt = Instant.parse("2026-07-26T09:00:00Z"),
         ),
         CameraRoomUiModel(
             id = 3L,
             name = "방이동먹자골목방이동먹자골목방이동",
             remainingCount = 5,
             totalCount = 48,
-            createdAt = Instant.parse("2026-07-25T09:00:00Z"),
         ),
         CameraRoomUiModel(
             id = 4L,
             name = "방이름3방이름3방이름3",
             remainingCount = 0,
             totalCount = 48,
-            createdAt = Instant.parse("2026-07-24T09:00:00Z"),
         ),
         CameraRoomUiModel(
             id = 5L,
             name = "방이름4",
             remainingCount = 12,
             totalCount = 24,
-            createdAt = Instant.parse("2026-07-23T09:00:00Z"),
         ),
         CameraRoomUiModel(
             id = 1L,
             name = "방이름1",
             remainingCount = 6,
             totalCount = 24,
-            createdAt = Instant.parse("2026-07-21T09:00:00Z"),
         ),
     )
 

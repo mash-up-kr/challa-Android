@@ -36,6 +36,7 @@ fun CameraRoute(
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     var cameraBindingRetryKey by remember { mutableIntStateOf(0) }
+    val roomLoadFailedMessage = stringResource(R.string.camera_room_load_failed_message)
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
@@ -44,6 +45,12 @@ fun CameraRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
+                CameraSideEffect.RoomLoadFailed -> {
+                    launch {
+                        snackbarHostState.showSnackbar(roomLoadFailedMessage)
+                    }
+                }
+
                 CameraSideEffect.PhotoCaptureFailed -> {
                     launch {
                         snackbarHostState.showSnackbar(photoCaptureFailedMessage)

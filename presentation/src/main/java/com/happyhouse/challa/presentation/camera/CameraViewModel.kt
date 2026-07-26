@@ -1,6 +1,8 @@
 package com.happyhouse.challa.presentation.camera
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
@@ -9,20 +11,19 @@ import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
-import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
+import com.happyhouse.challa.presentation.camera.model.toUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.time.Instant
 
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
+    private val roomRepository: RoomRepository,
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
         initialState =
             CameraState(
@@ -48,51 +49,28 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun fetchData(roomId: Long) {
-        val rooms =
-            createMockRooms(roomId)
-                .sortedByDescending(CameraRoomUiModel::createdAt)
-                .toPersistentList()
-        val selectedRoom = rooms.firstOrNull { it.id == roomId } ?: rooms.first()
+        viewModelScope.launch {
+            when (val result = roomRepository.getRooms()) {
+                is ChallaResult.Success -> {
+                    val rooms = result.data.map { it.toUiModel() }.toPersistentList()
+                    val selectedRoomId =
+                        rooms.firstOrNull { it.id == roomId }?.id ?: rooms.first().id
 
-        updateState {
-            copy(
-                selectedRoomId = selectedRoom.id,
-                rooms = rooms,
-            )
+                    updateState {
+                        copy(
+                            selectedRoomId = selectedRoomId,
+                            rooms = rooms,
+                        )
+                    }
+                }
+
+                is ChallaResult.Failure -> {
+                    Timber.e("방 목록을 불러오지 못했습니다: $result")
+                    sendEffect(CameraSideEffect.RoomLoadFailed)
+                }
+            }
         }
     }
-
-    private fun createMockRooms(roomId: Long) =
-        persistentListOf(
-            CameraRoomUiModel(
-                id = roomId,
-                name = "방이름1",
-                remainingCount = ROOM_REQUIRED_PHOTO_COUNT,
-                totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-                createdAt = Instant.parse("2026-07-23T09:00:00Z"),
-            ),
-            CameraRoomUiModel(
-                id = roomId + 1,
-                name = "방이름방이름방이름2",
-                remainingCount = 6,
-                totalCount = 24,
-                createdAt = Instant.parse("2026-07-26T09:00:00Z"),
-            ),
-            CameraRoomUiModel(
-                id = roomId + 2,
-                name = "방이름방이름방이름3방이름",
-                remainingCount = 3,
-                totalCount = 48,
-                createdAt = Instant.parse("2026-07-25T09:00:00Z"),
-            ),
-            CameraRoomUiModel(
-                id = roomId + 3,
-                name = "방이름방이름방이름4",
-                remainingCount = 3,
-                totalCount = 48,
-                createdAt = Instant.parse("2026-07-24T09:00:00Z"),
-            ),
-        )
 
     private fun handleFlashClick(isAvailable: Boolean) {
         if (!isAvailable) {
