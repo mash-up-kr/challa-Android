@@ -127,6 +127,8 @@ class CameraViewModel @AssistedInject constructor(
             PhotoCaptureRequest(
                 requestId = nextCaptureRequestId,
                 roomId = room.id,
+                selectedFilter = currentState.selectedFilter,
+                lensFacing = currentState.lensFacing,
             )
         updateState { copy(captureRequest = captureRequest) }
     }

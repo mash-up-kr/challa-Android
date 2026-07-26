@@ -69,6 +69,7 @@ internal fun CameraSession(
     val cameraController = remember(context, bindingRetryKey) { createCameraController(context) }
     val previewView =
         remember(context, cameraController) { createPreviewView(context, cameraController) }
+    val capturedImageProcessor = remember { CapturedImageProcessor() }
     val callbackExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
     val currentOnStateChanged by rememberUpdatedState(onStateChanged)
     val currentOnEvent by rememberUpdatedState(onEvent)
@@ -217,7 +218,12 @@ internal fun CameraSession(
                                 CameraSessionEvent.CaptureStarted(request.requestId),
                             )
                         },
-                    ).close() // TODO: 필터 처리 및 저장 구현 전까지 촬영 결과를 즉시 해제
+                    ).let { image ->
+                        capturedImageProcessor.process(
+                            image = image,
+                            request = request,
+                        )
+                    }
                 CameraCaptureResult.Success
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(
