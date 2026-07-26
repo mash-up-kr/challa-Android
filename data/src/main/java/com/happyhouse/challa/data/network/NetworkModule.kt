@@ -53,7 +53,7 @@ object NetworkModule {
             .Builder()
             .addInterceptor(httpLoggingInterceptor)
             .apply {
-                flipperInterceptor?.let(::addInterceptor)
+                flipperInterceptor?.let(::addNetworkInterceptor)
             }
             .build()
 
