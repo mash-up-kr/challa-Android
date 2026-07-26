@@ -5,21 +5,24 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -83,21 +86,30 @@ internal fun CameraRoomSelectionBottomSheet(
 }
 
 @Composable
-private fun ColumnScope.CameraRoomSelectionContent(
+private fun CameraRoomSelectionContent(
     rooms: ImmutableList<CameraRoomUiModel>,
     selectedRoomId: Long,
     onRoomClick: (CameraRoomUiModel) -> Unit,
 ) {
+    val selectedRoomIndex = rooms.indexOfFirst { it.id == selectedRoomId }
+    val firstVisibleRoomIndex = maxOf(0, selectedRoomIndex - 3)
+    val listState =
+        rememberLazyListState(
+            initialFirstVisibleItemIndex = firstVisibleRoomIndex,
+        )
+
+    LaunchedEffect(firstVisibleRoomIndex) {
+        listState.scrollToItem(firstVisibleRoomIndex)
+    }
+
     HorizontalDivider(
         modifier = Modifier.padding(top = 12.dp),
         color = ChallaTheme.colors.lineAlternative,
     )
     LazyColumn(
-        modifier =
-            Modifier
-                .weight(weight = 1f, fill = false)
-                .heightIn(max = 268.dp)
-                .padding(vertical = 12.dp),
+        state = listState,
+        modifier = Modifier.heightIn(max = 268.dp),
+        contentPadding = PaddingValues(vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(
@@ -181,7 +193,7 @@ private fun CameraRoomSelectionItem(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = 52.dp)
+                .height(52.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     if (selected) {

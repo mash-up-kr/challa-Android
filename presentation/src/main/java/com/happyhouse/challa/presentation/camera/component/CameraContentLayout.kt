@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.camera.component
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -47,56 +46,52 @@ internal fun CameraContentLayout(
 ) {
     val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
 
-    Box(modifier = modifier) {
-        CameraBackground(modifier = Modifier.fillMaxSize())
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CameraBezel(
+            isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
+            isShutterEffectVisible = isShutterEffectVisible,
+            zoomLevel = zoomLevel,
+            onZoomClick = onZoomClick,
+            modifier =
+                Modifier
+                    .padding(start = 36.dp, top = 40.dp, end = 36.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
+            viewFinder = viewFinder,
+        )
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            CameraBezel(
-                isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
-                isShutterEffectVisible = isShutterEffectVisible,
-                zoomLevel = zoomLevel,
-                onZoomClick = onZoomClick,
-                modifier =
-                    Modifier
-                        .padding(start = 36.dp, top = 40.dp, end = 36.dp)
-                        .fillMaxWidth()
-                        .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
-                viewFinder = viewFinder,
-            )
+        Spacer(modifier = Modifier.height(20.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
+        CameraControls(
+            isFlashEnabled = isFlashEnabled,
+            isCameraSwitchEnabled = isCameraSwitchEnabled,
+            shutterEnabled = shutterEnabled,
+            onFlashClick = onFlashClick,
+            onSwitchCameraClick = onSwitchCameraClick,
+            onShutterClick = onShutterClick,
+        )
 
-            CameraControls(
-                isFlashEnabled = isFlashEnabled,
-                isCameraSwitchEnabled = isCameraSwitchEnabled,
-                shutterEnabled = shutterEnabled,
-                onFlashClick = onFlashClick,
-                onSwitchCameraClick = onSwitchCameraClick,
-                onShutterClick = onShutterClick,
-            )
+        Spacer(modifier = Modifier.height(20.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
+        CameraFilterSelector(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            filters = filters,
+            selectedFilterIndex = selectedFilterIndex,
+            onFilterClick = onFilterClick,
+        )
 
-            CameraFilterSelector(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                filters = filters,
-                selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = onFilterClick,
-            )
+        Spacer(modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            CameraRoomInfo(
-                roomName = roomName,
-                remainingCount = remainingCount,
-                totalCount = totalCount,
-                onClick = onRoomInfoClick,
-                modifier = Modifier.padding(bottom = 40.dp),
-            )
-        }
+        CameraRoomInfo(
+            roomName = roomName,
+            remainingCount = remainingCount,
+            totalCount = totalCount,
+            onClick = onRoomInfoClick,
+            modifier = Modifier.padding(bottom = 40.dp),
+        )
     }
 }
 
