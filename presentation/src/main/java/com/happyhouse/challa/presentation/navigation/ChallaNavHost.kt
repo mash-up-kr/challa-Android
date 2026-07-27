@@ -13,7 +13,7 @@ import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeScreen
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
-import com.happyhouse.challa.presentation.login.LoginScreen
+import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.sample.SampleScreen
@@ -74,7 +74,7 @@ fun ChallaNavHost(
                     )
                 }
                 entry<ChallaRoute.Login> {
-                    LoginScreen(
+                    LoginRoute(
                         onLoginSuccess = {
                             navigator.replace(ChallaRoute.Home)
                         },

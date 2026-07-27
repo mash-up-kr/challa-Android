@@ -52,7 +52,7 @@ import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 private val KakaoYellow = Color(0xFFFEE500)
 
 @Composable
-fun LoginScreen(
+fun LoginRoute(
     onLoginSuccess: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
@@ -84,7 +84,7 @@ fun LoginScreen(
         }
     }
 
-    LoginContent(
+    LoginScreen(
         state = state,
         // 카카오 SDK 호출은 Activity 가 필요하므로 여기서 클로저로 감싸 ViewModel 에 넘긴다.
         onLoginClick = { viewModel.onIntent(LoginIntent.LoginClick { KakaoLoginClient.login(activity) }) },
@@ -100,7 +100,7 @@ private tailrec fun Context.findActivity(): Activity =
     }
 
 @Composable
-private fun LoginContent(
+private fun LoginScreen(
     state: LoginState,
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -201,7 +201,7 @@ private fun KakaoLoginButton(
 @Composable
 private fun LoginScreenPreview() {
     ChallaTheme {
-        LoginContent(
+        LoginScreen(
             state = LoginState(isLoading = false),
             onLoginClick = {},
         )
