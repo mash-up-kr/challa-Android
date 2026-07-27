@@ -46,6 +46,10 @@ logger = "2.2.0"
 retrofit = "3.0.0"
 okhttp = "5.4.0"
 
+# Debugging
+flipper = "0.200.0"
+soloader = "0.10.4"
+
 # DataStore
 datastore = "1.1.7"
 
@@ -117,6 +121,12 @@ retrofit-converter-kotlinx-serialization = { group = "com.squareup.retrofit2", n
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 
+# Flipper
+flipper = { group = "com.facebook.flipper", name = "flipper", version.ref = "flipper" }
+flipper-noop = { group = "com.facebook.flipper", name = "flipper-noop", version.ref = "flipper" }
+flipper-network-plugin = { group = "com.facebook.flipper", name = "flipper-network-plugin", version.ref = "flipper" }
+soloader = { group = "com.facebook.soloader", name = "soloader", version.ref = "soloader" }
+
 # Kakao
 kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
 
@@ -171,6 +181,13 @@ network = [
     "okhttp",
     "okhttp-logging-interceptor",
     "kotlinx-serialization-json",
+]
+
+# Flipper
+flipper = [
+    "flipper",
+    "soloader",
+    "flipper-network-plugin",
 ]
 
 [plugins]
