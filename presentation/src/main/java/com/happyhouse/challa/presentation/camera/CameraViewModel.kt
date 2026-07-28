@@ -53,8 +53,17 @@ class CameraViewModel @AssistedInject constructor(
             when (val result = roomRepository.getRooms()) {
                 is ChallaResult.Success -> {
                     val rooms = result.data.map { it.toUiModel() }.toPersistentList()
-                    val selectedRoomId =
-                        rooms.firstOrNull { it.id == roomId }?.id ?: rooms.first().id
+                    val selectedRoomId = rooms.firstOrNull { it.id == roomId }?.id
+
+                    if (selectedRoomId == null) {
+                        Timber.e(
+                            "선택할 방을 찾을 수 없습니다: roomId=%d, roomCount=%d",
+                            roomId,
+                            rooms.size,
+                        )
+                        sendEffect(CameraSideEffect.RoomLoadFailed)
+                        return@launch
+                    }
 
                     updateState {
                         copy(

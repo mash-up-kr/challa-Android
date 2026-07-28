@@ -84,8 +84,19 @@ internal fun CameraSession(
             withContext(Dispatchers.IO) {
                 CameraFilter.availableFilters
                     .mapNotNull { filter ->
-                        filter.cubeResId?.let { resourceId ->
+                        val resourceId = filter.cubeResId ?: return@mapNotNull null
+
+                        try {
                             filter to CubeLut.load(resources, resourceId)
+                        } catch (cancellationException: CancellationException) {
+                            throw cancellationException
+                        } catch (exception: Exception) {
+                            Timber.e(
+                                exception,
+                                "LUT 로드에 실패했습니다: filter=%s",
+                                filter.name,
+                            )
+                            null
                         }
                     }.toMap()
             }
