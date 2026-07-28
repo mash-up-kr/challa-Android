@@ -13,7 +13,7 @@ internal fun previewPhotoDetailPhotos(count: Int = 3): ImmutableList<PhotoDetail
             PhotoDetailUiModel(
                 id = index.toLong(),
                 imageUrl = "",
-                photographer = "이주연",
-                capturedDate = "Oct 12 2026",
+                photographer = "나는야멋쟁이토마토",
+                capturedDate = "2026. 7.16. 14:34",
             )
         }.toPersistentList()
