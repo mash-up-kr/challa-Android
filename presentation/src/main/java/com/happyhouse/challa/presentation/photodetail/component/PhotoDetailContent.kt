@@ -41,7 +41,6 @@ fun PhotoDetailContent(
                 )
             }
 
-            // 실패 사실은 토스트(PhotosLoadFailed)로 알리고, 화면에는 복구 수단만 남긴다.
             PhotoInfo.Error -> {
                 ChallaTextButton(
                     modifier = Modifier.align(Alignment.Center),

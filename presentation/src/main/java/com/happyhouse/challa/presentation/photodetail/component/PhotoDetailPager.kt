@@ -30,7 +30,6 @@ private const val BOTTOM_SPACE_WEIGHT = 133f
 private val PhotoHorizontalPadding = 16.dp
 private val IndicatorTopPadding = 16.dp
 
-// 스와이프할 때 카드끼리 붙지 않고 좌우 여백이 함께 넘어오도록 양쪽 여백을 합한 만큼 띄운다.
 private val PhotoPageSpacing = PhotoHorizontalPadding * 2
 
 @Composable
@@ -45,8 +44,6 @@ fun PhotoDetailPager(
     ) {
         Spacer(modifier = Modifier.weight(TOP_SPACE_WEIGHT))
 
-        // 다음 카드가 화면 가장자리에서부터 밀려 들어오도록 pager는 화면 폭을 다 쓰고
-        // 좌우 여백은 contentPadding으로 준다. 그래서 카드 높이를 직접 계산해 넘긴다.
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val photoWidth = maxWidth - PhotoHorizontalPadding * 2
 

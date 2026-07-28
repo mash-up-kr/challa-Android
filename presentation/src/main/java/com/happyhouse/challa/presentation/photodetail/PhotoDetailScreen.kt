@@ -32,7 +32,6 @@ fun PhotoDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val photos = (state.photoInfo as? PhotoInfo.Loaded)?.photos ?: persistentListOf()
-    // 사진 목록이 도착한 시점에 initialPhotoId 위치에서 시작하도록 pager 상태를 다시 만든다.
     val pagerState =
         key(photos) {
             rememberPagerState(
@@ -43,13 +42,11 @@ fun PhotoDetailScreen(
     Scaffold(
         modifier = modifier,
         containerColor = PhotoDetailBackgroundColor,
-        // Figma는 홈 인디케이터를 콘텐츠 위에 겹쳐 두므로 하단 inset을 콘텐츠에서 빼지 않는다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             PhotoDetailTopBar(
                 title = state.roomName,
                 onBackClick = onBackClick,
-                // currentPage는 스크롤 중 자주 바뀌므로 컴포지션이 아니라 클릭 시점에 읽는다.
                 onSaveClick =
                     photos.takeIf { it.isNotEmpty() }?.let { loadedPhotos ->
                         { onSaveClick(loadedPhotos[pagerState.currentPage]) }
