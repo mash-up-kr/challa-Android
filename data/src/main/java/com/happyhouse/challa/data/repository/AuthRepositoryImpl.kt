@@ -35,7 +35,7 @@ class AuthRepositoryImpl
                     AuthTokens(
                         accessToken = data.accessToken,
                         refreshToken = data.refreshToken,
-                        isNewUser = data.isNewUser,
+                        isNewUser = data.isNew,
                     )
                 }.onSuccess { tokens ->
                     tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
