@@ -56,6 +56,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 if (throwable is CancellationException) throw throwable
                 Timber.e(throwable, "사진 상세 정보를 불러오지 못했습니다")
                 updateState { copy(photoInfo = PhotoInfo.Error) }
+                sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
             }
         }
     }

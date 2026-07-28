@@ -31,6 +31,7 @@ fun PhotoDetailRoute(
     val context = LocalContext.current
     val saveSuccessMessage = stringResource(R.string.photo_detail_save_success)
     val saveFailureMessage = stringResource(R.string.photo_detail_save_failure)
+    val loadFailureMessage = stringResource(R.string.photo_detail_load_failure)
 
     val requestSave =
         rememberPhotoSavePermissionGate(
@@ -42,6 +43,7 @@ fun PhotoDetailRoute(
         viewModel.uiEffect.collect { effect ->
             val message =
                 when (effect) {
+                    PhotoDetailSideEffect.PhotosLoadFailed -> loadFailureMessage
                     PhotoDetailSideEffect.SaveSucceeded -> saveSuccessMessage
                     PhotoDetailSideEffect.SaveFailed -> saveFailureMessage
                 }
@@ -55,6 +57,5 @@ fun PhotoDetailRoute(
         onIntent = viewModel::onIntent,
         onSaveClick = requestSave,
         onBackClick = onBackClick,
-        onMoreClick = {},
     )
 }

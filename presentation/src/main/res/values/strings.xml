@@ -85,15 +85,12 @@
     <string name="create_room_submit">방 만들기</string>
 
     <!-- photoDetailScreen -->
-    <string name="photo_detail_back_icon">‹</string>
     <string name="photo_detail_back_description">뒤로가기</string>
-    <string name="photo_detail_more_icon">⚙</string>
-    <string name="photo_detail_more_description">더보기</string>
     <string name="photo_detail_photo_content_description">사진</string>
-    <string name="photo_detail_save">저장</string>
+    <string name="photo_detail_save_description">사진 저장</string>
     <string name="photo_detail_save_success">사진을 저장했어요.</string>
     <string name="photo_detail_save_failure">사진 저장에 실패했어요.</string>
-    <string name="photo_detail_error_message">사진을 불러오지 못했어요.</string>
+    <string name="photo_detail_load_failure">사진을 불러오지 못했어요.</string>
     <string name="photo_detail_retry">다시 시도</string>
     <string name="photo_detail_empty">표시할 사진이 없어요.</string>
 
