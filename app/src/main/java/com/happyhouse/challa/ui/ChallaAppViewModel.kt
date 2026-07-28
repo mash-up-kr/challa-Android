@@ -7,6 +7,7 @@ import com.happyhouse.challa.presentation.navigation.ChallaRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -25,6 +26,8 @@ class ChallaAppViewModel
         val startRoute: StateFlow<ChallaRoute?> =
             flow {
                 emit(if (authRepository.isLoggedIn()) ChallaRoute.Home else ChallaRoute.Login)
+            }.catch {
+                emit(ChallaRoute.Login)
             }.stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.Eagerly,
