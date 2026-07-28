@@ -7,4 +7,6 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- ChallaColors.backgroundSurface(다크) 와 동일. 시스템 바 뒤로 드러나는 윈도우 배경용. -->
+    <color name="background_surface">#FF1A1A1A</color>
 </resources>

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Challa" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Challa 는 다크 테마만 지원한다. 시스템 바(엣지 투 엣지) 뒤로 드러나는 윈도우 배경도
+         화면 배경(backgroundSurface)과 이어지도록 다크로 맞춘다. -->
+    <style name="Theme.Challa" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/background_surface</item>
+    </style>
 </resources>

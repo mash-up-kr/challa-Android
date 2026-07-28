@@ -7,10 +7,11 @@ import com.happyhouse.challa.presentation.navigation.ChallaNavigator
 import com.happyhouse.challa.presentation.navigation.ChallaRoute
 import com.happyhouse.challa.presentation.navigation.rememberChallaNavigator
 
-private val StartRoute = ChallaRoute.Onboarding
-
 @Composable
-fun rememberChallaAppState(navigator: ChallaNavigator = rememberChallaNavigator(StartRoute)): ChallaAppState =
+fun rememberChallaAppState(
+    startRoute: ChallaRoute,
+    navigator: ChallaNavigator = rememberChallaNavigator(startRoute),
+): ChallaAppState =
     remember(navigator) {
         ChallaAppState(navigator)
     }
