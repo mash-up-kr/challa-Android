@@ -38,9 +38,8 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
 fun ChallaSnackbar(
+    content: ChallaSnackbarContent,
     modifier: Modifier = Modifier,
-    heading: String? = null,
-    description: String? = null,
     @DrawableRes icon: Int? = null,
     iconTint: Color? = null,
     actionLabel: String? = null,
@@ -48,8 +47,8 @@ fun ChallaSnackbar(
     onCloseClick: (() -> Unit)? = null,
 ) {
     ChallaMessageContent(
-        heading = heading,
-        description = description,
+        heading = content.heading,
+        description = content.description,
         modifier = modifier.fillMaxWidth(),
         icon = icon,
         iconTint = iconTint,
@@ -92,10 +91,6 @@ private fun ChallaMessageContent(
     onCloseClick: (() -> Unit)?,
     fillTextWidth: Boolean,
 ) {
-    require(!heading.isNullOrBlank() || !description.isNullOrBlank()) {
-        "heading 또는 description 둘 중 하나는 필요합니다."
-    }
-
     Row(
         modifier =
             modifier
@@ -200,31 +195,46 @@ private fun ChallaSnackbarPreview() {
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         ChallaSnackbar(
-            heading = "마침표를 붙이지 않아요",
-            description = "설명은 필요할 때만 써요",
+            content =
+                ChallaSnackbarContent.HeadingAndDescription(
+                    heading = "마침표를 붙이지 않아요",
+                    description = "설명은 필요할 때만 써요",
+                ),
             actionLabel = "텍스트",
             onActionClick = {},
         )
         ChallaSnackbar(
-            description = "메시지가 두 줄 이상 길어지는 경우 예외적으로 사용해요",
+            content =
+                ChallaSnackbarContent.DescriptionOnly(
+                    description = "메시지가 두 줄 이상 길어지는 경우 예외적으로 사용해요",
+                ),
             actionLabel = "텍스트",
             onActionClick = {},
         )
         ChallaSnackbar(
-            heading = "마침표를 붙이지 않아요",
+            content =
+                ChallaSnackbarContent.HeadingOnly(
+                    heading = "마침표를 붙이지 않아요",
+                ),
             icon = ChallaIcons.Blank,
             actionLabel = "텍스트",
             onActionClick = {},
         )
         ChallaSnackbar(
-            heading = "마침표를 붙이지 않아요",
-            description = "설명은 필요할 때만 써요",
+            content =
+                ChallaSnackbarContent.HeadingAndDescription(
+                    heading = "마침표를 붙이지 않아요",
+                    description = "설명은 필요할 때만 써요",
+                ),
             icon = ChallaIcons.Blank,
             actionLabel = "텍스트",
             onActionClick = {},
         )
         ChallaSnackbar(
-            heading = "마침표를 붙이지 않아요",
+            content =
+                ChallaSnackbarContent.HeadingOnly(
+                    heading = "마침표를 붙이지 않아요",
+                ),
             actionLabel = "텍스트",
             onCloseClick = {},
         )

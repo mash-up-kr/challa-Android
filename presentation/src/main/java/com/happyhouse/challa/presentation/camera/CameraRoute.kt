@@ -18,6 +18,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -53,7 +55,16 @@ fun CameraRoute(
             when (effect) {
                 CameraSideEffect.RoomLoadFailed -> {
                     launch {
-                        snackbarHostState.showSnackbar(roomLoadFailedMessage)
+                        launch {
+                            snackbarHostState.showSnackbar(
+                                ChallaSnackbarVisuals(
+                                    content =
+                                        ChallaSnackbarContent.HeadingOnly(
+                                            heading = roomLoadFailedMessage,
+                                        ),
+                                ),
+                            )
+                        }
                     }
                 }
 
@@ -72,7 +83,14 @@ fun CameraRoute(
 
                 CameraSideEffect.FlashNotAvailable -> {
                     launch {
-                        snackbarHostState.showSnackbar(flashNotAvailableMessage)
+                        snackbarHostState.showSnackbar(
+                            ChallaSnackbarVisuals(
+                                content =
+                                    ChallaSnackbarContent.HeadingOnly(
+                                        heading = flashNotAvailableMessage,
+                                    ),
+                            ),
+                        )
                     }
                 }
 

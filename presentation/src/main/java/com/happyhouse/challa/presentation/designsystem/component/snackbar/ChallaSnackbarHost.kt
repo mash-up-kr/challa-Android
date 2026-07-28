@@ -44,7 +44,7 @@ fun ChallaSnackbarHost(
 
                 is ChallaSnackbarVisuals ->
                     ChallaSnackbar(
-                        heading = visuals.message,
+                        content = visuals.content,
                         modifier =
                             Modifier
                                 .align(

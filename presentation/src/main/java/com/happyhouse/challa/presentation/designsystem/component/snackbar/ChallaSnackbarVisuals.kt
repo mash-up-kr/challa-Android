@@ -7,11 +7,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 
 data class ChallaSnackbarVisuals(
-    override val message: String,
+    val content: ChallaSnackbarContent,
     @param:DrawableRes val icon: Int? = null,
     val iconTint: Color? = null,
     val topOffset: Dp? = null,
     override val actionLabel: String? = null,
     override val withDismissAction: Boolean = false,
     override val duration: SnackbarDuration = SnackbarDuration.Short,
-) : SnackbarVisuals
+) : SnackbarVisuals {
+    override val message: String
+        get() = content.message
+}
