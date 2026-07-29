@@ -3,7 +3,6 @@ package com.happyhouse.challa.presentation.gallery
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
-import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
@@ -11,8 +10,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,12 +36,12 @@ class GalleryViewModel @AssistedInject constructor(
         viewModelScope.launch {
             updateState { copy(photoInfo = PhotoInfo.Loading) }
             runCatching {
-                loadMockPhotos()
-            }.onSuccess { photos ->
+                loadMockPhotoInfo()
+            }.onSuccess { photoInfo ->
                 updateState {
                     copy(
                         roomName = MOCK_ROOM_NAME,
-                        photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
+                        photoInfo = photoInfo,
                     )
                 }
             }.onFailure { throwable ->
@@ -61,17 +58,10 @@ class GalleryViewModel @AssistedInject constructor(
         }
     }
 
-    // TODO: 실제 API 연동 전까지 쓰는 mock 데이터
-    private suspend fun loadMockPhotos(): ImmutableList<GalleryPhotoUiModel> {
+    // TODO: 실제 API 연동 전까지 쓰는 mock 데이터. 인화 여부도 서버 응답으로 판단하도록 교체할 것.
+    private suspend fun loadMockPhotoInfo(): PhotoInfo {
         delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
-        return (0 until MOCK_PHOTO_COUNT)
-            .map { index ->
-                GalleryPhotoUiModel(
-                    id = index.toLong(),
-                    order = index + 1,
-                    imageUrl = "https://picsum.photos/seed/${roomId}_$index/300/300",
-                )
-            }.toPersistentList()
+        return PhotoInfo.Waiting(slotCount = MOCK_PHOTO_COUNT)
     }
 
     @AssistedFactory

@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
  * 갤러리 본문
- * 로딩/에러/빈/그리드 분기
+ * 로딩/에러/빈/인화 전/인화 완료 분기
  */
 @Composable
 fun GalleryContent(
@@ -62,8 +62,18 @@ fun GalleryContent(
                 }
             }
 
-            is PhotoInfo.Loaded -> {
-                GalleryGrid(
+            is PhotoInfo.Waiting -> {
+                GalleryFilmSlotGrid(
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                    slotCount = photoInfo.slotCount,
+                )
+            }
+
+            is PhotoInfo.Printed -> {
+                GalleryPhotoGrid(
                     modifier =
                         Modifier
                             .weight(1f)
@@ -112,10 +122,25 @@ private fun GalleryMessage(
     }
 }
 
-@ComposePreview(showBackground = true)
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "Gallery - 인화 전")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryContentPreview() {
+private fun GalleryContentWaitingPreview() {
+    GalleryContent(
+        modifier = Modifier.fillMaxSize(),
+        state =
+            GalleryState(
+                roomName = "친구들과 강릉 여행",
+                photoInfo = PhotoInfo.Waiting(slotCount = 24),
+            ),
+        onIntent = {},
+    )
+}
+
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "Gallery - 인화 완료")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryContentPrintedPreview() {
     val photos =
         (0 until 24)
             .map { index ->
@@ -130,14 +155,14 @@ private fun GalleryContentPreview() {
         modifier = Modifier.fillMaxSize(),
         state =
             GalleryState(
-                roomName = "다낭 4박5일",
-                photoInfo = PhotoInfo.Loaded(photos),
+                roomName = "친구들과 강릉 여행",
+                photoInfo = PhotoInfo.Printed(photos),
             ),
         onIntent = {},
     )
 }
 
-@ComposePreview(showBackground = true, name = "Gallery - Empty")
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "Gallery - Empty")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentEmptyPreview() {
@@ -145,14 +170,14 @@ private fun GalleryContentEmptyPreview() {
         modifier = Modifier.fillMaxSize(),
         state =
             GalleryState(
-                roomName = "다낭 4박5일",
+                roomName = "친구들과 강릉 여행",
                 photoInfo = PhotoInfo.Empty,
             ),
         onIntent = {},
     )
 }
 
-@ComposePreview(showBackground = true, name = "Gallery - Loading")
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "Gallery - Loading")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentLoadingPreview() {
@@ -160,14 +185,14 @@ private fun GalleryContentLoadingPreview() {
         modifier = Modifier.fillMaxSize(),
         state =
             GalleryState(
-                roomName = "다낭 4박5일",
+                roomName = "친구들과 강릉 여행",
                 photoInfo = PhotoInfo.Loading,
             ),
         onIntent = {},
     )
 }
 
-@ComposePreview(showBackground = true, name = "Gallery - Error")
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "Gallery - Error")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentErrorPreview() {
@@ -175,7 +200,7 @@ private fun GalleryContentErrorPreview() {
         modifier = Modifier.fillMaxSize(),
         state =
             GalleryState(
-                roomName = "다낭 4박5일",
+                roomName = "친구들과 강릉 여행",
                 photoInfo = PhotoInfo.Error,
             ),
         onIntent = {},

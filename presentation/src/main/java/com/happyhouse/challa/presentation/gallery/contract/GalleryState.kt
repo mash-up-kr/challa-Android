@@ -18,7 +18,17 @@ data class GalleryState(
 
         data object Empty : PhotoInfo
 
-        data class Loaded(
+        /**
+         * 인화 전: 사진이 아직 공개되지 않아 번호만 있는 빈 필름 슬롯을 보여준다.
+         */
+        data class Waiting(
+            val slotCount: Int,
+        ) : PhotoInfo
+
+        /**
+         * 인화 완료: 공개된 사진을 그리드로 보여준다.
+         */
+        data class Printed(
             val photos: ImmutableList<GalleryPhotoUiModel>,
         ) : PhotoInfo
     }
