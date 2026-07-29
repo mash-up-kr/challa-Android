@@ -36,7 +36,5 @@ fun GalleryRoute(
         state = state,
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
-        // TODO: 더보기 메뉴(공유/방 나가기 등) 기획 확정 후 연결.
-        onMoreClick = {},
     )
 }

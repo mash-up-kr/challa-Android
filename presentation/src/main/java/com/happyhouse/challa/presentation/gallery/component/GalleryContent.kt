@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
  * 갤러리 본문
- * 상단 D-day 배너 + (로딩/에러/빈/그리드) 분기
+ * 로딩/에러/빈/그리드 분기
  */
 @Composable
 fun GalleryContent(
@@ -63,11 +63,6 @@ fun GalleryContent(
             }
 
             is PhotoInfo.Loaded -> {
-                GalleryExpiryBanner(
-                    modifier = Modifier.fillMaxWidth(),
-                    remainingDays = state.remainingDays,
-                )
-
                 GalleryGrid(
                     modifier =
                         Modifier
@@ -136,7 +131,6 @@ private fun GalleryContentPreview() {
         state =
             GalleryState(
                 roomName = "다낭 4박5일",
-                remainingDays = 3,
                 photoInfo = PhotoInfo.Loaded(photos),
             ),
         onIntent = {},
@@ -152,7 +146,6 @@ private fun GalleryContentEmptyPreview() {
         state =
             GalleryState(
                 roomName = "다낭 4박5일",
-                remainingDays = 3,
                 photoInfo = PhotoInfo.Empty,
             ),
         onIntent = {},
@@ -168,7 +161,6 @@ private fun GalleryContentLoadingPreview() {
         state =
             GalleryState(
                 roomName = "다낭 4박5일",
-                remainingDays = 3,
                 photoInfo = PhotoInfo.Loading,
             ),
         onIntent = {},
@@ -184,7 +176,6 @@ private fun GalleryContentErrorPreview() {
         state =
             GalleryState(
                 roomName = "다낭 4박5일",
-                remainingDays = 3,
                 photoInfo = PhotoInfo.Error,
             ),
         onIntent = {},

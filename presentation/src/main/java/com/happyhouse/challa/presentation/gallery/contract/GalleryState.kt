@@ -8,7 +8,6 @@ import kotlinx.collections.immutable.ImmutableList
 data class GalleryState(
     val roomId: Long = 0L,
     val roomName: String = "",
-    val remainingDays: Int = 3,
     val photoInfo: PhotoInfo = PhotoInfo.Loading,
 ) : UiState {
     @Immutable
