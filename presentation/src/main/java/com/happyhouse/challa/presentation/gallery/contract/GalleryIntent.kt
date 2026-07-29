@@ -9,4 +9,6 @@ sealed interface GalleryIntent : UiIntent {
     data class PhotoClick(
         val photoId: Long,
     ) : GalleryIntent
+
+    data object PrintCountdownClick : GalleryIntent
 }

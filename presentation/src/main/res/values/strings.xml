@@ -35,6 +35,8 @@
     <string name="sample_gallery_button">갤러리 보기</string>
     <string name="gallery_back_description">뒤로가기</string>
     <string name="gallery_member_overflow">+%1$d명</string>
+    <string name="gallery_print_countdown">%1$s 후 인화 완료</string>
+    <string name="gallery_print_waiting_message">인화 대기 중이에요! 조금만 기다려주세요</string>
     <string name="gallery_photo_order">#%1$d</string>
     <string name="gallery_photo_content_description">%1$d번째 사진</string>
     <string name="gallery_open_photo">사진 열기</string>

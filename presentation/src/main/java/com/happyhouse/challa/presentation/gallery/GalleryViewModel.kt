@@ -32,6 +32,7 @@ class GalleryViewModel @AssistedInject constructor(
         when (intent) {
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
+            GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
         }
     }
 
@@ -62,10 +63,19 @@ class GalleryViewModel @AssistedInject constructor(
         }
     }
 
+    private fun handlePrintCountdownClick() {
+        viewModelScope.launch {
+            sendEffect(GallerySideEffect.PrintWaiting)
+        }
+    }
+
     // TODO: 실제 API 연동 전까지 쓰는 mock 데이터. 인화 여부도 서버 응답으로 판단하도록 교체할 것.
     private suspend fun loadMockPhotoInfo(): PhotoInfo {
         delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
-        return PhotoInfo.Waiting(slotCount = MOCK_PHOTO_COUNT)
+        return PhotoInfo.Waiting(
+            slotCount = MOCK_PHOTO_COUNT,
+            remainingSeconds = MOCK_REMAINING_SECONDS,
+        )
     }
 
     // TODO: 실제 API 연동 전까지 쓰는 mock 참여자
@@ -86,6 +96,7 @@ class GalleryViewModel @AssistedInject constructor(
     companion object {
         private const val MOCK_PHOTO_COUNT = 24
         private const val MOCK_MEMBER_COUNT = 6
+        private const val MOCK_REMAINING_SECONDS = 10_798L
         private const val MOCK_LOAD_DELAY_MS = 300L
         private const val MOCK_ROOM_NAME = "다낭 4박5일"
     }

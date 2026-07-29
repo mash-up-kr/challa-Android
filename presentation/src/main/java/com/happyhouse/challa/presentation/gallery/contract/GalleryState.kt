@@ -25,6 +25,7 @@ data class GalleryState(
          */
         data class Waiting(
             val slotCount: Int,
+            val remainingSeconds: Long,
         ) : PhotoInfo
 
         /**

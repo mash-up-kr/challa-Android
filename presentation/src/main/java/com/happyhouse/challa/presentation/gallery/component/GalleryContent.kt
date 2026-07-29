@@ -153,7 +153,7 @@ private fun GalleryContentWaitingPreview() {
             GalleryState(
                 roomName = "친구들과 강릉 여행",
                 members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Waiting(slotCount = 24),
+                photoInfo = PhotoInfo.Waiting(slotCount = 24, remainingSeconds = 10_798L),
             ),
         onIntent = {},
     )
