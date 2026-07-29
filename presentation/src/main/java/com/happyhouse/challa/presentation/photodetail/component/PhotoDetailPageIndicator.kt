@@ -14,17 +14,25 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import kotlin.math.abs
-import kotlin.math.roundToInt
+import kotlin.math.ceil
+import kotlin.math.floor
 import androidx.compose.ui.graphics.lerp as lerpColor
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 import androidx.compose.ui.unit.lerp as lerpDp
 
+// 최대 크기로 그리는 dot 개수(현재 페이지 + 좌우 1칸).
 private const val FULL_SIZE_WINDOW = 3
 
 private val DotSpacing = 8.dp
 
-private val DotSizeByDistance = listOf(10.dp, 8.dp, 6.dp)
-private val SHRINK_STEP_COUNT = DotSizeByDistance.lastIndex
+// 창 밖으로 벗어난 칸 수별 dot 지름. 멈춰 있을 땐 10 / 8 / 6dp만 보인다.
+// 마지막 0.dp는 스와이프 중 dot이 6dp 크기로 튀어나오지 않고 0에서부터 자라게 하는 단계다.
+// 이 단계를 빼면 dot이 생기고 사라질 때마다 행 전체 폭이 튀면서 인디케이터가 옆으로 스냅한다.
+private val DotSizeByDistance = listOf(10.dp, 8.dp, 6.dp, 0.dp)
+
+// 크기 보간 단계 수(0.dp 포함). 실제로 눈에 보이는 축소 dot은 한쪽에 VisibleSideDotCount개다.
+private val ShrinkStepCount = DotSizeByDistance.lastIndex
+private val VisibleSideDotCount = ShrinkStepCount - 1
 private val MaxDotSize = DotSizeByDistance.first()
 
 /**
@@ -51,66 +59,91 @@ fun PhotoDetailPageIndicator(
         val maxWindowStart = (pageCount - FULL_SIZE_WINDOW).coerceAtLeast(0).toFloat()
         val windowStart = (position - 1f).coerceIn(0f, maxWindowStart)
 
-        val settledWindowStart = windowStart.roundToInt()
-        val firstVisiblePage = (settledWindowStart - SHRINK_STEP_COUNT).coerceAtLeast(0)
+        // dot이 한 화면에 다 담기는 개수면 축소하지 않는다.
+        // pageCount는 스와이프 중 변하지 않으므로 이 판정 때문에 크기가 튀는 일은 없다.
+        val shrinksAtEdge = pageCount > FULL_SIZE_WINDOW + VisibleSideDotCount
+
+        // 반올림해서 자르면 .5 지점마다 그릴 dot 목록이 통째로 밀려 행 폭이 튄다.
+        // floor/ceil로 지름 0인 칸까지 포함시켜 dot이 들고 날 때도 폭이 연속적으로 변하게 한다.
+        val firstVisiblePage = (floor(windowStart).toInt() - ShrinkStepCount).coerceAtLeast(0)
         val lastVisiblePage =
-            (settledWindowStart + FULL_SIZE_WINDOW - 1 + SHRINK_STEP_COUNT).coerceAtMost(pageCount - 1)
-        val hasHiddenBefore = firstVisiblePage > 0
-        val hasHiddenAfter = lastVisiblePage < pageCount - 1
+            (ceil(windowStart).toInt() + FULL_SIZE_WINDOW - 1 + ShrinkStepCount)
+                .coerceAtMost(pageCount - 1)
 
         val spacing = DotSpacing.toPx()
-        val diameters =
-            (firstVisiblePage..lastVisiblePage).map { page ->
-                dotSizeOf(
-                    page = page,
-                    windowStart = windowStart,
-                    hasHiddenBefore = hasHiddenBefore,
-                    hasHiddenAfter = hasHiddenAfter,
-                ).toPx()
-            }
 
-        var left = (size.width - diameters.sum() - spacing * (diameters.size - 1)) / 2f
-        diameters.forEachIndexed { index, diameter ->
-            val radius = diameter / 2f
+        // draw는 매 프레임 도는 경로라 리스트를 만들지 않고 두 번 순회한다(폭 합산 → 그리기).
+        var rowWidth = 0f
+        var previousPresence = 0f
+        for (page in firstVisiblePage..lastVisiblePage) {
+            val distance = distanceFromWindow(page = page, windowStart = windowStart, shrinks = shrinksAtEdge)
+            val presence = presenceOf(distance)
+            // 사라지는 dot은 양옆 간격도 같이 줄어들어야 행 전체 폭이 연속적으로 변한다.
+            if (page > firstVisiblePage) rowWidth += spacing * minOf(previousPresence, presence)
+            rowWidth += dotSizeOf(distance).toPx()
+            previousPresence = presence
+        }
+
+        var left = (size.width - rowWidth) / 2f
+        previousPresence = 0f
+        for (page in firstVisiblePage..lastVisiblePage) {
+            val distance = distanceFromWindow(page = page, windowStart = windowStart, shrinks = shrinksAtEdge)
+            val presence = presenceOf(distance)
+            if (page > firstVisiblePage) left += spacing * minOf(previousPresence, presence)
+
+            val radius = dotSizeOf(distance).toPx() / 2f
             drawCircle(
                 color =
                     lerpColor(
                         start = otherColor,
                         stop = currentColor,
-                        fraction = proximityOf(page = firstVisiblePage + index, position = position),
+                        fraction = proximityOf(page = page, position = position),
                     ),
                 radius = radius,
                 center = Offset(x = left + radius, y = size.height / 2f),
             )
-            left += diameter + spacing
+
+            left += radius * 2f
+            previousPresence = presence
         }
     }
 }
 
 /**
- * 창을 벗어난 칸 수로 dot 크기를 정한다.
+ * 창(최대 크기로 그리는 [FULL_SIZE_WINDOW]칸)에서 몇 칸 벗어났는지.
+ * 스와이프 중에도 끊기지 않도록 실수로 계산한다.
  */
-private fun dotSizeOf(
+private fun distanceFromWindow(
     page: Int,
     windowStart: Float,
-    hasHiddenBefore: Boolean,
-    hasHiddenAfter: Boolean,
-): Dp {
-    val windowEnd = windowStart + FULL_SIZE_WINDOW - 1
-    val distance =
-        when {
-            page < windowStart -> if (hasHiddenBefore) windowStart - page else 0f
-            page > windowEnd -> if (hasHiddenAfter) page - windowEnd else 0f
-            else -> 0f
-        }.coerceIn(0f, SHRINK_STEP_COUNT.toFloat())
+    shrinks: Boolean,
+): Float {
+    if (!shrinks) return 0f
 
+    val windowEnd = windowStart + FULL_SIZE_WINDOW - 1
+    return when {
+        page < windowStart -> windowStart - page
+        page > windowEnd -> page - windowEnd
+        else -> 0f
+    }.coerceIn(0f, ShrinkStepCount.toFloat())
+}
+
+/**
+ * 창을 벗어난 칸 수로 dot 크기를 정한다.
+ */
+private fun dotSizeOf(distance: Float): Dp {
     val step = distance.toInt()
     return lerpDp(
         start = DotSizeByDistance[step],
-        stop = DotSizeByDistance[(step + 1).coerceAtMost(SHRINK_STEP_COUNT)],
+        stop = DotSizeByDistance[(step + 1).coerceAtMost(ShrinkStepCount)],
         fraction = distance - step,
     )
 }
+
+/**
+ * dot이 얼마나 남아 있는지(1 = 온전히 보임, 0 = 사라짐). 양옆 간격을 함께 줄이는 데 쓴다.
+ */
+private fun presenceOf(distance: Float): Float = (ShrinkStepCount - distance).coerceIn(0f, 1f)
 
 private fun proximityOf(
     page: Int,
