@@ -1,36 +1,43 @@
 package com.happyhouse.challa.presentation.login
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.AuthRepository
+import com.happyhouse.challa.domain.result.onFailure
+import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel
     @Inject
-    constructor() :
-    BaseViewModel<LoginState, LoginIntent, LoginSideEffect>(
+    constructor(
+        private val authRepository: AuthRepository,
+    ) : BaseViewModel<LoginState, LoginIntent, LoginSideEffect>(
             initialState = LoginState(isLoading = false),
         ) {
         override fun onIntent(intent: LoginIntent) {
             when (intent) {
-                LoginIntent.LoginClick -> handleLoginClick()
+                is LoginIntent.LoginClick -> handleLoginClick(intent.acquireKakaoIdToken)
             }
         }
 
-        private fun handleLoginClick() {
+        private fun handleLoginClick(acquireKakaoIdToken: suspend () -> String) {
             if (currentState.isLoading) return
             viewModelScope.launch {
                 updateState { copy(isLoading = true) }
                 try {
-                    delay(1000L) // TODO JH: API 호출
-                    LoginSideEffect.LoginSuccess
+                    val idToken = acquireKakaoIdToken()
+                    authRepository
+                        .loginWithKakao(idToken)
+                        .onSuccess { sendEffect(LoginSideEffect.LoginSuccess) }
+                        .onFailure { sendEffect(LoginSideEffect.LoginFailed) }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    LoginSideEffect.LoginFailed
-                }.also { sideEffect ->
-                    sendEffect(sideEffect)
+                    sendEffect(LoginSideEffect.LoginFailed)
                 }
                 updateState { copy(isLoading = false) }
             }
