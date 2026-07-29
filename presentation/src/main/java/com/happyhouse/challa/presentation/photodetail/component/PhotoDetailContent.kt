@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.photodetail.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -60,7 +61,10 @@ fun PhotoDetailContent(
 
             is PhotoInfo.Loaded -> {
                 PhotoDetailPager(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier =
+                        Modifier
+                            .align(Alignment.Center)
+                            .fillMaxWidth(),
                     photos = photoInfo.photos,
                     pagerState = pagerState,
                 )

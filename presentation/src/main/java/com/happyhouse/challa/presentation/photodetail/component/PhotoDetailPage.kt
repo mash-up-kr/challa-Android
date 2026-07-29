@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -43,7 +43,8 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-internal const val PHOTO_DETAIL_ASPECT_RATIO = 358f / 477f
+// Figma(390x844) 기준 카드 높이. 화면 폭에 비례시키면 폴더블·태블릿에서 화면 밖으로 넘쳐서 높이는 고정한다.
+internal val PhotoCardHeight = 477.dp
 
 private val PhotoShape = RoundedCornerShape(44.5.dp)
 
@@ -184,7 +185,7 @@ private fun PhotoDetailPagePreview() {
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .aspectRatio(PHOTO_DETAIL_ASPECT_RATIO),
+                .height(PhotoCardHeight),
         photo =
             PhotoDetailUiModel(
                 id = 1L,
