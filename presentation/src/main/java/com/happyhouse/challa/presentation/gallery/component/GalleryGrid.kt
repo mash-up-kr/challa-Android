@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
@@ -99,14 +100,14 @@ private fun GalleryGridLayout(
     )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390)
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryFilmSlotGridPreview() {
     GalleryFilmSlotGrid(slots = previewGalleryFilmSlots())
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390)
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryPhotoGridPreview() {

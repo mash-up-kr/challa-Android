@@ -1,10 +1,12 @@
-package com.happyhouse.challa.presentation.designsystem.util
+package com.happyhouse.challa.presentation.util
 
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 import coil3.size.Size
 import coil3.transform.Transformation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 박스 블러를 3번 겹쳐 가우시안 블러를 근사하는 Coil 트랜스포메이션.
@@ -21,7 +23,12 @@ class BlurTransformation(
     override suspend fun transform(
         input: Bitmap,
         size: Size,
-    ): Bitmap {
+    ): Bitmap =
+        withContext(Dispatchers.Default) {
+            blur(input)
+        }
+
+    private fun blur(input: Bitmap): Bitmap {
         val scaled = input.scaleToSampleWidth()
         val width = scaled.width
         val height = scaled.height

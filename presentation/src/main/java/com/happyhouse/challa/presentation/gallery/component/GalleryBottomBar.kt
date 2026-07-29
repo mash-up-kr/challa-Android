@@ -19,15 +19,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
 
 private val CountdownButtonShape = RoundedCornerShape(12.dp)
+private val CountdownButtonMinHeight = 54.dp
+private val BottomBarTopPadding = 8.dp
+
+/**
+ * 하단 바 높이를 실제로 재기 전에 쓰는 예상값.
+ *
+ * 첫 프레임에 그리드 아래 여백이 튀지 않도록 [GalleryBottomBar]와 같은 수치를 맞춰 둔다.
+ */
+internal val GalleryBottomBarEstimatedHeight = BottomBarTopPadding + CountdownButtonMinHeight
 
 /**
  * 인화 전 하단 바
@@ -42,7 +53,7 @@ fun GalleryBottomBar(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = BottomBarTopPadding)
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
     ) {
@@ -70,14 +81,14 @@ private fun GalleryCountdownButton(
         modifier =
             modifier
                 .fillMaxWidth()
-                .heightIn(min = 54.dp)
+                .heightIn(min = CountdownButtonMinHeight)
                 .clip(CountdownButtonShape)
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .noRippleClickOnce(
                     role = Role.Button,
                     onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
                     onClick = onClick,
-                ),
+                ).padding(horizontal = 20.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -107,12 +118,12 @@ private fun Long.toCountdownText(): String {
 
 private fun Long.toTwoDigits(): String = toString().padStart(2, '0')
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390)
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryBottomBarPreview() {
     GalleryBottomBar(
-        remainingSeconds = 10_798L,
+        remainingSeconds = PREVIEW_REMAINING_SECONDS,
         onCountdownClick = {},
     )
 }

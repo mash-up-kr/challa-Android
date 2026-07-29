@@ -16,16 +16,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.transformations
+import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.designsystem.util.BlurTransformation
 import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
+import com.happyhouse.challa.presentation.util.BlurTransformation
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val FILM_CARD_ASPECT_RATIO = 3f / 4f
@@ -45,9 +50,13 @@ fun GalleryFilmCard(
     slot: GalleryFilmSlotUiModel,
     modifier: Modifier = Modifier,
 ) {
+    val slotDescription = stringResource(R.string.gallery_film_slot_description, slot.order)
+
     Box(
         modifier =
             modifier
+                // 번호 텍스트만 따로 읽히지 않도록 카드 전체를 한 덩어리로 읽힌다.
+                .semantics(mergeDescendants = true) { contentDescription = slotDescription }
                 .aspectRatio(FILM_CARD_ASPECT_RATIO)
                 .clip(FilmCardShape)
                 .background(FilmCardEmptyColor)
@@ -92,7 +101,7 @@ fun GalleryFilmCard(
     }
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111)
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryFilmCardPreview() {

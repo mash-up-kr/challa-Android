@@ -17,6 +17,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -24,6 +26,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
@@ -48,10 +51,13 @@ fun GalleryProfileBar(
 
     val visibleMembers = members.take(MAX_VISIBLE_MEMBER_COUNT)
     val overflowCount = members.size - visibleMembers.size
+    val membersDescription = stringResource(R.string.gallery_member_count_description, members.size)
 
     Row(
         modifier =
             modifier
+                // 아바타를 하나씩 읽어주면 소음이 되므로 바 전체를 한 덩어리로 읽힌다.
+                .semantics(mergeDescendants = true) { contentDescription = membersDescription }
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.staticWhite)
                 .padding(5.dp),
@@ -121,14 +127,14 @@ private fun Modifier.memberCircle(): Modifier =
             shape = CircleShape,
         ).clip(CircleShape)
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111)
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryProfileBarPreview() {
     GalleryProfileBar(members = previewGalleryMembers())
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "ProfileBar - 9명 초과")
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "ProfileBar - 9명 초과")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryProfileBarOverflowPreview() {

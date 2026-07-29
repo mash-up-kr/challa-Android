@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -19,7 +17,10 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
@@ -43,11 +44,11 @@ fun GalleryContent(
     modifier: Modifier = Modifier,
     extraBottomPadding: Dp = 0.dp,
 ) {
-    Column(modifier = modifier) {
+    Box(modifier = modifier) {
         when (val photoInfo = state.photoInfo) {
             PhotoInfo.Loading -> {
                 GalleryCenterBox {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = ChallaTheme.colors.labelNormal)
                 }
             }
 
@@ -96,17 +97,11 @@ fun GalleryContent(
  * 참여자 프로필 바가 그리드 첫 줄 위에 겹쳐 놓인다.
  */
 @Composable
-private fun ColumnScope.GalleryGridArea(
+private fun GalleryGridArea(
     members: ImmutableList<GalleryMemberUiModel>,
-    modifier: Modifier = Modifier,
     grid: @Composable () -> Unit,
 ) {
-    Box(
-        modifier =
-            modifier
-                .weight(1f)
-                .fillMaxWidth(),
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         grid()
 
         GalleryProfileBar(
@@ -120,12 +115,9 @@ private fun ColumnScope.GalleryGridArea(
  * 로딩/에러/빈 상태를 화면 중앙에 배치하는 영역
  */
 @Composable
-private fun ColumnScope.GalleryCenterBox(content: @Composable BoxScope.() -> Unit) {
+private fun GalleryCenterBox(content: @Composable BoxScope.() -> Unit) {
     Box(
-        modifier =
-            Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
         content = content,
     )
@@ -143,90 +135,79 @@ private fun GalleryMessage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(text = message)
+        Text(
+            text = message,
+            color = ChallaTheme.colors.labelNormal,
+            style = ChallaTheme.typography.bodyMedium.medium,
+        )
         if (actionLabel != null && onAction != null) {
             TextButton(onClick = onAction) {
-                Text(text = actionLabel)
+                Text(
+                    text = actionLabel,
+                    color = ChallaTheme.colors.primaryYellow,
+                    style = ChallaTheme.typography.bodyMedium.bold,
+                )
             }
         }
     }
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "Gallery - 인화 전")
+@ComposePreview(
+    showBackground = true,
+    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
+    widthDp = 390,
+    name = "Gallery - 인화 전",
+)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentWaitingPreview() {
-    GalleryContent(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            GalleryState(
-                roomName = "친구들과 강릉 여행",
-                members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Waiting(slots = previewGalleryFilmSlots(), remainingSeconds = 10_798L),
-            ),
-        onIntent = {},
+    GalleryContentPreviewTemplate(
+        photoInfo = PhotoInfo.Waiting(slots = previewGalleryFilmSlots(), remainingSeconds = PREVIEW_REMAINING_SECONDS),
     )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "Gallery - 인화 완료")
+@ComposePreview(
+    showBackground = true,
+    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
+    widthDp = 390,
+    name = "Gallery - 인화 완료",
+)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentPrintedPreview() {
-    GalleryContent(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            GalleryState(
-                roomName = "친구들과 강릉 여행",
-                members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Printed(previewGalleryPhotos()),
-            ),
-        onIntent = {},
-    )
+    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "Gallery - Empty")
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Empty")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentEmptyPreview() {
-    GalleryContent(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            GalleryState(
-                roomName = "친구들과 강릉 여행",
-                members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Empty,
-            ),
-        onIntent = {},
-    )
+    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Empty)
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "Gallery - Loading")
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Loading")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentLoadingPreview() {
-    GalleryContent(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            GalleryState(
-                roomName = "친구들과 강릉 여행",
-                members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Loading,
-            ),
-        onIntent = {},
-    )
+    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Loading)
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "Gallery - Error")
+@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Error")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentErrorPreview() {
+    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Error)
+}
+
+@Composable
+private fun GalleryContentPreviewTemplate(photoInfo: PhotoInfo) {
     GalleryContent(
         modifier = Modifier.fillMaxSize(),
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
                 members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Error,
+                photoInfo = photoInfo,
             ),
         onIntent = {},
     )

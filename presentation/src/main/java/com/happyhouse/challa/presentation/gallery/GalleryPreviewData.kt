@@ -6,6 +6,9 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 
+/** @Preview 전용 남은 시간 (2:59:58) */
+internal const val PREVIEW_REMAINING_SECONDS = 10_798L
+
 /**
  * @Preview 전용 mock 참여자 목록
  */

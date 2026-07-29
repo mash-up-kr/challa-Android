@@ -12,6 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
+import kotlinx.coroutines.launch
 
 @Composable
 fun GalleryRoute(
@@ -33,7 +34,11 @@ fun GalleryRoute(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId)
-                GallerySideEffect.PrintWaiting -> snackbarHostState.showSnackbar(printWaitingMessage)
+                GallerySideEffect.PrintWaiting -> {
+                    // showSnackbar는 스낵바가 사라질 때까지 suspend 하므로,
+                    // 그대로 두면 후속 SideEffect 수집이 막힌다.
+                    launch { snackbarHostState.showSnackbar(printWaitingMessage) }
+                }
             }
         }
     }
