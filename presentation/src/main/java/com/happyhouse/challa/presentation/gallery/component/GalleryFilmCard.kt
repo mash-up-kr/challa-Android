@@ -19,12 +19,11 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-// 디자인 기준 82 x 109.33 필름 카드 비율
-private const val FILM_CARD_ASPECT_RATIO = 82f / 109.33f
+private const val FILM_CARD_ASPECT_RATIO = 3f / 4f
 
 private val FilmCardShape = RoundedCornerShape(10.dp)
 
-// TODO: 디자인 토큰에 없는 값이라 컴포넌트 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
+// TODO: 디자인 토큰에 없는 값이라 컴포넌트 로컬 상수로 둔다. 토큰 추가되면 교체
 private val FilmCardEmptyColor = Color.White.copy(alpha = 0.05f)
 
 /**
@@ -52,7 +51,7 @@ fun GalleryFilmCard(
             modifier =
                 Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = 9.dp, bottom = 9.dp),
+                    .padding(start = 10.dp, bottom = 10.dp),
             text = order.toString(),
             color = ChallaTheme.colors.labelSubtle,
             style = ChallaTheme.typography.bodyLarge.bold,

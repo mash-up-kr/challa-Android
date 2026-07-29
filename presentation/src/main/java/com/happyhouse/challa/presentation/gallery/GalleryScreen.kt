@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.gallery.component.GalleryBottomBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
-import com.happyhouse.challa.presentation.gallery.component.GalleryToast
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
 import com.happyhouse.challa.presentation.gallery.component.galleryBackgroundGlow
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
@@ -73,15 +72,14 @@ fun GalleryScreen(
                 )
             }
 
+            // TODO: #53에서 들어오는 ChallaSnackbarHost + ChallaToastVisuals로 교체할 것.
             SnackbarHost(
                 modifier =
                     Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 8.dp),
                 hostState = snackbarHostState,
-            ) { snackbarData ->
-                GalleryToast(message = snackbarData.visuals.message)
-            }
+            )
         }
     }
 }

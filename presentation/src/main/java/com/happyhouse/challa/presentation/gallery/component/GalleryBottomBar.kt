@@ -31,8 +31,6 @@ private val CountdownButtonShape = RoundedCornerShape(12.dp)
 
 /**
  * 인화 전 하단 바
- *
- * 디자인상 그리드를 밀지 않고 위에 떠 있다.
  */
 @Composable
 fun GalleryBottomBar(
@@ -79,11 +77,15 @@ private fun GalleryCountdownButton(
                     role = Role.Button,
                     onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
                     onClick = onClick,
-                ).padding(horizontal = 20.dp, vertical = 14.dp),
+                ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = stringResource(R.string.gallery_print_countdown, remainingSeconds.toCountdownText()),
+            text =
+                stringResource(
+                    R.string.gallery_print_countdown,
+                    remainingSeconds.toCountdownText(),
+                ),
             color = ChallaTheme.colors.labelAlternative,
             style = ChallaTheme.typography.bodyLarge.bold,
             textAlign = TextAlign.Center,
@@ -92,7 +94,7 @@ private fun GalleryCountdownButton(
 }
 
 /**
- * 남은 초를 `2:59:58` 형태로 바꾼다.
+ * 남은 시간을 `2:59:58` 형태로 바꾼다.
  */
 private fun Long.toCountdownText(): String {
     val safeSeconds = coerceAtLeast(0L)

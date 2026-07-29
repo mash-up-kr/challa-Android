@@ -7,8 +7,5 @@ sealed interface GallerySideEffect : UiSideEffect {
         val photoId: Long,
     ) : GallerySideEffect
 
-    /**
-     * 아직 인화가 끝나지 않아 사진을 볼 수 없는 상태
-     */
     data object PrintWaiting : GallerySideEffect
 }

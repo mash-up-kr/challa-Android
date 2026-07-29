@@ -31,7 +31,6 @@ import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-// 방 입장 순으로 9명까지만 노출하고, 나머지는 +N명으로 묶는다.
 private const val MAX_VISIBLE_MEMBER_COUNT = 9
 
 private val MemberAvatarSize = 30.dp
@@ -39,7 +38,6 @@ private val MemberAvatarOverlap = 5.dp
 
 /**
  * 방 참여자 프로필 바
- * 흰 알약 배경 위에 프로필 이미지가 겹쳐서 놓인다.
  */
 @Composable
 fun GalleryProfileBar(
