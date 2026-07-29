@@ -51,7 +51,7 @@ fun ChallaList(
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                modifier = Modifier.size(ChallaIconSize.XSMALL.dp),
+                modifier = Modifier.size(ChallaIconSize.V18.dp),
                 tint = ChallaTheme.colors.labelNeutral,
             )
         }

@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
@@ -44,6 +45,7 @@ internal fun CameraRoomInfo(
         Row(
             modifier =
                 Modifier
+                    .widthIn(max = 240.dp)
                     .clip(RoundedCornerShape(1000.dp))
                     .background(ChallaTheme.colors.backgroundLevel3)
                     .noRippleClickOnce(
@@ -55,7 +57,7 @@ internal fun CameraRoomInfo(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                modifier = Modifier.widthIn(max = 240.dp),
+                modifier = Modifier.weight(weight = 1f, fill = false),
                 text = roomName,
                 color = ChallaTheme.colors.labelNormal,
                 overflow = TextOverflow.Ellipsis,
@@ -66,7 +68,7 @@ internal fun CameraRoomInfo(
             Icon(
                 painter = painterResource(R.drawable.ic_unfold_more),
                 contentDescription = stringResource(R.string.camera_room_selector_description),
-                modifier = Modifier.size(ChallaIconSize.SMALL.dp),
+                modifier = Modifier.size(ChallaIconSize.V20.dp),
                 tint = ChallaTheme.colors.labelNeutral,
             )
         }
@@ -74,12 +76,7 @@ internal fun CameraRoomInfo(
         Row(modifier = Modifier.padding(top = 12.dp)) {
             Text(
                 text = stringResource(R.string.camera_remaining_count, remainingCount),
-                color =
-                    when {
-                        remainingCount <= 0 -> ChallaTheme.colors.labelDisable
-                        remainingCount <= 3 -> ChallaTheme.colors.primaryOrange
-                        else -> ChallaTheme.colors.primaryYellow
-                    },
+                color = RemainingCaptureStatus.from(remainingCount).toContentColor(),
                 style = ChallaTheme.typography.bodyXSmall.medium,
             )
             Text(
@@ -97,10 +94,10 @@ private fun CameraRoomInfoPreview() {
     CameraRoomInfoPreviewContent(remainingCount = 6)
 }
 
-@ComposePreview(name = "3장 남음", showBackground = true)
+@ComposePreview(name = "5장 남음", showBackground = true)
 @Composable
-private fun CameraRoomInfoThreeRemainingPreview() {
-    CameraRoomInfoPreviewContent(remainingCount = 3)
+private fun CameraRoomInfoLowRemainingPreview() {
+    CameraRoomInfoPreviewContent(remainingCount = 5)
 }
 
 @ComposePreview(name = "0장 남음", showBackground = true)
@@ -119,7 +116,7 @@ private fun CameraRoomInfoPreviewContent(remainingCount: Int) {
                     .padding(12.dp),
         ) {
             CameraRoomInfo(
-                roomName = "해피하우스강릉여행",
+                roomName = "해피하우스강릉여행해피하우스강릉여행",
                 remainingCount = remainingCount,
                 totalCount = 24,
                 onClick = {},
@@ -127,3 +124,11 @@ private fun CameraRoomInfoPreviewContent(remainingCount: Int) {
         }
     }
 }
+
+@Composable
+fun RemainingCaptureStatus.toContentColor(): Color =
+    when (this) {
+        RemainingCaptureStatus.UNAVAILABLE -> ChallaTheme.colors.labelDisable
+        RemainingCaptureStatus.LOW -> ChallaTheme.colors.statusDestructive
+        RemainingCaptureStatus.AVAILABLE -> ChallaTheme.colors.primaryYellow
+    }
