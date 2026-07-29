@@ -24,6 +24,7 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
+import com.happyhouse.challa.presentation.gallery.previewGalleryFilmSlots
 import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
 import kotlinx.collections.immutable.ImmutableList
@@ -71,7 +72,7 @@ fun GalleryContent(
             is PhotoInfo.Waiting -> {
                 GalleryGridArea(members = state.members) {
                     GalleryFilmSlotGrid(
-                        slotCount = photoInfo.slotCount,
+                        slots = photoInfo.slots,
                         extraBottomPadding = extraBottomPadding,
                     )
                 }
@@ -161,7 +162,7 @@ private fun GalleryContentWaitingPreview() {
             GalleryState(
                 roomName = "친구들과 강릉 여행",
                 members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Waiting(slotCount = 24, remainingSeconds = 10_798L),
+                photoInfo = PhotoInfo.Waiting(slots = previewGalleryFilmSlots(), remainingSeconds = 10_798L),
             ),
         onIntent = {},
     )

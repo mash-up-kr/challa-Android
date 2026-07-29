@@ -21,7 +21,7 @@ data class GalleryState(
         data object Empty : PhotoInfo
 
         data class Waiting(
-            val slotCount: Int,
+            val slots: ImmutableList<GalleryFilmSlotUiModel>,
             val remainingSeconds: Long,
         ) : PhotoInfo
 
@@ -30,6 +30,17 @@ data class GalleryState(
         ) : PhotoInfo
     }
 }
+
+/**
+ * 인화 전 필름 슬롯 UI 모델
+ *
+ * @param imageUrl 아직 촬영되지 않은 자리는 null
+ */
+@Immutable
+data class GalleryFilmSlotUiModel(
+    val order: Int,
+    val imageUrl: String?,
+)
 
 /**
  * 방 참여자 UI 모델

@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.gallery
 
+import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import kotlinx.collections.immutable.ImmutableList
@@ -14,6 +15,18 @@ internal fun previewGalleryMembers(count: Int = 6): ImmutableList<GalleryMemberU
             GalleryMemberUiModel(
                 id = index.toLong(),
                 profileImageUrl = "",
+            )
+        }.toPersistentList()
+
+/**
+ * @Preview 전용 mock 필름 슬롯 목록
+ */
+internal fun previewGalleryFilmSlots(count: Int = 24): ImmutableList<GalleryFilmSlotUiModel> =
+    (0 until count)
+        .map { index ->
+            GalleryFilmSlotUiModel(
+                order = index + 1,
+                imageUrl = null,
             )
         }.toPersistentList()
 

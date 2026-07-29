@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.gallery
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
+import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
@@ -121,10 +122,20 @@ class GalleryViewModel @AssistedInject constructor(
         delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
         printCompleteAtMillis = System.currentTimeMillis() + MOCK_REMAINING_SECONDS * MILLIS_PER_SECOND
         return PhotoInfo.Waiting(
-            slotCount = MOCK_PHOTO_COUNT,
+            slots = loadMockFilmSlots(),
             remainingSeconds = MOCK_REMAINING_SECONDS,
         )
     }
+
+    // TODO: 실제 API 연동 전까지 쓰는 mock 필름 슬롯
+    private fun loadMockFilmSlots(): ImmutableList<GalleryFilmSlotUiModel> =
+        (0 until MOCK_PHOTO_COUNT)
+            .map { index ->
+                GalleryFilmSlotUiModel(
+                    order = index + 1,
+                    imageUrl = "https://picsum.photos/seed/${roomId}_$index/300/400",
+                )
+            }.toPersistentList()
 
     // TODO: 실제 API 연동 전까지 쓰는 mock 참여자
     private fun loadMockMembers(): ImmutableList<GalleryMemberUiModel> =

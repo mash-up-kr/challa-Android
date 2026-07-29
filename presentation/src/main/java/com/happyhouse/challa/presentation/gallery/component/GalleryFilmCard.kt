@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,10 +14,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.transformations
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.BlurTransformation
+import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val FILM_CARD_ASPECT_RATIO = 3f / 4f
@@ -28,11 +37,12 @@ private val FilmCardEmptyColor = Color.White.copy(alpha = 0.05f)
 
 /**
  * 인화 전 필름 슬롯 1칸
- * 아직 공개되지 않은 자리라 사진 없이 번호만 노출한다.
+ *
+ * 아직 공개 전이라 사진이 있어도 흐리게 덮어 번호만 또렷하게 보인다.
  */
 @Composable
 fun GalleryFilmCard(
-    order: Int,
+    slot: GalleryFilmSlotUiModel,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -47,12 +57,35 @@ fun GalleryFilmCard(
                     shape = FilmCardShape,
                 ),
     ) {
+        if (slot.imageUrl != null) {
+            AsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(slot.imageUrl)
+                        // TODO: 서버가 인화 전용 블러 이미지를 내려주면 이중 블러가 되므로 제거할 것.
+                        .transformations(BlurTransformation())
+                        .crossfade(true)
+                        .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
+
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(FilmCardEmptyColor),
+            )
+        }
+
         Text(
             modifier =
                 Modifier
                     .align(Alignment.BottomStart)
                     .padding(start = 10.dp, bottom = 10.dp),
-            text = order.toString(),
+            text = slot.order.toString(),
             color = ChallaTheme.colors.labelSubtle,
             style = ChallaTheme.typography.bodyLarge.bold,
         )
@@ -65,6 +98,6 @@ fun GalleryFilmCard(
 private fun GalleryFilmCardPreview() {
     GalleryFilmCard(
         modifier = Modifier.width(82.dp),
-        order = 1,
+        slot = GalleryFilmSlotUiModel(order = 1, imageUrl = null),
     )
 }

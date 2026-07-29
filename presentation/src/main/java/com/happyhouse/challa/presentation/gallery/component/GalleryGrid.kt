@@ -12,7 +12,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
+import com.happyhouse.challa.presentation.gallery.previewGalleryFilmSlots
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
 import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -30,7 +32,7 @@ private val GalleryGridVerticalPadding = 20.dp
  */
 @Composable
 fun GalleryFilmSlotGrid(
-    slotCount: Int,
+    slots: ImmutableList<GalleryFilmSlotUiModel>,
     modifier: Modifier = Modifier,
     extraBottomPadding: Dp = 0.dp,
 ) {
@@ -38,8 +40,11 @@ fun GalleryFilmSlotGrid(
         modifier = modifier,
         extraBottomPadding = extraBottomPadding,
     ) {
-        items(count = slotCount) { index ->
-            GalleryFilmCard(order = index + 1)
+        items(
+            items = slots,
+            key = { slot -> slot.order },
+        ) { slot ->
+            GalleryFilmCard(slot = slot)
         }
     }
 }
@@ -98,7 +103,7 @@ private fun GalleryGridLayout(
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryFilmSlotGridPreview() {
-    GalleryFilmSlotGrid(slotCount = 24)
+    GalleryFilmSlotGrid(slots = previewGalleryFilmSlots())
 }
 
 @ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390)

@@ -127,7 +127,7 @@ private fun GalleryScreenPreview() {
             GalleryState(
                 roomName = "친구들과 강릉 여행",
                 members = previewGalleryMembers(),
-                photoInfo = PhotoInfo.Waiting(slotCount = 24, remainingSeconds = 10_798L),
+                photoInfo = PhotoInfo.Waiting(slots = previewGalleryFilmSlots(), remainingSeconds = 10_798L),
             ),
         onIntent = {},
         onBackClick = {},
