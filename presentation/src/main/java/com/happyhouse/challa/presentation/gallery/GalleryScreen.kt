@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.gallery
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,7 @@ import com.happyhouse.challa.presentation.gallery.component.GalleryBottomBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
 import com.happyhouse.challa.presentation.gallery.component.GalleryToast
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
+import com.happyhouse.challa.presentation.gallery.component.galleryBackgroundGlow
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
@@ -36,8 +38,11 @@ fun GalleryScreen(
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
-        modifier = modifier,
-        containerColor = GalleryBackgroundColor,
+        modifier =
+            modifier
+                .background(GalleryBackgroundColor)
+                .galleryBackgroundGlow(),
+        containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             GalleryTopBar(
