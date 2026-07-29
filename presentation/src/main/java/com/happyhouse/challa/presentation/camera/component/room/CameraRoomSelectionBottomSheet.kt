@@ -22,7 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,15 +91,8 @@ private fun CameraRoomSelectionContent(
     onRoomClick: (CameraRoomUiModel) -> Unit,
 ) {
     val selectedRoomIndex = rooms.indexOfFirst { it.id == selectedRoomId }
-    val firstVisibleRoomIndex = maxOf(0, selectedRoomIndex - 3)
-    val listState =
-        rememberLazyListState(
-            initialFirstVisibleItemIndex = firstVisibleRoomIndex,
-        )
-
-    LaunchedEffect(firstVisibleRoomIndex) {
-        listState.scrollToItem(firstVisibleRoomIndex)
-    }
+    val firstVisibleRoomIndex = maxOf(0, selectedRoomIndex - ROOM_ITEMS_BEFORE_SELECTION)
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = firstVisibleRoomIndex)
 
     HorizontalDivider(
         modifier = Modifier.padding(top = 12.dp),
@@ -240,3 +232,5 @@ private fun CameraRoomSelectionItem(
         }
     }
 }
+
+private const val ROOM_ITEMS_BEFORE_SELECTION = 3

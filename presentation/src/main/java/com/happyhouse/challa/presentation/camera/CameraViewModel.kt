@@ -11,6 +11,7 @@ import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
+import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.model.toUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -25,10 +26,7 @@ class CameraViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
     private val roomRepository: RoomRepository,
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
-        initialState =
-            CameraState(
-                selectedRoomId = roomId,
-            ),
+        initialState = CameraState(selectedRoomId = roomId),
     ) {
     private var nextCaptureRequestId = 0L
 
@@ -115,7 +113,7 @@ class CameraViewModel @AssistedInject constructor(
                 Timber.w("선택된 방이 없어 촬영 요청을 무시합니다")
                 return
             }
-        if (room.remainingCount <= 0) {
+        if (!room.remainingCaptureStatus.isCaptureAvailable) {
             viewModelScope.launch {
                 sendEffect(CameraSideEffect.NoRemainingCaptures)
             }
