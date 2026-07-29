@@ -39,7 +39,7 @@ import timber.log.Timber
  * [bindingRetryKey]가 바뀐 때는 Controller와 PreviewView를 재생성해 초기화부터 재시도합니다.
  * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
  * Android 13 이상에서는 모든 LUT를 IO 스레드에서 미리 읽고 [selectedFilter]를 프리뷰에 적용합니다.
- * LUT가 준비되기 전에는 기존 필터를 유지해 필터 전환 중 원본 프레임이 노출되지 않게 합니다.
+ * LUT가 준비되지 않았거나 로드에 실패하면 선택한 필터의 ColorMatrix fallback을 적용합니다.
  * 실패한 제어 요청은 기록합니다.
  * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
  * Composable이 Composition에서 제거되면 Controller를 해제하고 진행 중인 촬영 코루틴을 취소합니다.

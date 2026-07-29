@@ -16,8 +16,8 @@ import com.happyhouse.challa.presentation.camera.model.CameraFilter
 /**
  * 선택한 필터를 PreviewView의 TextureView 출력에 적용합니다.
  *
- * Android 13 이상에서는 [lutBitmap]을 RuntimeShader로 삼선형 보간하고, LUT가 아직 준비되지
- * 않았다면 기존 필터를 유지합니다. 이전 버전에서는 [CameraFilter.fallbackColorMatrix]를 사용하며,
+ * Android 13 이상에서는 준비된 [lutBitmap]을 RuntimeShader로 삼선형 보간합니다.
+ * LUT가 준비되지 않았거나 로드에 실패한 경우와 이전 버전에서는 [CameraFilter.fallbackColorMatrix]를 사용하며,
  * [CameraFilter.ORIGINAL]은 적용 중인 모든 색상 효과를 제거합니다.
  *
  * @param filter 새로 적용할 필터
@@ -27,23 +27,15 @@ internal fun View.applyCameraFilter(
     filter: CameraFilter,
     lutBitmap: Bitmap?,
 ) {
-    // 새 LUT가 준비될 때까지 기존 필터를 유지해 원본 화면이 순간적으로 노출되지 않게 합니다.
-    if (
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-        filter != CameraFilter.ORIGINAL &&
-        lutBitmap == null
-    ) {
-        return
-    }
-
     clearCameraFilter()
 
     if (filter == CameraFilter.ORIGINAL) return
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        if (lutBitmap != null) {
-            setRenderEffect(createLutRenderEffect(lutBitmap))
-        }
+    if (
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        lutBitmap != null
+    ) {
+        setRenderEffect(createLutRenderEffect(lutBitmap))
         return
     }
 
