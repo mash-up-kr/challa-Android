@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.gallery.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -39,15 +40,26 @@ fun GalleryBottomBar(
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
     ) {
-        ChallaTextButton(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clickOnce(role = Role.Button, onClick = onCountdownClick),
-            text = stringResource(R.string.gallery_print_countdown, remainingSeconds.toCountdownText()),
-            onClick = {},
-            enabled = false,
-        )
+        Box {
+            ChallaTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.gallery_print_countdown, remainingSeconds.toCountdownText()),
+                onClick = {},
+                enabled = false,
+            )
+
+            // 비활성 버튼은 터치를 삼키기만 하므로, 위에 클릭 영역을 덮어 안내로 이어준다.
+            Box(
+                modifier =
+                    Modifier
+                        .matchParentSize()
+                        .clickOnce(
+                            role = Role.Button,
+                            onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
+                            onClick = onCountdownClick,
+                        ),
+            )
+        }
     }
 }
 
