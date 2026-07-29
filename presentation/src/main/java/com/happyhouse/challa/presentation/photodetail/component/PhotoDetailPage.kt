@@ -17,6 +17,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
@@ -53,10 +58,14 @@ fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
     modifier: Modifier = Modifier,
 ) {
+    // 로딩 중과 실패를 구분해 보여주기 위한 UI-local 상태. 페이지가 재사용돼도 URL이 바뀌면 초기화된다.
+    var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(false) }
+
     Box(
         modifier =
             modifier
                 .clip(PhotoShape)
+                .background(ChallaTheme.colors.backgroundLevel2)
                 .border(1.dp, ChallaTheme.colors.lineNormal, PhotoShape),
     ) {
         AsyncImage(
@@ -69,7 +78,12 @@ fun PhotoDetailPage(
                     .build(),
             contentDescription = stringResource(R.string.photo_detail_photo_content_description),
             contentScale = ContentScale.Crop,
+            onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
         )
+
+        if (isLoadFailed) {
+            PhotoLoadFailure(modifier = Modifier.align(Alignment.Center))
+        }
 
         Spacer(
             modifier =
@@ -84,6 +98,31 @@ fun PhotoDetailPage(
                     .align(Alignment.TopCenter)
                     .padding(top = 32.dp),
             photo = photo,
+        )
+    }
+}
+
+/**
+ * 개별 사진 로드 실패 표시. 전체 목록 로드 실패는 PhotosLoadFailed 토스트가 담당한다.
+ */
+@Composable
+private fun PhotoLoadFailure(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            modifier = Modifier.size(32.dp),
+            painter = painterResource(id = ChallaIcons.Error),
+            contentDescription = null,
+            tint = ChallaTheme.colors.labelDisable,
+        )
+
+        Text(
+            text = stringResource(R.string.photo_detail_load_failure),
+            color = ChallaTheme.colors.labelDisable,
+            style = ChallaTheme.typography.bodySmall.medium,
         )
     }
 }
@@ -127,6 +166,13 @@ private fun PhotographerInfo(
             style = ChallaTheme.typography.bodySmall.medium,
         )
     }
+}
+
+@ComposePreview(showBackground = true, backgroundColor = 0xFF242424, name = "PhotoDetailPage - 로드 실패")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoLoadFailurePreview() {
+    PhotoLoadFailure()
 }
 
 @ComposePreview(showBackground = true)
