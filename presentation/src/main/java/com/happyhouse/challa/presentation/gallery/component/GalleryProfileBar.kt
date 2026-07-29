@@ -1,0 +1,138 @@
+package com.happyhouse.challa.presentation.gallery.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
+import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
+import kotlinx.collections.immutable.ImmutableList
+import androidx.compose.ui.tooling.preview.Preview as ComposePreview
+
+// 방 입장 순으로 9명까지만 노출하고, 나머지는 +N명으로 묶는다.
+private const val MAX_VISIBLE_MEMBER_COUNT = 9
+
+private val MemberAvatarSize = 30.dp
+private val MemberAvatarOverlap = 5.dp
+
+/**
+ * 방 참여자 프로필 바
+ * 흰 알약 배경 위에 프로필 이미지가 겹쳐서 놓인다.
+ */
+@Composable
+fun GalleryProfileBar(
+    members: ImmutableList<GalleryMemberUiModel>,
+    modifier: Modifier = Modifier,
+) {
+    if (members.isEmpty()) return
+
+    val visibleMembers = members.take(MAX_VISIBLE_MEMBER_COUNT)
+    val overflowCount = members.size - visibleMembers.size
+
+    Row(
+        modifier =
+            modifier
+                .clip(CircleShape)
+                .background(ChallaTheme.colors.staticWhite)
+                .padding(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(-MemberAvatarOverlap),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        visibleMembers.forEach { member ->
+            MemberAvatar(member = member)
+        }
+
+        if (overflowCount > 0) {
+            MemberOverflowBadge(count = overflowCount)
+        }
+    }
+}
+
+@Composable
+private fun MemberAvatar(
+    member: GalleryMemberUiModel,
+    modifier: Modifier = Modifier,
+) {
+    AsyncImage(
+        modifier = modifier.memberCircle(),
+        model =
+            ImageRequest
+                .Builder(LocalContext.current)
+                .data(member.profileImageUrl)
+                .crossfade(true)
+                .build(),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        placeholder = painterResource(ChallaIcons.Profile),
+        error = painterResource(ChallaIcons.Profile),
+    )
+}
+
+@Composable
+private fun MemberOverflowBadge(
+    count: Int,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .memberCircle()
+                .background(ChallaTheme.colors.backgroundLevel2),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.gallery_member_overflow, count),
+            color = ChallaTheme.colors.labelNormal,
+            style = ChallaTheme.typography.descriptionSmall.bold,
+        )
+    }
+}
+
+/**
+ * 겹쳐 놓인 프로필끼리 구분되도록 흰 테두리를 두른 원형 영역
+ */
+@Composable
+private fun Modifier.memberCircle(): Modifier =
+    this
+        .size(MemberAvatarSize)
+        .border(
+            width = 1.5.dp,
+            color = ChallaTheme.colors.staticWhite,
+            shape = CircleShape,
+        ).clip(CircleShape)
+
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryProfileBarPreview() {
+    GalleryProfileBar(members = previewGalleryMembers())
+}
+
+@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, name = "ProfileBar - 9명 초과")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryProfileBarOverflowPreview() {
+    GalleryProfileBar(members = previewGalleryMembers(count = 12))
+}

@@ -20,10 +20,12 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
-import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
+import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
-import kotlinx.collections.immutable.toPersistentList
+import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
+import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
+import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
@@ -63,26 +65,45 @@ fun GalleryContent(
             }
 
             is PhotoInfo.Waiting -> {
-                GalleryFilmSlotGrid(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                    slotCount = photoInfo.slotCount,
-                )
+                GalleryGridArea(members = state.members) {
+                    GalleryFilmSlotGrid(slotCount = photoInfo.slotCount)
+                }
             }
 
             is PhotoInfo.Printed -> {
-                GalleryPhotoGrid(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                    photos = photoInfo.photos,
-                    onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
-                )
+                GalleryGridArea(members = state.members) {
+                    GalleryPhotoGrid(
+                        photos = photoInfo.photos,
+                        onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
+                    )
+                }
             }
         }
+    }
+}
+
+/**
+ * 그리드 영역
+ * 참여자 프로필 바가 그리드 첫 줄 위에 겹쳐 놓인다.
+ */
+@Composable
+private fun ColumnScope.GalleryGridArea(
+    members: ImmutableList<GalleryMemberUiModel>,
+    modifier: Modifier = Modifier,
+    grid: @Composable () -> Unit,
+) {
+    Box(
+        modifier =
+            modifier
+                .weight(1f)
+                .fillMaxWidth(),
+    ) {
+        grid()
+
+        GalleryProfileBar(
+            modifier = Modifier.align(Alignment.TopCenter),
+            members = members,
+        )
     }
 }
 
@@ -131,6 +152,7 @@ private fun GalleryContentWaitingPreview() {
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
+                members = previewGalleryMembers(),
                 photoInfo = PhotoInfo.Waiting(slotCount = 24),
             ),
         onIntent = {},
@@ -141,22 +163,13 @@ private fun GalleryContentWaitingPreview() {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentPrintedPreview() {
-    val photos =
-        (0 until 24)
-            .map { index ->
-                GalleryPhotoUiModel(
-                    id = index.toLong(),
-                    order = index + 1,
-                    imageUrl = "",
-                )
-            }.toPersistentList()
-
     GalleryContent(
         modifier = Modifier.fillMaxSize(),
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
-                photoInfo = PhotoInfo.Printed(photos),
+                members = previewGalleryMembers(),
+                photoInfo = PhotoInfo.Printed(previewGalleryPhotos()),
             ),
         onIntent = {},
     )
@@ -171,6 +184,7 @@ private fun GalleryContentEmptyPreview() {
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
+                members = previewGalleryMembers(),
                 photoInfo = PhotoInfo.Empty,
             ),
         onIntent = {},
@@ -186,6 +200,7 @@ private fun GalleryContentLoadingPreview() {
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
+                members = previewGalleryMembers(),
                 photoInfo = PhotoInfo.Loading,
             ),
         onIntent = {},
@@ -201,6 +216,7 @@ private fun GalleryContentErrorPreview() {
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
+                members = previewGalleryMembers(),
                 photoInfo = PhotoInfo.Error,
             ),
         onIntent = {},

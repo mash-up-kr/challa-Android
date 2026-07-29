@@ -1,0 +1,31 @@
+package com.happyhouse.challa.presentation.gallery
+
+import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
+import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
+
+/**
+ * @Preview 전용 mock 참여자 목록
+ */
+internal fun previewGalleryMembers(count: Int = 6): ImmutableList<GalleryMemberUiModel> =
+    (0 until count)
+        .map { index ->
+            GalleryMemberUiModel(
+                id = index.toLong(),
+                profileImageUrl = "",
+            )
+        }.toPersistentList()
+
+/**
+ * @Preview 전용 mock 사진 목록
+ */
+internal fun previewGalleryPhotos(count: Int = 24): ImmutableList<GalleryPhotoUiModel> =
+    (0 until count)
+        .map { index ->
+            GalleryPhotoUiModel(
+                id = index.toLong(),
+                order = index + 1,
+                imageUrl = "",
+            )
+        }.toPersistentList()

@@ -12,8 +12,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
+import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val GALLERY_COLUMN_COUNT = 4
@@ -84,18 +84,8 @@ private fun GalleryFilmSlotGridPreview() {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryPhotoGridPreview() {
-    val photos =
-        (0 until 12)
-            .map { index ->
-                GalleryPhotoUiModel(
-                    id = index.toLong(),
-                    order = index + 1,
-                    imageUrl = "",
-                )
-            }.toPersistentList()
-
     GalleryPhotoGrid(
-        photos = photos,
+        photos = previewGalleryPhotos(count = 12),
         onPhotoClick = {},
     )
 }
