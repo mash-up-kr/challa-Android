@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
@@ -31,12 +32,15 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 /**
  * 갤러리 본문
  * 로딩/에러/빈/인화 전/인화 완료 분기
+ *
+ * @param extraBottomPadding 위에 떠 있는 하단 바에 그리드 마지막 줄이 가리지 않도록 더하는 여백
  */
 @Composable
 fun GalleryContent(
     state: GalleryState,
     onIntent: (GalleryIntent) -> Unit,
     modifier: Modifier = Modifier,
+    extraBottomPadding: Dp = 0.dp,
 ) {
     Column(modifier = modifier) {
         when (val photoInfo = state.photoInfo) {
@@ -66,7 +70,10 @@ fun GalleryContent(
 
             is PhotoInfo.Waiting -> {
                 GalleryGridArea(members = state.members) {
-                    GalleryFilmSlotGrid(slotCount = photoInfo.slotCount)
+                    GalleryFilmSlotGrid(
+                        slotCount = photoInfo.slotCount,
+                        extraBottomPadding = extraBottomPadding,
+                    )
                 }
             }
 
@@ -75,6 +82,7 @@ fun GalleryContent(
                     GalleryPhotoGrid(
                         photos = photoInfo.photos,
                         onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
+                        extraBottomPadding = extraBottomPadding,
                     )
                 }
             }
