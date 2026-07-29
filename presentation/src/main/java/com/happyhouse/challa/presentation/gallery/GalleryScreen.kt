@@ -50,16 +50,6 @@ fun GalleryScreen(
                 onBackClick = onBackClick,
             )
         },
-        bottomBar = {
-            // 인화 전에만 남은 시간 안내가 필요하다.
-            val photoInfo = state.photoInfo
-            if (photoInfo is PhotoInfo.Waiting) {
-                GalleryBottomBar(
-                    remainingSeconds = photoInfo.remainingSeconds,
-                    onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
-                )
-            }
-        },
     ) { innerPadding ->
         Box(
             modifier =
@@ -72,6 +62,16 @@ fun GalleryScreen(
                 state = state,
                 onIntent = onIntent,
             )
+
+            // 디자인상 하단 바는 그리드를 밀지 않고 위에 떠 있다.
+            val photoInfo = state.photoInfo
+            if (photoInfo is PhotoInfo.Waiting) {
+                GalleryBottomBar(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    remainingSeconds = photoInfo.remainingSeconds,
+                    onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
+                )
+            }
 
             SnackbarHost(
                 modifier =
