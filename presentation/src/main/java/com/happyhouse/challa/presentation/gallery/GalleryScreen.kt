@@ -80,7 +80,6 @@ private fun GalleryScaffold(
                     .padding(innerPadding),
         ) {
             val density = LocalDensity.current
-            // 인화 전에만 하단 바를 두고, 촬영 중이면 CTA를 인화 대기면 카운트다운을 보여준다.
             val film = state.photoInfo as? PhotoInfo.Film
             val waiting = film as? PhotoInfo.Waiting
 
@@ -110,7 +109,7 @@ private fun GalleryScaffold(
                 }
 
             // 디자인상 하단 바는 그리드를 밀지 않고 위에 떠 있다.
-            // 두 바를 따로 두면 서로 교체될 때 크로스페이드되고, 사라지는 바가 남의 값을 그릴 일도 없다.
+            // 따로 두면 서로 교체될 때 크로스페이드되고, 사라지는 바가 남의 값을 그리지 않는다.
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 AnimatedVisibility(
                     visible = film is PhotoInfo.Shooting,
@@ -157,7 +156,7 @@ private fun GalleryScreenWaitingPreview() {
     GalleryScreenPreviewTemplate(
         photoInfo =
             PhotoInfo.Waiting(
-                slots = previewGalleryFilmSlots(capturedCount = 24),
+                slots = previewGalleryFilmSlots(capturedCount = PREVIEW_FILM_SLOT_COUNT),
                 remainingSeconds = PREVIEW_REMAINING_SECONDS,
             ),
     )

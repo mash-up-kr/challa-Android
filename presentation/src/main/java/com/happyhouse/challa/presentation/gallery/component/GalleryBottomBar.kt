@@ -40,13 +40,9 @@ private const val SECONDS_PER_MINUTE = 60
 private val BottomBarButtonShape = RoundedCornerShape(12.dp)
 private val BottomBarButtonMinHeight = 54.dp
 private val BottomBarTopPadding = 8.dp
-private val ShootButtonIconGap = 6.dp
+private val ShootButtonIconGap = 10.dp
 
-/**
- * 촬영 중 하단 바
- *
- * 필름을 다 채우기 전까지 카메라로 이어준다.
- */
+/** 촬영 중 하단 바. 카메라로 이어준다. */
 @Composable
 fun GalleryShootBar(
     onShootClick: () -> Unit,
@@ -57,11 +53,7 @@ fun GalleryShootBar(
     }
 }
 
-/**
- * 인화 대기 하단 바
- *
- * 필름을 다 채운 뒤 인화 완료까지 남은 시간을 보여준다.
- */
+/** 인화 대기 하단 바. 인화 완료까지 남은 시간을 보여준다. */
 @Composable
 fun GalleryCountdownBar(
     remainingSeconds: Long,
@@ -76,9 +68,7 @@ fun GalleryCountdownBar(
     }
 }
 
-/**
- * 두 하단 바가 같은 여백과 시스템 바 처리를 쓰도록 묶는다.
- */
+/** 두 하단 바가 같은 여백과 시스템 바 처리를 쓰도록 묶는다. */
 @Composable
 private fun GalleryBottomBarLayout(
     modifier: Modifier = Modifier,
@@ -98,10 +88,8 @@ private fun GalleryBottomBarLayout(
 /**
  * 카메라로 이어주는 CTA
  *
- * 디자인이 Primary/Yellow 배경에 아이콘과 텍스트를 함께 두는 형태라,
- * [com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton](텍스트만)과
- * [com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton](아이콘만) 어느 쪽과도
- * 맞지 않아 이 화면에서만 따로 그린다.
+ * 노란 배경에 아이콘과 텍스트를 함께 두는 디자인이라,
+ * ChallaTextButton(텍스트만) / ChallaIconButton(아이콘만) 어느 쪽과도 맞지 않아 따로 그린다.
  */
 @Composable
 private fun GalleryShootButton(
@@ -118,14 +106,18 @@ private fun GalleryShootButton(
                 .noRippleClickOnce(
                     role = Role.Button,
                     onClick = onClick,
-                ).padding(horizontal = 20.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(ShootButtonIconGap, Alignment.CenterHorizontally),
+                )
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+        horizontalArrangement =
+            Arrangement.spacedBy(
+                ShootButtonIconGap,
+                Alignment.CenterHorizontally,
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            modifier = Modifier.size(ChallaIconSize.V20.dp),
+            modifier = Modifier.size(ChallaIconSize.V24.dp),
             painter = painterResource(ChallaIcons.Camera),
-            // 옆의 텍스트가 같은 내용을 읽어주므로 아이콘은 따로 읽지 않는다.
             contentDescription = null,
             tint = ChallaTheme.colors.staticBlack,
         )
@@ -161,7 +153,8 @@ private fun GalleryCountdownButton(
                     role = Role.Button,
                     onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
                     onClick = onClick,
-                ).padding(horizontal = 20.dp, vertical = 14.dp),
+                )
+                .padding(horizontal = 20.dp, vertical = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(

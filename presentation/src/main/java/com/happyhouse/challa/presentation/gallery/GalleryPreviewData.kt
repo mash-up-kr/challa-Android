@@ -9,6 +9,9 @@ import kotlinx.collections.immutable.toPersistentList
 /** @Preview 전용 남은 시간 (2:59:58) */
 internal const val PREVIEW_REMAINING_SECONDS = 10_798L
 
+/** @Preview 전용 필름 총 칸 수 */
+internal const val PREVIEW_FILM_SLOT_COUNT = 24
+
 /**
  * @Preview 전용 mock 참여자 목록
  */
@@ -24,10 +27,10 @@ internal fun previewGalleryMembers(count: Int = 6): ImmutableList<GalleryMemberU
 /**
  * @Preview 전용 mock 필름 슬롯 목록
  *
- * @param capturedCount 앞에서부터 몇 칸이 촬영된 상태인지. 나머지는 번호만 있는 빈 슬롯이다.
+ * @param capturedCount 앞에서부터 촬영된 칸 수. 나머지는 빈 슬롯이다.
  */
 internal fun previewGalleryFilmSlots(
-    count: Int = 24,
+    count: Int = PREVIEW_FILM_SLOT_COUNT,
     capturedCount: Int = 0,
 ): ImmutableList<GalleryFilmSlotUiModel> =
     (0 until count)
@@ -41,7 +44,7 @@ internal fun previewGalleryFilmSlots(
 /**
  * @Preview 전용 mock 사진 목록
  */
-internal fun previewGalleryPhotos(count: Int = 24): ImmutableList<GalleryPhotoUiModel> =
+internal fun previewGalleryPhotos(count: Int = PREVIEW_FILM_SLOT_COUNT): ImmutableList<GalleryPhotoUiModel> =
     (0 until count)
         .map { index ->
             GalleryPhotoUiModel(

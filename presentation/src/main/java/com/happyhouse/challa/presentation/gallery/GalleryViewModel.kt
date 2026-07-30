@@ -179,7 +179,6 @@ class GalleryViewModel @AssistedInject constructor(
             .map { index ->
                 GalleryFilmSlotUiModel(
                     order = index + 1,
-                    // 아직 촬영되지 않은 자리는 번호만 있는 빈 슬롯으로 그린다.
                     imageUrl =
                         if (index < MOCK_CAPTURED_COUNT) {
                             "https://picsum.photos/seed/${roomId}_$index/300/400"

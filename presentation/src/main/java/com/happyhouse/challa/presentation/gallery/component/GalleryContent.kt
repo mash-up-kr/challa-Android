@@ -25,6 +25,7 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.gallery.PREVIEW_FILM_SLOT_COUNT
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
@@ -55,7 +56,7 @@ fun GalleryContent(
         AnimatedContent(
             targetState = state.photoInfo,
             // 남은 시간이 1초마다 바뀌어도 다시 그리지 않도록 타입만 키로 쓴다.
-            // 촬영 중과 인화 대기는 같은 필름 그리드라, 필름을 다 채워도 그리드가 크로스페이드되지 않게 묶는다.
+            // 촬영 중/인화 대기는 같은 그리드라, 필름이 다 차도 크로스페이드되지 않게 묶는다.
             contentKey = { photoInfo ->
                 if (photoInfo is PhotoInfo.Film) PhotoInfo.Film::class else photoInfo::class
             },
@@ -202,7 +203,7 @@ private fun GalleryContentWaitingPreview() {
     GalleryContentPreviewTemplate(
         photoInfo =
             PhotoInfo.Waiting(
-                slots = previewGalleryFilmSlots(capturedCount = 24),
+                slots = previewGalleryFilmSlots(capturedCount = PREVIEW_FILM_SLOT_COUNT),
                 remainingSeconds = PREVIEW_REMAINING_SECONDS,
             ),
     )
