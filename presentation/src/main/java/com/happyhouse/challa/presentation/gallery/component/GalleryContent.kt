@@ -55,7 +55,10 @@ fun GalleryContent(
         AnimatedContent(
             targetState = state.photoInfo,
             // 남은 시간이 1초마다 바뀌어도 다시 그리지 않도록 타입만 키로 쓴다.
-            contentKey = { photoInfo -> photoInfo::class },
+            // 촬영 중과 인화 대기는 같은 필름 그리드라, 필름을 다 채워도 그리드가 크로스페이드되지 않게 묶는다.
+            contentKey = { photoInfo ->
+                if (photoInfo is PhotoInfo.Film) PhotoInfo.Film::class else photoInfo::class
+            },
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             label = "GalleryPhotoInfo",
         ) { photoInfo ->
@@ -84,7 +87,7 @@ fun GalleryContent(
                     }
                 }
 
-                is PhotoInfo.Waiting -> {
+                is PhotoInfo.Film -> {
                     GalleryFilmSlotGrid(
                         modifier = Modifier.fillMaxSize(),
                         slots = photoInfo.slots,
@@ -108,7 +111,7 @@ fun GalleryContent(
         // 그리드가 크로스페이드되는 동안 겹쳐 보이지 않도록 프로필 바는 밖에 둔다.
         val showsProfileBar =
             when (state.photoInfo) {
-                is PhotoInfo.Waiting, is PhotoInfo.Printed -> true
+                is PhotoInfo.Film, is PhotoInfo.Printed -> true
                 PhotoInfo.Loading, PhotoInfo.Error, PhotoInfo.Empty -> false
             }
         if (showsProfileBar) {
@@ -165,7 +168,19 @@ private fun GalleryMessage(
     showBackground = true,
     backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
-    name = "Gallery - 인화 전",
+    name = "Gallery - 촬영 중",
+)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryContentShootingPreview() {
+    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()))
+}
+
+@ComposePreview(
+    showBackground = true,
+    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
+    widthDp = 390,
+    name = "Gallery - 인화 대기",
 )
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable

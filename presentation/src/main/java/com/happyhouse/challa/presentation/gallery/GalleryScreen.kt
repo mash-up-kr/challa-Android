@@ -123,7 +123,14 @@ private fun GalleryScaffold(
     }
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 인화 전")
+@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 촬영 중")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryScreenShootingPreview() {
+    GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()))
+}
+
+@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 인화 대기")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryScreenWaitingPreview() {

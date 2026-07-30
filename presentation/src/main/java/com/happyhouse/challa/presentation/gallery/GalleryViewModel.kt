@@ -145,6 +145,11 @@ class GalleryViewModel @AssistedInject constructor(
     private suspend fun loadMockPhotoInfo(): PhotoInfo {
         delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
 
+        // 필름을 다 채워야 인화 시각이 잡히므로, 그전까지는 카운트다운 없이 촬영을 이어간다.
+        if (MOCK_CAPTURED_COUNT < MOCK_PHOTO_COUNT) {
+            return PhotoInfo.Shooting(slots = loadMockFilmSlots())
+        }
+
         // 재조회 때마다 새로 잡으면 카운트다운이 끝나도 인화 대기로 남는다.
         if (printCompleteAtMillis == 0L) {
             printCompleteAtMillis = System.currentTimeMillis() + MOCK_REMAINING_SECONDS * MILLIS_PER_SECOND
@@ -167,7 +172,13 @@ class GalleryViewModel @AssistedInject constructor(
             .map { index ->
                 GalleryFilmSlotUiModel(
                     order = index + 1,
-                    imageUrl = "https://picsum.photos/seed/${roomId}_$index/300/400",
+                    // 아직 촬영되지 않은 자리는 번호만 있는 빈 슬롯으로 그린다.
+                    imageUrl =
+                        if (index < MOCK_CAPTURED_COUNT) {
+                            "https://picsum.photos/seed/${roomId}_$index/300/400"
+                        } else {
+                            null
+                        },
                 )
             }.toPersistentList()
 
@@ -202,6 +213,11 @@ class GalleryViewModel @AssistedInject constructor(
         private const val COUNTDOWN_TICK_MS = 1_000L
 
         private const val MOCK_PHOTO_COUNT = 24
+
+        // TODO: 실제 API 붙으면 서버가 내려주는 촬영 수로 교체할 것.
+        //  MOCK_PHOTO_COUNT보다 작으면 촬영 중, 같으면 인화 대기부터 시작한다.
+        private const val MOCK_CAPTURED_COUNT = 0
+
         private const val MOCK_MEMBER_COUNT = 6
 
         private const val MOCK_REMAINING_SECONDS = 10_798L

@@ -20,10 +20,22 @@ data class GalleryState(
 
         data object Empty : PhotoInfo
 
+        /** 인화 전. 사진 대신 번호가 매겨진 필름 슬롯을 그린다. */
+        @Immutable
+        sealed interface Film : PhotoInfo {
+            val slots: ImmutableList<GalleryFilmSlotUiModel>
+        }
+
+        /** 촬영 중. 필름을 다 채우지 못해 아직 인화 시각이 잡히지 않았다. */
+        data class Shooting(
+            override val slots: ImmutableList<GalleryFilmSlotUiModel>,
+        ) : Film
+
+        /** 인화 대기. 필름을 다 채워 인화 완료까지 남은 시간을 센다. */
         data class Waiting(
-            val slots: ImmutableList<GalleryFilmSlotUiModel>,
+            override val slots: ImmutableList<GalleryFilmSlotUiModel>,
             val remainingSeconds: Long,
-        ) : PhotoInfo
+        ) : Film
 
         data class Printed(
             val photos: ImmutableList<GalleryPhotoUiModel>,
