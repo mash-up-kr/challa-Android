@@ -36,15 +36,12 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor { message ->
-            val trimmedMessage = message.trimStart()
-
-            if (trimmedMessage.startsWith("{") || trimmedMessage.startsWith("[")) {
-                Logger.t(NETWORK_LOG_TAG).json(message)
-            } else {
-                Logger.t(NETWORK_LOG_TAG).d(message)
-            }
-        }.apply {
+        HttpLoggingInterceptor(
+            NetworkLogPrinter(
+                logText = { Logger.t(NETWORK_LOG_TAG).d(it) },
+                logJson = { Logger.t(NETWORK_LOG_TAG).json(it) },
+            ),
+        ).apply {
             level =
                 if (BuildConfig.DEBUG) {
                     HttpLoggingInterceptor.Level.BODY
