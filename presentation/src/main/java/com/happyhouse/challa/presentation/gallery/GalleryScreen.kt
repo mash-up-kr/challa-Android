@@ -183,13 +183,6 @@ private fun GalleryScreenErrorPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Error)
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Empty")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun GalleryScreenEmptyPreview() {
-    GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Empty)
-}
-
 @Composable
 private fun GalleryScreenPreviewTemplate(photoInfo: PhotoInfo) {
     GalleryScreen(

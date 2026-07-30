@@ -18,8 +18,6 @@ data class GalleryState(
 
         data object Error : PhotoInfo
 
-        data object Empty : PhotoInfo
-
         /**
          * 인화 전([Shooting] + [Waiting])을 묶은 타입.
          * 둘 다 필름 슬롯을 그리므로, 구분할 필요가 없는 곳은 이 타입으로 한 번에 분기한다.

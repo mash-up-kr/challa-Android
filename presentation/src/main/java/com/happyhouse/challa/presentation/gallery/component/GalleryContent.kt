@@ -37,7 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
  * 갤러리 본문
- * 로딩/에러/빈/인화 전/인화 완료 분기
+ * 로딩/에러/촬영 중/인화 대기/인화 완료 분기
  *
  * @param extraBottomPadding 위에 떠 있는 하단 바에 그리드 마지막 줄이 가리지 않도록 더하는 여백
  */
@@ -80,14 +80,6 @@ fun GalleryContent(
                     }
                 }
 
-                PhotoInfo.Empty -> {
-                    GalleryCenterBox {
-                        GalleryMessage(
-                            message = stringResource(R.string.gallery_empty),
-                        )
-                    }
-                }
-
                 is PhotoInfo.Film -> {
                     GalleryFilmSlotGrid(
                         modifier = Modifier.fillMaxSize(),
@@ -113,7 +105,7 @@ fun GalleryContent(
         val showsProfileBar =
             when (state.photoInfo) {
                 is PhotoInfo.Film, is PhotoInfo.Printed -> true
-                PhotoInfo.Loading, PhotoInfo.Error, PhotoInfo.Empty -> false
+                PhotoInfo.Loading, PhotoInfo.Error -> false
             }
         if (showsProfileBar) {
             GalleryProfileBar(
@@ -124,9 +116,7 @@ fun GalleryContent(
     }
 }
 
-/**
- * 로딩/에러/빈 상태를 화면 중앙에 배치하는 영역
- */
+/** 로딩/에러 상태를 화면 중앙에 배치하는 영역 */
 @Composable
 private fun GalleryCenterBox(content: @Composable BoxScope.() -> Unit) {
     Box(
@@ -139,9 +129,9 @@ private fun GalleryCenterBox(content: @Composable BoxScope.() -> Unit) {
 @Composable
 private fun GalleryMessage(
     message: String,
+    actionLabel: String,
+    onAction: () -> Unit,
     modifier: Modifier = Modifier,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.padding(24.dp),
@@ -153,14 +143,12 @@ private fun GalleryMessage(
             color = ChallaTheme.colors.labelNormal,
             style = ChallaTheme.typography.bodyMedium.medium,
         )
-        if (actionLabel != null && onAction != null) {
-            TextButton(onClick = onAction) {
-                Text(
-                    text = actionLabel,
-                    color = ChallaTheme.colors.primaryYellow,
-                    style = ChallaTheme.typography.bodyMedium.bold,
-                )
-            }
+        TextButton(onClick = onAction) {
+            Text(
+                text = actionLabel,
+                color = ChallaTheme.colors.primaryYellow,
+                style = ChallaTheme.typography.bodyMedium.bold,
+            )
         }
     }
 }
@@ -219,13 +207,6 @@ private fun GalleryContentWaitingPreview() {
 @Composable
 private fun GalleryContentPrintedPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
-}
-
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Empty")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun GalleryContentEmptyPreview() {
-    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Empty)
 }
 
 @ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Loading")
