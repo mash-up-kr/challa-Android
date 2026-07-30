@@ -50,8 +50,10 @@ fun ChallaNavHost(
                     GalleryRoute(
                         roomId = route.roomId,
                         onBackClick = { navigator.goBack() },
-                        onPhotoClick = {
-                            // TODO: 사진 상세 + 다운로드 화면(#24) 구현되면 navigator.navigate(ChallaRoute.PhotoDetail(...)) 연결
+                        onPhotoClick = { photoId ->
+                            navigator.navigate(
+                                ChallaRoute.PhotoDetail(roomId = route.roomId, photoId = photoId),
+                            )
                         },
                     )
                 }
