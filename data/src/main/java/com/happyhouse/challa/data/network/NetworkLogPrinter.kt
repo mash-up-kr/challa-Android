@@ -20,14 +20,18 @@ internal class NetworkLogPrinter(
                 flushPendingLines()
                 logText(message)
             }
+
             trimmedMessage.isExchangeEnd() -> {
                 flushPendingLines()
+                logText(message)
                 pendingLines.remove()
             }
+
             trimmedMessage.isJson() -> {
                 flushPendingLines()
                 logJson(message)
             }
+
             else -> currentLines().add(message)
         }
     }
