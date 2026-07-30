@@ -66,21 +66,21 @@ private val ChallaButtonSize.iconSpec: ChallaIconButtonSizeSpec
             ChallaButtonSize.LARGE ->
                 ChallaIconButtonSizeSpec(
                     minHeight = 54.dp,
-                    iconSize = ChallaIconSize.MEDIUM,
+                    iconSize = ChallaIconSize.V24,
                     padding = 15.dp,
                 )
 
             ChallaButtonSize.MEDIUM ->
                 ChallaIconButtonSizeSpec(
                     minHeight = 40.dp,
-                    iconSize = ChallaIconSize.SMALL,
+                    iconSize = ChallaIconSize.V20,
                     padding = 10.dp,
                 )
 
             ChallaButtonSize.SMALL ->
                 ChallaIconButtonSizeSpec(
                     minHeight = 32.dp,
-                    iconSize = ChallaIconSize.XXSMALL,
+                    iconSize = ChallaIconSize.V16,
                     padding = 8.dp,
                 )
         }
