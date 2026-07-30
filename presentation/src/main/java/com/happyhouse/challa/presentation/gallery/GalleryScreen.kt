@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper
-import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.component.GalleryBackgroundGlow
@@ -31,8 +30,6 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
-
-private val SnackbarTopPadding = 8.dp
 
 @Composable
 fun GalleryScreen(
@@ -105,14 +102,8 @@ private fun GalleryScaffold(
                 )
             }
 
-            // TODO: #53에서 들어오는 ChallaSnackbarHost + ChallaToastVisuals로 교체할 것.
-            SnackbarHost(
-                modifier =
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = SnackbarTopPadding),
-                hostState = snackbarHostState,
-            )
+            // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
+            ChallaSnackbarHost(hostState = snackbarHostState)
         }
     }
 }
