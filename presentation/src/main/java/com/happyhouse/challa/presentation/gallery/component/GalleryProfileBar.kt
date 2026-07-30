@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -53,23 +54,30 @@ fun GalleryProfileBar(
     val overflowCount = members.size - visibleMembers.size
     val membersDescription = stringResource(R.string.gallery_member_count_description, members.size)
 
+    val barColor =
+        if (overflowCount > 0) {
+            ChallaTheme.colors.staticBlack
+        } else {
+            ChallaTheme.colors.staticWhite
+        }
+
     Row(
         modifier =
             modifier
                 // 아바타를 하나씩 읽어주면 소음이 되므로 바 전체를 한 덩어리로 읽힌다.
                 .semantics(mergeDescendants = true) { contentDescription = membersDescription }
                 .clip(CircleShape)
-                .background(ChallaTheme.colors.staticWhite)
+                .background(barColor)
                 .padding(5.dp),
         horizontalArrangement = Arrangement.spacedBy(-MemberAvatarOverlap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         visibleMembers.forEach { member ->
-            MemberAvatar(member = member)
+            MemberAvatar(member = member, borderColor = barColor)
         }
 
         if (overflowCount > 0) {
-            MemberOverflowBadge(count = overflowCount)
+            MemberOverflowBadge(count = overflowCount, borderColor = barColor)
         }
     }
 }
@@ -77,10 +85,11 @@ fun GalleryProfileBar(
 @Composable
 private fun MemberAvatar(
     member: GalleryMemberUiModel,
+    borderColor: Color,
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
-        modifier = modifier.memberCircle(),
+        modifier = modifier.memberCircle(borderColor),
         model =
             ImageRequest
                 .Builder(LocalContext.current)
@@ -97,12 +106,13 @@ private fun MemberAvatar(
 @Composable
 private fun MemberOverflowBadge(
     count: Int,
+    borderColor: Color,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier =
             modifier
-                .memberCircle()
+                .memberCircle(borderColor)
                 .background(ChallaTheme.colors.backgroundLevel2),
         contentAlignment = Alignment.Center,
     ) {
@@ -115,15 +125,14 @@ private fun MemberOverflowBadge(
 }
 
 /**
- * 겹쳐 놓인 프로필끼리 구분되도록 흰 테두리를 두른 원형 영역
+ * 겹쳐 놓인 프로필끼리 구분되도록 바 색과 같은 테두리를 두른 원형 영역
  */
-@Composable
-private fun Modifier.memberCircle(): Modifier =
+private fun Modifier.memberCircle(borderColor: Color): Modifier =
     this
         .size(MemberAvatarSize)
         .border(
             width = 1.5.dp,
-            color = ChallaTheme.colors.staticWhite,
+            color = borderColor,
             shape = CircleShape,
         ).clip(CircleShape)
 
