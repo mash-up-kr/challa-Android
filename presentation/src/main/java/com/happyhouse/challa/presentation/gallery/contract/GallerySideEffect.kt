@@ -7,5 +7,7 @@ sealed interface GallerySideEffect : UiSideEffect {
         val photoId: Long,
     ) : GallerySideEffect
 
+    data object NavigateToCamera : GallerySideEffect
+
     data object PrintWaiting : GallerySideEffect
 }

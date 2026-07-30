@@ -24,6 +24,7 @@ fun GalleryRoute(
     roomId: Long,
     onBackClick: () -> Unit,
     onPhotoClick: (Long) -> Unit,
+    onShootClick: () -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
@@ -39,6 +40,7 @@ fun GalleryRoute(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId)
+                GallerySideEffect.NavigateToCamera -> onShootClick()
                 GallerySideEffect.PrintWaiting -> {
                     // showSnackbar는 스낵바가 사라질 때까지 suspend 하므로,
                     // 그대로 두면 후속 SideEffect 수집이 막힌다.

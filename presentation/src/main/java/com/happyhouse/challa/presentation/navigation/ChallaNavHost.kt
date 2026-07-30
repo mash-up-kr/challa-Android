@@ -62,6 +62,9 @@ fun ChallaNavHost(
                                 ChallaRoute.PhotoDetail(roomId = route.roomId, photoId = photoId),
                             )
                         },
+                        onShootClick = {
+                            navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
+                        },
                     )
                 }
                 entry<ChallaRoute.RoomMain> {

@@ -23,13 +23,18 @@ internal fun previewGalleryMembers(count: Int = 6): ImmutableList<GalleryMemberU
 
 /**
  * @Preview 전용 mock 필름 슬롯 목록
+ *
+ * @param capturedCount 앞에서부터 몇 칸이 촬영된 상태인지. 나머지는 번호만 있는 빈 슬롯이다.
  */
-internal fun previewGalleryFilmSlots(count: Int = 24): ImmutableList<GalleryFilmSlotUiModel> =
+internal fun previewGalleryFilmSlots(
+    count: Int = 24,
+    capturedCount: Int = 0,
+): ImmutableList<GalleryFilmSlotUiModel> =
     (0 until count)
         .map { index ->
             GalleryFilmSlotUiModel(
                 order = index + 1,
-                imageUrl = null,
+                imageUrl = if (index < capturedCount) "" else null,
             )
         }.toPersistentList()
 

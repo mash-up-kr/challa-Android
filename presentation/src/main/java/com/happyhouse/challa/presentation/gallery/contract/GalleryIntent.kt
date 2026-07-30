@@ -11,4 +11,6 @@ sealed interface GalleryIntent : UiIntent {
     ) : GalleryIntent
 
     data object PrintCountdownClick : GalleryIntent
+
+    data object ShootClick : GalleryIntent
 }

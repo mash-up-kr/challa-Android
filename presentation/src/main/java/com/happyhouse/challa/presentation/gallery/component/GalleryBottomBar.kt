@@ -1,24 +1,32 @@
 package com.happyhouse.challa.presentation.gallery.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -29,18 +37,52 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
 
-private val CountdownButtonShape = RoundedCornerShape(12.dp)
-private val CountdownButtonMinHeight = 54.dp
+private val BottomBarButtonShape = RoundedCornerShape(12.dp)
+private val BottomBarButtonMinHeight = 54.dp
 private val BottomBarTopPadding = 8.dp
+private val ShootButtonIconGap = 6.dp
 
 /**
- * 인화 전 하단 바
+ * 촬영 중 하단 바
+ *
+ * 필름을 다 채우기 전까지 카메라로 이어준다.
  */
 @Composable
-fun GalleryBottomBar(
+fun GalleryShootBar(
+    onShootClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    GalleryBottomBarLayout(modifier = modifier) {
+        GalleryShootButton(onClick = onShootClick)
+    }
+}
+
+/**
+ * 인화 대기 하단 바
+ *
+ * 필름을 다 채운 뒤 인화 완료까지 남은 시간을 보여준다.
+ */
+@Composable
+fun GalleryCountdownBar(
     remainingSeconds: Long,
     onCountdownClick: () -> Unit,
     modifier: Modifier = Modifier,
+) {
+    GalleryBottomBarLayout(modifier = modifier) {
+        GalleryCountdownButton(
+            remainingSeconds = remainingSeconds,
+            onClick = onCountdownClick,
+        )
+    }
+}
+
+/**
+ * 두 하단 바가 같은 여백과 시스템 바 처리를 쓰도록 묶는다.
+ */
+@Composable
+private fun GalleryBottomBarLayout(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier =
@@ -49,10 +91,48 @@ fun GalleryBottomBar(
                 .padding(top = BottomBarTopPadding)
                 .padding(horizontal = 16.dp)
                 .navigationBarsPadding(),
+        content = content,
+    )
+}
+
+/**
+ * 카메라로 이어주는 CTA
+ *
+ * 디자인이 Primary/Yellow 배경에 아이콘과 텍스트를 함께 두는 형태라,
+ * [com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton](텍스트만)과
+ * [com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton](아이콘만) 어느 쪽과도
+ * 맞지 않아 이 화면에서만 따로 그린다.
+ */
+@Composable
+private fun GalleryShootButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .heightIn(min = BottomBarButtonMinHeight)
+                .clip(BottomBarButtonShape)
+                .background(ChallaTheme.colors.primaryYellow)
+                .noRippleClickOnce(
+                    role = Role.Button,
+                    onClick = onClick,
+                ).padding(horizontal = 20.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(ShootButtonIconGap, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        GalleryCountdownButton(
-            remainingSeconds = remainingSeconds,
-            onClick = onCountdownClick,
+        Icon(
+            modifier = Modifier.size(ChallaIconSize.V20.dp),
+            painter = painterResource(ChallaIcons.Camera),
+            // 옆의 텍스트가 같은 내용을 읽어주므로 아이콘은 따로 읽지 않는다.
+            contentDescription = null,
+            tint = ChallaTheme.colors.staticBlack,
+        )
+        Text(
+            text = stringResource(R.string.gallery_shoot),
+            color = ChallaTheme.colors.staticBlack,
+            style = ChallaTheme.typography.bodyLarge.bold,
         )
     }
 }
@@ -74,8 +154,8 @@ private fun GalleryCountdownButton(
         modifier =
             modifier
                 .fillMaxWidth()
-                .heightIn(min = CountdownButtonMinHeight)
-                .clip(CountdownButtonShape)
+                .heightIn(min = BottomBarButtonMinHeight)
+                .clip(BottomBarButtonShape)
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .noRippleClickOnce(
                     role = Role.Button,
@@ -111,11 +191,28 @@ private fun Long.toCountdownText(): String {
 
 private fun Long.toTwoDigits(): String = toString().padStart(2, '0')
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
+@ComposePreview(
+    showBackground = true,
+    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
+    widthDp = 390,
+    name = "BottomBar - 촬영 중",
+)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryBottomBarPreview() {
-    GalleryBottomBar(
+private fun GalleryShootBarPreview() {
+    GalleryShootBar(onShootClick = {})
+}
+
+@ComposePreview(
+    showBackground = true,
+    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
+    widthDp = 390,
+    name = "BottomBar - 인화 대기",
+)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryCountdownBarPreview() {
+    GalleryCountdownBar(
         remainingSeconds = PREVIEW_REMAINING_SECONDS,
         onCountdownClick = {},
     )

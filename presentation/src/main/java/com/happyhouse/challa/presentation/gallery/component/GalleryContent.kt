@@ -180,13 +180,31 @@ private fun GalleryContentShootingPreview() {
     showBackground = true,
     backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
+    name = "Gallery - 촬영 중(일부 촬영)",
+)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryContentShootingPartlyCapturedPreview() {
+    GalleryContentPreviewTemplate(
+        photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots(capturedCount = 10)),
+    )
+}
+
+@ComposePreview(
+    showBackground = true,
+    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
+    widthDp = 390,
     name = "Gallery - 인화 대기",
 )
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentWaitingPreview() {
     GalleryContentPreviewTemplate(
-        photoInfo = PhotoInfo.Waiting(slots = previewGalleryFilmSlots(), remainingSeconds = PREVIEW_REMAINING_SECONDS),
+        photoInfo =
+            PhotoInfo.Waiting(
+                slots = previewGalleryFilmSlots(capturedCount = 24),
+                remainingSeconds = PREVIEW_REMAINING_SECONDS,
+            ),
     )
 }
 

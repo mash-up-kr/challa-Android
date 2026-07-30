@@ -43,6 +43,7 @@ class GalleryViewModel @AssistedInject constructor(
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
+            GalleryIntent.ShootClick -> handleShootClick()
         }
     }
 
@@ -83,6 +84,12 @@ class GalleryViewModel @AssistedInject constructor(
     private fun handlePhotoClick(photoId: Long) {
         viewModelScope.launch {
             sendEffect(GallerySideEffect.NavigateToPhotoDetail(photoId))
+        }
+    }
+
+    private fun handleShootClick() {
+        viewModelScope.launch {
+            sendEffect(GallerySideEffect.NavigateToCamera)
         }
     }
 

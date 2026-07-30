@@ -27,8 +27,9 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.component.GalleryBackgroundGlow
-import com.happyhouse.challa.presentation.gallery.component.GalleryBottomBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
+import com.happyhouse.challa.presentation.gallery.component.GalleryCountdownBar
+import com.happyhouse.challa.presentation.gallery.component.GalleryShootBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
@@ -79,7 +80,9 @@ private fun GalleryScaffold(
                     .padding(innerPadding),
         ) {
             val density = LocalDensity.current
-            val waiting = state.photoInfo as? PhotoInfo.Waiting
+            // 인화 전에만 하단 바를 두고, 촬영 중이면 CTA를 인화 대기면 카운트다운을 보여준다.
+            val film = state.photoInfo as? PhotoInfo.Film
+            val waiting = film as? PhotoInfo.Waiting
 
             // 하단 바가 그리드 위에 떠 있으므로, 끝까지 스크롤했을 때 마지막 줄이 가리지 않도록
             // 실제로 차지하는 높이만큼 그리드 아래 여백을 준다.
@@ -89,7 +92,7 @@ private fun GalleryScaffold(
             // 바가 사라지면 여백도 같이 줄어든다.
             // 즉시 0으로 떨어뜨리면 페이드아웃 중에 마지막 줄이 바 밑으로 파고들어서 함께 애니메이션한다.
             val extraBottomPadding by animateDpAsState(
-                targetValue = if (waiting == null) 0.dp else bottomBarHeight,
+                targetValue = if (film == null) 0.dp else bottomBarHeight,
                 label = "GalleryExtraBottomPadding",
             )
 
@@ -100,21 +103,38 @@ private fun GalleryScaffold(
                 extraBottomPadding = extraBottomPadding,
             )
 
+            // 두 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
+            val measureBottomBar =
+                Modifier.onSizeChanged { size ->
+                    bottomBarHeight = with(density) { size.height.toDp() }
+                }
+
             // 디자인상 하단 바는 그리드를 밀지 않고 위에 떠 있다.
-            AnimatedVisibility(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                visible = waiting != null,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                GalleryBottomBar(
-                    modifier =
-                        Modifier.onSizeChanged { size ->
-                            bottomBarHeight = with(density) { size.height.toDp() }
-                        },
-                    remainingSeconds = waiting?.remainingSeconds ?: 0L,
-                    onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
-                )
+            // 두 바를 따로 두면 서로 교체될 때 크로스페이드되고, 사라지는 바가 남의 값을 그릴 일도 없다.
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                AnimatedVisibility(
+                    visible = film is PhotoInfo.Shooting,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    GalleryShootBar(
+                        modifier = measureBottomBar,
+                        onShootClick = { onIntent(GalleryIntent.ShootClick) },
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = waiting != null,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    GalleryCountdownBar(
+                        modifier = measureBottomBar,
+                        // 사라지는 동안에는 마지막으로 센 값이 없으므로 0으로 둔다.
+                        remainingSeconds = waiting?.remainingSeconds ?: 0L,
+                        onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
+                    )
+                }
             }
 
             // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
@@ -135,7 +155,11 @@ private fun GalleryScreenShootingPreview() {
 @Composable
 private fun GalleryScreenWaitingPreview() {
     GalleryScreenPreviewTemplate(
-        photoInfo = PhotoInfo.Waiting(slots = previewGalleryFilmSlots(), remainingSeconds = PREVIEW_REMAINING_SECONDS),
+        photoInfo =
+            PhotoInfo.Waiting(
+                slots = previewGalleryFilmSlots(capturedCount = 24),
+                remainingSeconds = PREVIEW_REMAINING_SECONDS,
+            ),
     )
 }
 
