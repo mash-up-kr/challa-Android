@@ -47,6 +47,9 @@ fun PhotoDetailScreen(
     Scaffold(
         modifier = modifier,
         containerColor = PhotoDetailBackgroundColor,
+        // 시스템 바 인셋은 화면 밖에서 처리한다.
+        // 하단은 ChallaNavHost의 navigationBarsPadding이, 상단은 PhotoDetailTopBar의 statusBarsPadding이 담당하므로
+        // 여기서 기본 인셋을 다시 적용하지 않는다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             PhotoDetailTopBar(
