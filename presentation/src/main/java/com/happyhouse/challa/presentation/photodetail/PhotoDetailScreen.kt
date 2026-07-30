@@ -1,19 +1,22 @@
 package com.happyhouse.challa.presentation.photodetail
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailContent
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBar
-import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
@@ -26,7 +29,8 @@ private val PhotoDetailBackgroundColor = Color(0xFF111111)
 @Composable
 fun PhotoDetailScreen(
     state: PhotoDetailState,
-    onIntent: (PhotoDetailIntent) -> Unit,
+    snackbarHostState: SnackbarHostState,
+    onRetryClick: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -39,6 +43,7 @@ fun PhotoDetailScreen(
                 pageCount = { photos.size },
             )
         }
+
     Scaffold(
         modifier = modifier,
         containerColor = PhotoDetailBackgroundColor,
@@ -51,18 +56,26 @@ fun PhotoDetailScreen(
                     photos.takeIf { it.isNotEmpty() }?.let { loadedPhotos ->
                         { onSaveClick(loadedPhotos[pagerState.currentPage]) }
                     },
+                isSaveEnabled = !state.isSaving,
             )
         },
     ) { innerPadding ->
-        PhotoDetailContent(
+        Box(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-            state = state,
-            pagerState = pagerState,
-            onIntent = onIntent,
-        )
+        ) {
+            PhotoDetailContent(
+                modifier = Modifier.fillMaxSize(),
+                state = state,
+                pagerState = pagerState,
+                onRetryClick = onRetryClick,
+            )
+
+            // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
+            ChallaSnackbarHost(hostState = snackbarHostState)
+        }
     }
 }
 
@@ -78,7 +91,8 @@ private fun PhotoDetailScreenPreview() {
                 initialPhotoId = 0L,
                 photoInfo = PhotoInfo.Loaded(previewPhotoDetailPhotos(count = 24)),
             ),
-        onIntent = {},
+        snackbarHostState = remember { SnackbarHostState() },
+        onRetryClick = {},
         onSaveClick = {},
         onBackClick = {},
     )
@@ -100,7 +114,8 @@ private fun PhotoDetailScreenLoadingPreview() {
                 roomName = "해피하우스 강릉 여행",
                 photoInfo = PhotoInfo.Loading,
             ),
-        onIntent = {},
+        snackbarHostState = remember { SnackbarHostState() },
+        onRetryClick = {},
         onSaveClick = {},
         onBackClick = {},
     )
@@ -122,7 +137,8 @@ private fun PhotoDetailScreenErrorPreview() {
                 roomName = "해피하우스 강릉 여행",
                 photoInfo = PhotoInfo.Error,
             ),
-        onIntent = {},
+        snackbarHostState = remember { SnackbarHostState() },
+        onRetryClick = {},
         onSaveClick = {},
         onBackClick = {},
     )
@@ -144,7 +160,8 @@ private fun PhotoDetailScreenEmptyPreview() {
                 roomName = "해피하우스 강릉 여행",
                 photoInfo = PhotoInfo.Empty,
             ),
-        onIntent = {},
+        snackbarHostState = remember { SnackbarHostState() },
+        onRetryClick = {},
         onSaveClick = {},
         onBackClick = {},
     )

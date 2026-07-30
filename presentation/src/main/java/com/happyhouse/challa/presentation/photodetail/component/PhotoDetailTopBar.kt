@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
  * @param onSaveClick 저장할 사진이 없는 상태(로딩·에러·빈 목록)에서는 null을 넘겨 다운로드 아이콘 자체를 노출하지 않는다.
+ * @param isSaveEnabled 저장이 진행 중일 때 false로 넘겨 중복 요청을 막는다.
  */
 @Composable
 fun PhotoDetailTopBar(
@@ -24,6 +25,7 @@ fun PhotoDetailTopBar(
     onBackClick: () -> Unit,
     onSaveClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    isSaveEnabled: Boolean = true,
 ) {
     ChallaTopNavigation(
         modifier = modifier.statusBarsPadding(),
@@ -45,6 +47,7 @@ fun PhotoDetailTopBar(
                         icon = ChallaIcons.Download,
                         onClick = onClick,
                         contentDescription = stringResource(R.string.photo_detail_save_description),
+                        enabled = isSaveEnabled,
                         variant = ChallaButtonVariant.TRANSPARENT,
                         size = ChallaButtonSize.MEDIUM,
                     )
@@ -53,7 +56,7 @@ fun PhotoDetailTopBar(
     )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111)
+@ComposePreview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailTopBarPreview() {
@@ -64,11 +67,19 @@ private fun PhotoDetailTopBarPreview() {
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = 0xFF111111,
-    name = "PhotoDetailTopBar - 저장 불가",
-)
+@ComposePreview(showBackground = true, name = "PhotoDetailTopBar - 저장 중")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoDetailTopBarSavingPreview() {
+    PhotoDetailTopBar(
+        title = "해피하우스 강릉 여행",
+        onBackClick = {},
+        onSaveClick = {},
+        isSaveEnabled = false,
+    )
+}
+
+@ComposePreview(showBackground = true, name = "PhotoDetailTopBar - 저장 불가")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailTopBarWithoutSavePreview() {

@@ -20,7 +20,6 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaBu
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
@@ -30,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun PhotoDetailContent(
     state: PhotoDetailState,
     pagerState: PagerState,
-    onIntent: (PhotoDetailIntent) -> Unit,
+    onRetryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -46,7 +45,7 @@ fun PhotoDetailContent(
                 ChallaTextButton(
                     modifier = Modifier.align(Alignment.Center),
                     text = stringResource(R.string.photo_detail_retry),
-                    onClick = { onIntent(PhotoDetailIntent.PhotosLoad) },
+                    onClick = onRetryClick,
                     variant = ChallaButtonVariant.NEUTRAL,
                     size = ChallaButtonSize.MEDIUM,
                 )
@@ -86,7 +85,7 @@ private fun PhotoDetailMessage(
     )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, heightDp = 730)
+@ComposePreview(showBackground = true, heightDp = 730)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailContentLoadedPreview() {
@@ -101,16 +100,11 @@ private fun PhotoDetailContentLoadedPreview() {
                 photoInfo = PhotoInfo.Loaded(photos),
             ),
         pagerState = rememberPagerState { photos.size },
-        onIntent = {},
+        onRetryClick = {},
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = 0xFF111111,
-    heightDp = 730,
-    name = "PhotoDetail - Loading",
-)
+@ComposePreview(showBackground = true, heightDp = 730, name = "PhotoDetail - Loading")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailContentLoadingPreview() {
@@ -118,16 +112,11 @@ private fun PhotoDetailContentLoadingPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Loading),
         pagerState = rememberPagerState { 0 },
-        onIntent = {},
+        onRetryClick = {},
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = 0xFF111111,
-    heightDp = 730,
-    name = "PhotoDetail - Error",
-)
+@ComposePreview(showBackground = true, heightDp = 730, name = "PhotoDetail - Error")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailContentErrorPreview() {
@@ -135,16 +124,11 @@ private fun PhotoDetailContentErrorPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Error),
         pagerState = rememberPagerState { 0 },
-        onIntent = {},
+        onRetryClick = {},
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = 0xFF111111,
-    heightDp = 730,
-    name = "PhotoDetail - Empty",
-)
+@ComposePreview(showBackground = true, heightDp = 730, name = "PhotoDetail - Empty")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailContentEmptyPreview() {
@@ -152,6 +136,6 @@ private fun PhotoDetailContentEmptyPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Empty),
         pagerState = rememberPagerState { 0 },
-        onIntent = {},
+        onRetryClick = {},
     )
 }

@@ -59,7 +59,7 @@ fun PhotoDetailPager(
     }
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, heightDp = 730)
+@ComposePreview(showBackground = true, heightDp = 730)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPagerPreview() {
@@ -79,7 +79,6 @@ private fun PhotoDetailPagerPreview() {
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = 0xFF111111,
     heightDp = 730,
     name = "PhotoDetailPager - 사진 1장",
 )

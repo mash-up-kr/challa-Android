@@ -59,7 +59,7 @@ fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
     modifier: Modifier = Modifier,
 ) {
-    // 로딩 중과 실패를 구분해 보여주기 위한 UI-local 상태. 페이지가 재사용돼도 URL이 바뀌면 초기화된다.
+    // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다.
     var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(false) }
 
     Box(
@@ -82,16 +82,16 @@ fun PhotoDetailPage(
             onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
         )
 
-        if (isLoadFailed) {
-            PhotoLoadFailure(modifier = Modifier.align(Alignment.Center))
-        }
-
         Spacer(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .background(PhotoDimBrush),
         )
+
+        if (isLoadFailed) {
+            PhotoImageLoadFailure(modifier = Modifier.align(Alignment.Center))
+        }
 
         PhotographerInfo(
             modifier =
@@ -103,11 +103,9 @@ fun PhotoDetailPage(
     }
 }
 
-/**
- * 개별 사진 로드 실패 표시. 전체 목록 로드 실패는 PhotosLoadFailed 토스트가 담당한다.
- */
+/** 이미지 1장 로드 실패. 목록 전체 실패는 PhotoInfo.Error가 담당한다. */
 @Composable
-private fun PhotoLoadFailure(modifier: Modifier = Modifier) {
+private fun PhotoImageLoadFailure(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -169,11 +167,11 @@ private fun PhotographerInfo(
     }
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF242424, name = "PhotoDetailPage - 로드 실패")
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 이미지 로드 실패")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun PhotoLoadFailurePreview() {
-    PhotoLoadFailure()
+private fun PhotoImageLoadFailurePreview() {
+    PhotoImageLoadFailure()
 }
 
 @ComposePreview(showBackground = true)
@@ -191,7 +189,7 @@ private fun PhotoDetailPagePreview() {
                 id = 1L,
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토",
-                capturedDate = "2026. 7.16. 14:34",
+                capturedDate = "2026. 7. 16. 14:34",
             ),
     )
 }

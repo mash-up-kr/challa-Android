@@ -20,24 +20,19 @@ import androidx.compose.ui.graphics.lerp as lerpColor
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 import androidx.compose.ui.unit.lerp as lerpDp
 
-// 최대 크기로 그리는 dot 개수(현재 페이지 + 좌우 1칸).
+// 현재 페이지 + 좌우 1칸
 private const val FULL_SIZE_WINDOW = 3
 
 private val DotSpacing = 8.dp
 
-// 창 밖으로 벗어난 칸 수별 dot 지름. 멈춰 있을 땐 10 / 8 / 6dp만 보인다.
-// 마지막 0.dp는 스와이프 중 dot이 6dp 크기로 튀어나오지 않고 0에서부터 자라게 하는 단계다.
-// 이 단계를 빼면 dot이 생기고 사라질 때마다 행 전체 폭이 튀면서 인디케이터가 옆으로 스냅한다.
+// 창 밖으로 벗어난 칸 수별 dot 지름. 마지막 0.dp가 있어야 dot이 0에서부터 자란다(없으면 행 폭이 튄다).
 private val DotSizeByDistance = listOf(10.dp, 8.dp, 6.dp, 0.dp)
 
-// 크기 보간 단계 수(0.dp 포함). 실제로 눈에 보이는 축소 dot은 한쪽에 VisibleSideDotCount개다.
 private val ShrinkStepCount = DotSizeByDistance.lastIndex
 private val VisibleSideDotCount = ShrinkStepCount - 1
 private val MaxDotSize = DotSizeByDistance.first()
 
-/**
- * 인스타그램식 dot 페이지네이션
- */
+/** 인스타그램식 dot 페이지네이션 */
 @Composable
 fun PhotoDetailPageIndicator(
     pagerState: PagerState,
@@ -60,11 +55,9 @@ fun PhotoDetailPageIndicator(
         val windowStart = (position - 1f).coerceIn(0f, maxWindowStart)
 
         // dot이 한 화면에 다 담기는 개수면 축소하지 않는다.
-        // pageCount는 스와이프 중 변하지 않으므로 이 판정 때문에 크기가 튀는 일은 없다.
         val shrinksAtEdge = pageCount > FULL_SIZE_WINDOW + VisibleSideDotCount
 
-        // 반올림해서 자르면 .5 지점마다 그릴 dot 목록이 통째로 밀려 행 폭이 튄다.
-        // floor/ceil로 지름 0인 칸까지 포함시켜 dot이 들고 날 때도 폭이 연속적으로 변하게 한다.
+        // floor/ceil로 지름 0인 칸까지 포함해야 dot이 들고 날 때도 행 폭이 연속적으로 변한다.
         val firstVisiblePage = (floor(windowStart).toInt() - ShrinkStepCount).coerceAtLeast(0)
         val lastVisiblePage =
             (ceil(windowStart).toInt() + FULL_SIZE_WINDOW - 1 + ShrinkStepCount)
@@ -72,13 +65,13 @@ fun PhotoDetailPageIndicator(
 
         val spacing = DotSpacing.toPx()
 
-        // draw는 매 프레임 도는 경로라 리스트를 만들지 않고 두 번 순회한다(폭 합산 → 그리기).
+        // 매 프레임 도는 경로라 리스트 없이 두 번 순회한다(폭 합산 → 그리기).
         var rowWidth = 0f
         var previousPresence = 0f
         for (page in firstVisiblePage..lastVisiblePage) {
             val distance = distanceFromWindow(page = page, windowStart = windowStart, shrinks = shrinksAtEdge)
             val presence = presenceOf(distance)
-            // 사라지는 dot은 양옆 간격도 같이 줄어들어야 행 전체 폭이 연속적으로 변한다.
+            // 사라지는 dot은 간격도 같이 줄여야 행 폭이 연속적으로 변한다.
             if (page > firstVisiblePage) rowWidth += spacing * minOf(previousPresence, presence)
             rowWidth += dotSizeOf(distance).toPx()
             previousPresence = presence
@@ -109,10 +102,7 @@ fun PhotoDetailPageIndicator(
     }
 }
 
-/**
- * 창(최대 크기로 그리는 [FULL_SIZE_WINDOW]칸)에서 몇 칸 벗어났는지.
- * 스와이프 중에도 끊기지 않도록 실수로 계산한다.
- */
+/** 창([FULL_SIZE_WINDOW]칸)에서 몇 칸 벗어났는지. 스와이프 중 끊기지 않도록 실수로 계산한다. */
 private fun distanceFromWindow(
     page: Int,
     windowStart: Float,
@@ -128,9 +118,6 @@ private fun distanceFromWindow(
     }.coerceIn(0f, ShrinkStepCount.toFloat())
 }
 
-/**
- * 창을 벗어난 칸 수로 dot 크기를 정한다.
- */
 private fun dotSizeOf(distance: Float): Dp {
     val step = distance.toInt()
     return lerpDp(
@@ -140,9 +127,7 @@ private fun dotSizeOf(distance: Float): Dp {
     )
 }
 
-/**
- * dot이 얼마나 남아 있는지(1 = 온전히 보임, 0 = 사라짐). 양옆 간격을 함께 줄이는 데 쓴다.
- */
+/** dot이 얼마나 남아 있는지(1 = 온전히 보임, 0 = 사라짐). */
 private fun presenceOf(distance: Float): Float = (ShrinkStepCount - distance).coerceIn(0f, 1f)
 
 private fun proximityOf(
@@ -150,35 +135,35 @@ private fun proximityOf(
     position: Float,
 ): Float = (1f - abs(page - position)).coerceIn(0f, 1f)
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "사진 24장 - 첫 페이지")
+@ComposePreview(showBackground = true, widthDp = 390, name = "사진 24장 - 첫 페이지")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageIndicatorFirstPagePreview() {
     PhotoDetailPageIndicator(pagerState = rememberPagerState(initialPage = 0) { 24 })
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "사진 24장 - 중간 페이지")
+@ComposePreview(showBackground = true, widthDp = 390, name = "사진 24장 - 중간 페이지")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageIndicatorMiddlePagePreview() {
     PhotoDetailPageIndicator(pagerState = rememberPagerState(initialPage = 10) { 24 })
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "사진 24장 - 마지막 페이지")
+@ComposePreview(showBackground = true, widthDp = 390, name = "사진 24장 - 마지막 페이지")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageIndicatorLastPagePreview() {
     PhotoDetailPageIndicator(pagerState = rememberPagerState(initialPage = 23) { 24 })
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "사진 4장")
+@ComposePreview(showBackground = true, widthDp = 390, name = "사진 4장")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageIndicatorFourPhotosPreview() {
     PhotoDetailPageIndicator(pagerState = rememberPagerState(initialPage = 1) { 4 })
 }
 
-@ComposePreview(showBackground = true, backgroundColor = 0xFF111111, widthDp = 390, name = "사진 2장")
+@ComposePreview(showBackground = true, widthDp = 390, name = "사진 2장")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageIndicatorTwoPhotosPreview() {
