@@ -71,9 +71,11 @@ fun GalleryCardItem(
 ) {
     val cardDescription =
         when (type) {
-            GalleryCardType.NotCaptured,
-            is GalleryCardType.PrintWaiting,
-            -> stringResource(R.string.gallery_film_slot_description, order)
+            GalleryCardType.NotCaptured ->
+                stringResource(R.string.gallery_empty_slot_description, order)
+
+            is GalleryCardType.PrintWaiting ->
+                stringResource(R.string.gallery_film_slot_description, order)
 
             is GalleryCardType.Printed ->
                 stringResource(

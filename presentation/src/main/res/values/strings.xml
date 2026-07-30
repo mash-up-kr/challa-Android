@@ -46,6 +46,7 @@
     <string name="gallery_back_description">뒤로가기</string>
     <string name="gallery_member_overflow">+%1$d명</string>
     <string name="gallery_member_count_description">참여자 %1$d명</string>
+    <string name="gallery_empty_slot_description">%1$d번째 자리, 아직 촬영 전</string>
     <string name="gallery_film_slot_description">%1$d번째 사진, 인화 전</string>
     <string name="gallery_shoot">사진 찍기</string>
     <string name="gallery_print_countdown">%1$s 후 인화 완료</string>
