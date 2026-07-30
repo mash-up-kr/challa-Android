@@ -45,7 +45,13 @@ fun GalleryFilmSlotGrid(
             items = slots,
             key = { slot -> slot.order },
         ) { slot ->
-            GalleryFilmCard(slot = slot)
+            GalleryCardItem(
+                order = slot.order,
+                type =
+                    slot.imageUrl
+                        ?.let(GalleryCardType::PrintWaiting)
+                        ?: GalleryCardType.NotCaptured,
+            )
         }
     }
 }
@@ -70,8 +76,9 @@ fun GalleryPhotoGrid(
             items = photos,
             key = { photo -> photo.id },
         ) { photo ->
-            GalleryPhotoItem(
-                photo = photo,
+            GalleryCardItem(
+                order = photo.order,
+                type = GalleryCardType.Printed(imageUrl = photo.imageUrl),
                 onClick = { onPhotoClick(photo.id) },
             )
         }
