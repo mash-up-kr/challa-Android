@@ -5,6 +5,7 @@ import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
+import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
@@ -120,11 +121,21 @@ class GalleryViewModel @AssistedInject constructor(
     // TODO: 실제 API 연동 전까지 쓰는 mock 데이터. 인화 여부도 서버 응답으로 판단하도록 교체할 것.
     private suspend fun loadMockPhotoInfo(): PhotoInfo {
         delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
-        printCompleteAtMillis = System.currentTimeMillis() + MOCK_REMAINING_SECONDS * MILLIS_PER_SECOND
-        return PhotoInfo.Waiting(
-            slots = loadMockFilmSlots(),
-            remainingSeconds = MOCK_REMAINING_SECONDS,
-        )
+
+        // 재조회 때마다 새로 잡으면 카운트다운이 끝나도 인화 대기로 남는다.
+        if (printCompleteAtMillis == 0L) {
+            printCompleteAtMillis = System.currentTimeMillis() + MOCK_REMAINING_SECONDS * MILLIS_PER_SECOND
+        }
+
+        val remainingSeconds = remainingSecondsUntilPrintComplete()
+        return if (remainingSeconds <= 0L) {
+            PhotoInfo.Printed(photos = loadMockPhotos())
+        } else {
+            PhotoInfo.Waiting(
+                slots = loadMockFilmSlots(),
+                remainingSeconds = remainingSeconds,
+            )
+        }
     }
 
     // TODO: 실제 API 연동 전까지 쓰는 mock 필름 슬롯
@@ -132,6 +143,17 @@ class GalleryViewModel @AssistedInject constructor(
         (0 until MOCK_PHOTO_COUNT)
             .map { index ->
                 GalleryFilmSlotUiModel(
+                    order = index + 1,
+                    imageUrl = "https://picsum.photos/seed/${roomId}_$index/300/400",
+                )
+            }.toPersistentList()
+
+    // TODO: 실제 API 연동 전까지 쓰는 mock 공개 사진
+    private fun loadMockPhotos(): ImmutableList<GalleryPhotoUiModel> =
+        (0 until MOCK_PHOTO_COUNT)
+            .map { index ->
+                GalleryPhotoUiModel(
+                    id = index.toLong(),
                     order = index + 1,
                     imageUrl = "https://picsum.photos/seed/${roomId}_$index/300/400",
                 )
