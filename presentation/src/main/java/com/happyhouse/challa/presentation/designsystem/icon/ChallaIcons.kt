@@ -35,6 +35,9 @@ object ChallaIcons {
     val Error = R.drawable.ic_error
 
     @DrawableRes
+    val Feedback = R.drawable.ic_feedback
+
+    @DrawableRes
     val Kakao = R.drawable.ic_kakao
 
     @DrawableRes
@@ -66,4 +69,7 @@ object ChallaIcons {
 
     @DrawableRes
     val UnfoldMore = R.drawable.ic_unfold_more
+
+    @DrawableRes
+    val Up = R.drawable.ic_up
 }
