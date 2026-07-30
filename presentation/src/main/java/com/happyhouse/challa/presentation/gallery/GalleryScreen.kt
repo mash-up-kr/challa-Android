@@ -1,5 +1,9 @@
 package com.happyhouse.challa.presentation.gallery
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,12 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.component.GalleryBackgroundGlow
 import com.happyhouse.challa.presentation.gallery.component.GalleryBottomBar
-import com.happyhouse.challa.presentation.gallery.component.GalleryBottomBarEstimatedHeight
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
@@ -74,30 +78,41 @@ private fun GalleryScaffold(
                     .fillMaxSize()
                     .padding(innerPadding),
         ) {
+            val density = LocalDensity.current
+            val waiting = state.photoInfo as? PhotoInfo.Waiting
+
             // 하단 바가 그리드 위에 떠 있으므로, 끝까지 스크롤했을 때 마지막 줄이 가리지 않도록
             // 실제로 차지하는 높이만큼 그리드 아래 여백을 준다.
-            // 측정 전 첫 프레임에 여백이 튀지 않도록 예상 높이로 시작한다.
-            var bottomBarHeight by remember { mutableStateOf(GalleryBottomBarEstimatedHeight) }
-            val density = LocalDensity.current
+            // 바가 뜬 적이 없으면 잰 높이도 없으므로 0에서 시작한다.
+            var bottomBarHeight by remember { mutableStateOf(0.dp) }
+
+            // 바가 사라지면 여백도 같이 줄어든다.
+            // 즉시 0으로 떨어뜨리면 페이드아웃 중에 마지막 줄이 바 밑으로 파고들어서 함께 애니메이션한다.
+            val extraBottomPadding by animateDpAsState(
+                targetValue = if (waiting == null) 0.dp else bottomBarHeight,
+                label = "GalleryExtraBottomPadding",
+            )
 
             GalleryContent(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 onIntent = onIntent,
-                extraBottomPadding = bottomBarHeight,
+                extraBottomPadding = extraBottomPadding,
             )
 
             // 디자인상 하단 바는 그리드를 밀지 않고 위에 떠 있다.
-            val photoInfo = state.photoInfo
-            if (photoInfo is PhotoInfo.Waiting) {
+            AnimatedVisibility(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                visible = waiting != null,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
                 GalleryBottomBar(
                     modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .onSizeChanged { size ->
-                                bottomBarHeight = with(density) { size.height.toDp() }
-                            },
-                    remainingSeconds = photoInfo.remainingSeconds,
+                        Modifier.onSizeChanged { size ->
+                            bottomBarHeight = with(density) { size.height.toDp() }
+                        },
+                    remainingSeconds = waiting?.remainingSeconds ?: 0L,
                     onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
                 )
             }

@@ -18,7 +18,6 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.ceil
@@ -29,6 +28,7 @@ class GalleryViewModel @AssistedInject constructor(
 ) : BaseViewModel<GalleryState, GalleryIntent, GallerySideEffect>(
         initialState = GalleryState(roomId = roomId),
     ) {
+    private var loadJob: Job? = null
     private var countdownJob: Job? = null
 
     // TODO: 실제 API 붙으면 서버가 내려주는 인화 완료 시각으로 교체할 것.
@@ -46,30 +46,38 @@ class GalleryViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handlePhotosLoad() {
+    /**
+     * @param showLoading 이미 그리드가 떠 있는 재조회에서는 false. 로딩 화면을 거치면 화면이 깜빡인다.
+     */
+    private fun handlePhotosLoad(showLoading: Boolean = true) {
         countdownJob?.cancel()
+        // 재시도를 연타하면 조회가 겹쳐 나중에 끝난 응답이 이긴다.
+        loadJob?.cancel()
 
-        viewModelScope.launch {
-            updateState { copy(photoInfo = PhotoInfo.Loading) }
-            runCatching {
-                loadMockPhotoInfo()
-            }.onSuccess { photoInfo ->
-                updateState {
-                    copy(
-                        roomName = MOCK_ROOM_NAME,
-                        members = loadMockMembers(),
-                        photoInfo = photoInfo,
-                    )
+        loadJob =
+            viewModelScope.launch {
+                if (showLoading) {
+                    updateState { copy(photoInfo = PhotoInfo.Loading) }
                 }
-                if (photoInfo is PhotoInfo.Waiting) {
-                    startCountdown()
+                runCatching {
+                    loadMockPhotoInfo()
+                }.onSuccess { photoInfo ->
+                    updateState {
+                        copy(
+                            roomName = MOCK_ROOM_NAME,
+                            members = loadMockMembers(),
+                            photoInfo = photoInfo,
+                        )
+                    }
+                    if (photoInfo is PhotoInfo.Waiting) {
+                        startCountdown()
+                    }
+                }.onFailure { throwable ->
+                    if (throwable is CancellationException) throw throwable
+                    Timber.e(throwable, "갤러리 사진을 불러오지 못했습니다")
+                    updateState { copy(photoInfo = PhotoInfo.Error) }
                 }
-            }.onFailure { throwable ->
-                if (throwable is CancellationException) throw throwable
-                Timber.e(throwable, "갤러리 사진을 불러오지 못했습니다")
-                updateState { copy(photoInfo = PhotoInfo.Error) }
             }
-        }
     }
 
     private fun handlePhotoClick(photoId: Long) {
@@ -91,23 +99,38 @@ class GalleryViewModel @AssistedInject constructor(
      * 화면이 백그라운드로 내려갔다 돌아와도 값이 어긋나지 않게 하기 위함이다.
      */
     private fun startCountdown() {
-        countdownJob =
+        val job =
             viewModelScope.launch {
-                while (isActive) {
+                while (true) {
+                    // 조건과 표시에 같은 값을 쓰도록 한 번만 읽는다.
                     val remainingSeconds = remainingSecondsUntilPrintComplete()
-                    updateState {
-                        val waiting = photoInfo as? PhotoInfo.Waiting ?: return@updateState this
-                        copy(photoInfo = waiting.copy(remainingSeconds = remainingSeconds))
-                    }
+                    updateRemainingSeconds(remainingSeconds)
 
-                    if (remainingSeconds <= 0L) {
-                        // 인화가 끝났으니 공개된 사진을 다시 받아온다.
-                        handlePhotosLoad()
-                        break
-                    }
+                    if (remainingSeconds <= 0L) break
                     delay(COUNTDOWN_TICK_MS)
                 }
             }
+        // 콜백에서 countdownJob을 취소하므로 대입을 먼저 끝낸다.
+        countdownJob = job
+
+        // 인화가 끝났으니 공개된 사진을 다시 받아온다.
+        // 카운트다운 코루틴 안에서 부르면 자기 자신을 취소하게 되므로 완료된 뒤에 잇는다.
+        // 취소로 끝난 경우(cause != null)는 재조회하지 않는다.
+        //
+        // TODO: 카운트다운이 중단 없이 끝나면 이 콜백이 그 자리에서 동기 실행되고,
+        //  handlePhotosLoad가 loadJob(= startCountdown을 호출한 코루틴)을 취소한다.
+        //  남은 시간이 0 이하면 Waiting을 만들지 않으므로 지금은 도달하지 않지만,
+        //  서버가 '거의 지금'인 완료 시각을 내려주면 드러난다.
+        job.invokeOnCompletion { cause ->
+            if (cause == null) handlePhotosLoad(showLoading = false)
+        }
+    }
+
+    private fun updateRemainingSeconds(remainingSeconds: Long) {
+        updateState {
+            val waiting = photoInfo as? PhotoInfo.Waiting ?: return@updateState this
+            copy(photoInfo = waiting.copy(remainingSeconds = remainingSeconds))
+        }
     }
 
     private fun remainingSecondsUntilPrintComplete(): Long {
@@ -180,6 +203,7 @@ class GalleryViewModel @AssistedInject constructor(
 
         private const val MOCK_PHOTO_COUNT = 24
         private const val MOCK_MEMBER_COUNT = 6
+
         private const val MOCK_REMAINING_SECONDS = 10_798L
         private const val MOCK_LOAD_DELAY_MS = 300L
         private const val MOCK_ROOM_NAME = "다낭 4박5일"

@@ -1,11 +1,16 @@
 package com.happyhouse.challa.presentation.gallery.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,13 +27,11 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
-import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import com.happyhouse.challa.presentation.gallery.previewGalleryFilmSlots
 import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
-import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
@@ -45,69 +48,75 @@ fun GalleryContent(
     extraBottomPadding: Dp = 0.dp,
 ) {
     Box(modifier = modifier) {
-        when (val photoInfo = state.photoInfo) {
-            PhotoInfo.Loading -> {
-                GalleryCenterBox {
-                    CircularProgressIndicator(color = ChallaTheme.colors.labelNormal)
-                }
-            }
+        // 인화 전/후 그리드는 서로 다른 LazyVerticalGrid라, 상태를 공유하지 않으면
+        // 전환할 때 스크롤이 맨 위로 튄다. 두 그리드의 칸 수와 배치가 같아 그대로 이어진다.
+        val gridState = rememberLazyGridState()
 
-            PhotoInfo.Error -> {
-                GalleryCenterBox {
-                    GalleryMessage(
-                        message = stringResource(R.string.gallery_error_message),
-                        actionLabel = stringResource(R.string.gallery_retry),
-                        onAction = { onIntent(GalleryIntent.PhotosLoad) },
-                    )
+        AnimatedContent(
+            targetState = state.photoInfo,
+            // 남은 시간이 1초마다 바뀌어도 다시 그리지 않도록 타입만 키로 쓴다.
+            contentKey = { photoInfo -> photoInfo::class },
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "GalleryPhotoInfo",
+        ) { photoInfo ->
+            when (photoInfo) {
+                PhotoInfo.Loading -> {
+                    GalleryCenterBox {
+                        CircularProgressIndicator(color = ChallaTheme.colors.labelNormal)
+                    }
                 }
-            }
 
-            PhotoInfo.Empty -> {
-                GalleryCenterBox {
-                    GalleryMessage(
-                        message = stringResource(R.string.gallery_empty),
-                    )
+                PhotoInfo.Error -> {
+                    GalleryCenterBox {
+                        GalleryMessage(
+                            message = stringResource(R.string.gallery_error_message),
+                            actionLabel = stringResource(R.string.gallery_retry),
+                            onAction = { onIntent(GalleryIntent.PhotosLoad) },
+                        )
+                    }
                 }
-            }
 
-            is PhotoInfo.Waiting -> {
-                GalleryGridArea(members = state.members) {
+                PhotoInfo.Empty -> {
+                    GalleryCenterBox {
+                        GalleryMessage(
+                            message = stringResource(R.string.gallery_empty),
+                        )
+                    }
+                }
+
+                is PhotoInfo.Waiting -> {
                     GalleryFilmSlotGrid(
+                        modifier = Modifier.fillMaxSize(),
                         slots = photoInfo.slots,
+                        state = gridState,
                         extraBottomPadding = extraBottomPadding,
                     )
                 }
-            }
 
-            is PhotoInfo.Printed -> {
-                GalleryGridArea(members = state.members) {
+                is PhotoInfo.Printed -> {
                     GalleryPhotoGrid(
+                        modifier = Modifier.fillMaxSize(),
                         photos = photoInfo.photos,
                         onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
+                        state = gridState,
                         extraBottomPadding = extraBottomPadding,
                     )
                 }
             }
         }
-    }
-}
 
-/**
- * 그리드 영역
- * 참여자 프로필 바가 그리드 첫 줄 위에 겹쳐 놓인다.
- */
-@Composable
-private fun GalleryGridArea(
-    members: ImmutableList<GalleryMemberUiModel>,
-    grid: @Composable () -> Unit,
-) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        grid()
-
-        GalleryProfileBar(
-            modifier = Modifier.align(Alignment.TopCenter),
-            members = members,
-        )
+        // 그리드가 크로스페이드되는 동안 겹쳐 보이지 않도록 프로필 바는 밖에 둔다.
+        val showsProfileBar =
+            when (state.photoInfo) {
+                is PhotoInfo.Waiting, is PhotoInfo.Printed -> true
+                PhotoInfo.Loading, PhotoInfo.Error, PhotoInfo.Empty -> false
+            }
+        if (showsProfileBar) {
+            GalleryProfileBar(
+                modifier = Modifier.align(Alignment.TopCenter),
+                members = state.members,
+            )
+        }
     }
 }
 

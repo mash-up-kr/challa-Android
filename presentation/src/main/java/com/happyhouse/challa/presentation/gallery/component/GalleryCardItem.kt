@@ -2,7 +2,6 @@ package com.happyhouse.challa.presentation.gallery.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,12 +31,16 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.dashedRoundedBorder
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.util.BlurTransformation
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val CARD_ASPECT_RATIO = 3f / 4f
 
-private val CardShape = RoundedCornerShape(10.dp)
+private val CardCornerRadius = 10.dp
+private val CardShape = RoundedCornerShape(CardCornerRadius)
+private val CardBorderWidth = 1.dp
 
 // TODO: 디자인 토큰 추가되면 교체
 private val CardEmptyColor = Color.White.copy(alpha = 0.05f)
@@ -60,7 +63,9 @@ sealed interface GalleryCardType {
 }
 
 /**
- * @param onClick 인화 전 카드는 열 사진이 없어 null이다.
+ * 방 상세 그리드의 카드 1칸. 인화 상태에 따라 빈 칸 / 흐린 사진 / 공개된 사진을 그린다.
+ *
+ * @param onClick 넘기지 않으면 클릭 영역을 두지 않는다. 인화 전 그리드는 넘기지 않는다.
  */
 @Composable
 fun GalleryCardItem(
@@ -88,21 +93,30 @@ fun GalleryCardItem(
                 .clip(CardShape)
                 .background(CardEmptyColor)
                 .then(
-                    // 인화 완료 카드는 사진이 꽉 차서 테두리가 필요 없다.
-                    if (type is GalleryCardType.Printed) {
-                        Modifier
-                    } else {
-                        Modifier.border(
-                            width = 1.dp,
-                            color = ChallaTheme.colors.lineNeutral,
-                            shape = CardShape,
-                        )
+                    when (type) {
+                        GalleryCardType.NotCaptured ->
+                            Modifier.dashedRoundedBorder(
+                                color = ChallaTheme.colors.lineNeutral,
+                                cornerRadius = CardCornerRadius,
+                                // 옆칸 인화 대기 카드의 실선과 굵기를 맞춘다.
+                                strokeWidth = CardBorderWidth,
+                            )
+
+                        is GalleryCardType.PrintWaiting ->
+                            Modifier.border(
+                                width = CardBorderWidth,
+                                color = ChallaTheme.colors.lineNeutral,
+                                shape = CardShape,
+                            )
+
+                        // 인화 완료 카드는 사진이 꽉 차서 테두리가 필요 없다.
+                        is GalleryCardType.Printed -> Modifier
                     },
                 ).then(
                     if (onClick == null) {
                         Modifier
                     } else {
-                        Modifier.clickable(
+                        Modifier.noRippleClickOnce(
                             role = Role.Image,
                             onClickLabel = openPhotoLabel,
                             onClick = onClick,

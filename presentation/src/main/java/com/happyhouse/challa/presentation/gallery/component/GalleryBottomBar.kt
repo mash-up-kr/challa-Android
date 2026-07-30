@@ -34,13 +34,6 @@ private val CountdownButtonMinHeight = 54.dp
 private val BottomBarTopPadding = 8.dp
 
 /**
- * 하단 바 높이를 실제로 재기 전에 쓰는 예상값.
- *
- * 첫 프레임에 그리드 아래 여백이 튀지 않도록 [GalleryBottomBar]와 같은 수치를 맞춰 둔다.
- */
-internal val GalleryBottomBarEstimatedHeight = BottomBarTopPadding + CountdownButtonMinHeight
-
-/**
  * 인화 전 하단 바
  */
 @Composable
