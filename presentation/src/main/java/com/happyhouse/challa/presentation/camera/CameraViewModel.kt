@@ -1,19 +1,22 @@
 package com.happyhouse.challa.presentation.camera
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
-import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
+import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
+import com.happyhouse.challa.presentation.camera.model.toUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -21,11 +24,9 @@ import timber.log.Timber
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
+    private val roomRepository: RoomRepository,
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
-        initialState =
-            CameraState(
-                selectedRoomId = roomId,
-            ),
+        initialState = CameraState(selectedRoomId = roomId),
     ) {
     private var nextCaptureRequestId = 0L
 
@@ -46,44 +47,37 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun fetchData(roomId: Long) {
-        val rooms = createMockRooms(roomId)
-        val selectedRoom = rooms.first()
+        viewModelScope.launch {
+            when (val result = roomRepository.getRooms()) {
+                is ChallaResult.Success -> {
+                    val rooms = result.data.map { it.toUiModel() }.toPersistentList()
+                    val selectedRoomId = rooms.firstOrNull { it.id == roomId }?.id
 
-        updateState {
-            copy(
-                selectedRoomId = selectedRoom.id,
-                rooms = rooms,
-            )
+                    if (selectedRoomId == null) {
+                        Timber.e(
+                            "선택할 방을 찾을 수 없습니다: roomId=%d, roomCount=%d",
+                            roomId,
+                            rooms.size,
+                        )
+                        sendEffect(CameraSideEffect.RoomLoadFailed)
+                        return@launch
+                    }
+
+                    updateState {
+                        copy(
+                            selectedRoomId = selectedRoomId,
+                            rooms = rooms,
+                        )
+                    }
+                }
+
+                is ChallaResult.Failure -> {
+                    Timber.e("방 목록을 불러오지 못했습니다: $result")
+                    sendEffect(CameraSideEffect.RoomLoadFailed)
+                }
+            }
         }
     }
-
-    private fun createMockRooms(roomId: Long) =
-        persistentListOf(
-            CameraRoomUiModel(
-                id = roomId,
-                name = "방이름1",
-                remainingCount = ROOM_REQUIRED_PHOTO_COUNT,
-                totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-            ),
-            CameraRoomUiModel(
-                id = roomId + 1,
-                name = "방이름방이름방이름2",
-                remainingCount = 6,
-                totalCount = 24,
-            ),
-            CameraRoomUiModel(
-                id = roomId + 2,
-                name = "방이름방이름방이름3방이름",
-                remainingCount = 3,
-                totalCount = 48,
-            ),
-            CameraRoomUiModel(
-                id = roomId + 3,
-                name = "방이름방이름방이름4",
-                remainingCount = 3,
-                totalCount = 48,
-            ),
-        )
 
     private fun handleFlashClick(isAvailable: Boolean) {
         if (!isAvailable) {
@@ -119,13 +113,20 @@ class CameraViewModel @AssistedInject constructor(
                 Timber.w("선택된 방이 없어 촬영 요청을 무시합니다")
                 return
             }
-        if (room.remainingCount <= 0) return
+        if (!room.remainingCaptureStatus.isCaptureAvailable) {
+            viewModelScope.launch {
+                sendEffect(CameraSideEffect.NoRemainingCaptures)
+            }
+            return
+        }
 
         nextCaptureRequestId += 1
         val captureRequest =
             PhotoCaptureRequest(
                 requestId = nextCaptureRequestId,
                 roomId = room.id,
+                selectedFilter = currentState.selectedFilter,
+                lensFacing = currentState.lensFacing,
             )
         updateState { copy(captureRequest = captureRequest) }
     }
@@ -174,8 +175,8 @@ class CameraViewModel @AssistedInject constructor(
             copy(
                 zoomLevel =
                     when (zoomLevel) {
-                        DEFAULT_ZOOM_LEVEL -> MAX_ZOOM_LEVEL
-                        MAX_ZOOM_LEVEL -> ULTRA_WIDE_ZOOM_LEVEL
+                        DEFAULT_ZOOM_LEVEL -> DOUBLE_ZOOM_LEVEL
+                        DOUBLE_ZOOM_LEVEL -> TRIPLE_ZOOM_LEVEL
                         else -> DEFAULT_ZOOM_LEVEL
                     },
             )
@@ -190,7 +191,7 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun handleFilterClick(index: Int) {
         updateState {
-            copy(selectedFilterIndex = index.coerceIn(0, (filterCount - 1).coerceAtLeast(0)))
+            copy(selectedFilterIndex = index.coerceIn(0, CameraFilter.availableFilters.lastIndex))
         }
     }
 
@@ -200,8 +201,8 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private companion object {
-        const val ULTRA_WIDE_ZOOM_LEVEL = 0.5f
         const val DEFAULT_ZOOM_LEVEL = 1f
-        const val MAX_ZOOM_LEVEL = 2f
+        const val DOUBLE_ZOOM_LEVEL = 2f
+        const val TRIPLE_ZOOM_LEVEL = 3f
     }
 }

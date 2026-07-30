@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.camera.component
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -16,8 +15,11 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
+import kotlinx.collections.immutable.ImmutableList
 
 private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
 
@@ -26,7 +28,7 @@ internal fun CameraContentLayout(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,
-    filterCount: Int,
+    filters: ImmutableList<CameraFilter>,
     selectedFilterIndex: Int,
     isFlashEnabled: Boolean,
     isCameraSwitchEnabled: Boolean,
@@ -42,56 +44,54 @@ internal fun CameraContentLayout(
     modifier: Modifier = Modifier,
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
-    Box(modifier = modifier) {
-        CameraBackground(modifier = Modifier.fillMaxSize())
+    val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            CameraBezel(
-                isPhotoLimitReached = remainingCount <= 0,
-                isShutterEffectVisible = isShutterEffectVisible,
-                zoomLevel = zoomLevel,
-                onZoomClick = onZoomClick,
-                modifier =
-                    Modifier
-                        .padding(start = 36.dp, top = 40.dp, end = 36.dp)
-                        .fillMaxWidth()
-                        .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
-                viewFinder = viewFinder,
-            )
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CameraBezel(
+            isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
+            isShutterEffectVisible = isShutterEffectVisible,
+            zoomLevel = zoomLevel,
+            onZoomClick = onZoomClick,
+            modifier =
+                Modifier
+                    .padding(start = 36.dp, top = 40.dp, end = 36.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
+            viewFinder = viewFinder,
+        )
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            CameraControls(
-                isFlashEnabled = isFlashEnabled,
-                isCameraSwitchEnabled = isCameraSwitchEnabled,
-                shutterEnabled = shutterEnabled,
-                onFlashClick = onFlashClick,
-                onSwitchCameraClick = onSwitchCameraClick,
-                onShutterClick = onShutterClick,
-            )
+        CameraControls(
+            isFlashEnabled = isFlashEnabled,
+            isCameraSwitchEnabled = isCameraSwitchEnabled,
+            shutterEnabled = shutterEnabled,
+            onFlashClick = onFlashClick,
+            onSwitchCameraClick = onSwitchCameraClick,
+            onShutterClick = onShutterClick,
+        )
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-            CameraFilterSelector(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                filterCount = filterCount,
-                selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = onFilterClick,
-            )
+        CameraFilterSelector(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            filters = filters,
+            selectedFilterIndex = selectedFilterIndex,
+            onFilterClick = onFilterClick,
+        )
 
-            Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-            CameraRoomInfo(
-                roomName = roomName,
-                remainingCount = remainingCount,
-                totalCount = totalCount,
-                onClick = onRoomInfoClick,
-                modifier = Modifier.padding(bottom = 40.dp),
-            )
-        }
+        CameraRoomInfo(
+            roomName = roomName,
+            remainingCount = remainingCount,
+            totalCount = totalCount,
+            onClick = onRoomInfoClick,
+            modifier = Modifier.padding(bottom = 40.dp),
+        )
     }
 }
 
@@ -104,7 +104,7 @@ private fun CameraContentLayoutPreview() {
         roomName = "해피하우스강릉여행",
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-        filterCount = 10,
+        filters = CameraFilter.availableFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
@@ -130,7 +130,7 @@ private fun CameraContentLimitReachedPreview() {
         roomName = "방이름방이름방이름3",
         remainingCount = 0,
         totalCount = 48,
-        filterCount = 10,
+        filters = CameraFilter.availableFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,

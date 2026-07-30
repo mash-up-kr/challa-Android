@@ -6,10 +6,11 @@ import androidx.compose.ui.unit.dp
 enum class ChallaIconSize(
     val dp: Dp,
 ) {
-    XXSMALL(16.dp),
-    XSMALL(18.dp),
-    SMALL(20.dp),
-    MEDIUM(24.dp),
-    LARGE(28.dp),
-    XLARGE(32.dp),
+    V16(16.dp),
+    V18(18.dp),
+    V20(20.dp),
+    V22(22.dp),
+    V24(24.dp),
+    V28(28.dp),
+    V32(32.dp),
 }

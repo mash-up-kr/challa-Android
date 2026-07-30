@@ -1,6 +1,8 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.os.Build
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.CameraController
@@ -16,14 +18,18 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -32,12 +38,15 @@ import timber.log.Timber
  * [lensFacing]이 변경되면 Controller가 새 렌즈로 UseCase를 다시 바인딩합니다.
  * [bindingRetryKey]가 바뀐 때는 Controller와 PreviewView를 재생성해 초기화부터 재시도합니다.
  * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
+ * Android 13 이상에서는 모든 LUT를 IO 스레드에서 미리 읽고 [selectedFilter]를 프리뷰에 적용합니다.
+ * LUT가 준비되지 않았거나 로드에 실패하면 선택한 필터의 ColorMatrix fallback을 적용합니다.
  * 실패한 제어 요청은 기록합니다.
  * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
  * Composable이 Composition에서 제거되면 Controller를 해제하고 진행 중인 촬영 코루틴을 취소합니다.
  *
  * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
  * 새 요청으로 처리하며, 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
+ * @param selectedFilter 프리뷰에 적용할 필터
  * @param bindingRetryKey 카메라 초기화·바인딩 실패 후 Controller를 재생성해 재시도할 때 변경하는 키
  * @param onStateChanged 바인딩·촬영 상태가 바뀐 때 최신 [CameraSessionState]를 전달하는 콜백
  * @param onEvent 바인딩 실패와 촬영 시작·완료처럼 한 번만 소비할 [CameraSessionEvent]를 전달하는 콜백
@@ -48,20 +57,54 @@ internal fun CameraSession(
     lensFacing: CameraLensFacing,
     isFlashEnabled: Boolean,
     zoomLevel: Float,
+    selectedFilter: CameraFilter,
     captureRequest: PhotoCaptureRequest?,
     bindingRetryKey: Int,
     onStateChanged: (CameraSessionState) -> Unit,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraController = remember(context, bindingRetryKey) { createCameraController(context) }
     val previewView =
         remember(context, cameraController) { createPreviewView(context, cameraController) }
+    val capturedImageProcessor = remember { CapturedImageProcessor() }
     val callbackExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
     val currentOnStateChanged by rememberUpdatedState(onStateChanged)
     val currentOnEvent by rememberUpdatedState(onEvent)
     var sessionState by remember { mutableStateOf(CameraSessionState()) }
+    var loadedLuts by remember { mutableStateOf(emptyMap<CameraFilter, Bitmap>()) }
+
+    // 필터 전환 시 디스크 파싱을 기다리지 않도록 모든 cube LUT를 백그라운드에서 미리 읽습니다.
+    LaunchedEffect(resources) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@LaunchedEffect
+
+        loadedLuts =
+            withContext(Dispatchers.IO) {
+                CameraFilter.availableFilters
+                    .mapNotNull { filter ->
+                        val resourceId = filter.cubeResId ?: return@mapNotNull null
+
+                        try {
+                            filter to CubeLut.load(resources, resourceId)
+                        } catch (cancellationException: CancellationException) {
+                            throw cancellationException
+                        } catch (exception: Exception) {
+                            Timber.e(
+                                exception,
+                                "LUT 로드에 실패했습니다: filter=%s",
+                                filter.name,
+                            )
+                            null
+                        }
+                    }.toMap()
+            }
+    }
+
+    LaunchedEffect(previewView, selectedFilter, loadedLuts) {
+        previewView.applyCameraFilter(selectedFilter, loadedLuts[selectedFilter])
+    }
 
     // Controller 초기화 후 선택한 렌즈를 Lifecycle에 바인딩하고 세션 해제 시 unbind합니다.
     LaunchedEffect(cameraController, lifecycleOwner, previewView, lensFacing) {
@@ -186,7 +229,12 @@ internal fun CameraSession(
                                 CameraSessionEvent.CaptureStarted(request.requestId),
                             )
                         },
-                    ).close() // TODO: 필터 처리 및 저장 구현 전까지 촬영 결과를 즉시 해제
+                    ).let { image ->
+                        capturedImageProcessor.process(
+                            image = image,
+                            request = request,
+                        )
+                    }
                 CameraCaptureResult.Success
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(
@@ -227,11 +275,16 @@ private fun createCameraController(context: Context): LifecycleCameraController 
         imageCaptureMode = ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
     }
 
+/**
+ * View의 RenderEffect가 카메라 프레임에도 적용되도록 TextureView 기반의 PreviewView를 만듭니다.
+ * SurfaceView 기반 PERFORMANCE 모드는 프리뷰가 View의 렌더 노드를 우회하므로 사용할 수 없습니다.
+ */
 private fun createPreviewView(
     context: Context,
     cameraController: LifecycleCameraController,
 ): PreviewView =
     PreviewView(context).apply {
+        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         scaleType = PreviewView.ScaleType.FILL_CENTER
         controller = cameraController
     }

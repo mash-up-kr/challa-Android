@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.camera.contract
 
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
+import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import kotlinx.collections.immutable.ImmutableList
@@ -12,7 +13,9 @@ import kotlinx.collections.immutable.persistentListOf
  *
  * @property captureRequest ViewModel이 생성하고 완료 또는 취소까지 소유하는 촬영 요청.
  * 대기 중인 요청이 없으면 null입니다.
+ * @property selectedFilterIndex [CameraFilter.availableFilters]에서 선택한 필터의 인덱스
  * @property isCapturePending 처리할 촬영 요청이 있는지 여부
+ * @property selectedFilter 인덱스가 유효하지 않으면 [CameraFilter.ORIGINAL]로 복구한 선택 필터
  */
 @Immutable
 data class CameraState(
@@ -21,7 +24,6 @@ data class CameraState(
     val isFlashEnabled: Boolean = false,
     val captureRequest: PhotoCaptureRequest? = null,
     val zoomLevel: Float = 1f,
-    val filterCount: Int = 8,
     val selectedFilterIndex: Int = 0,
     val rooms: ImmutableList<CameraRoomUiModel> = persistentListOf(),
 ) : UiState {
@@ -30,6 +32,9 @@ data class CameraState(
 
     val selectedRoom: CameraRoomUiModel?
         get() = rooms.firstOrNull { it.id == selectedRoomId }
+
+    val selectedFilter: CameraFilter
+        get() = CameraFilter.availableFilters.getOrElse(selectedFilterIndex) { CameraFilter.ORIGINAL }
 }
 
 enum class CameraLensFacing {

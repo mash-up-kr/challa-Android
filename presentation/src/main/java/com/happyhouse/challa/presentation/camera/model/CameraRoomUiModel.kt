@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.camera.model
 
 import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.domain.model.RoomSummary
 
 @Immutable
 data class CameraRoomUiModel(
@@ -9,3 +10,11 @@ data class CameraRoomUiModel(
     val remainingCount: Int,
     val totalCount: Int,
 )
+
+internal fun RoomSummary.toUiModel(): CameraRoomUiModel =
+    CameraRoomUiModel(
+        id = id,
+        name = name,
+        remainingCount = remainingCount,
+        totalCount = totalCount,
+    )
