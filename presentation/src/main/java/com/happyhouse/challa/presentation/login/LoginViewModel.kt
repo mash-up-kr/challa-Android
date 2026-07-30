@@ -32,7 +32,7 @@ class LoginViewModel
                     val idToken = acquireKakaoIdToken()
                     authRepository
                         .loginWithKakao(idToken)
-                        .onSuccess { sendEffect(LoginSideEffect.LoginSuccess) }
+                        .onSuccess { sendEffect(LoginSideEffect.LoginSuccess(it.isNewUser)) }
                         .onFailure { sendEffect(LoginSideEffect.LoginFailed) }
                 } catch (e: CancellationException) {
                     throw e
