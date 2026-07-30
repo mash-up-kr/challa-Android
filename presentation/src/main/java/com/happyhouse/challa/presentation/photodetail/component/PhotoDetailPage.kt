@@ -153,6 +153,7 @@ private fun PhotographerInfo(
             )
 
             Text(
+                modifier = Modifier.padding(vertical = 2.dp),
                 text = photo.photographer,
                 color = ChallaTheme.colors.labelNormal,
                 style = ChallaTheme.typography.bodyMedium.medium,
