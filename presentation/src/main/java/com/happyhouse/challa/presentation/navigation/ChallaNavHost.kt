@@ -93,14 +93,14 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Home> {
                     HomeScreen(
-                        onNavigateToInviteCode = {
-                            // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
-                        },
                         onNavigateToCreateRoom = {
                             navigator.navigate(ChallaRoute.CreateRoom)
                         },
-                        onNavigateToRoom = { _ ->
-                            // TODO JH: 방 상태별 화면(Gallery/Waiting/RoomMain) 구현되면 navigator.navigate(...) 연결
+                        onNavigateToInviteCode = {
+                            // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
+                        },
+                        onNavigateToSetting = {
+                            // TODO JH: 설정 화면 구현되면 navigator.navigate(...) 연결
                         },
                     )
                 }

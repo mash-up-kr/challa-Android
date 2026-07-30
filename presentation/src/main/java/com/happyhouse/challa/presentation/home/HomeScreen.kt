@@ -1,66 +1,60 @@
 package com.happyhouse.challa.presentation.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
+import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.util.clickOnce
-import com.happyhouse.challa.presentation.home.model.Room
-import com.happyhouse.challa.presentation.home.model.RoomStatus
-import kotlinx.collections.immutable.persistentListOf
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
-
-/**
- * TODO JH 하드코딩한 색상은 디자인이 완성되면 제거 예정
- */
-private val TextPrimary = Color(0xFF111111)
-private val TextSecondary = Color(0xFF666666)
-private val TextMuted = Color(0xFF999999)
-private val BorderColor = Color(0xFFDDDDDD)
-private val DividerColor = Color(0xFFE5E5E5)
-private val ChipBg = Color(0xFFF4F4F4)
-private val PlaceholderBg = Color(0xFFEEEEEE)
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
 fun HomeScreen(
-    onNavigateToInviteCode: () -> Unit,
     onNavigateToCreateRoom: () -> Unit,
-    onNavigateToRoom: (Room) -> Unit,
+    onNavigateToInviteCode: () -> Unit,
+    onNavigateToSetting: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -68,9 +62,9 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
-        onInviteCodeClick = onNavigateToInviteCode,
         onCreateRoomClick = onNavigateToCreateRoom,
-        onRoomClick = onNavigateToRoom,
+        onInviteCodeClick = onNavigateToInviteCode,
+        onSettingClick = onNavigateToSetting,
         modifier = modifier,
     )
 }
@@ -78,236 +72,287 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeState,
-    onInviteCodeClick: () -> Unit,
     onCreateRoomClick: () -> Unit,
-    onRoomClick: (Room) -> Unit,
+    onInviteCodeClick: () -> Unit,
+    onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(ChallaTheme.colors.backgroundSurface)
+                .homeGlow(),
     ) {
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .statusBarsPadding(),
+                    .statusBarsPadding()
+                    .navigationBarsPadding(),
         ) {
             HomeTopBar(
-                userName = state.userName,
-                onClickInviteCode = onInviteCodeClick,
+                onCreateRoomClick = onCreateRoomClick,
+                onSettingClick = onSettingClick,
             )
 
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
-                        color = TextPrimary,
-                        strokeWidth = 2.dp,
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(items = state.rooms, key = { it.id }) { room ->
-                        RoomCard(
-                            room = room,
-                            onClick = { onRoomClick(room) },
+            when {
+                state.isLoading ->
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(28.dp),
+                            color = ChallaTheme.colors.labelNormal,
+                            strokeWidth = 2.dp,
                         )
                     }
+
+                state.isEmpty -> {
+                    Box(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        HomeEmptyMessage(
+                            nickname = state.nickname,
+                            profileImageUrl = state.profileImageUrl,
+                        )
+                    }
+                    HomeActionButtons(
+                        onCreateRoomClick = onCreateRoomClick,
+                        onInviteCodeClick = onInviteCodeClick,
+                    )
+                }
+
+                else -> {
+                    // TODO JH: 케이스 2 — 촬영중/촬영완료한 방이 있을 때의 방 목록 구현 예정
+                    Box(modifier = Modifier.weight(1f))
                 }
             }
         }
+    }
+}
 
-        CreateRoomFab(
-            onClick = onCreateRoomClick,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp),
+/**
+ * 화면 하단에 은은하게 깔리는 옐로우 글로우.
+ *
+ * 피그마의 blur(150) 처리된 ellipse를 대체한다.
+ * [androidx.compose.ui.draw.blur]는 API 31 미만에서 동작하지 않으므로 radial gradient로 표현한다.
+ */
+@Composable
+private fun Modifier.homeGlow(): Modifier {
+    val glowColor = ChallaTheme.colors.primaryYellow
+    return drawBehind {
+        val center = Offset(x = size.width / 2f, y = size.height * 0.92f)
+        val radius = size.width * 0.95f
+        drawRect(
+            brush =
+                Brush.radialGradient(
+                    colors = listOf(glowColor.copy(alpha = 0.20f), Color.Transparent),
+                    center = center,
+                    radius = radius,
+                ),
         )
     }
 }
 
 @Composable
 private fun HomeTopBar(
-    userName: String,
-    onClickInviteCode: () -> Unit,
+    onCreateRoomClick: () -> Unit,
+    onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(44.dp)
-                    .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(id = R.string.home_greeting, userName),
-                color = TextPrimary,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
+    ChallaTopNavigation(
+        title = stringResource(id = R.string.home_title),
+        modifier = modifier,
+        variant = ChallaTopNavigationVariant.MAIN,
+        trailingIcon = {
+            HomeTopBarAction(
+                icon = ChallaIcons.Add,
+                contentDescription = stringResource(id = R.string.home_add_description),
+                onClick = onCreateRoomClick,
             )
-            Box(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(ChipBg)
-                        .border(width = 1.dp, color = TextMuted, shape = RoundedCornerShape(4.dp))
-                        .clickOnce { onClickInviteCode() }
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.home_invite_code),
-                    color = TextPrimary,
-                    fontSize = 12.sp,
-                )
-            }
-        }
-        HorizontalDivider(color = DividerColor)
-    }
+            HomeTopBarAction(
+                icon = ChallaIcons.Setting,
+                contentDescription = stringResource(id = R.string.home_setting_description),
+                onClick = onSettingClick,
+            )
+        },
+    )
 }
 
 @Composable
-private fun RoomCard(
-    room: Room,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(6.dp))
-                .background(Color.White)
-                .border(width = 1.dp, color = BorderColor, shape = RoundedCornerShape(6.dp))
-                .clickOnce { onClick() }
-                .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(PlaceholderBg),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(id = R.string.home_cover_placeholder),
-                color = TextMuted,
-                fontSize = 10.sp,
-            )
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = room.name,
-                color = TextPrimary,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = room.status.badgeText(),
-                color = TextSecondary,
-                fontSize = 12.sp,
-            )
-        }
-        Text(
-            text = "›",
-            color = TextMuted,
-            fontSize = 18.sp,
-        )
-    }
-}
-
-@Composable
-private fun RoomStatus.badgeText(): String =
-    when (this) {
-        is RoomStatus.Shooting ->
-            stringResource(id = R.string.home_badge_shooting, taken, total)
-        is RoomStatus.Waiting ->
-            stringResource(id = R.string.home_badge_waiting, dDay, remaining.formatHhMm())
-        RoomStatus.Opened ->
-            stringResource(id = R.string.home_badge_opened)
-        is RoomStatus.Expiring ->
-            stringResource(id = R.string.home_badge_expiring, dDay)
-    }
-
-private fun Duration.formatHhMm(): String {
-    val totalMinutes = inWholeMinutes
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return "%02d:%02d".format(hours, minutes)
-}
-
-@Composable
-private fun CreateRoomFab(
+private fun HomeTopBarAction(
+    @DrawableRes icon: Int,
+    contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier =
             modifier
-                .size(56.dp)
-                .shadow(elevation = 4.dp, shape = CircleShape)
-                .clip(CircleShape)
-                .background(TextPrimary)
-                .clickOnce { onClick() },
+                .size(40.dp)
+                .noRippleClickOnce(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        // TODO JH: 텍스트가 아닌 다른 아이콘으로 변경될 임시 코드라 하드코딩으로 두었다.
-        Text(
-            text = "+",
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Normal,
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp),
+            tint = ChallaTheme.colors.labelNeutral,
         )
     }
 }
 
-@Preview(showBackground = true, name = "Home")
+@Composable
+private fun HomeEmptyMessage(
+    nickname: String,
+    profileImageUrl: String?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = nickname,
+            color = ChallaTheme.colors.primaryYellow,
+            textAlign = TextAlign.Center,
+            style = ChallaTheme.typography.headingSmall.bold,
+        )
+        Text(
+            text = stringResource(id = R.string.home_empty_subtitle),
+            color = ChallaTheme.colors.labelNormal,
+            textAlign = TextAlign.Center,
+            style = ChallaTheme.typography.headingSmall.bold,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        HomeProfileImage(profileImageUrl = profileImageUrl)
+    }
+}
+
+@Composable
+private fun HomeProfileImage(
+    profileImageUrl: String?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(ChallaTheme.colors.backgroundLevel3),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (profileImageUrl == null) {
+            Icon(
+                painter = painterResource(id = ChallaIcons.Profile),
+                contentDescription = stringResource(id = R.string.home_profile_description),
+                modifier = Modifier.size(80.dp),
+                tint = ChallaTheme.colors.labelNeutral,
+            )
+        } else {
+            AsyncImage(
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(profileImageUrl)
+                        .crossfade(true)
+                        .build(),
+                contentDescription = stringResource(id = R.string.home_profile_description),
+                contentScale = ContentScale.Crop,
+                placeholder = ColorPainter(ChallaTheme.colors.backgroundLevel3),
+                error = ColorPainter(ChallaTheme.colors.backgroundLevel3),
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeActionButtons(
+    onCreateRoomClick: () -> Unit,
+    onInviteCodeClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        HomeActionButton(
+            text = stringResource(id = R.string.home_create_room),
+            containerColor = ChallaTheme.colors.primaryYellow,
+            onClick = onCreateRoomClick,
+        )
+        HomeActionButton(
+            text = stringResource(id = R.string.home_enter_invite_code),
+            containerColor = ChallaTheme.colors.labelNormal,
+            onClick = onInviteCodeClick,
+        )
+    }
+}
+
+@Composable
+private fun HomeActionButton(
+    text: String,
+    containerColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(containerColor)
+                .noRippleClickOnce(role = Role.Button, onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 15.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            color = ChallaTheme.colors.staticBlack,
+            style = ChallaTheme.typography.bodyLarge.bold,
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Home - Empty")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun HomeScreenPreview() {
-    HomeContent(
-        state =
-            HomeState(
-                isLoading = false,
-                userName = "윤서연",
-                rooms =
-                    persistentListOf(
-                        Room("1", "오사카 졸업여행", RoomStatus.Shooting(12, 24)),
-                        Room("2", "제주 워크샵", RoomStatus.Waiting(0, 2.hours + 47.minutes)),
-                        Room("3", "다낭 4박5일", RoomStatus.Opened),
-                        Room("4", "부산 1박", RoomStatus.Expiring(2)),
-                    ),
-            ),
-        onInviteCodeClick = {},
-        onCreateRoomClick = {},
-        onRoomClick = {},
-    )
+private fun HomeEmptyPreview() {
+    ChallaTheme {
+        HomeContent(
+            state =
+                HomeState(
+                    isLoading = false,
+                    nickname = "나는야멋쟁이토마토",
+                    profileImageUrl = null,
+                ),
+            onCreateRoomClick = {},
+            onInviteCodeClick = {},
+            onSettingClick = {},
+        )
+    }
 }
 
 @Preview(showBackground = true, name = "Home - Loading")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun HomeScreenLoadingPreview() {
-    HomeContent(
-        state = HomeState(isLoading = true, userName = ""),
-        onInviteCodeClick = {},
-        onCreateRoomClick = {},
-        onRoomClick = {},
-    )
+private fun HomeLoadingPreview() {
+    ChallaTheme {
+        HomeContent(
+            state = HomeState(isLoading = true),
+            onCreateRoomClick = {},
+            onInviteCodeClick = {},
+            onSettingClick = {},
+        )
+    }
 }

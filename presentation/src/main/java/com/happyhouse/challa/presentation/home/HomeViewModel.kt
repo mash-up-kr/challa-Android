@@ -2,16 +2,11 @@ package com.happyhouse.challa.presentation.home
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
-import com.happyhouse.challa.presentation.home.model.Room
-import com.happyhouse.challa.presentation.home.model.RoomStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 @HiltViewModel
 class HomeViewModel
@@ -30,51 +25,16 @@ class HomeViewModel
             viewModelScope.launch {
                 updateState { copy(isLoading = true) }
                 delay(1000L) // TODO JH: API 호출
-                val mock = mockHomeData()
                 updateState {
                     copy(
                         isLoading = false,
-                        userName = mock.userName,
-                        rooms = mock.rooms,
+                        // TODO JH: API 연동 시 실제 유저 정보로 대체
+                        nickname = "나는야멋쟁이토마토",
+                        profileImageUrl = null,
+                        // 촬영중/촬영완료한 방이 없는 상태(케이스 1)
+                        rooms = persistentListOf(),
                     )
                 }
             }
         }
-
-        private data class MockHome(
-            val userName: String,
-            val rooms: ImmutableList<Room>,
-        )
-
-        private fun mockHomeData(): MockHome =
-            MockHome(
-                userName = "윤서연",
-                rooms =
-                    persistentListOf(
-                        Room(
-                            id = "1",
-                            name = "오사카 졸업여행",
-                            status = RoomStatus.Shooting(taken = 12, total = 24),
-                        ),
-                        Room(
-                            id = "2",
-                            name = "제주 워크샵",
-                            status =
-                                RoomStatus.Waiting(
-                                    dDay = 0,
-                                    remaining = 2.hours + 47.minutes,
-                                ),
-                        ),
-                        Room(
-                            id = "3",
-                            name = "다낭 4박5일",
-                            status = RoomStatus.Opened,
-                        ),
-                        Room(
-                            id = "4",
-                            name = "부산 1박",
-                            status = RoomStatus.Expiring(dDay = 2),
-                        ),
-                    ),
-            )
     }
