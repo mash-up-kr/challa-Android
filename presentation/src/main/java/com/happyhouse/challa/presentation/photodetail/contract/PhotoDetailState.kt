@@ -4,6 +4,9 @@ import android.os.Parcelable
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.parcelize.Parcelize
 
 @Immutable
@@ -13,7 +16,12 @@ data class PhotoDetailState(
     val roomName: String = "",
     val photoInfo: PhotoInfo = PhotoInfo.Loading,
     val isSaving: Boolean = false,
+    val messageInput: String = "",
+    val isSendingMessage: Boolean = false,
 ) : UiState {
+    /** 입력한 내용이 있을 때만 전송 버튼을 노출한다. */
+    val isMessageSendable: Boolean get() = messageInput.isNotBlank() && !isSendingMessage
+
     @Immutable
     sealed interface PhotoInfo {
         data object Loading : PhotoInfo
@@ -22,9 +30,16 @@ data class PhotoDetailState(
 
         data object Empty : PhotoInfo
 
+        /**
+         * @param reactions 사진 id별 반응 목록. 반응은 사진이 있을 때만 존재하므로 Loaded 안에 둔다.
+         *   [PhotoDetailUiModel]은 rememberSaveable에 담기느라 Parcelable이라 반응을 직접 갖지 못한다.
+         */
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
-        ) : PhotoInfo
+            val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
+        ) : PhotoInfo {
+            fun reactionsOf(photoId: Long): ImmutableList<PhotoReactionUiModel> = reactions[photoId] ?: persistentListOf()
+        }
     }
 }
 
@@ -36,3 +51,27 @@ data class PhotoDetailUiModel(
     val photographer: String,
     val capturedDate: String,
 ) : Parcelable
+
+/**
+ * 사진에 남긴 이모지 반응 1개.
+ *
+ * @param id 사진 위 노출 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려져야 한다.
+ */
+@Immutable
+data class PhotoReactionUiModel(
+    val id: Long,
+    val emoji: ReactionEmoji,
+)
+
+/**
+ * 반응 바에 노출하는 이모지 종류. 선언 순서가 곧 노출 순서다.
+ *
+ * TODO: 이모지 셋 2차 수정·추가 예정 (이슈 #62)
+ */
+enum class ReactionEmoji {
+    MEDAL,
+    HEART,
+    POOP,
+    CLAP,
+    SKULL,
+}
