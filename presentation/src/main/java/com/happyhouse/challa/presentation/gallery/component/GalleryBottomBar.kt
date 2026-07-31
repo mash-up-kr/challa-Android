@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -27,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
@@ -36,11 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
-
-private val BottomBarButtonShape = RoundedCornerShape(12.dp)
-private val BottomBarButtonMinHeight = 54.dp
-private val BottomBarTopPadding = 8.dp
-private val ShootButtonIconGap = 10.dp
 
 /** 촬영 중 하단 바. 카메라로 이어준다. */
 @Composable
@@ -78,12 +73,32 @@ private fun GalleryBottomBarLayout(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(top = BottomBarTopPadding)
-                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp, start = 16.dp, end = 16.dp)
                 .navigationBarsPadding(),
         content = content,
     )
 }
+
+/**
+ * 두 하단 바 버튼이 공유하는 모양·크기·클릭 처리
+ *
+ * 높이는 [heightIn] min으로 잡으므로 안쪽 세로 여백을 따로 두지 않는다.
+ */
+private fun Modifier.bottomBarButton(
+    backgroundColor: Color,
+    onClick: () -> Unit,
+    onClickLabel: String? = null,
+): Modifier =
+    this
+        .fillMaxWidth()
+        .heightIn(min = 54.dp)
+        .clip(RoundedCornerShape(12.dp))
+        .background(backgroundColor)
+        .noRippleClickOnce(
+            role = Role.Button,
+            onClickLabel = onClickLabel,
+            onClick = onClick,
+        )
 
 /**
  * 카메라로 이어주는 CTA
@@ -98,21 +113,11 @@ private fun GalleryShootButton(
 ) {
     Row(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .heightIn(min = BottomBarButtonMinHeight)
-                .clip(BottomBarButtonShape)
-                .background(ChallaTheme.colors.primaryYellow)
-                .noRippleClickOnce(
-                    role = Role.Button,
-                    onClick = onClick,
-                )
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-        horizontalArrangement =
-            Arrangement.spacedBy(
-                ShootButtonIconGap,
-                Alignment.CenterHorizontally,
+            modifier.bottomBarButton(
+                backgroundColor = ChallaTheme.colors.primaryYellow,
+                onClick = onClick,
             ),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -144,17 +149,11 @@ private fun GalleryCountdownButton(
 ) {
     Box(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .heightIn(min = BottomBarButtonMinHeight)
-                .clip(BottomBarButtonShape)
-                .background(ChallaTheme.colors.backgroundLevel2)
-                .noRippleClickOnce(
-                    role = Role.Button,
-                    onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
-                    onClick = onClick,
-                )
-                .padding(horizontal = 20.dp, vertical = 14.dp),
+            modifier.bottomBarButton(
+                backgroundColor = ChallaTheme.colors.backgroundLevel2,
+                onClick = onClick,
+                onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -186,7 +185,6 @@ private fun Long.toTwoDigits(): String = toString().padStart(2, '0')
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     name = "BottomBar - 촬영 중",
 )
@@ -198,7 +196,6 @@ private fun GalleryShootBarPreview() {
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     name = "BottomBar - 인화 대기",
 )
