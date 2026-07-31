@@ -110,4 +110,14 @@
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
+
+    <!-- themeScreen -->
+    <string name="theme_title">테마</string>
+    <string name="theme_back_description">설정으로 돌아가기</string>
+    <string name="theme_lemonade">레몬에이드</string>
+    <string name="theme_raspberry">라즈베리</string>
+    <string name="theme_orange">오렌지</string>
+    <string name="theme_cider">사이다</string>
+    <string name="theme_blueberry">블루베리</string>
+    <string name="theme_acai_bowl">아사이볼</string>
 </resources>
