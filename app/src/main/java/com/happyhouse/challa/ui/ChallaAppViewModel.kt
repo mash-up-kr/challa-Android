@@ -2,7 +2,9 @@ package com.happyhouse.challa.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.PrimaryTheme
 import com.happyhouse.challa.domain.repository.AuthRepository
+import com.happyhouse.challa.domain.repository.ThemeRepository
 import com.happyhouse.challa.presentation.navigation.ChallaRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +19,17 @@ class ChallaAppViewModel
     @Inject
     constructor(
         authRepository: AuthRepository,
+        themeRepository: ThemeRepository,
     ) : ViewModel() {
+        val primaryTheme: StateFlow<PrimaryTheme> =
+            themeRepository.primaryTheme
+                .catch { emit(PrimaryTheme.LEMONADE) }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.Eagerly,
+                    initialValue = PrimaryTheme.LEMONADE,
+                )
+
         /**
          * 앱 시작 시 저장된 토큰 유무로 초기 화면을 정한다.
          * 토큰이 있으면 [ChallaRoute.Home], 없으면 [ChallaRoute.Login] 으로 시작한다.

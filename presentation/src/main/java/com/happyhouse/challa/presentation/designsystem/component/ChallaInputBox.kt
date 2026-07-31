@@ -99,7 +99,7 @@ private fun ChallaInputBoxContent(
             ChallaTheme.typography.bodyMedium.bold.copy(
                 color = ChallaTheme.colors.labelNormal,
             ),
-        cursorBrush = SolidColor(ChallaTheme.colors.primaryYellow),
+        cursorBrush = SolidColor(ChallaTheme.colors.primary),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         interactionSource = interactionSource,
@@ -124,7 +124,7 @@ private fun ChallaInputBoxContent(
 @Composable
 private fun inputBoxBorderColor(isFocused: Boolean): Color =
     if (isFocused) {
-        ChallaTheme.colors.primaryYellow
+        ChallaTheme.colors.primary
     } else {
         Color.Transparent
     }

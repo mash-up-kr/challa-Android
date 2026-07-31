@@ -5,10 +5,6 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
@@ -21,8 +17,7 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
-import com.happyhouse.challa.presentation.setting.theme.ThemeOption
-import com.happyhouse.challa.presentation.setting.theme.ThemeScreen
+import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 
 @Composable
 fun ChallaNavHost(
@@ -103,14 +98,8 @@ fun ChallaNavHost(
                     )
                 }
                 entry<ChallaRoute.ThemeSetting> {
-                    var selectedTheme by rememberSaveable {
-                        mutableStateOf(ThemeOption.LEMONADE)
-                    }
-
-                    ThemeScreen(
-                        selectedTheme = selectedTheme,
+                    ThemeRoute(
                         onBackClick = { navigator.goBack() },
-                        onThemeClick = { selectedTheme = it },
                     )
                 }
                 entry<ChallaRoute.CreateRoom> {

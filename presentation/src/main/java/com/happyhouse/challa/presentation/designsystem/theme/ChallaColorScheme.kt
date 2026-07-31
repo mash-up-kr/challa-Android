@@ -26,6 +26,7 @@ import kotlinx.collections.immutable.persistentListOf
 internal object ChallaColorScheme {
     val Dark =
         ChallaColors(
+            primary = ColorTokens.PrimaryYellow,
             primaryPink = ColorTokens.PrimaryPink,
             primaryOrange = ColorTokens.PrimaryOrange,
             primaryYellow = ColorTokens.PrimaryYellow,

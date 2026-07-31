@@ -71,7 +71,7 @@ fun ChallaList(
                 trailingText?.let { text ->
                     Text(
                         text = text,
-                        color = ChallaTheme.colors.primaryYellow,
+                        color = ChallaTheme.colors.primary,
                         overflow = TextOverflow.Ellipsis,
                         style = ChallaTheme.typography.bodyMedium.bold,
                     )

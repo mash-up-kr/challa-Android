@@ -60,3 +60,34 @@ private fun SettingSectionPreview() {
         )
     }
 }
+
+@Preview(name = "Account")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun SettingAccountSectionPreview() {
+    SettingSection(title = "계정") {
+        ChallaList(
+            text = "계정 관리",
+            leadingIcon = ChallaIcons.Profile,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(name = "Feedback")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun SettingFeedbackSectionPreview() {
+    SettingSection(title = "피드백") {
+        ChallaList(
+            text = "찰나 응원하기",
+            leadingIcon = ChallaIcons.Carrot,
+            onClick = {},
+        )
+        ChallaList(
+            text = "피드백 보내기",
+            leadingIcon = ChallaIcons.Feedback,
+            onClick = {},
+        )
+    }
+}

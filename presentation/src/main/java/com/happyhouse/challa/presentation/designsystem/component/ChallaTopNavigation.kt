@@ -80,7 +80,7 @@ private fun ChallaMainTopNavigation(
         Text(
             text = title,
             modifier = Modifier.weight(1f),
-            color = ChallaTheme.colors.primaryYellow,
+            color = ChallaTheme.colors.primary,
             style =
                 TextStyle(
                     fontFamily = DirtylineFamily,

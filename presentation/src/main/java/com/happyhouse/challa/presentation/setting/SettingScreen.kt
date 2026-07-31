@@ -23,6 +23,7 @@ import com.happyhouse.challa.presentation.setting.component.SettingProfile
 import com.happyhouse.challa.presentation.setting.component.SettingSection
 import com.happyhouse.challa.presentation.setting.component.SettingTopBar
 import com.happyhouse.challa.presentation.setting.contract.SettingState
+import com.happyhouse.challa.presentation.setting.theme.titleRes
 
 @Composable
 fun SettingScreen(
@@ -66,7 +67,7 @@ fun SettingScreen(
                     ChallaList(
                         text = stringResource(R.string.setting_theme),
                         leadingIcon = ChallaIcons.Palette,
-                        trailingText = state.themeName,
+                        trailingText = stringResource(state.primaryTheme.titleRes),
                         onClick = onThemeClick,
                     )
                     ChallaList(

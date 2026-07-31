@@ -99,7 +99,7 @@ private fun ShutterButton(
             Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .border(4.dp, ChallaTheme.colors.primaryYellow, CircleShape),
+                .border(4.dp, ChallaTheme.colors.primary, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Box(

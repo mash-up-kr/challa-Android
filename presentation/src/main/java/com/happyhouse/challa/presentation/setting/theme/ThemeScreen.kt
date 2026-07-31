@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.domain.model.PrimaryTheme
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
@@ -46,22 +47,11 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPrevi
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
-enum class ThemeOption(
-    @param:StringRes val titleRes: Int,
-) {
-    LEMONADE(R.string.theme_lemonade),
-    RASPBERRY(R.string.theme_raspberry),
-    ORANGE(R.string.theme_orange),
-    CIDER(R.string.theme_cider),
-    BLUEBERRY(R.string.theme_blueberry),
-    ACAI_BOWL(R.string.theme_acai_bowl),
-}
-
 @Composable
 fun ThemeScreen(
-    selectedTheme: ThemeOption,
+    selectedTheme: PrimaryTheme,
     onBackClick: () -> Unit,
-    onThemeClick: (ThemeOption) -> Unit,
+    onThemeClick: (PrimaryTheme) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -103,7 +93,7 @@ fun ThemeScreen(
                         )
                         .padding(start = 24.dp, top = 10.dp, end = 20.dp, bottom = 10.dp),
             ) {
-                ThemeOption.entries.forEach { theme ->
+                PrimaryTheme.entries.forEach { theme ->
                     ThemeOptionRow(
                         theme = theme,
                         selected = theme == selectedTheme,
@@ -117,7 +107,7 @@ fun ThemeScreen(
 
 @Composable
 private fun ThemeOptionRow(
-    theme: ThemeOption,
+    theme: PrimaryTheme,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -174,15 +164,27 @@ private fun ThemeOptionRow(
 }
 
 @Composable
-private fun ThemeOption.color(): Color =
+private fun PrimaryTheme.color(): Color =
     when (this) {
-        ThemeOption.LEMONADE -> ChallaTheme.colors.primaryYellow
-        ThemeOption.RASPBERRY -> ChallaTheme.colors.primaryPink
-        ThemeOption.ORANGE -> ChallaTheme.colors.primaryOrange
-        ThemeOption.CIDER -> ChallaTheme.colors.primarySky
-        ThemeOption.BLUEBERRY -> ChallaTheme.colors.primaryBlue
-        ThemeOption.ACAI_BOWL -> ChallaTheme.colors.primaryPurple
+        PrimaryTheme.LEMONADE -> ChallaTheme.colors.primaryYellow
+        PrimaryTheme.RASPBERRY -> ChallaTheme.colors.primaryPink
+        PrimaryTheme.ORANGE -> ChallaTheme.colors.primaryOrange
+        PrimaryTheme.CIDER -> ChallaTheme.colors.primarySky
+        PrimaryTheme.BLUEBERRY -> ChallaTheme.colors.primaryBlue
+        PrimaryTheme.ACAI_BOWL -> ChallaTheme.colors.primaryPurple
     }
+
+@get:StringRes
+val PrimaryTheme.titleRes: Int
+    get() =
+        when (this) {
+            PrimaryTheme.LEMONADE -> R.string.theme_lemonade
+            PrimaryTheme.RASPBERRY -> R.string.theme_raspberry
+            PrimaryTheme.ORANGE -> R.string.theme_orange
+            PrimaryTheme.CIDER -> R.string.theme_cider
+            PrimaryTheme.BLUEBERRY -> R.string.theme_blueberry
+            PrimaryTheme.ACAI_BOWL -> R.string.theme_acai_bowl
+        }
 
 @Composable
 private fun ThemeBackgroundGlow(
@@ -202,7 +204,7 @@ private fun ThemeBackgroundGlow(
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ThemeScreenPreview() {
-    var selectedTheme by remember { mutableStateOf(ThemeOption.LEMONADE) }
+    var selectedTheme by remember { mutableStateOf(PrimaryTheme.LEMONADE) }
 
     ThemeScreen(
         selectedTheme = selectedTheme,
