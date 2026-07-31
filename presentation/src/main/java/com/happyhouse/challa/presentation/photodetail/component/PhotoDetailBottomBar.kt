@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 피그마 수치 확인 전까지 쓰는 임시 여백. 디자인 확정되면 맞출 것. (이슈 #62)
@@ -22,6 +23,7 @@ private val BottomBarSpacing = 12.dp
 fun PhotoDetailBottomBar(
     message: String,
     isMessageSendable: Boolean,
+    onEmojiClick: (ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -38,6 +40,8 @@ fun PhotoDetailBottomBar(
                 ),
         verticalArrangement = Arrangement.spacedBy(BottomBarSpacing),
     ) {
+        PhotoReactionBar(onEmojiClick = onEmojiClick)
+
         PhotoMessageInput(
             message = message,
             isSendable = isMessageSendable,
@@ -54,6 +58,7 @@ private fun PhotoDetailBottomBarPreview() {
     PhotoDetailBottomBar(
         message = "",
         isMessageSendable = false,
+        onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},
     )
@@ -66,6 +71,7 @@ private fun PhotoDetailBottomBarTypingPreview() {
     PhotoDetailBottomBar(
         message = "기엽다",
         isMessageSendable = true,
+        onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},
     )

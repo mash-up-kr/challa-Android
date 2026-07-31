@@ -22,6 +22,7 @@ import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBa
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -34,6 +35,7 @@ fun PhotoDetailScreen(
     snackbarHostState: SnackbarHostState,
     onRetryClick: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
+    onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
@@ -71,6 +73,7 @@ fun PhotoDetailScreen(
                     modifier = Modifier.imePadding(),
                     message = state.messageInput,
                     isMessageSendable = state.isMessageSendable,
+                    onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
                     onMessageChange = onMessageChange,
                     onSendClick = { onSendClick(currentPhoto) },
                 )
@@ -111,6 +114,7 @@ private fun PhotoDetailScreenPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},
@@ -136,6 +140,7 @@ private fun PhotoDetailScreenLoadingPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},
@@ -161,6 +166,7 @@ private fun PhotoDetailScreenErrorPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},
@@ -186,6 +192,7 @@ private fun PhotoDetailScreenEmptyPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},

@@ -116,6 +116,7 @@ fun PhotoDetailRoute(
         snackbarHostState = snackbarHostState,
         onRetryClick = { viewModel.onIntent(PhotoDetailIntent.PhotosLoad) },
         onSaveClick = requestSave,
+        onEmojiClick = { photo, emoji -> viewModel.onIntent(PhotoDetailIntent.ReactionClick(photo, emoji)) },
         onMessageChange = { message -> viewModel.onIntent(PhotoDetailIntent.MessageChange(message)) },
         onSendClick = { photo -> viewModel.onIntent(PhotoDetailIntent.MessageSend(photo)) },
         onBackClick = onBackClick,
