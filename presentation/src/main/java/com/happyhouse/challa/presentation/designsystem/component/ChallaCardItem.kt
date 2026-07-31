@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.gallery.component
+package com.happyhouse.challa.presentation.designsystem.component
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,8 +24,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.transformations
-import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.dashedRoundedBorder
@@ -39,71 +36,63 @@ private const val CARD_ASPECT_RATIO = 3f / 4f
 private val CardCornerRadius = 10.dp
 private val CardShape = RoundedCornerShape(CardCornerRadius)
 private val CardBorderWidth = 1.dp
+private val CardDashLength = 4.dp
 
-/** 디자인 시스템 Card Item 타입과 1:1 대응한다. (`더보기`는 갤러리에서 쓰지 않아 제외) */
+/** 디자인 시스템 Card Item 타입. (`더보기`는 아직 쓰는 화면이 없어 제외) */
 @Immutable
-sealed interface GalleryCardType {
+sealed interface ChallaCardType {
     /** 촬영 전 */
-    data object NotCaptured : GalleryCardType
+    data object NotCaptured : ChallaCardType
 
     /** 인화 대기 */
     data class PrintWaiting(
         val imageUrl: String,
-    ) : GalleryCardType
+    ) : ChallaCardType
 
     /** 인화 완료 */
     data class Printed(
         val imageUrl: String,
-    ) : GalleryCardType
+    ) : ChallaCardType
 }
 
 /**
- * 방 상세 그리드의 카드 1칸. 인화 상태에 따라 빈 칸 / 흐린 사진 / 공개된 사진을 그린다.
+ * 필름 그리드의 카드 1칸. 인화 상태에 따라 빈 칸 / 흐린 사진 / 공개된 사진을 그린다.
  *
- * @param onClick 넘기지 않으면 클릭 영역을 두지 않는다. 인화 전 그리드는 넘기지 않는다.
+ * @param contentDescription 번호와 이미지가 따로 읽히지 않도록 카드 전체를 대신 읽어줄 문구.
+ *  카드는 항상 순서 번호를 그리므로 읽어줄 문구가 없는 경우가 없어 필수로 받는다.
+ * @param onClick 넘기지 않으면 클릭 영역을 두지 않는다.
  */
 @Composable
-fun GalleryCardItem(
+fun ChallaCardItem(
     order: Int,
-    type: GalleryCardType,
+    type: ChallaCardType,
+    contentDescription: String,
     modifier: Modifier = Modifier,
+    onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
 ) {
-    val cardDescription =
-        when (type) {
-            GalleryCardType.NotCaptured ->
-                stringResource(R.string.gallery_empty_slot_description, order)
-
-            is GalleryCardType.PrintWaiting ->
-                stringResource(R.string.gallery_film_slot_description, order)
-
-            is GalleryCardType.Printed ->
-                stringResource(
-                    R.string.gallery_photo_content_description,
-                    order,
-                )
-        }
-    val openPhotoLabel = stringResource(R.string.gallery_open_photo)
-
     Box(
         modifier =
             modifier
                 // 번호가 따로 읽히지 않도록 카드 전체를 한 덩어리로 읽힌다.
-                .semantics(mergeDescendants = true) { contentDescription = cardDescription }
-                .aspectRatio(CARD_ASPECT_RATIO)
+                .semantics(mergeDescendants = true) {
+                    this.contentDescription = contentDescription
+                }.aspectRatio(CARD_ASPECT_RATIO)
                 .clip(CardShape)
                 .then(
                     when (type) {
-                        GalleryCardType.NotCaptured ->
+                        ChallaCardType.NotCaptured ->
                             Modifier.dashedRoundedBorder(
                                 color = ChallaTheme.colors.lineNormal,
                                 cornerRadius = CardCornerRadius,
                                 // 옆칸 카드의 실선과 굵기를 맞춘다.
                                 strokeWidth = CardBorderWidth,
+                                dashLength = CardDashLength,
+                                gapLength = CardDashLength,
                             )
 
-                        is GalleryCardType.PrintWaiting,
-                        is GalleryCardType.Printed,
+                        is ChallaCardType.PrintWaiting,
+                        is ChallaCardType.Printed,
                         ->
                             Modifier.border(
                                 width = CardBorderWidth,
@@ -111,23 +100,22 @@ fun GalleryCardItem(
                                 shape = CardShape,
                             )
                     },
-                )
-                .then(
+                ).then(
                     if (onClick == null) {
                         Modifier
                     } else {
                         Modifier.noRippleClickOnce(
                             role = Role.Image,
-                            onClickLabel = openPhotoLabel,
+                            onClickLabel = onClickLabel,
                             onClick = onClick,
                         )
                     },
                 ),
     ) {
         when (type) {
-            GalleryCardType.NotCaptured -> Unit
+            ChallaCardType.NotCaptured -> Unit
 
-            is GalleryCardType.PrintWaiting -> {
+            is ChallaCardType.PrintWaiting -> {
                 CardImage(
                     imageUrl = type.imageUrl,
                     // TODO: 서버가 블러 이미지를 내려주면 이중 블러가 되므로 제거할 것
@@ -135,7 +123,7 @@ fun GalleryCardItem(
                 )
             }
 
-            is GalleryCardType.Printed -> CardImage(imageUrl = type.imageUrl, blurred = false)
+            is ChallaCardType.Printed -> CardImage(imageUrl = type.imageUrl, blurred = false)
         }
 
         Text(
@@ -146,10 +134,10 @@ fun GalleryCardItem(
             text = order.toString(),
             color =
                 when (type) {
-                    GalleryCardType.NotCaptured -> ChallaTheme.colors.labelDisable
+                    ChallaCardType.NotCaptured -> ChallaTheme.colors.labelDisable
 
-                    is GalleryCardType.PrintWaiting,
-                    is GalleryCardType.Printed,
+                    is ChallaCardType.PrintWaiting,
+                    is ChallaCardType.Printed,
                     -> ChallaTheme.colors.labelSubtle
                 },
             style = ChallaTheme.typography.bodyLarge.bold,
@@ -177,48 +165,39 @@ private fun CardImage(
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
-    name = "CardItem - 촬영 전",
-)
+@ComposePreview(showBackground = true, name = "CardItem - 촬영 전")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryCardItemNotCapturedPreview() {
-    GalleryCardItem(
+private fun ChallaCardItemNotCapturedPreview() {
+    ChallaCardItem(
         modifier = Modifier.width(82.dp),
         order = 1,
-        type = GalleryCardType.NotCaptured,
+        type = ChallaCardType.NotCaptured,
+        contentDescription = "1번째 자리, 아직 촬영 전",
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
-    name = "CardItem - 인화 대기",
-)
+@ComposePreview(showBackground = true, name = "CardItem - 인화 대기")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryCardItemPrintWaitingPreview() {
-    GalleryCardItem(
+private fun ChallaCardItemPrintWaitingPreview() {
+    ChallaCardItem(
         modifier = Modifier.width(82.dp),
         order = 2,
-        type = GalleryCardType.PrintWaiting(imageUrl = ""),
+        type = ChallaCardType.PrintWaiting(imageUrl = ""),
+        contentDescription = "2번째 사진, 인화 전",
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
-    name = "CardItem - 인화 완료",
-)
+@ComposePreview(showBackground = true, name = "CardItem - 인화 완료")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryCardItemPrintedPreview() {
-    GalleryCardItem(
+private fun ChallaCardItemPrintedPreview() {
+    ChallaCardItem(
         modifier = Modifier.width(82.dp),
         order = 3,
-        type = GalleryCardType.Printed(imageUrl = ""),
+        type = ChallaCardType.Printed(imageUrl = ""),
+        contentDescription = "3번째 사진",
         onClick = {},
     )
 }

@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -22,17 +23,19 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileBar
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.PREVIEW_FILM_SLOT_COUNT
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
+import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import com.happyhouse.challa.presentation.gallery.previewGalleryFilmSlots
 import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
+import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
@@ -108,9 +111,17 @@ fun GalleryContent(
                 PhotoInfo.Loading, PhotoInfo.Error -> false
             }
         if (showsProfileBar) {
-            GalleryProfileBar(
+            // 카운트다운으로 1초마다 재구성되므로 참여자가 그대로면 목록을 다시 만들지 않는다.
+            val profileImageUrls =
+                remember(state.members) {
+                    state.members.map(GalleryMemberUiModel::profileImageUrl).toPersistentList()
+                }
+
+            ChallaProfileBar(
                 modifier = Modifier.align(Alignment.TopCenter),
-                members = state.members,
+                profileImageUrls = profileImageUrls,
+                contentDescription =
+                    stringResource(R.string.gallery_member_count_description, state.members.size),
             )
         }
     }
@@ -155,7 +166,6 @@ private fun GalleryMessage(
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     name = "Gallery - 촬영 중",
 )
@@ -167,7 +177,6 @@ private fun GalleryContentShootingPreview() {
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     name = "Gallery - 촬영 중(일부 촬영)",
 )
@@ -181,7 +190,6 @@ private fun GalleryContentShootingPartlyCapturedPreview() {
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     name = "Gallery - 인화 대기",
 )
@@ -199,7 +207,6 @@ private fun GalleryContentWaitingPreview() {
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     name = "Gallery - 인화 완료",
 )
@@ -209,14 +216,14 @@ private fun GalleryContentPrintedPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
 }
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Loading")
+@ComposePreview(showBackground = true, name = "Gallery - Loading")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentLoadingPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Loading)
 }
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "Gallery - Error")
+@ComposePreview(showBackground = true, name = "Gallery - Error")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentErrorPreview() {

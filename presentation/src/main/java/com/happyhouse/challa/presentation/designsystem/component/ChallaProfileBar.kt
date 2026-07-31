@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.gallery.component
+package com.happyhouse.challa.presentation.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,37 +22,40 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
-import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
+/** 이 수를 넘으면 나머지는 `+n` 뱃지로 묶는다. */
 private const val MAX_VISIBLE_MEMBER_COUNT = 9
 
 private val MemberAvatarSize = 30.dp
 private val MemberAvatarOverlap = 5.dp
 
 /**
- * 방 참여자 프로필 바
+ * 겹쳐 놓인 참여자 프로필 바
+ *
+ * @param contentDescription 아바타가 하나씩 읽히면 소음이 되므로 바 전체를 대신 읽어줄 문구.
+ *  아바타가 하나도 없으면 아예 그리지 않으므로 읽어줄 문구가 없는 경우가 없어 필수로 받는다.
  */
 @Composable
-fun GalleryProfileBar(
-    members: ImmutableList<GalleryMemberUiModel>,
+fun ChallaProfileBar(
+    profileImageUrls: ImmutableList<String>,
+    contentDescription: String,
     modifier: Modifier = Modifier,
 ) {
-    if (members.isEmpty()) return
+    if (profileImageUrls.isEmpty()) return
 
-    val visibleMembers = members.take(MAX_VISIBLE_MEMBER_COUNT)
-    val overflowCount = members.size - visibleMembers.size
-    val membersDescription = stringResource(R.string.gallery_member_count_description, members.size)
+    val visibleUrls = profileImageUrls.take(MAX_VISIBLE_MEMBER_COUNT)
+    val overflowCount = profileImageUrls.size - visibleUrls.size
 
     val barColor =
         if (overflowCount > 0) {
@@ -65,26 +68,37 @@ fun GalleryProfileBar(
         modifier =
             modifier
                 // 아바타를 하나씩 읽어주면 소음이 되므로 바 전체를 한 덩어리로 읽힌다.
-                .semantics(mergeDescendants = true) { contentDescription = membersDescription }
-                .clip(CircleShape)
+                .semantics(mergeDescendants = true) {
+                    this.contentDescription = contentDescription
+                }.clip(CircleShape)
                 .background(barColor)
                 .padding(5.dp),
         horizontalArrangement = Arrangement.spacedBy(-MemberAvatarOverlap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        visibleMembers.forEach { member ->
-            MemberAvatar(member = member, borderColor = barColor)
+        // Row는 나중에 놓인 자식이 위에 그려지므로, 왼쪽이 오른쪽을 덮는 디자인에 맞춰 z축을 뒤집는다.
+        visibleUrls.forEachIndexed { index, profileImageUrl ->
+            MemberAvatar(
+                modifier = Modifier.zIndex((visibleUrls.size - index).toFloat()),
+                profileImageUrl = profileImageUrl,
+                borderColor = barColor,
+            )
         }
 
         if (overflowCount > 0) {
-            MemberOverflowBadge(count = overflowCount, borderColor = barColor)
+            // 맨 오른쪽이므로 아바타 전부보다 아래에 깔린다.
+            MemberOverflowBadge(
+                modifier = Modifier.zIndex(0f),
+                count = overflowCount,
+                borderColor = barColor,
+            )
         }
     }
 }
 
 @Composable
 private fun MemberAvatar(
-    member: GalleryMemberUiModel,
+    profileImageUrl: String,
     borderColor: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -93,7 +107,7 @@ private fun MemberAvatar(
         model =
             ImageRequest
                 .Builder(LocalContext.current)
-                .data(member.profileImageUrl)
+                .data(profileImageUrl)
                 .crossfade(true)
                 .build(),
         contentDescription = null,
@@ -113,12 +127,12 @@ private fun MemberOverflowBadge(
         modifier =
             modifier
                 .memberCircle(borderColor)
-                .background(ChallaTheme.colors.backgroundLevel2),
+                .background(ChallaTheme.colors.backgroundLevel1),
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = stringResource(R.string.gallery_member_overflow, count),
-            color = ChallaTheme.colors.labelNormal,
+            text = stringResource(R.string.challa_profile_bar_overflow, count),
+            color = ChallaTheme.colors.labelNeutral,
             style = ChallaTheme.typography.descriptionSmall.bold,
         )
     }
@@ -136,16 +150,24 @@ private fun Modifier.memberCircle(borderColor: Color): Modifier =
             shape = CircleShape,
         ).clip(CircleShape)
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND)
+@ComposePreview(showBackground = true)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryProfileBarPreview() {
-    GalleryProfileBar(members = previewGalleryMembers())
+private fun ChallaProfileBarPreview() {
+    ChallaProfileBar(
+        profileImageUrls = previewProfileImageUrls(count = 6),
+        contentDescription = "참여자 6명",
+    )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, name = "ProfileBar - 9명 초과")
+@ComposePreview(showBackground = true, name = "ProfileBar - 9명 초과")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryProfileBarOverflowPreview() {
-    GalleryProfileBar(members = previewGalleryMembers(count = 12))
+private fun ChallaProfileBarOverflowPreview() {
+    ChallaProfileBar(
+        profileImageUrls = previewProfileImageUrls(count = 12),
+        contentDescription = "참여자 12명",
+    )
 }
+
+private fun previewProfileImageUrls(count: Int): ImmutableList<String> = List(count) { "" }.toPersistentList()

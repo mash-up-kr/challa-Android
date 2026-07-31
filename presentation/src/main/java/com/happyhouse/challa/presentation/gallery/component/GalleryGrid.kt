@@ -10,10 +10,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
+import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaCardItem
+import com.happyhouse.challa.presentation.designsystem.component.ChallaCardType
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
@@ -50,12 +53,17 @@ fun GalleryFilmSlotGrid(
             items = slots,
             key = { slot -> slot.order },
         ) { slot ->
-            GalleryCardItem(
+            val imageUrl = slot.imageUrl
+
+            ChallaCardItem(
                 order = slot.order,
-                type =
-                    slot.imageUrl
-                        ?.let(GalleryCardType::PrintWaiting)
-                        ?: GalleryCardType.NotCaptured,
+                type = imageUrl?.let(ChallaCardType::PrintWaiting) ?: ChallaCardType.NotCaptured,
+                contentDescription =
+                    if (imageUrl == null) {
+                        stringResource(R.string.gallery_empty_slot_description, slot.order)
+                    } else {
+                        stringResource(R.string.gallery_film_slot_description, slot.order)
+                    },
             )
         }
     }
@@ -84,9 +92,11 @@ fun GalleryPhotoGrid(
             items = photos,
             key = { photo -> photo.id },
         ) { photo ->
-            GalleryCardItem(
+            ChallaCardItem(
                 order = photo.order,
-                type = GalleryCardType.Printed(imageUrl = photo.imageUrl),
+                type = ChallaCardType.Printed(imageUrl = photo.imageUrl),
+                contentDescription = stringResource(R.string.gallery_photo_content_description, photo.order),
+                onClickLabel = stringResource(R.string.gallery_open_photo),
                 onClick = { onPhotoClick(photo.id) },
             )
         }
@@ -117,14 +127,14 @@ private fun GalleryGridLayout(
     )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
+@ComposePreview(showBackground = true, widthDp = 390)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryFilmSlotGridPreview() {
     GalleryFilmSlotGrid(slots = previewGalleryFilmSlots())
 }
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
+@ComposePreview(showBackground = true, widthDp = 390)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryPhotoGridPreview() {
