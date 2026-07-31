@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.photodetail
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailBottomBar
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailContent
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBar
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
@@ -32,6 +34,8 @@ fun PhotoDetailScreen(
     snackbarHostState: SnackbarHostState,
     onRetryClick: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
+    onMessageChange: (String) -> Unit,
+    onSendClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -43,6 +47,7 @@ fun PhotoDetailScreen(
                 pageCount = { photos.size },
             )
         }
+    val currentPhoto = photos.getOrNull(pagerState.currentPage)
 
     Scaffold(
         modifier = modifier,
@@ -55,12 +60,21 @@ fun PhotoDetailScreen(
             PhotoDetailTopBar(
                 title = state.roomName,
                 onBackClick = onBackClick,
-                onSaveClick =
-                    photos.takeIf { it.isNotEmpty() }?.let { loadedPhotos ->
-                        { onSaveClick(loadedPhotos[pagerState.currentPage]) }
-                    },
+                onSaveClick = currentPhoto?.let { photo -> { onSaveClick(photo) } },
                 isSaveEnabled = !state.isSaving,
             )
+        },
+        bottomBar = {
+            // 반응·메시지는 사진이 있을 때만 의미가 있으므로 로드된 사진이 있을 때만 그린다.
+            if (currentPhoto != null) {
+                PhotoDetailBottomBar(
+                    modifier = Modifier.imePadding(),
+                    message = state.messageInput,
+                    isMessageSendable = state.isMessageSendable,
+                    onMessageChange = onMessageChange,
+                    onSendClick = { onSendClick(currentPhoto) },
+                )
+            }
         },
     ) { innerPadding ->
         Box(
@@ -97,6 +111,8 @@ private fun PhotoDetailScreenPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
@@ -120,6 +136,8 @@ private fun PhotoDetailScreenLoadingPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
@@ -143,6 +161,8 @@ private fun PhotoDetailScreenErrorPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
@@ -166,6 +186,8 @@ private fun PhotoDetailScreenEmptyPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
