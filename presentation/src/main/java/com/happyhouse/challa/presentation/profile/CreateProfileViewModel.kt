@@ -10,7 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val NICKNAME_MAX_LENGTH = 10
+const val NICKNAME_MAX_LENGTH = 10
 
 // 완료 화면을 잠시 보여준 뒤 다음 화면으로 이동하기까지의 지연 시간
 private const val PROFILE_COMPLETED_NAVIGATE_DELAY_MS = 2000L
@@ -33,6 +33,11 @@ class CreateProfileViewModel
         }
 
         private fun onNicknameChanged(nickname: String) {
+            if (nickname.length > NICKNAME_MAX_LENGTH) {
+                viewModelScope.launch {
+                    sendEffect(CreateProfileSideEffect.NicknameLengthExceeded)
+                }
+            }
             val truncated = nickname.take(NICKNAME_MAX_LENGTH)
             updateState { copy(nickname = truncated) }
         }

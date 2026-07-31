@@ -109,6 +109,7 @@
     <string name="create_profile_image_description">프로필 사진</string>
     <string name="create_profile_image_edit_description">프로필 사진 변경</string>
     <string name="create_profile_nickname_placeholder">닉네임 입력</string>
+    <string name="create_profile_nickname_length_exceeded">공백 포함 %1$d자까지 입력할 수 있어요</string>
     <string name="create_profile_submit">시작하기</string>
     <string name="create_profile_submit_failure">프로필 설정에 실패했어요.</string>
     <string name="create_profile_image_source_title">프로필 사진</string>

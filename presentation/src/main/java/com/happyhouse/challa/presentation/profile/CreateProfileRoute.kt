@@ -72,6 +72,8 @@ fun CreateProfileRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val profileCreateFailedMessage = stringResource(R.string.create_profile_submit_failure)
+    val nicknameLengthExceededMessage =
+        stringResource(R.string.create_profile_nickname_length_exceeded, NICKNAME_MAX_LENGTH)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     var isImageSourceSheetVisible by rememberSaveable { mutableStateOf(false) }
@@ -91,6 +93,14 @@ fun CreateProfileRoute(
                     snackbarHostState.showSnackbar(
                         ChallaToastVisuals(
                             message = profileCreateFailedMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                        ),
+                    )
+                CreateProfileSideEffect.NicknameLengthExceeded ->
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = nicknameLengthExceededMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                         ),
