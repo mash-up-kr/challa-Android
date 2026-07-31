@@ -95,7 +95,7 @@ class GalleryViewModel @AssistedInject constructor(
 
     private fun handlePrintCountdownClick() {
         viewModelScope.launch {
-            sendEffect(GallerySideEffect.PrintWaiting)
+            sendEffect(GallerySideEffect.PrintNotCompleted)
         }
     }
 
@@ -135,7 +135,13 @@ class GalleryViewModel @AssistedInject constructor(
 
     private fun updateRemainingSeconds(remainingSeconds: Long) {
         updateState {
-            val waiting = photoInfo as? PhotoInfo.Waiting ?: return@updateState this
+            // 카운트다운 취소와 상태 변경이 엇갈리면 인화 대기가 아닌 상태로 들어올 수 있다.
+            val waiting =
+                photoInfo as? PhotoInfo.Waiting
+                    ?: run {
+                        Timber.w("인화 대기 상태가 아니라 남은 시간 갱신을 건너뜁니다: $photoInfo")
+                        return@updateState this
+                    }
             copy(photoInfo = waiting.copy(remainingSeconds = remainingSeconds))
         }
     }

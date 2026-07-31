@@ -9,5 +9,6 @@ sealed interface GallerySideEffect : UiSideEffect {
 
     data object NavigateToCamera : GallerySideEffect
 
-    data object PrintWaiting : GallerySideEffect
+    /** 인화 대기 중에 남은 시간 버튼을 눌렀을 때. 아직 인화가 끝나지 않았음을 알린다. */
+    data object PrintNotCompleted : GallerySideEffect
 }

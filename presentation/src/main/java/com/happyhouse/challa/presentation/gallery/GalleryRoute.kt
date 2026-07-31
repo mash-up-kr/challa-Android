@@ -17,7 +17,7 @@ import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import kotlinx.coroutines.launch
 
 // 상단바 아래에 토스트가 뜨도록 주는 여백
-private val PrintWaitingToastTopOffset = 8.dp
+private val PrintNotCompletedToastTopOffset = 8.dp
 
 @Composable
 fun GalleryRoute(
@@ -41,14 +41,14 @@ fun GalleryRoute(
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId)
                 GallerySideEffect.NavigateToCamera -> onShootClick()
-                GallerySideEffect.PrintWaiting -> {
+                GallerySideEffect.PrintNotCompleted -> {
                     // showSnackbar는 스낵바가 사라질 때까지 suspend 하므로,
                     // 그대로 두면 후속 SideEffect 수집이 막힌다.
                     launch {
                         snackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = printWaitingMessage,
-                                topOffset = PrintWaitingToastTopOffset,
+                                topOffset = PrintNotCompletedToastTopOffset,
                             ),
                         )
                     }

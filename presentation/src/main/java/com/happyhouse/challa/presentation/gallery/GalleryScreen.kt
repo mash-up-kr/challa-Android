@@ -103,9 +103,12 @@ private fun GalleryScaffold(
             )
 
             // 두 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
+            // 카운트다운으로 1초마다 재구성되므로 Modifier를 매번 새로 만들지 않는다.
             val measureBottomBar =
-                Modifier.onSizeChanged { size ->
-                    bottomBarHeight = with(density) { size.height.toDp() }
+                remember(density) {
+                    Modifier.onSizeChanged { size ->
+                        bottomBarHeight = with(density) { size.height.toDp() }
+                    }
                 }
 
             // 디자인상 하단 바는 그리드를 밀지 않고 위에 떠 있다.
