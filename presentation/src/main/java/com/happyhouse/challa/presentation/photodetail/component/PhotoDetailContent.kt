@@ -64,7 +64,7 @@ fun PhotoDetailContent(
                         Modifier
                             .align(Alignment.Center)
                             .fillMaxWidth(),
-                    photos = photoInfo.photos,
+                    loaded = photoInfo,
                     pagerState = pagerState,
                 )
             }

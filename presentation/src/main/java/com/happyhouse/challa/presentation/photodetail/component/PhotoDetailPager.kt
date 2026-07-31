@@ -16,9 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
-import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val PhotoHorizontalPadding = 16.dp
@@ -28,10 +27,12 @@ private val PhotoPageSpacing = PhotoHorizontalPadding * 2
 
 @Composable
 fun PhotoDetailPager(
-    photos: ImmutableList<PhotoDetailUiModel>,
+    loaded: PhotoInfo.Loaded,
     pagerState: PagerState,
     modifier: Modifier = Modifier,
 ) {
+    val photos = loaded.photos
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -46,9 +47,12 @@ fun PhotoDetailPager(
             pageSpacing = PhotoPageSpacing,
             key = { page -> photos[page].id },
         ) { page ->
+            val photo = photos[page]
+
             PhotoDetailPage(
                 modifier = Modifier.fillMaxSize(),
-                photo = photos[page],
+                photo = photo,
+                reactions = loaded.reactionsOf(photo.id),
             )
         }
 
@@ -71,7 +75,7 @@ private fun PhotoDetailPagerPreview() {
     ) {
         PhotoDetailPager(
             modifier = Modifier.fillMaxWidth(),
-            photos = photos,
+            loaded = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
         )
     }
@@ -93,7 +97,7 @@ private fun PhotoDetailPagerSinglePhotoPreview() {
     ) {
         PhotoDetailPager(
             modifier = Modifier.fillMaxWidth(),
-            photos = photos,
+            loaded = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
         )
     }
