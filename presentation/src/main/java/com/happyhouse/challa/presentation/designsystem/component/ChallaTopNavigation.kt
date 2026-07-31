@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.designsystem.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,11 +8,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +30,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewItem
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 enum class ChallaTopNavigationVariant {
     MAIN,
@@ -68,7 +74,7 @@ private fun ChallaMainTopNavigation(
             modifier
                 .fillMaxWidth()
                 .height(70.dp)
-                .padding(start = 16.dp, end = 8.dp),
+                .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -102,7 +108,7 @@ private fun ChallaSubTopNavigation(
             modifier
                 .fillMaxWidth()
                 .height(70.dp)
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 16.dp),
     ) {
         Box(
             modifier = Modifier.align(Alignment.CenterStart),
@@ -125,6 +131,32 @@ private fun ChallaSubTopNavigation(
         ) {
             trailingIcon?.invoke()
         }
+    }
+}
+
+@Composable
+fun ChallaNavigationIconButton(
+    @DrawableRes icon: Int,
+    onClick: () -> Unit,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(40.dp)
+                .noRippleClickOnce(
+                    role = Role.Button,
+                    onClick = onClick,
+                ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(24.dp),
+            tint = ChallaTheme.colors.labelNeutral,
+        )
     }
 }
 
@@ -201,10 +233,10 @@ private fun ChallaSubTopNavigationPreviewItem(
             leadingIcon =
                 if (leadingIcon) {
                     {
-                        ChallaIconButton(
+                        ChallaNavigationIconButton(
                             icon = ChallaIcons.Blank,
                             onClick = {},
-                            variant = ChallaButtonVariant.TRANSPARENT,
+                            contentDescription = null,
                         )
                     }
                 } else {
@@ -213,10 +245,10 @@ private fun ChallaSubTopNavigationPreviewItem(
             trailingIcon =
                 if (trailingIcon) {
                     {
-                        ChallaIconButton(
+                        ChallaNavigationIconButton(
                             icon = ChallaIcons.Blank,
                             onClick = {},
-                            variant = ChallaButtonVariant.TRANSPARENT,
+                            contentDescription = null,
                         )
                     }
                 } else {
