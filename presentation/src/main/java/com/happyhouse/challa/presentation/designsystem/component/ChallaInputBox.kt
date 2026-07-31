@@ -129,7 +129,7 @@ private fun inputBoxBorderColor(isFocused: Boolean): Color =
         Color.Transparent
     }
 
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaInputBoxPreview() {
@@ -188,7 +188,7 @@ private fun ChallaInputBoxPreviewItem(
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaInputBoxInteractivePreview() {

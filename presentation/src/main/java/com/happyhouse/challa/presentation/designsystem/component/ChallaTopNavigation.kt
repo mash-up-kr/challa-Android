@@ -128,7 +128,7 @@ private fun ChallaSubTopNavigation(
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaMainTopNavigationPreview() {
@@ -157,7 +157,7 @@ private fun ChallaMainTopNavigationPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaSubTopNavigationPreview() {
