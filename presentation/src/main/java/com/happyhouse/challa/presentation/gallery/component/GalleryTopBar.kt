@@ -12,7 +12,6 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaBu
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -41,7 +40,7 @@ fun GalleryTopBar(
     )
 }
 
-@ComposePreview(showBackground = true, backgroundColor = CHALLA_PREVIEW_BACKGROUND, widthDp = 390)
+@ComposePreview(showBackground = true, widthDp = 390)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryTopBarPreview() {

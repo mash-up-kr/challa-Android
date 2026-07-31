@@ -11,7 +11,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.preview.CHALLA_PREVIEW_BACKGROUND
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -30,7 +29,6 @@ fun GalleryBackgroundGlow(modifier: Modifier = Modifier) {
 
 @ComposePreview(
     showBackground = true,
-    backgroundColor = CHALLA_PREVIEW_BACKGROUND,
     widthDp = 390,
     heightDp = 844,
 )
