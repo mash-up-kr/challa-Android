@@ -7,9 +7,6 @@ import kotlinx.serialization.Serializable
 @Immutable
 sealed interface ChallaRoute : NavKey {
     @Serializable
-    data object Sample : ChallaRoute
-
-    @Serializable
     data class Camera(
         val roomId: Long,
     ) : ChallaRoute

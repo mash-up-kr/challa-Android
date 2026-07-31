@@ -16,7 +16,6 @@ import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
-import com.happyhouse.challa.presentation.sample.SampleScreen
 
 @Composable
 fun ChallaNavHost(
@@ -31,16 +30,6 @@ fun ChallaNavHost(
         predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         entryProvider =
             entryProvider {
-                entry<ChallaRoute.Sample> {
-                    SampleScreen(
-                        onEnterRoom = {
-                            navigator.navigate(ChallaRoute.RoomMain)
-                        },
-                        onGalleryClick = {
-                            navigator.navigate(ChallaRoute.Gallery(roomId = 0L))
-                        },
-                    )
-                }
                 entry<ChallaRoute.Camera> { route ->
                     CameraRoute(
                         roomId = route.roomId,
