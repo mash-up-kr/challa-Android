@@ -27,8 +27,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
-    private var lastSaveRequestAt = 0L
-
     init {
         onIntent(PhotoDetailIntent.PhotosLoad)
     }
@@ -56,14 +54,13 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 if (throwable is CancellationException) throw throwable
                 Timber.e(throwable, "사진 상세 정보를 불러오지 못했습니다")
                 updateState { copy(photoInfo = PhotoInfo.Error) }
+                sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
             }
         }
     }
 
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {
-        val now = System.currentTimeMillis()
-        if (currentState.isSaving || now - lastSaveRequestAt < SAVE_COOLDOWN_MS) return
-        lastSaveRequestAt = now
+        if (currentState.isSaving) return
         updateState { copy(isSaving = true) }
         viewModelScope.launch {
             try {
@@ -103,11 +100,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     companion object {
-        private const val SAVE_COOLDOWN_MS = 1_000L
         private const val MOCK_PHOTO_COUNT = 24
         private const val MOCK_LOAD_DELAY_MS = 300L
         private const val MOCK_ROOM_NAME = "길고양이를찍으러가자"
         private const val MOCK_PHOTOGRAPHER = "이주연"
-        private const val MOCK_CAPTURED_DATE = "Oct 12 2026"
+        private const val MOCK_CAPTURED_DATE = "2026. 7. 16. 14:34"
     }
 }
