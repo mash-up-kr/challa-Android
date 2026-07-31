@@ -22,9 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
     private val themeRepository: ThemeRepository,
-) : BaseViewModel<ThemeState, ThemeIntent, ThemeSideEffect>(
-        initialState = ThemeState(),
-    ) {
+) : BaseViewModel<ThemeState, ThemeIntent, ThemeSideEffect>(initialState = ThemeState()) {
     private val themeUpdates = Channel<PrimaryTheme>(capacity = Channel.CONFLATED)
     private var persistedTheme = PrimaryTheme.LEMONADE
 
@@ -47,7 +45,6 @@ class ThemeViewModel @Inject constructor(
                     updateState {
                         copy(
                             selectedTheme = theme,
-                            isSaveFailed = false,
                         )
                     }
                 }
@@ -56,13 +53,12 @@ class ThemeViewModel @Inject constructor(
     }
 
     private fun selectTheme(theme: PrimaryTheme) {
-        if (theme == currentState.selectedTheme && !currentState.isSaveFailed) return
+        if (theme == currentState.selectedTheme) return
 
         updateState {
             copy(
                 selectedTheme = theme,
                 isSaving = true,
-                isSaveFailed = false,
             )
         }
         themeUpdates.trySend(theme)
@@ -79,7 +75,7 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
-    private fun finishUpdate(
+    private suspend fun finishUpdate(
         theme: PrimaryTheme,
         isFailed: Boolean,
     ) {
@@ -89,8 +85,11 @@ class ThemeViewModel @Inject constructor(
             copy(
                 selectedTheme = if (isFailed) persistedTheme else selectedTheme,
                 isSaving = false,
-                isSaveFailed = isFailed,
             )
+        }
+
+        if (isFailed) {
+            sendEffect(ThemeSideEffect.SaveFailed(theme))
         }
     }
 }

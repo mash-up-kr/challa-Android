@@ -8,5 +8,4 @@ import com.happyhouse.challa.presentation.base.UiState
 data class ThemeState(
     val selectedTheme: PrimaryTheme = PrimaryTheme.LEMONADE,
     val isSaving: Boolean = false,
-    val isSaveFailed: Boolean = false,
 ) : UiState
