@@ -16,6 +16,7 @@ import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
+import com.happyhouse.challa.presentation.setting.SettingRoute
 
 @Composable
 fun ChallaNavHost(
@@ -71,8 +72,8 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Home> {
                     HomeScreen(
-                        onNavigateToInviteCode = {
-                            // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
+                        onNavigateToSetting = {
+                            navigator.navigate(ChallaRoute.Setting)
                         },
                         onNavigateToCreateRoom = {
                             navigator.navigate(ChallaRoute.CreateRoom)
@@ -80,6 +81,17 @@ fun ChallaNavHost(
                         onNavigateToRoom = { _ ->
                             // TODO JH: 방 상태별 화면(Gallery/Waiting/RoomMain) 구현되면 navigator.navigate(...) 연결
                         },
+                    )
+                }
+                entry<ChallaRoute.Setting> {
+                    SettingRoute(
+                        onBackClick = { navigator.goBack() },
+                        onProfileEditClick = {},
+                        onThemeClick = {},
+                        onNotificationClick = {},
+                        onAccountClick = {},
+                        onSupportClick = {},
+                        onFeedbackClick = {},
                     )
                 }
                 entry<ChallaRoute.CreateRoom> {
