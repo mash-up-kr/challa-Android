@@ -5,7 +5,8 @@ import androidx.compose.ui.graphics.Color
 
 @Immutable
 data class ChallaColors(
-    // Primary
+    /** Primary 영역에서 사용자가 선택한 테마에 따라 바뀌는 semantic color입니다. */
+    val primary: Color,
     val primaryPink: Color,
     val primaryOrange: Color,
     val primaryYellow: Color,

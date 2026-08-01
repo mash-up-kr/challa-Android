@@ -16,7 +16,8 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.CreateProfileRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
-import com.happyhouse.challa.presentation.sample.SampleScreen
+import com.happyhouse.challa.presentation.setting.SettingRoute
+import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 
 @Composable
 fun ChallaNavHost(
@@ -31,16 +32,6 @@ fun ChallaNavHost(
         predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         entryProvider =
             entryProvider {
-                entry<ChallaRoute.Sample> {
-                    SampleScreen(
-                        onEnterRoom = {
-                            navigator.navigate(ChallaRoute.RoomMain)
-                        },
-                        onGalleryClick = {
-                            navigator.navigate(ChallaRoute.Gallery(roomId = 0L))
-                        },
-                    )
-                }
                 entry<ChallaRoute.Camera> { route ->
                     CameraRoute(
                         roomId = route.roomId,
@@ -92,8 +83,8 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Home> {
                     HomeScreen(
-                        onNavigateToInviteCode = {
-                            // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
+                        onNavigateToSetting = {
+                            navigator.navigate(ChallaRoute.Setting)
                         },
                         onNavigateToCreateRoom = {
                             navigator.navigate(ChallaRoute.CreateRoom)
@@ -101,6 +92,24 @@ fun ChallaNavHost(
                         onNavigateToRoom = { _ ->
                             // TODO JH: 방 상태별 화면(Gallery/Waiting/RoomMain) 구현되면 navigator.navigate(...) 연결
                         },
+                    )
+                }
+                entry<ChallaRoute.Setting> {
+                    SettingRoute(
+                        onBackClick = { navigator.goBack() },
+                        onProfileEditClick = {},
+                        onThemeClick = {
+                            navigator.navigate(ChallaRoute.ThemeSetting)
+                        },
+                        onNotificationClick = {},
+                        onAccountClick = {},
+                        onSupportClick = {},
+                        onFeedbackClick = {},
+                    )
+                }
+                entry<ChallaRoute.ThemeSetting> {
+                    ThemeRoute(
+                        onBackClick = { navigator.goBack() },
                     )
                 }
                 entry<ChallaRoute.CreateRoom> {

@@ -61,7 +61,7 @@
     <string name="login_kakao">카카오로 시작하기</string>
 
     <string name="home_greeting">안녕하세요, %1$s 님</string>
-    <string name="home_invite_code">초대 코드</string>
+    <string name="home_setting_description">설정</string>
     <string name="home_cover_placeholder">[표지]</string>
     <!-- TODO JH 배지 문구는 디자인/카피 확정 시 보강 -->
     <string name="home_badge_shooting">촬영중 %1$d/%2$d</string>
@@ -113,4 +113,29 @@
     <string name="create_profile_image_source_album">앨범에서 선택</string>
     <string name="create_profile_image_source_delete">프로필 사진 삭제</string>
     <string name="create_profile_image_source_close">닫기</string>
+
+    <!-- settingScreen -->
+    <string name="setting_back_description">뒤로가기</string>
+    <string name="setting_profile_edit_description">프로필 수정</string>
+    <string name="setting_app_section">앱 설정</string>
+    <string name="setting_theme">테마</string>
+    <string name="setting_notification">알림</string>
+    <string name="setting_account_section">계정</string>
+    <string name="setting_account_management">계정 관리</string>
+    <string name="setting_feedback_section">피드백</string>
+    <string name="setting_support">찰나 응원하기</string>
+    <string name="setting_send_feedback">피드백 보내기</string>
+
+    <!-- themeScreen -->
+    <string name="theme_title">테마</string>
+    <string name="theme_back_description">설정으로 돌아가기</string>
+    <string name="theme_read_failure">테마를 불러오지 못했어요.</string>
+    <string name="theme_save_failure">테마를 저장하지 못했어요.</string>
+    <string name="theme_retry">다시 시도</string>
+    <string name="theme_lemonade">레몬에이드</string>
+    <string name="theme_raspberry">라즈베리</string>
+    <string name="theme_orange">오렌지</string>
+    <string name="theme_cider">사이다</string>
+    <string name="theme_blueberry">블루베리</string>
+    <string name="theme_acai_bowl">아사이볼</string>
 </resources>

@@ -35,6 +35,9 @@ object ChallaIcons {
     val Download = R.drawable.ic_download
 
     @DrawableRes
+    val Edit = R.drawable.ic_edit
+
+    @DrawableRes
     val Error = R.drawable.ic_error
 
     @DrawableRes
