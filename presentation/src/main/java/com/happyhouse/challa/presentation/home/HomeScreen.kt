@@ -3,7 +3,6 @@ package com.happyhouse.challa.presentation.home
 import androidx.annotation.DrawableRes
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
-import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -26,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -194,7 +194,6 @@ private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
     onRoomClick: (roomId: String) -> Unit,
-    onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
