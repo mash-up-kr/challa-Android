@@ -1,10 +1,10 @@
 package com.happyhouse.challa.data.local
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.happyhouse.challa.data.mapper.toPrimaryThemeResult
 import com.happyhouse.challa.domain.model.PrimaryTheme
 import com.happyhouse.challa.domain.result.ChallaResult
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -56,7 +56,7 @@ class ThemeDataStore
 
                     delay(THEME_READ_RETRY_DELAY_MILLIS * (attempt + 1))
                     true
-                }.map { preferences -> preferences.toPrimaryThemeResult() }
+                }.map { preferences -> preferences.toPrimaryThemeResult(PRIMARY_THEME_KEY) }
                 .catch { throwable ->
                     if (throwable is CancellationException) throw throwable
                     emit(ChallaResult.Failure.Unknown(throwable))
@@ -72,14 +72,6 @@ class ThemeDataStore
         fun retryPrimaryThemeRead() {
             themeReadRequests.tryEmit(Unit)
         }
-
-        private fun Preferences.toPrimaryThemeResult(): ChallaResult<PrimaryTheme> =
-            ChallaResult.Success(
-                this[PRIMARY_THEME_KEY]
-                    ?.let { savedTheme ->
-                        PrimaryTheme.entries.firstOrNull { it.name == savedTheme }
-                    } ?: PrimaryTheme.LEMONADE,
-            )
 
         private companion object {
             const val MAX_THEME_READ_RETRY_COUNT = 3L
