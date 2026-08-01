@@ -91,7 +91,7 @@ private fun filmCardRotation(index: Int): Float = FILM_CARD_ROTATIONS[index % FI
 private const val FILM_PREVIEW_MAX = 3
 
 @Composable
-fun HomeScreen(
+fun HomeRoute(
     onNavigateToCreateRoom: () -> Unit,
     onNavigateToInviteCode: () -> Unit,
     onNavigateToSetting: () -> Unit,
@@ -101,7 +101,7 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    HomeContent(
+    HomeScreen(
         state = state,
         onCreateRoomClick = onNavigateToCreateRoom,
         onInviteCodeClick = onNavigateToInviteCode,
@@ -112,7 +112,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeContent(
+private fun HomeScreen(
     state: HomeState,
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
@@ -916,7 +916,7 @@ private fun previewRooms(): ImmutableList<Room> =
 @Composable
 private fun HomeRoomsPreview() {
     ChallaTheme {
-        HomeContent(
+        HomeScreen(
             state =
                 HomeState(
                     isLoading = false,
@@ -937,7 +937,7 @@ private fun HomeRoomsPreview() {
 @Composable
 private fun HomeEmptyPreview() {
     ChallaTheme {
-        HomeContent(
+        HomeScreen(
             state =
                 HomeState(
                     isLoading = false,
@@ -957,7 +957,7 @@ private fun HomeEmptyPreview() {
 @Composable
 private fun HomeLoadingPreview() {
     ChallaTheme {
-        HomeContent(
+        HomeScreen(
             state = HomeState(isLoading = true),
             onCreateRoomClick = {},
             onInviteCodeClick = {},
