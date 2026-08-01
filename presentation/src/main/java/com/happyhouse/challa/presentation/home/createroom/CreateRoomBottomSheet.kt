@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,6 +70,15 @@ fun CreateRoomBottomSheet(
     // 시트가 열릴 때마다 이전에 입력한 값이 남지 않도록 초기화한다. (ViewModel이 홈 화면 스코프로 유지되기 때문)
     LaunchedEffect(Unit) {
         viewModel.onIntent(CreateRoomIntent.Reset)
+    }
+
+    // 시트가 사라질 때(스크림/뒤로가기 포함) 진행 중이던 방 생성 코루틴을 취소한다.
+    // 취소하지 않으면 수신자가 없는 사이 발행된 RoomCreated 이펙트가 채널에 걸려 있다가
+    // 시트를 다시 열 때 뒤늦게 소비되어 의도치 않게 방 상세로 이동할 수 있다.
+    DisposableEffect(viewModel) {
+        onDispose {
+            viewModel.onIntent(CreateRoomIntent.Reset)
+        }
     }
 
     LaunchedEffect(viewModel) {

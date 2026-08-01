@@ -13,6 +13,9 @@ sealed interface CreateRoomIntent : UiIntent {
 
     data object CreateClick : CreateRoomIntent
 
-    /** 바텀시트를 다시 열 때 이전 입력이 남지 않도록 폼 상태를 초기화한다. */
+    /**
+     * 폼 상태를 초기화하고 진행 중이던 방 생성 코루틴을 취소한다.
+     * 바텀시트를 열 때(이전 입력 제거)와 닫을 때(대기 중인 이펙트 정리) 모두 사용한다.
+     */
     data object Reset : CreateRoomIntent
 }
