@@ -17,6 +17,8 @@ import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.CreateProfileRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
+import com.happyhouse.challa.presentation.setting.account.AccountRoute
+import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 
 @Composable
@@ -101,8 +103,12 @@ fun ChallaNavHost(
                         onThemeClick = {
                             navigator.navigate(ChallaRoute.ThemeSetting)
                         },
-                        onNotificationClick = {},
-                        onAccountClick = {},
+                        onNotificationClick = {
+                            navigator.navigate(ChallaRoute.Notification)
+                        },
+                        onAccountClick = {
+                            navigator.navigate(ChallaRoute.Account)
+                        },
                         onSupportClick = {},
                         onFeedbackClick = {},
                     )
@@ -110,6 +116,18 @@ fun ChallaNavHost(
                 entry<ChallaRoute.ThemeSetting> {
                     ThemeRoute(
                         onBackClick = { navigator.goBack() },
+                    )
+                }
+                entry<ChallaRoute.Notification> {
+                    NotificationRoute(
+                        onBackClick = { navigator.goBack() },
+                    )
+                }
+                entry<ChallaRoute.Account> {
+                    AccountRoute(
+                        onBackClick = { navigator.goBack() },
+                        onLogoutClick = {},
+                        onWithdrawClick = {},
                     )
                 }
                 entry<ChallaRoute.CreateRoom> {

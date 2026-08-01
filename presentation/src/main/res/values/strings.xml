@@ -126,6 +126,19 @@
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
 
+    <!-- notificationScreen -->
+    <string name="notification_title">알림</string>
+    <string name="notification_back_description">설정으로 돌아가기</string>
+    <string name="notification_system_disabled">휴대폰의 앱 알림이 꺼져있어요.</string>
+    <string name="notification_service_title">서비스 알림</string>
+    <string name="notification_service_description">인화 대기, 인화 완료 등</string>
+
+    <!-- accountScreen -->
+    <string name="account_title">계정 관리</string>
+    <string name="account_back_description">설정으로 돌아가기</string>
+    <string name="account_logout">로그아웃</string>
+    <string name="account_withdraw">탈퇴하기</string>
+
     <!-- themeScreen -->
     <string name="theme_title">테마</string>
     <string name="theme_back_description">설정으로 돌아가기</string>

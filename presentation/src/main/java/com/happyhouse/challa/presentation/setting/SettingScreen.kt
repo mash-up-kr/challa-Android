@@ -111,7 +111,7 @@ fun SettingScreen(
 @Composable
 private fun SettingScreenPreview() {
     SettingScreen(
-        state = SettingState(),
+        state = SettingState(nickname = "나는야멋쟁이토마토", maskedEmail = "juy***@naver.com"),
         onBackClick = {},
         onProfileEditClick = {},
         onThemeClick = {},

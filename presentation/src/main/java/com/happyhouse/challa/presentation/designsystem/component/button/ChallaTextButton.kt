@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +29,7 @@ fun ChallaTextButton(
     enabled: Boolean = true,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
     size: ChallaButtonSize = ChallaButtonSize.LARGE,
+    contentColor: Color? = null,
 ) {
     val sizeSpec = size.spec
 
@@ -43,10 +45,10 @@ fun ChallaTextButton(
                 horizontal = sizeSpec.horizontalPadding,
                 vertical = sizeSpec.verticalPadding,
             ),
-    ) {
+    ) { variantContentColor ->
         Text(
             text = text,
-            color = it,
+            color = contentColor ?: variantContentColor,
             textAlign = TextAlign.Center,
             style = sizeSpec.textStyle,
         )
