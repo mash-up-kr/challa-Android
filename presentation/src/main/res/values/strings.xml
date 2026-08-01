@@ -99,7 +99,6 @@
     <string name="photo_detail_reaction_clap">박수 반응 남기기</string>
     <string name="photo_detail_reaction_skull">해골 반응 남기기</string>
     <string name="photo_detail_reaction_failure">반응을 남기지 못했어요.</string>
-    <string name="photo_detail_message_failure">메시지를 보내지 못했어요.</string>
 
     <string name="share_invite_title">초대 링크 공유</string>
     <string name="share_invite_card_body">방이 생성되었어요. 일행을 초대하세요.</string>

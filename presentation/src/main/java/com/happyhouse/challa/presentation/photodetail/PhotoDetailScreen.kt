@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
@@ -54,9 +55,8 @@ fun PhotoDetailScreen(
     Scaffold(
         modifier = modifier,
         containerColor = PhotoDetailBackgroundColor,
-        // 시스템 바 인셋은 화면 밖에서 처리한다.
-        // 하단은 ChallaNavHost의 navigationBarsPadding이, 상단은 PhotoDetailTopBar의 statusBarsPadding이 담당하므로
-        // 여기서 기본 인셋을 다시 적용하지 않는다.
+        // 사진이 화면 끝까지 차야 해서 content에는 기본 인셋을 주지 않는다.
+        // 대신 인셋이 필요한 바가 각자 직접 적용한다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             PhotoDetailTopBar(
@@ -70,7 +70,12 @@ fun PhotoDetailScreen(
             // 반응·메시지는 사진이 있을 때만 의미가 있으므로 로드된 사진이 있을 때만 그린다.
             if (currentPhoto != null) {
                 PhotoDetailBottomBar(
-                    modifier = Modifier.imePadding(),
+                    // 앱이 edge-to-edge라 하단 바가 인셋을 직접 처리한다.
+                    // navigationBarsPadding을 먼저 적용하면 그만큼 소비되어 imePadding과 이중으로 더해지지 않는다.
+                    modifier =
+                        Modifier
+                            .navigationBarsPadding()
+                            .imePadding(),
                     message = state.messageInput,
                     isMessageSendable = state.isMessageSendable,
                     onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },

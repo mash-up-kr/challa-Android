@@ -115,6 +115,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /**
      * 사진에 메시지 보내기. 보낸 뒤 입력만 비우고 키보드는 유지한다.
      * TODO: 메시지 API 스펙 확정 전까지 전송 결과를 성공으로 가정한다. (이슈 #62)
+     *   실패 경로가 생기면 MessageSendFailed SideEffect를 다시 추가할 것.
      */
     private fun handleMessageSend(photo: PhotoDetailUiModel) {
         val message = currentState.messageInput.trim()
@@ -126,7 +127,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
         updateState { copy(isSendingMessage = true) }
         viewModelScope.launch {
             try {
-                Timber.d("사진 메시지 전송: photoId=${photo.id}, message=$message")
+                // 메시지 본문은 개인정보라 로그에 남기지 않는다.
+                Timber.d("사진 메시지 전송: photoId=${photo.id}, length=${message.length}")
                 updateState { copy(messageInput = "") }
             } finally {
                 updateState { copy(isSendingMessage = false) }
