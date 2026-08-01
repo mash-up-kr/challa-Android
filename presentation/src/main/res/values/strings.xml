@@ -67,6 +67,8 @@
     <string name="home_empty_subtitle">행복한 찰나를 남겨 보세요</string>
     <string name="home_create_room">방 만들기</string>
     <string name="home_enter_invite_code">초대 코드로 입장하기</string>
+    <string name="home_menu_create_room">방 만들기</string>
+    <string name="home_menu_enter_room">방 입장하기</string>
     <string name="home_section_shooting">촬영 중</string>
     <string name="home_section_completed">촬영 완료</string>
     <string name="home_print_waiting">인화 대기</string>

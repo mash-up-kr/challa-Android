@@ -12,21 +12,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -128,6 +135,7 @@ private fun HomeContent(
         ) {
             HomeTopBar(
                 onCreateRoomClick = onCreateRoomClick,
+                onEnterRoomClick = onInviteCodeClick,
                 onSettingClick = onSettingClick,
             )
 
@@ -623,6 +631,7 @@ private fun Modifier.homeGlow(): Modifier {
 @Composable
 private fun HomeTopBar(
     onCreateRoomClick: () -> Unit,
+    onEnterRoomClick: () -> Unit,
     onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -631,10 +640,9 @@ private fun HomeTopBar(
         modifier = modifier,
         variant = ChallaTopNavigationVariant.MAIN,
         trailingIcon = {
-            HomeTopBarAction(
-                icon = ChallaIcons.Add,
-                contentDescription = stringResource(id = R.string.home_add_description),
-                onClick = onCreateRoomClick,
+            HomeAddMenuAction(
+                onCreateRoomClick = onCreateRoomClick,
+                onEnterRoomClick = onEnterRoomClick,
             )
             HomeTopBarAction(
                 icon = ChallaIcons.Setting,
@@ -642,6 +650,69 @@ private fun HomeTopBar(
                 onClick = onSettingClick,
             )
         },
+    )
+}
+
+/**
+ * 상단바의 `+` 아이콘. 탭하면 방 만들기/방 입장하기 드롭다운 메뉴를 아이콘 아래로 띄운다.
+ *
+ * 메뉴 열림 상태는 화면 이동과 무관한 순수 UI 상태라 여기서 로컬로 관리한다.
+ */
+@Composable
+private fun HomeAddMenuAction(
+    onCreateRoomClick: () -> Unit,
+    onEnterRoomClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        HomeTopBarAction(
+            icon = ChallaIcons.Add,
+            contentDescription = stringResource(id = R.string.home_add_description),
+            onClick = { expanded = true },
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.width(180.dp),
+            shape = RoundedCornerShape(16.dp),
+            containerColor = ChallaTheme.colors.staticBlack,
+        ) {
+            HomeAddMenuItem(
+                text = stringResource(id = R.string.home_menu_create_room),
+                onClick = {
+                    expanded = false
+                    onCreateRoomClick()
+                },
+            )
+            HorizontalDivider(color = ChallaTheme.colors.lineNormal)
+            HomeAddMenuItem(
+                text = stringResource(id = R.string.home_menu_enter_room),
+                onClick = {
+                    expanded = false
+                    onEnterRoomClick()
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeAddMenuItem(
+    text: String,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = text,
+                color = ChallaTheme.colors.labelSubtle,
+                style = ChallaTheme.typography.bodyXSmall.medium,
+            )
+        },
+        onClick = onClick,
+        contentPadding = PaddingValues(16.dp),
     )
 }
 
