@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,19 +30,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
-import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
-private val TrailingSpacing = 8.dp
-
-/**
- * @param trailing 입력 영역 오른쪽에 붙는 슬롯. 전송 버튼처럼 입력과 함께 쓰는 액션에 사용한다.
- *   null이면 입력 영역이 가로를 모두 차지한다.
- */
 @Composable
 fun ChallaInputBox(
     value: String,
@@ -53,7 +42,6 @@ fun ChallaInputBox(
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     onDone: KeyboardActionScope.() -> Unit = {},
-    trailing: (@Composable () -> Unit)? = null,
 ) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -76,7 +64,6 @@ fun ChallaInputBox(
         keyboardOptions = keyboardOptions,
         keyboardActions = inputBoxKeyboardActions,
         interactionSource = interactionSource,
-        trailing = trailing,
     )
 }
 
@@ -91,7 +78,6 @@ private fun ChallaInputBoxContent(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    trailing: (@Composable () -> Unit)? = null,
 ) {
     BasicTextField(
         value = value,
@@ -118,26 +104,18 @@ private fun ChallaInputBoxContent(
         keyboardActions = keyboardActions,
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
-            Row(
+            Box(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(TrailingSpacing),
-                verticalAlignment = Alignment.CenterVertically,
+                contentAlignment = Alignment.CenterStart,
             ) {
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    if (value.isEmpty()) {
-                        Text(
-                            text = placeholder,
-                            color = ChallaTheme.colors.labelAlternative,
-                            style = ChallaTheme.typography.bodyMedium.bold,
-                        )
-                    }
-                    innerTextField()
+                if (value.isEmpty()) {
+                    Text(
+                        text = placeholder,
+                        color = ChallaTheme.colors.labelAlternative,
+                        style = ChallaTheme.typography.bodyMedium.bold,
+                    )
                 }
-
-                trailing?.invoke()
+                innerTextField()
             }
         },
     )
@@ -182,19 +160,6 @@ private fun ChallaInputBoxPreview() {
                 value = "텍스트",
                 isFocused = true,
             )
-            ChallaInputBoxPreviewItem(
-                label = "Has value / Focused / Trailing",
-                value = "텍스트",
-                isFocused = true,
-                trailing = {
-                    ChallaIconButton(
-                        icon = ChallaIcons.Up,
-                        onClick = {},
-                        variant = ChallaButtonVariant.PRIMARY,
-                        size = ChallaButtonSize.SMALL,
-                    )
-                },
-            )
         }
     }
 }
@@ -205,7 +170,6 @@ private fun ChallaInputBoxPreviewItem(
     value: String,
     isFocused: Boolean,
     placeholder: String = "",
-    trailing: (@Composable () -> Unit)? = null,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -220,7 +184,6 @@ private fun ChallaInputBoxPreviewItem(
             onValueChange = {},
             isFocused = isFocused,
             placeholder = placeholder,
-            trailing = trailing,
         )
     }
 }
