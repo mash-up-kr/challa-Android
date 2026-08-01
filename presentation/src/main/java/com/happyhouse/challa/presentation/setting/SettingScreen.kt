@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -17,12 +16,14 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaListItem
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.setting.component.SettingProfile
 import com.happyhouse.challa.presentation.setting.component.SettingSection
 import com.happyhouse.challa.presentation.setting.component.SettingTopBar
 import com.happyhouse.challa.presentation.setting.contract.SettingState
+import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 import com.happyhouse.challa.presentation.setting.theme.titleRes
 
 @Composable
@@ -37,19 +38,21 @@ fun SettingScreen(
     onFeedbackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(ChallaTheme.colors.backgroundSurface)
-                .statusBarsPadding(),
-    ) {
-        SettingTopBar(onBackClick = onBackClick)
+    val primaryThemeTitle = state.primaryTheme?.let { stringResource(it.titleRes) }
 
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = ChallaTheme.colors.backgroundSurface,
+        topBar = {
+            SettingTopBar(onBackClick = onBackClick)
+        },
+    ) { innerPadding ->
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(ChallaTheme.colors.backgroundSurface)
                     .verticalScroll(rememberScrollState()),
         ) {
             SettingProfile(
@@ -67,7 +70,7 @@ fun SettingScreen(
                     ChallaListItem(
                         text = stringResource(R.string.setting_theme),
                         leadingIcon = ChallaIcons.Palette,
-                        trailingText = stringResource(state.primaryTheme.titleRes),
+                        trailingText = primaryThemeTitle,
                         onClick = onThemeClick,
                     )
                     ChallaListItem(
@@ -115,6 +118,7 @@ private fun SettingScreenPreview() {
             SettingState(
                 nickname = "나는야멋쟁이토마토",
                 maskedEmail = "juy***@naver.com",
+                primaryTheme = ThemeUiModel.LEMONADE,
             ),
         onBackClick = {},
         onProfileEditClick = {},

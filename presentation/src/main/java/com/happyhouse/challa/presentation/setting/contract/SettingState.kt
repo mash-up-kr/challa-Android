@@ -8,5 +8,5 @@ import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 data class SettingState(
     val nickname: String,
     val maskedEmail: String,
-    val primaryTheme: ThemeUiModel = ThemeUiModel.LEMONADE,
+    val primaryTheme: ThemeUiModel? = null,
 ) : UiState
