@@ -10,6 +10,7 @@ enum class ChallaButtonVariant {
     NEUTRAL,
     PRIMARY,
     TRANSPARENT,
+    DESTRUCTIVE,
 }
 
 enum class ChallaButtonSize {
@@ -57,6 +58,12 @@ internal fun ChallaButtonVariant.colorSpec(enabled: Boolean): ChallaButtonColorS
             ChallaButtonColorSpec(
                 containerColor = Color.Transparent,
                 contentColor = ChallaTheme.colors.labelNormal,
+            )
+
+        ChallaButtonVariant.DESTRUCTIVE ->
+            ChallaButtonColorSpec(
+                containerColor = ChallaTheme.colors.backgroundLevel3,
+                contentColor = ChallaTheme.colors.statusDestructive,
             )
     }
 }
