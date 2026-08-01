@@ -95,7 +95,7 @@ private fun PhotoMessageInputContent(
                 ).padding(InputPadding),
         singleLine = true,
         textStyle =
-            ChallaTheme.typography.bodyMedium.bold.copy(
+            ChallaTheme.typography.bodyMedium.medium.copy(
                 color = ChallaTheme.colors.labelNormal,
             ),
         cursorBrush = SolidColor(ChallaTheme.colors.primaryYellow),
@@ -114,7 +114,7 @@ private fun PhotoMessageInputContent(
                         Text(
                             text = stringResource(R.string.photo_detail_message_placeholder),
                             color = ChallaTheme.colors.labelAlternative,
-                            style = ChallaTheme.typography.bodyMedium.bold,
+                            style = ChallaTheme.typography.bodyMedium.medium,
                         )
                     }
                     innerTextField()

@@ -27,8 +27,8 @@ import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 피그마 수치 확인 전까지 쓰는 임시 값. 디자인 확정되면 맞출 것. (이슈 #62)
-private val ReactionButtonSize = 44.dp
-private val ReactionEmojiSize = 24.dp
+private val ReactionButtonSize = 58.dp
+private val ReactionEmojiSize = 32.dp
 
 /** 사진에 남길 이모지를 고르는 반응 바. */
 @Composable
