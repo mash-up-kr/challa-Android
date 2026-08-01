@@ -68,6 +68,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
 import com.happyhouse.challa.presentation.home.model.PrintState
 import com.happyhouse.challa.presentation.home.model.Room
@@ -92,7 +93,6 @@ private const val FILM_PREVIEW_MAX = 3
 
 @Composable
 fun HomeScreen(
-    onNavigateToCreateRoom: () -> Unit,
     onNavigateToInviteCode: () -> Unit,
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: String) -> Unit,
@@ -100,15 +100,27 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showCreateRoomSheet by remember { mutableStateOf(false) }
 
     HomeContent(
         state = state,
-        onCreateRoomClick = onNavigateToCreateRoom,
+        onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = onNavigateToInviteCode,
         onSettingClick = onNavigateToSetting,
         onRoomClick = onNavigateToRoom,
         modifier = modifier,
     )
+
+    if (showCreateRoomSheet) {
+        CreateRoomBottomSheet(
+            onDismiss = { showCreateRoomSheet = false },
+            onRoomCreated = { roomId, _ ->
+                showCreateRoomSheet = false
+                // 방 생성 완료 후 방 상세(RoomMain) 화면으로 이동한다.
+                onNavigateToRoom(roomId)
+            },
+        )
+    }
 }
 
 @Composable

@@ -19,7 +19,9 @@ class CreateRoomViewModel
         override fun onIntent(intent: CreateRoomIntent) {
             when (intent) {
                 is CreateRoomIntent.NameChanged -> onNameChanged(intent.name)
+                is CreateRoomIntent.ShotCountChanged -> updateState { copy(shotCount = intent.shotCount) }
                 CreateRoomIntent.CreateClick -> createRoom()
+                CreateRoomIntent.Reset -> updateState { CreateRoomState() }
             }
         }
 
@@ -29,10 +31,11 @@ class CreateRoomViewModel
         }
 
         private fun createRoom() {
-            if (!currentState.canSubmit) return
+            if (!currentState.canSubmit || currentState.isSubmitting) return
             viewModelScope.launch {
                 updateState { copy(isSubmitting = true) }
-                delay(1000L) // TODO JH: API 호출
+                // TODO JH: API 호출 (요청 시 currentState.shotCount.count 값을 함께 전송)
+                delay(1000L)
                 val created = mockCreateRoom(currentState.name.trim())
                 updateState { copy(isSubmitting = false) }
                 sendEffect(

@@ -10,7 +10,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.camera.CameraRoute
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeScreen
-import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
@@ -92,9 +91,6 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Home> {
                     HomeScreen(
-                        onNavigateToCreateRoom = {
-                            navigator.navigate(ChallaRoute.CreateRoom)
-                        },
                         onNavigateToInviteCode = {
                             // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
                         },
@@ -104,18 +100,6 @@ fun ChallaNavHost(
                         onNavigateToRoom = {
                             // TODO JH: roomId 전달 방식 확정되면 RoomMain에 인자 연결
                             navigator.navigate(ChallaRoute.RoomMain)
-                        },
-                    )
-                }
-                entry<ChallaRoute.CreateRoom> {
-                    CreateRoomScreen(
-                        onClose = {
-                            navigator.goBack()
-                        },
-                        onRoomCreated = { roomId, roomName ->
-                            navigator.replace(
-                                ChallaRoute.ShareInvite(roomId = roomId, roomName = roomName),
-                            )
                         },
                     )
                 }

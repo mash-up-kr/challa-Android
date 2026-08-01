@@ -78,14 +78,12 @@
     <string name="home_room_photo_description">방 사진</string>
     <string name="home_film_overflow" translatable="false">+%1$d</string>
 
-    <string name="create_room_close">‹ 닫기</string>
-    <string name="create_room_title">새 방 만들기</string>
-    <string name="create_room_name_label">방 이름 (최대 %1$d자)</string>
-    <string name="create_room_name_placeholder">예: 오사카 졸업여행</string>
-    <string name="create_room_name_counter">%1$d/%2$d</string>
-    <!-- TODO JH 문구 자체를 서버에서 받도록 수정해야한다. -->
-    <string name="create_room_info">· 24장 고정\n· 24장을 다 채우면 3시간 후 자동 공개\n· 최대 12명까지 입장 가능\n· 공개 후 30일 뒤 자동 삭제</string>
-    <string name="create_room_submit">방 만들기</string>
+    <string name="create_room_close_description">닫기</string>
+    <string name="create_room_title">방 만들기</string>
+    <string name="create_room_name_placeholder">방 이름 입력</string>
+    <string name="create_room_shot_count_label">얼마나 찍을까요?</string>
+    <string name="create_room_shot_count_option">%1$d장</string>
+    <string name="create_room_submit">만들기</string>
 
     <!-- photoDetailScreen -->
     <string name="photo_detail_back_description">뒤로가기</string>
