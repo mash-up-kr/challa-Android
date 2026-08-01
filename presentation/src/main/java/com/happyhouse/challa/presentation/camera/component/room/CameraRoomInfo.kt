@@ -130,5 +130,5 @@ fun RemainingCaptureStatus.toContentColor(): Color =
     when (this) {
         RemainingCaptureStatus.UNAVAILABLE -> ChallaTheme.colors.labelDisable
         RemainingCaptureStatus.LOW -> ChallaTheme.colors.statusDestructive
-        RemainingCaptureStatus.AVAILABLE -> ChallaTheme.colors.primaryYellow
+        RemainingCaptureStatus.AVAILABLE -> ChallaTheme.colors.primary
     }

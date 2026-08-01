@@ -27,7 +27,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
 @Composable
-fun ChallaList(
+fun ChallaListItem(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -71,7 +71,7 @@ fun ChallaList(
                 trailingText?.let { text ->
                     Text(
                         text = text,
-                        color = ChallaTheme.colors.primaryYellow,
+                        color = ChallaTheme.colors.primary,
                         overflow = TextOverflow.Ellipsis,
                         style = ChallaTheme.typography.bodyMedium.bold,
                     )
@@ -93,37 +93,37 @@ fun ChallaList(
 @Preview(widthDp = 320)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun ChallaListPreview() {
+private fun ChallaListItemPreview() {
     androidx.compose.foundation.layout.Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        ChallaList(
+        ChallaListItem(
             text = "텍스트",
             onClick = {},
             leadingIcon = ChallaIcons.Blank,
         )
-        ChallaList(
+        ChallaListItem(
             text = "텍스트",
             onClick = {},
         )
-        ChallaList(
+        ChallaListItem(
             text = "텍스트",
             onClick = {},
             leadingIcon = ChallaIcons.Blank,
             trailingText = "텍스트",
         )
-        ChallaList(
+        ChallaListItem(
             text = "텍스트",
             onClick = {},
             trailingText = "텍스트",
         )
-        ChallaList(
+        ChallaListItem(
             text = "텍스트",
             onClick = {},
             leadingIcon = ChallaIcons.Blank,
             trailingIcon = ChallaIcons.Check,
         )
-        ChallaList(
+        ChallaListItem(
             text = "텍스트",
             onClick = {},
             trailingIcon = ChallaIcons.Check,

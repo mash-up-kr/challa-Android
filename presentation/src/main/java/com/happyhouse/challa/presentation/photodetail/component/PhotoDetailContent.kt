@@ -37,7 +37,7 @@ fun PhotoDetailContent(
             PhotoInfo.Loading -> {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = ChallaTheme.colors.primaryYellow,
+                    color = ChallaTheme.colors.primary,
                 )
             }
 

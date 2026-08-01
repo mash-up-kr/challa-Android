@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,7 +27,7 @@ fun PhotoDetailTopBar(
     isSaveEnabled: Boolean = true,
 ) {
     ChallaTopNavigation(
-        modifier = modifier.statusBarsPadding(),
+        modifier = modifier,
         title = title,
         variant = ChallaTopNavigationVariant.SUB,
         leadingIcon = {

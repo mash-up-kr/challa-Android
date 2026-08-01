@@ -28,7 +28,7 @@ internal object ColorTokens {
     val LabelAlternative = Color(0xFF74767B)
     val LabelDisable = Color(0xFF444549)
 
-    val BackgroundSurface = Color(0xFF1A1A1A)
+    val BackgroundSurface = Color(0xFF111111)
     val BackgroundLevel1 = Color(0xFF1F1F1F)
     val BackgroundLevel2 = Color(0xFF242424)
     val BackgroundLevel3 = Color(0xFF2F2F2F)

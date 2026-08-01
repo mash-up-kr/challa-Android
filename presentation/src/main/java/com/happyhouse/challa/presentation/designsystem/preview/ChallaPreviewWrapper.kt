@@ -16,7 +16,7 @@ class ChallaPreviewWrapper : PreviewWrapperProvider {
             Box(
                 modifier =
                     Modifier
-                        .background(ChallaTheme.colors.backgroundLevel4)
+                        .background(ChallaTheme.colors.backgroundSurface)
                         .padding(12.dp),
             ) {
                 content()

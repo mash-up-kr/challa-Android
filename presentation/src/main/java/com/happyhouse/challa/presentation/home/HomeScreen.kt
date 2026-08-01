@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.home.model.Room
@@ -53,12 +57,11 @@ private val TextSecondary = Color(0xFF666666)
 private val TextMuted = Color(0xFF999999)
 private val BorderColor = Color(0xFFDDDDDD)
 private val DividerColor = Color(0xFFE5E5E5)
-private val ChipBg = Color(0xFFF4F4F4)
 private val PlaceholderBg = Color(0xFFEEEEEE)
 
 @Composable
 fun HomeScreen(
-    onNavigateToInviteCode: () -> Unit,
+    onNavigateToSetting: () -> Unit,
     onNavigateToCreateRoom: () -> Unit,
     onNavigateToRoom: (Room) -> Unit,
     modifier: Modifier = Modifier,
@@ -68,7 +71,7 @@ fun HomeScreen(
 
     HomeContent(
         state = state,
-        onInviteCodeClick = onNavigateToInviteCode,
+        onSettingClick = onNavigateToSetting,
         onCreateRoomClick = onNavigateToCreateRoom,
         onRoomClick = onNavigateToRoom,
         modifier = modifier,
@@ -78,7 +81,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeState,
-    onInviteCodeClick: () -> Unit,
+    onSettingClick: () -> Unit,
     onCreateRoomClick: () -> Unit,
     onRoomClick: (Room) -> Unit,
     modifier: Modifier = Modifier,
@@ -97,7 +100,7 @@ private fun HomeContent(
         ) {
             HomeTopBar(
                 userName = state.userName,
-                onClickInviteCode = onInviteCodeClick,
+                onSettingClick = onSettingClick,
             )
 
             if (state.isLoading) {
@@ -140,7 +143,7 @@ private fun HomeContent(
 @Composable
 private fun HomeTopBar(
     userName: String,
-    onClickInviteCode: () -> Unit,
+    onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -162,16 +165,18 @@ private fun HomeTopBar(
             Box(
                 modifier =
                     Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(ChipBg)
-                        .border(width = 1.dp, color = TextMuted, shape = RoundedCornerShape(4.dp))
-                        .clickOnce { onClickInviteCode() }
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                        .size(40.dp)
+                        .clickOnce(
+                            role = Role.Button,
+                            onClick = onSettingClick,
+                        ),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = stringResource(id = R.string.home_invite_code),
-                    color = TextPrimary,
-                    fontSize = 12.sp,
+                Icon(
+                    painter = painterResource(ChallaIcons.Setting),
+                    contentDescription = stringResource(R.string.home_setting_description),
+                    modifier = Modifier.size(24.dp),
+                    tint = TextPrimary,
                 )
             }
         }
@@ -294,7 +299,7 @@ private fun HomeScreenPreview() {
                         Room("4", "부산 1박", RoomStatus.Expiring(2)),
                     ),
             ),
-        onInviteCodeClick = {},
+        onSettingClick = {},
         onCreateRoomClick = {},
         onRoomClick = {},
     )
@@ -306,7 +311,7 @@ private fun HomeScreenPreview() {
 private fun HomeScreenLoadingPreview() {
     HomeContent(
         state = HomeState(isLoading = true, userName = ""),
-        onInviteCodeClick = {},
+        onSettingClick = {},
         onCreateRoomClick = {},
         onRoomClick = {},
     )
