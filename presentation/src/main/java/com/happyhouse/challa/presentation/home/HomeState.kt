@@ -2,7 +2,6 @@ package com.happyhouse.challa.presentation.home
 
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
-import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -20,10 +19,10 @@ data class HomeState(
         get() = rooms.isEmpty()
 
     /** 촬영 중인 방 목록 */
-    val shootingRooms: ImmutableList<RoomUiModel>
-        get() = rooms.filter { it.status is HomeRoomStatus.Shooting }.toImmutableList()
+    val shootingRooms: ImmutableList<RoomUiModel.Shooting>
+        get() = rooms.filterIsInstance<RoomUiModel.Shooting>().toImmutableList()
 
     /** 촬영 완료된 방 목록 */
-    val completedRooms: ImmutableList<RoomUiModel>
-        get() = rooms.filter { it.status is HomeRoomStatus.Completed }.toImmutableList()
+    val completedRooms: ImmutableList<RoomUiModel.Completed>
+        get() = rooms.filterIsInstance<RoomUiModel.Completed>().toImmutableList()
 }

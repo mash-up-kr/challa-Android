@@ -68,7 +68,6 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
-import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
 import com.happyhouse.challa.presentation.home.model.PrintState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import kotlinx.collections.immutable.ImmutableList
@@ -191,8 +190,8 @@ private fun HomeScreen(
  */
 @Composable
 private fun HomeRoomsContent(
-    shootingRooms: ImmutableList<RoomUiModel>,
-    completedRooms: ImmutableList<RoomUiModel>,
+    shootingRooms: ImmutableList<RoomUiModel.Shooting>,
+    completedRooms: ImmutableList<RoomUiModel.Completed>,
     onRoomClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -227,7 +226,7 @@ private fun HomeRoomsContent(
 
 @Composable
 private fun HomeShootingSection(
-    rooms: ImmutableList<RoomUiModel>,
+    rooms: ImmutableList<RoomUiModel.Shooting>,
     onRoomClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -253,10 +252,8 @@ private fun HomeShootingSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             rooms.forEach { room ->
-                val status = room.status as? HomeRoomStatus.Shooting ?: return@forEach
                 HomeShootingCard(
                     room = room,
-                    status = status,
                     onClick = { onRoomClick(room.id) },
                 )
             }
@@ -266,8 +263,7 @@ private fun HomeShootingSection(
 
 @Composable
 private fun HomeShootingCard(
-    room: RoomUiModel,
-    status: HomeRoomStatus.Shooting,
+    room: RoomUiModel.Shooting,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -280,7 +276,7 @@ private fun HomeShootingCard(
                 .noRippleClickOnce(role = Role.Button, onClick = onClick),
     ) {
         RoomAsyncImage(
-            imageUrl = status.coverImageUrl,
+            imageUrl = room.coverImageUrl,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
         )
@@ -353,7 +349,7 @@ private fun HomeShootingCard(
                     tint = ChallaTheme.colors.staticBlack,
                 )
                 Text(
-                    text = status.takenCount.toString(),
+                    text = room.takenCount.toString(),
                     color = ChallaTheme.colors.staticBlack,
                     style = ChallaTheme.typography.bodyMedium.bold,
                 )
@@ -364,7 +360,7 @@ private fun HomeShootingCard(
 
 @Composable
 private fun HomeCompletedSection(
-    rooms: ImmutableList<RoomUiModel>,
+    rooms: ImmutableList<RoomUiModel.Completed>,
     onRoomClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -383,10 +379,8 @@ private fun HomeCompletedSection(
         )
         Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
             rooms.forEach { room ->
-                val status = room.status as? HomeRoomStatus.Completed ?: return@forEach
                 HomeCompletedRoom(
                     room = room,
-                    status = status,
                     onClick = { onRoomClick(room.id) },
                 )
             }
@@ -396,8 +390,7 @@ private fun HomeCompletedSection(
 
 @Composable
 private fun HomeCompletedRoom(
-    room: RoomUiModel,
-    status: HomeRoomStatus.Completed,
+    room: RoomUiModel.Completed,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -412,7 +405,7 @@ private fun HomeCompletedRoom(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            HomePrintStateChip(printState = status.printState)
+            HomePrintStateChip(printState = room.printState)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -434,8 +427,8 @@ private fun HomeCompletedRoom(
             }
         }
         HomeFilmStack(
-            imageUrls = status.photoImageUrls,
-            totalPhotoCount = status.totalPhotoCount,
+            imageUrls = room.photoImageUrls,
+            totalPhotoCount = room.totalPhotoCount,
         )
     }
 }
@@ -867,47 +860,35 @@ private fun HomeActionButton(
 
 private fun previewRooms(): ImmutableList<RoomUiModel> =
     persistentListOf(
-        RoomUiModel(
+        RoomUiModel.Shooting(
             id = "1",
             name = "친구들과 강릉 여행",
             participantCount = 1,
-            status =
-                HomeRoomStatus.Shooting(
-                    takenCount = 24,
-                    coverImageUrl = null,
-                ),
+            takenCount = 24,
+            coverImageUrl = null,
         ),
-        RoomUiModel(
+        RoomUiModel.Shooting(
             id = "2",
             name = "제주도 우정여행",
             participantCount = 4,
-            status =
-                HomeRoomStatus.Shooting(
-                    takenCount = 12,
-                    coverImageUrl = null,
-                ),
+            takenCount = 12,
+            coverImageUrl = null,
         ),
-        RoomUiModel(
+        RoomUiModel.Completed(
             id = "3",
             name = "친구들과 강릉 여행",
             participantCount = 11,
-            status =
-                HomeRoomStatus.Completed(
-                    printState = PrintState.WAITING,
-                    photoImageUrls = persistentListOf("", "", "", ""),
-                    totalPhotoCount = 24,
-                ),
+            printState = PrintState.WAITING,
+            photoImageUrls = persistentListOf("", "", "", ""),
+            totalPhotoCount = 24,
         ),
-        RoomUiModel(
+        RoomUiModel.Completed(
             id = "4",
             name = "인화 완료 된 방이에요",
             participantCount = 7,
-            status =
-                HomeRoomStatus.Completed(
-                    printState = PrintState.COMPLETED,
-                    photoImageUrls = persistentListOf("", "", ""),
-                    totalPhotoCount = 3,
-                ),
+            printState = PrintState.COMPLETED,
+            photoImageUrls = persistentListOf("", "", ""),
+            totalPhotoCount = 3,
         ),
     )
 
