@@ -26,10 +26,11 @@ class AuthRepositoryImpl
             authApi
                 .login(
                     LoginRequest(
-                        auth = LoginRequest.Auth(
-                            provider = KAKAO_PROVIDER,
-                            idToken = idToken,
-                        ),
+                        auth =
+                            LoginRequest.Auth(
+                                provider = KAKAO_PROVIDER,
+                                idToken = idToken,
+                            ),
                     ),
                 ).mapCatching { response ->
                     check(response.success) { response.message }

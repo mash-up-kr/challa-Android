@@ -22,10 +22,11 @@ class UserRepositoryImpl
             userApi
                 .updateProfile(
                     UpdateProfileRequest(
-                        user = UpdateProfileRequest.User(
-                            nickname = nickname,
-                            profileImageUrl = profileImageUrl,
-                        ),
+                        user =
+                            UpdateProfileRequest.User(
+                                nickname = nickname,
+                                profileImageUrl = profileImageUrl,
+                            ),
                     ),
                 ).mapCatching { response ->
                     check(response.success) { response.message }
