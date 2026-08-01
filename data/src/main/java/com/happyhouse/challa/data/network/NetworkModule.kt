@@ -4,6 +4,7 @@ import com.happyhouse.challa.data.BuildConfig
 import com.happyhouse.challa.data.FlavorExtraFunction
 import com.happyhouse.challa.data.network.adapter.ChallaResultCallAdapterFactory
 import com.happyhouse.challa.data.network.api.AuthApi
+import com.happyhouse.challa.data.network.api.CameraApi
 import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.interceptor.AuthInterceptor
 import com.happyhouse.challa.data.network.interceptor.TokenAuthenticator
@@ -20,6 +21,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.create
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -54,7 +56,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideFlipperInterceptor(flavorExtraFunction: FlavorExtraFunction): Interceptor? = flavorExtraFunction.getFlipperInterceptor()
+    fun provideFlipperInterceptor(flavorExtraFunction: FlavorExtraFunction): Interceptor? =
+        flavorExtraFunction.getFlipperInterceptor()
 
     @Provides
     @Singleton
@@ -91,6 +94,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCameraApi(retrofit: Retrofit): CameraApi = retrofit.create()
 
     @Provides
     @Singleton

@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.camera
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.CameraRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
@@ -24,6 +25,7 @@ import timber.log.Timber
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
+    private val cameraRepository: CameraRepository,
     private val roomRepository: RoomRepository,
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
         initialState = CameraState(selectedRoomId = roomId),
@@ -47,6 +49,11 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun fetchData(roomId: Long) {
+        fetchRooms(roomId)
+        fetchCameraFilters()
+    }
+
+    private fun fetchRooms(roomId: Long) {
         viewModelScope.launch {
             when (val result = roomRepository.getRooms()) {
                 is ChallaResult.Success -> {
@@ -74,6 +81,22 @@ class CameraViewModel @AssistedInject constructor(
                 is ChallaResult.Failure -> {
                     Timber.e("방 목록을 불러오지 못했습니다: $result")
                     sendEffect(CameraSideEffect.RoomLoadFailed)
+                }
+            }
+        }
+    }
+
+    private fun fetchCameraFilters() {
+        viewModelScope.launch {
+            when (val result = cameraRepository.getCameraFilters()) {
+                is ChallaResult.Success -> {
+                    updateState {
+                        copy(cameraFilters = result.data.toPersistentList())
+                    }
+                }
+
+                is ChallaResult.Failure -> {
+                    Timber.e("카메라 필터 목록을 불러오지 못했습니다: $result")
                 }
             }
         }
