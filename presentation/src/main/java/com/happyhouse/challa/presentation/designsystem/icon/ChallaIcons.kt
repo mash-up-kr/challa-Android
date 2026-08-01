@@ -56,6 +56,9 @@ object ChallaIcons {
     val Palette = R.drawable.ic_palette
 
     @DrawableRes
+    val Person = R.drawable.ic_person
+
+    @DrawableRes
     val Profile = R.drawable.ic_profile
 
     @DrawableRes
