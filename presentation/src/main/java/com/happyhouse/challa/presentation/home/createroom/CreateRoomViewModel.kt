@@ -43,19 +43,20 @@ class CreateRoomViewModel
 
         private fun createRoom() {
             if (!currentState.canSubmit || currentState.isSubmitting) return
-            createRoomJob = viewModelScope.launch {
-                updateState { copy(isSubmitting = true) }
-                // TODO JH: API 호출 (요청 시 currentState.shotCount.count 값을 함께 전송)
-                delay(1000L)
-                val created = mockCreateRoom(currentState.name.trim())
-                updateState { copy(isSubmitting = false) }
-                sendEffect(
-                    CreateRoomSideEffect.RoomCreated(
-                        roomId = created.id,
-                        roomName = created.name,
-                    ),
-                )
-            }
+            createRoomJob =
+                viewModelScope.launch {
+                    updateState { copy(isSubmitting = true) }
+                    // TODO JH: API 호출 (요청 시 currentState.shotCount.count 값을 함께 전송)
+                    delay(1000L)
+                    val created = mockCreateRoom(currentState.name.trim())
+                    updateState { copy(isSubmitting = false) }
+                    sendEffect(
+                        CreateRoomSideEffect.RoomCreated(
+                            roomId = created.id,
+                            roomName = created.name,
+                        ),
+                    )
+                }
         }
 
         private data class MockCreatedRoom(
