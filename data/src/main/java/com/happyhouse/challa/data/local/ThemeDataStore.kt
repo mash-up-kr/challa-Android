@@ -1,10 +1,10 @@
 package com.happyhouse.challa.data.local
 
 import android.content.Context
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.happyhouse.challa.data.mapper.toPrimaryThemeResult
 import com.happyhouse.challa.domain.model.PrimaryTheme
 import com.happyhouse.challa.domain.result.ChallaResult
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -79,3 +79,11 @@ class ThemeDataStore
             val PRIMARY_THEME_KEY = stringPreferencesKey("primary_theme")
         }
     }
+
+internal fun Preferences.toPrimaryThemeResult(primaryThemeKey: Preferences.Key<String>): ChallaResult<PrimaryTheme> =
+    ChallaResult.Success(
+        this[primaryThemeKey]
+            ?.let { savedTheme ->
+                PrimaryTheme.entries.firstOrNull { it.name == savedTheme }
+            } ?: PrimaryTheme.LEMONADE,
+    )
