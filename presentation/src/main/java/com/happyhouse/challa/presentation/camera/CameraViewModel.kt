@@ -91,7 +91,7 @@ class CameraViewModel @AssistedInject constructor(
             when (val result = cameraRepository.getCameraFilters()) {
                 is ChallaResult.Success -> {
                     updateState {
-                        copy(cameraFilters = result.data.toPersistentList())
+                        copy(cameraFilters = result.data.map { it.toUiModel() }.toPersistentList())
                     }
                 }
 

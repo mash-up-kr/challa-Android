@@ -3,11 +3,11 @@ package com.happyhouse.challa.presentation.camera.contract
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
 import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import com.happyhouse.challa.domain.model.CameraFilter as CameraFilterModel
 
 /**
  * 카메라 화면에서 유지하는 UI 상태입니다.
@@ -26,7 +26,7 @@ data class CameraState(
     val captureRequest: PhotoCaptureRequest? = null,
     val zoomLevel: Float = 1f,
     val selectedFilterIndex: Int = 0,
-    val cameraFilters: ImmutableList<CameraFilterModel> = persistentListOf(),
+    val cameraFilters: ImmutableList<CameraFilterUiModel> = persistentListOf(),
     val rooms: ImmutableList<CameraRoomUiModel> = persistentListOf(),
 ) : UiState {
     val isCapturePending: Boolean
