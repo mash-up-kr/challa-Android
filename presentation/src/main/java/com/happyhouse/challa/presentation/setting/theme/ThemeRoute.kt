@@ -27,6 +27,7 @@ fun ThemeRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val readFailureMessage = stringResource(R.string.theme_read_failure)
     val saveFailureMessage = stringResource(R.string.theme_save_failure)
     val retryLabel = stringResource(R.string.theme_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
@@ -34,6 +35,26 @@ fun ThemeRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
+                ThemeSideEffect.ReadFailed ->
+                    launch {
+                        val result =
+                            snackbarHostState.showSnackbar(
+                                ChallaSnackbarVisuals(
+                                    content =
+                                        ChallaSnackbarContent.HeadingOnly(
+                                            heading = readFailureMessage,
+                                        ),
+                                    icon = ChallaIcons.Error,
+                                    iconTint = destructiveIconTint,
+                                    actionLabel = retryLabel,
+                                ),
+                            )
+
+                        if (result == SnackbarResult.ActionPerformed) {
+                            viewModel.onIntent(ThemeIntent.ThemeReadRetry)
+                        }
+                    }
+
                 is ThemeSideEffect.SaveFailed ->
                     launch {
                         val result =

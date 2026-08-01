@@ -17,7 +17,11 @@ import javax.inject.Inject
 class ThemeRepositoryImpl @Inject constructor(
     private val themeDataStore: ThemeDataStore,
 ) : ThemeRepository {
-    override val primaryTheme: Flow<PrimaryTheme> = themeDataStore.primaryTheme
+    override val primaryTheme: Flow<ChallaResult<PrimaryTheme>> = themeDataStore.primaryTheme
+
+    override fun retryPrimaryThemeRead() {
+        themeDataStore.retryPrimaryThemeRead()
+    }
 
     override suspend fun updatePrimaryTheme(theme: PrimaryTheme): ChallaResult<Unit> =
         try {

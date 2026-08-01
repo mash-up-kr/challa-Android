@@ -114,6 +114,7 @@
     <!-- themeScreen -->
     <string name="theme_title">테마</string>
     <string name="theme_back_description">설정으로 돌아가기</string>
+    <string name="theme_read_failure">테마를 불러오지 못했어요.</string>
     <string name="theme_save_failure">테마를 저장하지 못했어요.</string>
     <string name="theme_retry">다시 시도</string>
     <string name="theme_lemonade">레몬에이드</string>

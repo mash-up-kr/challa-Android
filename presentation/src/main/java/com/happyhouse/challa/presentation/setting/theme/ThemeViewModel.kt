@@ -35,23 +35,30 @@ class ThemeViewModel @Inject constructor(
 
     override fun onIntent(intent: ThemeIntent) {
         when (intent) {
+            ThemeIntent.ThemeReadRetry -> handleThemeReadRetry()
             is ThemeIntent.ThemeSelect -> handleThemeSelect(intent.theme)
         }
     }
 
+    private fun handleThemeReadRetry() {
+        themeRepository.retryPrimaryThemeRead()
+    }
+
     private fun observePrimaryTheme() {
         viewModelScope.launch {
-            themeRepository.primaryTheme.collect { theme ->
-                val themeUiModel = theme.toUiModel()
-                persistedTheme = themeUiModel
-                if (!currentState.isSaving) {
-                    updateState {
-                        copy(
-                            selectedTheme = themeUiModel,
-                        )
-                    }
+            themeRepository.primaryTheme.collect { result ->
+                when (result) {
+                    is ChallaResult.Success -> handleThemeReadSuccess(result.data.toUiModel())
+                    is ChallaResult.Failure -> sendEffect(ThemeSideEffect.ReadFailed)
                 }
             }
+        }
+    }
+
+    private fun handleThemeReadSuccess(theme: ThemeUiModel) {
+        persistedTheme = theme
+        if (!currentState.isSaving) {
+            updateState { copy(selectedTheme = theme) }
         }
     }
 

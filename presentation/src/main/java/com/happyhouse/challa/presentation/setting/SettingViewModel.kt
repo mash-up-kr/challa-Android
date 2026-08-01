@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.setting
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.repository.ThemeRepository
+import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
 import com.happyhouse.challa.presentation.setting.contract.SettingSideEffect
@@ -21,8 +22,13 @@ class SettingViewModel
         ) {
         init {
             viewModelScope.launch {
-                themeRepository.primaryTheme.collect { theme ->
-                    updateState { copy(primaryTheme = theme.toUiModel()) }
+                themeRepository.primaryTheme.collect { result ->
+                    when (result) {
+                        is ChallaResult.Success ->
+                            updateState { copy(primaryTheme = result.data.toUiModel()) }
+
+                        is ChallaResult.Failure -> Unit
+                    }
                 }
             }
         }
