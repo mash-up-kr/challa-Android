@@ -70,7 +70,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
 import com.happyhouse.challa.presentation.home.model.PrintState
-import com.happyhouse.challa.presentation.home.model.Room
+import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
@@ -191,8 +191,8 @@ private fun HomeScreen(
  */
 @Composable
 private fun HomeRoomsContent(
-    shootingRooms: ImmutableList<Room>,
-    completedRooms: ImmutableList<Room>,
+    shootingRooms: ImmutableList<RoomUiModel>,
+    completedRooms: ImmutableList<RoomUiModel>,
     onRoomClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -227,7 +227,7 @@ private fun HomeRoomsContent(
 
 @Composable
 private fun HomeShootingSection(
-    rooms: ImmutableList<Room>,
+    rooms: ImmutableList<RoomUiModel>,
     onRoomClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -266,7 +266,7 @@ private fun HomeShootingSection(
 
 @Composable
 private fun HomeShootingCard(
-    room: Room,
+    room: RoomUiModel,
     status: HomeRoomStatus.Shooting,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -364,7 +364,7 @@ private fun HomeShootingCard(
 
 @Composable
 private fun HomeCompletedSection(
-    rooms: ImmutableList<Room>,
+    rooms: ImmutableList<RoomUiModel>,
     onRoomClick: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -396,7 +396,7 @@ private fun HomeCompletedSection(
 
 @Composable
 private fun HomeCompletedRoom(
-    room: Room,
+    room: RoomUiModel,
     status: HomeRoomStatus.Completed,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -865,9 +865,9 @@ private fun HomeActionButton(
     }
 }
 
-private fun previewRooms(): ImmutableList<Room> =
+private fun previewRooms(): ImmutableList<RoomUiModel> =
     persistentListOf(
-        Room(
+        RoomUiModel(
             id = "1",
             name = "친구들과 강릉 여행",
             participantCount = 1,
@@ -877,7 +877,7 @@ private fun previewRooms(): ImmutableList<Room> =
                     coverImageUrl = null,
                 ),
         ),
-        Room(
+        RoomUiModel(
             id = "2",
             name = "제주도 우정여행",
             participantCount = 4,
@@ -887,7 +887,7 @@ private fun previewRooms(): ImmutableList<Room> =
                     coverImageUrl = null,
                 ),
         ),
-        Room(
+        RoomUiModel(
             id = "3",
             name = "친구들과 강릉 여행",
             participantCount = 11,
@@ -898,7 +898,7 @@ private fun previewRooms(): ImmutableList<Room> =
                     totalPhotoCount = 24,
                 ),
         ),
-        Room(
+        RoomUiModel(
             id = "4",
             name = "인화 완료 된 방이에요",
             participantCount = 7,

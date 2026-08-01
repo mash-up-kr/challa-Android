@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
 import com.happyhouse.challa.presentation.home.model.PrintState
-import com.happyhouse.challa.presentation.home.model.Room
+import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -39,7 +39,7 @@ class HomeViewModel
                         //  방이 없는 상태(케이스 1)를 보려면 persistentListOf()로 교체
                         rooms =
                             persistentListOf(
-                                Room(
+                                RoomUiModel(
                                     id = "1",
                                     name = "친구들과 강릉 여행",
                                     participantCount = 1,
@@ -49,7 +49,7 @@ class HomeViewModel
                                             coverImageUrl = "https://picsum.photos/250/251",
                                         ),
                                 ),
-                                Room(
+                                RoomUiModel(
                                     id = "2",
                                     name = "제주도 우정여행",
                                     participantCount = 4,
@@ -59,7 +59,7 @@ class HomeViewModel
                                             coverImageUrl = "https://picsum.photos/250/252",
                                         ),
                                 ),
-                                Room(
+                                RoomUiModel(
                                     id = "3",
                                     name = "친구들과 강릉 여행",
                                     participantCount = 11,
@@ -76,7 +76,7 @@ class HomeViewModel
                                             totalPhotoCount = 24,
                                         ),
                                 ),
-                                Room(
+                                RoomUiModel(
                                     id = "4",
                                     name = "인화 완료 된 방이에요",
                                     participantCount = 7,
