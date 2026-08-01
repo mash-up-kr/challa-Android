@@ -102,6 +102,10 @@ fun ChallaNavHost(
                         onNavigateToSetting = {
                             // TODO JH: 설정 화면 구현되면 navigator.navigate(...) 연결
                         },
+                        onNavigateToRoom = {
+                            // TODO JH: roomId 전달 방식 확정되면 RoomMain에 인자 연결
+                            navigator.navigate(ChallaRoute.RoomMain)
+                        },
                     )
                 }
                 entry<ChallaRoute.CreateRoom> {
