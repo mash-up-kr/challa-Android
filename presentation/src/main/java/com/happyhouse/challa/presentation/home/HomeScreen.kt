@@ -68,6 +68,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.PrintState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import kotlinx.collections.immutable.ImmutableList

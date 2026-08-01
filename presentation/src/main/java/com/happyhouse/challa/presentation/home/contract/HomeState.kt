@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.home
+package com.happyhouse.challa.presentation.home.contract
 
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
