@@ -1,13 +1,15 @@
 package com.happyhouse.challa.presentation.setting.theme
 
 import androidx.lifecycle.viewModelScope
-import com.happyhouse.challa.domain.model.PrimaryTheme
 import com.happyhouse.challa.domain.repository.ThemeRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.setting.theme.contract.ThemeIntent
 import com.happyhouse.challa.presentation.setting.theme.contract.ThemeSideEffect
 import com.happyhouse.challa.presentation.setting.theme.contract.ThemeState
+import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
+import com.happyhouse.challa.presentation.setting.theme.model.toDomainModel
+import com.happyhouse.challa.presentation.setting.theme.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -23,8 +25,8 @@ import javax.inject.Inject
 class ThemeViewModel @Inject constructor(
     private val themeRepository: ThemeRepository,
 ) : BaseViewModel<ThemeState, ThemeIntent, ThemeSideEffect>(initialState = ThemeState()) {
-    private val themeUpdates = Channel<PrimaryTheme>(capacity = Channel.CONFLATED)
-    private var persistedTheme = PrimaryTheme.LEMONADE
+    private val themeUpdates = Channel<ThemeUiModel>(capacity = Channel.CONFLATED)
+    private var persistedTheme = ThemeUiModel.LEMONADE
 
     init {
         observePrimaryTheme()
@@ -33,18 +35,19 @@ class ThemeViewModel @Inject constructor(
 
     override fun onIntent(intent: ThemeIntent) {
         when (intent) {
-            is ThemeIntent.ThemeSelect -> selectTheme(intent.theme)
+            is ThemeIntent.ThemeSelect -> handleThemeSelect(intent.theme)
         }
     }
 
     private fun observePrimaryTheme() {
         viewModelScope.launch {
             themeRepository.primaryTheme.collect { theme ->
-                persistedTheme = theme
+                val themeUiModel = theme.toUiModel()
+                persistedTheme = themeUiModel
                 if (!currentState.isSaving) {
                     updateState {
                         copy(
-                            selectedTheme = theme,
+                            selectedTheme = themeUiModel,
                         )
                     }
                 }
@@ -52,7 +55,7 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
-    private fun selectTheme(theme: PrimaryTheme) {
+    private fun handleThemeSelect(theme: ThemeUiModel) {
         if (theme == currentState.selectedTheme) return
 
         updateState {
@@ -67,7 +70,7 @@ class ThemeViewModel @Inject constructor(
     private fun processThemeUpdates() {
         viewModelScope.launch {
             for (theme in themeUpdates) {
-                when (themeRepository.updatePrimaryTheme(theme)) {
+                when (themeRepository.updatePrimaryTheme(theme.toDomainModel())) {
                     is ChallaResult.Success -> finishUpdate(theme, isFailed = false)
                     is ChallaResult.Failure -> finishUpdate(theme, isFailed = true)
                 }
@@ -76,9 +79,13 @@ class ThemeViewModel @Inject constructor(
     }
 
     private suspend fun finishUpdate(
-        theme: PrimaryTheme,
+        theme: ThemeUiModel,
         isFailed: Boolean,
     ) {
+        if (!isFailed) {
+            persistedTheme = theme
+        }
+
         if (currentState.selectedTheme != theme) return
 
         updateState {

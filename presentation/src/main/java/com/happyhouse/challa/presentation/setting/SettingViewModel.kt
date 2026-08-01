@@ -6,6 +6,7 @@ import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
 import com.happyhouse.challa.presentation.setting.contract.SettingSideEffect
 import com.happyhouse.challa.presentation.setting.contract.SettingState
+import com.happyhouse.challa.presentation.setting.theme.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,7 +22,7 @@ class SettingViewModel
         init {
             viewModelScope.launch {
                 themeRepository.primaryTheme.collect { theme ->
-                    updateState { copy(primaryTheme = theme) }
+                    updateState { copy(primaryTheme = theme.toUiModel()) }
                 }
             }
         }

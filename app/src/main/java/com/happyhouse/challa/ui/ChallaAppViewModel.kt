@@ -23,7 +23,6 @@ class ChallaAppViewModel
     ) : ViewModel() {
         val primaryTheme: StateFlow<PrimaryTheme> =
             themeRepository.primaryTheme
-                .catch { emit(PrimaryTheme.LEMONADE) }
                 .stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.Eagerly,
