@@ -18,7 +18,12 @@ class SettingViewModel
     constructor(
         private val themeRepository: ThemeRepository,
     ) : BaseViewModel<SettingState, SettingIntent, SettingSideEffect>(
-            initialState = SettingState(),
+            initialState =
+                SettingState(
+                    nickname = "나는야멋쟁이토마토",
+                    maskedEmail = "juy***@naver.com",
+                ),
+            // TODO BJ: 실제 api 추가되면 수정
         ) {
         init {
             viewModelScope.launch {
