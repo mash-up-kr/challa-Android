@@ -95,6 +95,7 @@ fun CreateProfileRoute(
                             message = profileCreateFailedMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
+                            topOffset = 112.dp,
                         ),
                     )
                 CreateProfileSideEffect.NicknameLengthExceeded ->
@@ -103,6 +104,7 @@ fun CreateProfileRoute(
                             message = nicknameLengthExceededMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
+                            topOffset = 112.dp,
                         ),
                     )
             }
