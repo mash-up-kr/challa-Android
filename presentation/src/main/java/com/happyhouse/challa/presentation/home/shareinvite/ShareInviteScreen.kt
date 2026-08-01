@@ -5,16 +5,13 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.coroutines.launch
@@ -101,34 +99,31 @@ private fun ShareInviteContent(
     onIntent: (ShareInviteIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .statusBarsPadding(),
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
             ShareInviteTopBar()
-
-            Column(
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-            ) {
-                RoomCard(roomName = state.roomName)
-                SharePlaceholder()
-                InviteLinkRow(inviteLink = state.inviteLink)
-            }
-
+        },
+        bottomBar = {
             ShareInviteFooter(
                 state = state,
                 onClickLater = onClose,
                 onClickKakaoShare = { onIntent(ShareInviteIntent.KakaoShareClick(it)) },
             )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            RoomCard(roomName = state.roomName)
+            SharePlaceholder()
+            InviteLinkRow(inviteLink = state.inviteLink)
         }
     }
 }
@@ -272,8 +267,7 @@ private fun ShareInviteFooter(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .navigationBarsPadding(),
+                    .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
