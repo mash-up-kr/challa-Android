@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +21,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -32,18 +30,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
@@ -53,7 +50,7 @@ private val KakaoYellow = Color(0xFFFEE500)
 
 @Composable
 fun LoginRoute(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (isNewUser: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
@@ -61,21 +58,10 @@ fun LoginRoute(
     val context = LocalContext.current
     val activity = context.findActivity()
 
-    // 로그인 화면은 배경이 어두우므로 상태바 아이콘을 흰색으로. 화면을 벗어나면 원복한다.
-    val view = LocalView.current
-    DisposableEffect(Unit) {
-        val controller = WindowCompat.getInsetsController(activity.window, view)
-        val previous = controller.isAppearanceLightStatusBars
-        controller.isAppearanceLightStatusBars = false
-        onDispose {
-            controller.isAppearanceLightStatusBars = previous
-        }
-    }
-
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                LoginSideEffect.LoginSuccess -> onLoginSuccess()
+                is LoginSideEffect.LoginSuccess -> onLoginSuccess(effect.isNewUser)
                 LoginSideEffect.LoginFailed -> {
                     // TODO JH: 디자인 확정되면 수정
                     Toast.makeText(context, "로그인 실패", Toast.LENGTH_SHORT).show()
@@ -105,31 +91,35 @@ private fun LoginScreen(
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(ChallaTheme.colors.backgroundSurface),
-    ) {
-        BrandingContent(
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = ChallaTheme.colors.backgroundSurface,
+        bottomBar = {
+            KakaoLoginButton(
+                isLoading = state.isLoading,
+                onClick = onLoginClick,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 8.dp, bottom = 8.dp),
+            )
+        },
+    ) { innerPadding ->
+        Box(
             modifier =
                 Modifier
-                    .align(Alignment.Center)
-                    // 디자인상 브랜딩 영역은 투명도 10%로 표현된다.
-                    .alpha(0.1f),
-        )
-
-        KakaoLoginButton(
-            isLoading = state.isLoading,
-            onClick = onLoginClick,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp, bottom = 8.dp),
-        )
+                    .fillMaxSize()
+                    .padding(innerPadding),
+        ) {
+            BrandingContent(
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        // 디자인상 브랜딩 영역은 투명도 10%로 표현된다.
+                        .alpha(0.1f),
+            )
+        }
     }
 }
 

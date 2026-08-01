@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +22,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.model.Room
@@ -48,72 +46,74 @@ fun RoomMainRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        topBar = {
-            RoomMainTopBar(
-                title = uiState.topBarTitle,
-                onBackClick = onBackClick,
-                modifier = Modifier.statusBarsPadding(),
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
-        containerColor = ChallaTheme.colors.staticWhite,
-    ) { innerPadding ->
-        RoomMainScreen(
-            uiState = uiState,
-            modifier = Modifier.padding(innerPadding),
-            onShootClick = onCameraClick,
-            onGalleryClick = onGalleryClick,
-        )
-    }
+    RoomMainScreen(
+        uiState = uiState,
+        snackbarHostState = snackbarHostState,
+        onBackClick = onBackClick,
+        onShootClick = onCameraClick,
+        onGalleryClick = onGalleryClick,
+    )
 }
 
 @Composable
 fun RoomMainScreen(
     uiState: RoomMainState,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState? = null,
+    onBackClick: () -> Unit = {},
     onShootClick: () -> Unit = {},
     onGalleryClick: () -> Unit = {},
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(ChallaTheme.colors.staticWhite),
-    ) {
-        when (uiState) {
-            RoomMainState.Loading -> {
-                Box(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = ChallaTheme.colors.staticWhite,
+        topBar = {
+            RoomMainTopBar(
+                title = uiState.topBarTitle,
+                onBackClick = onBackClick,
+            )
+        },
+        snackbarHostState = snackbarHostState,
+    ) { innerPadding ->
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(ChallaTheme.colors.staticWhite),
+        ) {
+            when (uiState) {
+                RoomMainState.Loading -> {
+                    Box(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            }
 
-            is RoomMainState.Content -> {
-                RoomMainContent(
-                    state = uiState,
-                    modifier = Modifier.weight(1f),
-                    onShootClick = onShootClick,
-                    onGalleryClick = onGalleryClick,
-                )
-            }
+                is RoomMainState.Content -> {
+                    RoomMainContent(
+                        state = uiState,
+                        modifier = Modifier.weight(1f),
+                        onShootClick = onShootClick,
+                        onGalleryClick = onGalleryClick,
+                    )
+                }
 
-            RoomMainState.Error -> {
-                Box(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(text = "방 정보를 불러오지 못했어요.")
+                RoomMainState.Error -> {
+                    Box(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(text = "방 정보를 불러오지 못했어요.")
+                    }
                 }
             }
         }
