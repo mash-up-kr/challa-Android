@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":domain"))
 
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.logger)
     implementation(libs.bundles.network)
     implementation(libs.coil.singleton)
     implementation(libs.androidx.datastore.preferences)

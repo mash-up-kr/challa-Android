@@ -8,6 +8,7 @@ import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.interceptor.AuthInterceptor
 import com.happyhouse.challa.data.network.interceptor.TokenAuthenticator
 import com.happyhouse.challa.data.network.qualifier.RefreshClient
+import com.orhanobut.logger.Logger
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,13 +37,19 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor().apply {
+        HttpLoggingInterceptor(
+            NetworkLogPrinter(
+                logText = { Logger.t(NETWORK_LOG_TAG).d(it) },
+                logJson = { Logger.t(NETWORK_LOG_TAG).json(it) },
+            ),
+        ).apply {
             level =
                 if (BuildConfig.DEBUG) {
                     HttpLoggingInterceptor.Level.BODY
                 } else {
                     HttpLoggingInterceptor.Level.NONE
                 }
+            redactHeader(AUTHORIZATION_HEADER)
         }
 
     @Provides
@@ -128,4 +135,6 @@ object NetworkModule {
     ): AuthApi = retrofit.create(AuthApi::class.java)
 
     private const val REFRESH_TIMEOUT_SECONDS = 10L
+    private const val NETWORK_LOG_TAG = "OkHttp"
+    private const val AUTHORIZATION_HEADER = "Authorization"
 }
