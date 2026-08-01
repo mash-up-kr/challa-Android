@@ -1,20 +1,12 @@
 package com.happyhouse.challa.presentation.camera
 
-import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.compose.LocalActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.toArgb
 import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
@@ -35,39 +27,7 @@ fun CameraScreen(
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onIntent: (CameraIntent) -> Unit,
 ) {
-    val activity = LocalActivity.current as? ComponentActivity
-    val cameraBackgroundColor =
-        ChallaTheme.colors.staticBlack
-            .copy(alpha = 0.9f)
-            .compositeOver(ChallaTheme.colors.staticWhite)
-
-    DisposableEffect(activity) {
-        activity?.enableEdgeToEdge(
-            statusBarStyle =
-                SystemBarStyle.dark(
-                    scrim = cameraBackgroundColor.toArgb(),
-                ),
-            navigationBarStyle =
-                SystemBarStyle.dark(
-                    scrim = cameraBackgroundColor.toArgb(),
-                ),
-        )
-
-        onDispose {
-            activity?.enableEdgeToEdge(
-                statusBarStyle =
-                    SystemBarStyle.light(
-                        scrim = Color.Transparent.toArgb(),
-                        darkScrim = Color.Transparent.toArgb(),
-                    ),
-                navigationBarStyle =
-                    SystemBarStyle.light(
-                        scrim = Color.Transparent.toArgb(),
-                        darkScrim = Color.Transparent.toArgb(),
-                    ),
-            )
-        }
-    }
+    val cameraBackgroundColor = ChallaTheme.colors.staticBlack.copy(alpha = 0.9f)
 
     Box(modifier = modifier) {
         Scaffold(

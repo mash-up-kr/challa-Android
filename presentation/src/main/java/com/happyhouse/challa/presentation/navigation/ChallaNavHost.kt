@@ -3,7 +3,6 @@ package com.happyhouse.challa.presentation.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
@@ -25,7 +24,7 @@ fun ChallaNavHost(
 ) {
     NavDisplay(
         backStack = navigator.backStack,
-        modifier = modifier.navigationBarsPadding(),
+        modifier = modifier,
         transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
