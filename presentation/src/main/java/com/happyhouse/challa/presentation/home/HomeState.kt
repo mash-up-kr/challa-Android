@@ -2,8 +2,8 @@ package com.happyhouse.challa.presentation.home
 
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
-import com.happyhouse.challa.presentation.home.model.Room
 import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
+import com.happyhouse.challa.presentation.home.model.Room
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
