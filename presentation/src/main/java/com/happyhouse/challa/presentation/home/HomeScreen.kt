@@ -1,8 +1,6 @@
 package com.happyhouse.challa.presentation.home
 
 import androidx.annotation.DrawableRes
-import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
-import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -64,6 +62,8 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
+import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
