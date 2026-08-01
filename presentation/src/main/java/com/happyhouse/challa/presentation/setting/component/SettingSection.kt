@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.designsystem.component.ChallaList
+import com.happyhouse.challa.presentation.designsystem.component.ChallaListItem
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -47,13 +47,13 @@ fun SettingSection(
 @Composable
 private fun SettingSectionPreview() {
     SettingSection(title = "앱 설정") {
-        ChallaList(
+        ChallaListItem(
             text = "테마",
             leadingIcon = ChallaIcons.Palette,
             trailingText = "레몬에이드",
             onClick = {},
         )
-        ChallaList(
+        ChallaListItem(
             text = "알림",
             leadingIcon = ChallaIcons.Bell,
             onClick = {},
@@ -66,7 +66,7 @@ private fun SettingSectionPreview() {
 @Composable
 private fun SettingAccountSectionPreview() {
     SettingSection(title = "계정") {
-        ChallaList(
+        ChallaListItem(
             text = "계정 관리",
             leadingIcon = ChallaIcons.Profile,
             onClick = {},
@@ -79,12 +79,12 @@ private fun SettingAccountSectionPreview() {
 @Composable
 private fun SettingFeedbackSectionPreview() {
     SettingSection(title = "피드백") {
-        ChallaList(
+        ChallaListItem(
             text = "찰나 응원하기",
             leadingIcon = ChallaIcons.Carrot,
             onClick = {},
         )
-        ChallaList(
+        ChallaListItem(
             text = "피드백 보내기",
             leadingIcon = ChallaIcons.Feedback,
             onClick = {},

@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.component.ChallaList
+import com.happyhouse.challa.presentation.designsystem.component.ChallaListItem
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -64,13 +64,13 @@ fun SettingScreen(
                 SettingSection(
                     title = stringResource(R.string.setting_app_section),
                 ) {
-                    ChallaList(
+                    ChallaListItem(
                         text = stringResource(R.string.setting_theme),
                         leadingIcon = ChallaIcons.Palette,
                         trailingText = stringResource(state.primaryTheme.titleRes),
                         onClick = onThemeClick,
                     )
-                    ChallaList(
+                    ChallaListItem(
                         text = stringResource(R.string.setting_notification),
                         leadingIcon = ChallaIcons.Bell,
                         onClick = onNotificationClick,
@@ -80,7 +80,7 @@ fun SettingScreen(
                 SettingSection(
                     title = stringResource(R.string.setting_account_section),
                 ) {
-                    ChallaList(
+                    ChallaListItem(
                         text = stringResource(R.string.setting_account_management),
                         leadingIcon = ChallaIcons.Profile,
                         onClick = onAccountClick,
@@ -90,12 +90,12 @@ fun SettingScreen(
                 SettingSection(
                     title = stringResource(R.string.setting_feedback_section),
                 ) {
-                    ChallaList(
+                    ChallaListItem(
                         text = stringResource(R.string.setting_support),
                         leadingIcon = ChallaIcons.Carrot,
                         onClick = onSupportClick,
                     )
-                    ChallaList(
+                    ChallaListItem(
                         text = stringResource(R.string.setting_send_feedback),
                         leadingIcon = ChallaIcons.Feedback,
                         onClick = onFeedbackClick,
@@ -111,7 +111,11 @@ fun SettingScreen(
 @Composable
 private fun SettingScreenPreview() {
     SettingScreen(
-        state = SettingState(),
+        state =
+            SettingState(
+                nickname = "나는야멋쟁이토마토",
+                maskedEmail = "juy***@naver.com",
+            ),
         onBackClick = {},
         onProfileEditClick = {},
         onThemeClick = {},

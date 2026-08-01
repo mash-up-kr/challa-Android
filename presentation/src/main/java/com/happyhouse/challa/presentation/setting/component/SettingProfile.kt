@@ -73,15 +73,16 @@ fun SettingProfile(
     }
 }
 
-@Preview(
-    showBackground = true,
-    widthDp = 390,
-)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun SettingProfilePreview() {
     SettingProfile(
-        state = SettingState(),
+        state =
+            SettingState(
+                nickname = "나는야멋쟁이토마토",
+                maskedEmail = "juy***@naver.com",
+            ),
         onEditClick = {},
     )
 }
