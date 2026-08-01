@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.profile
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,11 +18,14 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,9 +57,13 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNaviga
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import kotlinx.coroutines.launch
 
 @Composable
 fun CreateProfileRoute(
@@ -66,7 +72,12 @@ fun CreateProfileRoute(
     viewModel: CreateProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val profileCreateFailedMessage = stringResource(R.string.create_profile_submit_failure)
+    val nicknameLengthExceededMessage =
+        stringResource(R.string.create_profile_nickname_length_exceeded, NICKNAME_MAX_LENGTH)
+    val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     var isImageSourceSheetVisible by rememberSaveable { mutableStateOf(false) }
 
@@ -77,17 +88,26 @@ fun CreateProfileRoute(
             uri?.let { viewModel.onIntent(CreateProfileIntent.ProfileImageSelected(it.toString())) }
         }
 
+    fun showToast(message: String) {
+        snackbarHostState.currentSnackbarData?.dismiss()
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(
+                ChallaToastVisuals(
+                    message = message,
+                    icon = ChallaIcons.Error,
+                    iconTint = destructiveIconTint,
+                    topOffset = 112.dp,
+                ),
+            )
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is CreateProfileSideEffect.ProfileCreated -> onProfileCreated(effect.nickname)
-                CreateProfileSideEffect.ProfileCreateFailed ->
-                    Toast
-                        .makeText(
-                            context,
-                            context.getString(R.string.create_profile_submit_failure),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                CreateProfileSideEffect.ProfileCreateFailed -> showToast(profileCreateFailedMessage)
+                CreateProfileSideEffect.NicknameLengthExceeded -> showToast(nicknameLengthExceededMessage)
             }
         }
     }
@@ -97,6 +117,11 @@ fun CreateProfileRoute(
         onIntent = viewModel::onIntent,
         onEditImageClick = { isImageSourceSheetVisible = true },
         modifier = modifier,
+    )
+
+    ChallaSnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.fillMaxSize(),
     )
 
     if (isImageSourceSheetVisible) {
@@ -200,6 +225,7 @@ private fun CreateProfileScreen(
                 nickname = state.nickname,
                 profileImageUri = state.profileImageUri,
                 isCompleted = state.isCompleted,
+                isNicknameLengthExceeded = state.isNicknameLengthExceeded,
                 onNicknameChange = { onIntent(CreateProfileIntent.NicknameChanged(it)) },
                 onEditImageClick = onEditImageClick,
                 modifier = Modifier.padding(horizontal = 32.dp),
@@ -243,6 +269,7 @@ private fun ProfileCard(
     nickname: String,
     profileImageUri: String?,
     isCompleted: Boolean,
+    isNicknameLengthExceeded: Boolean,
     onNicknameChange: (String) -> Unit,
     onEditImageClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -268,6 +295,7 @@ private fun ProfileCard(
             onValueChange = onNicknameChange,
             placeholder = stringResource(id = R.string.create_profile_nickname_placeholder),
             enabled = !isCompleted,
+            isError = isNicknameLengthExceeded,
         )
     }
 }

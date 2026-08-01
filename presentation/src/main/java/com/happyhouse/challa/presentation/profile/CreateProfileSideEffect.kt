@@ -8,4 +8,6 @@ sealed interface CreateProfileSideEffect : UiSideEffect {
     ) : CreateProfileSideEffect
 
     data object ProfileCreateFailed : CreateProfileSideEffect
+
+    data object NicknameLengthExceeded : CreateProfileSideEffect
 }

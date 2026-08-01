@@ -40,6 +40,7 @@ fun ChallaInputBox(
     placeholder: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isError: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     onDone: KeyboardActionScope.() -> Unit = {},
 ) {
@@ -61,6 +62,7 @@ fun ChallaInputBox(
         isFocused = isFocused,
         modifier = modifier,
         enabled = enabled,
+        isError = isError,
         keyboardOptions = keyboardOptions,
         keyboardActions = inputBoxKeyboardActions,
         interactionSource = interactionSource,
@@ -75,6 +77,7 @@ private fun ChallaInputBoxContent(
     isFocused: Boolean,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isError: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -89,7 +92,7 @@ private fun ChallaInputBoxContent(
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .border(
                     width = (1.5).dp,
-                    color = inputBoxBorderColor(isFocused),
+                    color = inputBoxBorderColor(isFocused = isFocused, isError = isError),
                     shape = RoundedCornerShape(12.dp),
                 )
                 .padding(16.dp),
@@ -122,11 +125,14 @@ private fun ChallaInputBoxContent(
 }
 
 @Composable
-private fun inputBoxBorderColor(isFocused: Boolean): Color =
-    if (isFocused) {
-        ChallaTheme.colors.primaryYellow
-    } else {
-        Color.Transparent
+private fun inputBoxBorderColor(
+    isFocused: Boolean,
+    isError: Boolean,
+): Color =
+    when {
+        isError -> ChallaTheme.colors.statusDestructive
+        isFocused -> ChallaTheme.colors.primaryYellow
+        else -> Color.Transparent
     }
 
 @Preview(showBackground = true)
