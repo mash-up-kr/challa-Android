@@ -56,7 +56,7 @@ class ThemeDataStore
 
                     delay(THEME_READ_RETRY_DELAY_MILLIS * (attempt + 1))
                     true
-                }.map { preferences -> preferences.toPrimaryThemeResult() }
+                }.map { preferences -> preferences.toPrimaryThemeResult(PRIMARY_THEME_KEY) }
                 .catch { throwable ->
                     if (throwable is CancellationException) throw throwable
                     emit(ChallaResult.Failure.Unknown(throwable))
@@ -73,17 +73,17 @@ class ThemeDataStore
             themeReadRequests.tryEmit(Unit)
         }
 
-        private fun Preferences.toPrimaryThemeResult(): ChallaResult<PrimaryTheme> =
-            ChallaResult.Success(
-                this[PRIMARY_THEME_KEY]
-                    ?.let { savedTheme ->
-                        PrimaryTheme.entries.firstOrNull { it.name == savedTheme }
-                    } ?: PrimaryTheme.LEMONADE,
-            )
-
         private companion object {
             const val MAX_THEME_READ_RETRY_COUNT = 3L
             const val THEME_READ_RETRY_DELAY_MILLIS = 1_000L
             val PRIMARY_THEME_KEY = stringPreferencesKey("primary_theme")
         }
     }
+
+internal fun Preferences.toPrimaryThemeResult(primaryThemeKey: Preferences.Key<String>): ChallaResult<PrimaryTheme> =
+    ChallaResult.Success(
+        this[primaryThemeKey]
+            ?.let { savedTheme ->
+                PrimaryTheme.entries.firstOrNull { it.name == savedTheme }
+            } ?: PrimaryTheme.LEMONADE,
+    )

@@ -32,11 +32,15 @@ class SettingViewModel
                         is ChallaResult.Success ->
                             updateState { copy(primaryTheme = result.data.toUiModel()) }
 
-                        is ChallaResult.Failure -> Unit
+                        is ChallaResult.Failure -> sendEffect(SettingSideEffect.ThemeReadFailed)
                     }
                 }
             }
         }
 
-        override fun onIntent(intent: SettingIntent) = Unit
+        override fun onIntent(intent: SettingIntent) {
+            when (intent) {
+                SettingIntent.ThemeReadRetry -> themeRepository.retryPrimaryThemeRead()
+            }
+        }
     }

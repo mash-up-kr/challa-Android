@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -42,6 +41,7 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigatio
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
@@ -54,22 +54,10 @@ fun ThemeScreen(
     onThemeClick: (ThemeUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(ChallaTheme.colors.backgroundSurface)
-                .statusBarsPadding(),
-    ) {
-        ThemeBackgroundGlow(
-            color = selectedTheme.color(),
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = 560.dp),
-        )
-
-        Column(modifier = Modifier.fillMaxSize()) {
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = ChallaTheme.colors.backgroundSurface,
+        topBar = {
             ChallaTopNavigation(
                 title = stringResource(R.string.theme_title),
                 variant = ChallaTopNavigationVariant.SUB,
@@ -80,6 +68,22 @@ fun ThemeScreen(
                         contentDescription = stringResource(R.string.theme_back_description),
                     )
                 },
+            )
+        },
+    ) { innerPadding ->
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(ChallaTheme.colors.backgroundSurface),
+        ) {
+            ThemeBackgroundGlow(
+                color = selectedTheme.color(),
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 560.dp),
             )
 
             Column(

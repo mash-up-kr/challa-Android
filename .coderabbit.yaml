@@ -100,9 +100,8 @@ reviews:
 
         - domain의 repository 인터페이스를 구현하고, `~Response`를 domain 모델로 매핑한 뒤 반환한다.
           Response 타입이 그대로 domain 경계 밖으로 새어 나가면 지적할 것.
-        - 매퍼는 mapper 패키지에 두고, 매핑 누락이나 잘못된 기본값 처리를 확인한다.
-        - 네트워크 실패, 파싱 실패, 권한 실패가 호출자에게 명시적으로 전달되는지 확인한다.
-          (예외를 삼키고 빈 값을 반환하는 코드는 지적)
+        - 매퍼 함수는 별도 mapper 패키지나 파일로 분리하지 않고, 매핑 대상 모델이 정의된 파일 하단에 위치시킨다. 매핑 필드 누락과 잘못된 기본값 처리를 확인한다.
+        - 네트워크 실패, 파싱 실패, 권한 실패가 호출자에게 명시적으로 전달되는지 확인한다. (예외를 삼키고 빈 값을 반환하는 코드는 지적)
         - 파일 저장, MediaStore 접근 같은 플랫폼 작업은 data 레이어에 두고 suspend로 결과를 반환한다.
         - Dispatchers.IO 등 적절한 디스패처에서 blocking 작업을 수행하는지 확인한다.
 
@@ -158,26 +157,28 @@ reviews:
         Compose 화면이다. 팀 합의된 Compose 컨벤션을 따른다.
 
         구조:
-        - 상단바/화면 구조는 Scaffold 슬롯(topBar 등) + Material3 컴포넌트(TopAppBar 등)를 우선한다.
-          Box/Column으로 직접 짠 상단바는 표준으로 안 되는 이유가 없으면 지적한다.
-        - WindowInsets(상태바 등)는 Scaffold의 content 패딩이나 Material3 컴포넌트에 맡긴다.
-          inset 수동 계산은 지적하고 statusBarsPadding() 등 표준 API를 권한다.
-        - Route(stateful) / Screen(stateless) 분리를 유지한다. Screen이 ViewModel을 직접 참조하면 지적.
+        - 화면 구조는 디자인 시스템의 ChallaScaffold를 사용하고 topBar, bottomBar, snackbarHostState 등 제공되는 슬롯을 우선 활용한다.
+          Material3 Scaffold를 직접 사용하거나 Box/Column으로 화면 및 상단바 구조를
+          직접 구성한 경우, ChallaScaffold를 사용할 수 없는 명확한 이유가 없으면 지적한다
+        - 상단바는 ChallaScaffold의 topBar 슬롯과 프로젝트의 디자인 시스템 컴포넌트를 사용한다.
+        - WindowInsets(상태바, 내비게이션 바 등)는 ChallaScaffold와 전달받은 innerPadding에 맡긴다.
+        - statusBarsPadding(), navigationBarsPadding()을 화면에서 중복 적용하거나 inset을 수동 계산하면 지적한다.
+        - Route(stateful) / Screen(stateless) 분리를 유지한다. Screen이 ViewModel을 직접 참조하면 지적한다.
 
         상태:
         - ViewModel의 비즈니스 상태를 컴포저블 안에서 remember로 들고 있지 않는다.
-        - `remember { mutableStateOf(...) }`는 정말 UI-local일 때만. 구성 변경에서 살아남아야 하는
-          상태는 rememberSaveable을 쓴다.
+        - `remember { mutableStateOf(...) }`는 정말 UI-local일 때만. 구성 변경에서 살아남아야 하는 상태는 rememberSaveable을 쓴다.
         - LaunchedEffect / DisposableEffect의 key가 의도와 일치하는지(key 변경 = 재실행) 확인한다.
         - SideEffect 수집은 라이프사이클을 인지하는 방식으로 하고, 중복 수집이 없는지 확인한다.
 
         Preview:
-        - stateless Screen에는 @Preview를 단다. 디자인 시스템 프리뷰 래퍼 `ChallaPreviewWrapper`를 쓴다.
+        - stateless Screen에는 @Preview를 단다.
+        - 디자인 시스템은 프리뷰 래퍼 `ChallaPreviewWrapper`를 쓴다.
+        - Screen 프리뷰는 프리뷰 래퍼 `ChallaScreenPreviewWrapper`를 쓴다.
         - 상태가 여러 개면(로딩/에러/빈/성공) 상태별로 프리뷰를 만든다. 누락 시 지적한다.
 
         기타:
         - 하드코딩된 색상(0xFFxxxxxx)이나 문자열 대신 디자인 토큰과 stringResource를 쓴다.
-        - 의미 있는 contentDescription, 최소 48dp 터치 영역을 확인한다.
         - 신규 XML 레이아웃 작성은 금지다.
 
     # ── presentation: 디자인 시스템 / 재사용 컴포넌트 ────────────────
