@@ -84,7 +84,6 @@ fun ChallaBottomSheet(
 @Suppress("DEPRECATION")
 private fun ChallaBottomSheetSystemBars() {
     val view = LocalView.current
-    val navigationBarColor = ChallaTheme.colors.staticBlack
 
     SideEffect {
         val window =
@@ -95,7 +94,7 @@ private fun ChallaBottomSheetSystemBars() {
             } ?: return@SideEffect
 
         window.statusBarColor = Color.Transparent.toArgb()
-        window.navigationBarColor = navigationBarColor.toArgb()
+        window.navigationBarColor = Color.Transparent.toArgb()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
