@@ -33,13 +33,14 @@ class CreateProfileViewModel
         }
 
         private fun onNicknameChanged(nickname: String) {
-            if (nickname.length > NICKNAME_MAX_LENGTH) {
+            val isLengthExceeded = nickname.length > NICKNAME_MAX_LENGTH
+            if (isLengthExceeded) {
                 viewModelScope.launch {
                     sendEffect(CreateProfileSideEffect.NicknameLengthExceeded)
                 }
             }
             val truncated = nickname.take(NICKNAME_MAX_LENGTH)
-            updateState { copy(nickname = truncated) }
+            updateState { copy(nickname = truncated, isNicknameLengthExceeded = isLengthExceeded) }
         }
 
         private fun onProfileImageSelected(uri: String) {

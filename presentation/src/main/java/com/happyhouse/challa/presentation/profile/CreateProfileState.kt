@@ -7,6 +7,7 @@ data class CreateProfileState(
     val profileImageUri: String? = null,
     val isSubmitting: Boolean = false,
     val isCompleted: Boolean = false,
+    val isNicknameLengthExceeded: Boolean = false,
 ) : UiState {
     val canSubmit: Boolean
         get() = nickname.trim().isNotEmpty() && !isSubmitting && !isCompleted
