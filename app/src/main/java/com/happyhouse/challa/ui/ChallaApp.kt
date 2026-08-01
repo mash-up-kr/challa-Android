@@ -10,8 +10,9 @@ import com.happyhouse.challa.presentation.navigation.ChallaNavHost
 @Composable
 fun ChallaApp(viewModel: ChallaAppViewModel = hiltViewModel()) {
     val startRoute by viewModel.startRoute.collectAsState()
+    val primaryTheme by viewModel.primaryTheme.collectAsState()
 
-    ChallaTheme {
+    ChallaTheme(primaryTheme = primaryTheme) {
         // 저장된 토큰 확인 전(null)에는 초기 화면을 확정할 수 없으므로 렌더링을 보류한다.
         val route = startRoute ?: return@ChallaTheme
         val appState = rememberChallaAppState(route)

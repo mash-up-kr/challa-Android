@@ -145,7 +145,7 @@ private fun ChallaBottomSheetSurface(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaBottomSheetPreview() {

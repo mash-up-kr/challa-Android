@@ -162,7 +162,7 @@ private fun PhotographerInfo(
 
         Text(
             text = photo.capturedDate,
-            color = ChallaTheme.colors.primaryYellow,
+            color = ChallaTheme.colors.primary,
             style = ChallaTheme.typography.bodySmall.medium,
         )
     }

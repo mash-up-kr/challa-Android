@@ -26,6 +26,7 @@ import kotlinx.collections.immutable.persistentListOf
 internal object ChallaColorScheme {
     val Dark =
         ChallaColors(
+            primary = ColorTokens.PrimaryYellow,
             primaryPink = ColorTokens.PrimaryPink,
             primaryOrange = ColorTokens.PrimaryOrange,
             primaryYellow = ColorTokens.PrimaryYellow,
@@ -66,7 +67,7 @@ internal object ChallaColorScheme {
         )
 }
 
-@Preview(widthDp = 600, heightDp = 960, showBackground = true)
+@Preview(widthDp = 600, heightDp = 1160)
 @Composable
 private fun ChallaColorPreview() {
     ChallaTheme(isDarkTheme = true) {

@@ -2,6 +2,7 @@ package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.repository.ThemeRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -18,4 +19,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindRoomRepository(roomRepositoryImpl: RoomRepositoryImpl): RoomRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindThemeRepository(themeRepositoryImpl: ThemeRepositoryImpl): ThemeRepository
 }
