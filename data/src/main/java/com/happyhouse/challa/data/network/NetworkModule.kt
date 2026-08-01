@@ -56,8 +56,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideFlipperInterceptor(flavorExtraFunction: FlavorExtraFunction): Interceptor? =
-        flavorExtraFunction.getFlipperInterceptor()
+    fun provideFlipperInterceptor(flavorExtraFunction: FlavorExtraFunction): Interceptor? = flavorExtraFunction.getFlipperInterceptor()
 
     @Provides
     @Singleton
