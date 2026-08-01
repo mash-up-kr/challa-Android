@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -493,19 +494,28 @@ private fun HomeFilmStack(
 ) {
     val previews = imageUrls.take(FILM_PREVIEW_MAX)
     val remaining = totalPhotoCount - previews.size
+    val cardCount = previews.size + if (remaining > 0) 1 else 0
 
-    Box(
+    BoxWithConstraints(
         modifier =
             modifier
                 .fillMaxWidth()
                 .height(FILM_CARD_HEIGHT),
     ) {
+        // 카드가 가용 폭을 넘어 잘리지 않도록 겹침 간격을 좁힌다. (좁은 화면 대응)
+        val step =
+            if (cardCount > 1) {
+                minOf(FILM_CARD_STEP, (maxWidth - FILM_CARD_WIDTH) / (cardCount - 1))
+            } else {
+                FILM_CARD_STEP
+            }
+
         previews.forEachIndexed { index, url ->
             HomeFilmCard(
                 imageUrl = url,
                 modifier =
                     Modifier
-                        .offset(x = FILM_CARD_STEP * index)
+                        .offset(x = step * index)
                         .rotate(filmCardRotation(index)),
             )
         }
@@ -515,7 +525,7 @@ private fun HomeFilmStack(
                 overflowCount = remaining,
                 modifier =
                     Modifier
-                        .offset(x = FILM_CARD_STEP * previews.size)
+                        .offset(x = step * previews.size)
                         .rotate(filmCardRotation(previews.size)),
             )
         }
