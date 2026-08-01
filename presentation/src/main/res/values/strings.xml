@@ -98,4 +98,19 @@
     <string name="share_invite_kakao">카카오톡 공유</string>
     <!-- TODO JH 카카오 SDK 연동 전까지 사용하는 임시 안내 문구 -->
     <string name="share_invite_kakao_preparing">카카오톡 공유는 준비 중이에요.</string>
+
+    <!-- createProfileScreen -->
+    <string name="create_profile_title">프로필 설정</string>
+    <string name="create_profile_headline">프로필과 닉네임을\n설정해 주세요</string>
+    <string name="create_profile_completed_greeting">\n만나서 반가워요!</string>
+    <string name="create_profile_image_description">프로필 사진</string>
+    <string name="create_profile_image_edit_description">프로필 사진 변경</string>
+    <string name="create_profile_nickname_placeholder">닉네임 입력</string>
+    <string name="create_profile_nickname_length_exceeded">공백 포함 %1$d자까지 입력할 수 있어요</string>
+    <string name="create_profile_submit">시작하기</string>
+    <string name="create_profile_submit_failure">프로필 설정에 실패했어요.</string>
+    <string name="create_profile_image_source_title">프로필 사진</string>
+    <string name="create_profile_image_source_album">앨범에서 선택</string>
+    <string name="create_profile_image_source_delete">프로필 사진 삭제</string>
+    <string name="create_profile_image_source_close">닫기</string>
 </resources>

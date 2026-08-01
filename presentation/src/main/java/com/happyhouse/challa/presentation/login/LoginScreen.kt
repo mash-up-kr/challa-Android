@@ -53,7 +53,7 @@ private val KakaoYellow = Color(0xFFFEE500)
 
 @Composable
 fun LoginRoute(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (isNewUser: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
@@ -75,7 +75,7 @@ fun LoginRoute(
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                LoginSideEffect.LoginSuccess -> onLoginSuccess()
+                is LoginSideEffect.LoginSuccess -> onLoginSuccess(effect.isNewUser)
                 LoginSideEffect.LoginFailed -> {
                     // TODO JH: 디자인 확정되면 수정
                     Toast.makeText(context, "로그인 실패", Toast.LENGTH_SHORT).show()
