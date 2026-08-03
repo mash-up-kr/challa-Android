@@ -46,8 +46,7 @@ object NetworkModule {
     fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor =
         HttpLoggingInterceptor(
             NetworkLogPrinter(
-                logText = { Logger.t(NETWORK_LOG_TAG).d(it) },
-                logJson = { Logger.t(NETWORK_LOG_TAG).json(it) },
+                printLog = { Logger.t(NETWORK_LOG_TAG).d(it) },
             ),
         ).apply {
             level =
