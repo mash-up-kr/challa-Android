@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.home.createroom
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -52,13 +54,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun CreateRoomBottomSheet(
     onDismiss: () -> Unit,
-    onRoomCreated: (roomId: String, roomName: String) -> Unit,
+    onRoomCreated: (roomId: Long, roomName: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CreateRoomViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // 스크림/뒤로가기 외의 경로(닫기 아이콘·방 생성 완료)로 닫을 때 내려가는 애니메이션을 태운 뒤 실제 콜백을 실행한다.
     fun hideThen(action: () -> Unit) {
@@ -86,6 +89,13 @@ fun CreateRoomBottomSheet(
             when (effect) {
                 is CreateRoomSideEffect.RoomCreated ->
                     hideThen { onRoomCreated(effect.roomId, effect.roomName) }
+
+                is CreateRoomSideEffect.RoomCreateFailed -> {
+                    val message =
+                        effect.message?.takeIf { it.isNotBlank() }
+                            ?: context.getString(R.string.create_room_failed)
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

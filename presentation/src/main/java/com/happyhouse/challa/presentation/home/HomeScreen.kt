@@ -117,7 +117,7 @@ fun HomeRoute(
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
                 // 방 생성 완료 후 방 상세(RoomMain) 화면으로 이동한다.
-                onNavigateToRoom(roomId)
+                onNavigateToRoom(roomId.toString())
             },
         )
     }

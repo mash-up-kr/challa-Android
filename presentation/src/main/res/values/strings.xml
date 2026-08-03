@@ -88,6 +88,7 @@
     <string name="create_room_shot_count_label">얼마나 찍을까요?</string>
     <string name="create_room_shot_count_option">%1$d장</string>
     <string name="create_room_submit">만들기</string>
+    <string name="create_room_failed">방 생성에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
 
     <!-- photoDetailScreen -->
     <string name="photo_detail_back_description">뒤로가기</string>

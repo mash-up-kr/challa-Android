@@ -1,10 +1,13 @@
 package com.happyhouse.challa.presentation.home.createroom
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.domain.result.onFailure
+import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -13,8 +16,9 @@ internal const val ROOM_NAME_MAX_LENGTH = 20
 @HiltViewModel
 class CreateRoomViewModel
     @Inject
-    constructor() :
-    BaseViewModel<CreateRoomState, CreateRoomIntent, CreateRoomSideEffect>(
+    constructor(
+        private val roomRepository: RoomRepository,
+    ) : BaseViewModel<CreateRoomState, CreateRoomIntent, CreateRoomSideEffect>(
             initialState = CreateRoomState(),
         ) {
         private var createRoomJob: Job? = null
@@ -43,30 +47,33 @@ class CreateRoomViewModel
 
         private fun createRoom() {
             if (!currentState.canSubmit || currentState.isSubmitting) return
+            val roomName = currentState.name.trim()
             createRoomJob =
                 viewModelScope.launch {
                     updateState { copy(isSubmitting = true) }
-                    // TODO JH: API 호출 (요청 시 currentState.shotCount.count 값을 함께 전송)
-                    delay(1000L)
-                    val created = mockCreateRoom(currentState.name.trim())
-                    updateState { copy(isSubmitting = false) }
-                    sendEffect(
-                        CreateRoomSideEffect.RoomCreated(
-                            roomId = created.id,
-                            roomName = created.name,
-                        ),
-                    )
+                    roomRepository
+                        .postRoom(
+                            title = roomName,
+                            totalPhotoCount = currentState.shotCount.count,
+                        ).onSuccess { created ->
+                            updateState { copy(isSubmitting = false) }
+                            sendEffect(
+                                CreateRoomSideEffect.RoomCreated(
+                                    roomId = created.id,
+                                    roomName = roomName,
+                                ),
+                            )
+                        }.onFailure { failure ->
+                            updateState { copy(isSubmitting = false) }
+                            sendEffect(CreateRoomSideEffect.RoomCreateFailed(failure.serverMessage()))
+                        }
                 }
         }
 
-        private data class MockCreatedRoom(
-            val id: String,
-            val name: String,
-        )
-
-        private fun mockCreateRoom(name: String): MockCreatedRoom =
-            MockCreatedRoom(
-                id = "mock-${System.currentTimeMillis()}",
-                name = name,
-            )
+        private fun ChallaResult.Failure.serverMessage(): String? =
+            when (this) {
+                is ChallaResult.Failure.Http -> message
+                is ChallaResult.Failure.Unknown -> cause?.message
+                is ChallaResult.Failure.Network -> null
+            }
     }
