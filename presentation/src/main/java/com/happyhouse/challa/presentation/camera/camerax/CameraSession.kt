@@ -26,10 +26,11 @@ import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -82,41 +83,45 @@ internal fun CameraSession(
     // 필터 전환 시 네트워크와 파싱을 기다리지 않도록 모든 cube LUT를 백그라운드에서 미리 준비합니다.
     LaunchedEffect(filters) {
         val loadFilterFile = currentGetCameraFilterFile
+        val downloadSemaphore = Semaphore(MAX_CONCURRENT_FILTER_DOWNLOADS)
         loadedLuts = emptyMap()
-        loadedLuts =
-            withContext(Dispatchers.IO) {
-                coroutineScope {
-                    filters
-                        .filterIsInstance<CameraFilterUiModel.Remote>()
-                        .map { filter ->
-                            async {
-                                try {
+
+        coroutineScope {
+            filters
+                .filterIsInstance<CameraFilterUiModel.Remote>()
+                .forEach { filter ->
+                    launch {
+                        try {
+                            val lut =
+                                downloadSemaphore.withPermit {
                                     val cubeFile =
                                         loadFilterFile(filter.fileUrl)
-                                            ?: return@async null
-                                    filter.fileUrl to CubeLut.load(cubeFile)
-                                } catch (cancellationException: CancellationException) {
-                                    throw cancellationException
-                                } catch (exception: Exception) {
-                                    Timber.e(
-                                        exception,
-                                        "LUT 로드에 실패했습니다: filter=%s",
-                                        filter.name,
-                                    )
-                                    null
-                                }
-                            }
-                        }.awaitAll()
-                        .filterNotNull()
-                        .toMap()
+                                            ?: return@withPermit null
+                                    withContext(Dispatchers.Default) {
+                                        CubeLut.load(cubeFile)
+                                    }
+                                } ?: return@launch
+
+                            loadedLuts = loadedLuts + (filter.fileUrl to lut)
+                        } catch (cancellationException: CancellationException) {
+                            throw cancellationException
+                        } catch (exception: Exception) {
+                            Timber.e(
+                                exception,
+                                "LUT 로드에 실패했습니다: filter=%s",
+                                filter.name,
+                            )
+                        }
+                    }
                 }
-            }
+        }
     }
 
-    LaunchedEffect(previewView, selectedFilter, loadedLuts) {
-        val lut =
-            (selectedFilter as? CameraFilterUiModel.Remote)?.let { loadedLuts[it.fileUrl] }
-        previewView.applyCameraFilter(selectedFilter, lut)
+    val selectedLut =
+        (selectedFilter as? CameraFilterUiModel.Remote)?.let { loadedLuts[it.fileUrl] }
+
+    LaunchedEffect(previewView, selectedFilter, selectedLut) {
+        previewView.applyCameraFilter(selectedFilter, selectedLut)
     }
 
     // Controller 초기화 후 선택한 렌즈를 Lifecycle에 바인딩하고 세션 해제 시 unbind합니다.
@@ -309,6 +314,8 @@ private fun CameraLensFacing.toCameraSelector(): CameraSelector =
     }
 
 private class CameraUnavailableException : IllegalStateException()
+
+private const val MAX_CONCURRENT_FILTER_DOWNLOADS = 3
 
 private fun Throwable.toCameraBindingFailure(): CameraBindingFailure =
     when (this) {
