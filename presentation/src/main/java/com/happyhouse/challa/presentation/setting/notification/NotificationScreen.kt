@@ -191,7 +191,7 @@ private fun NotificationSwitch(
     val trackColor by animateColorAsState(
         targetValue =
             if (checked) {
-                ChallaTheme.colors.labelNeutral
+                ChallaTheme.colors.primary
             } else {
                 ChallaTheme.colors.backgroundLevel4
             },
