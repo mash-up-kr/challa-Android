@@ -102,7 +102,7 @@ private fun ChallaInputBoxContent(
             ChallaTheme.typography.bodyMedium.bold.copy(
                 color = ChallaTheme.colors.labelNormal,
             ),
-        cursorBrush = SolidColor(ChallaTheme.colors.primaryYellow),
+        cursorBrush = SolidColor(ChallaTheme.colors.primary),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         interactionSource = interactionSource,
@@ -131,11 +131,11 @@ private fun inputBoxBorderColor(
 ): Color =
     when {
         isError -> ChallaTheme.colors.statusDestructive
-        isFocused -> ChallaTheme.colors.primaryYellow
+        isFocused -> ChallaTheme.colors.primary
         else -> Color.Transparent
     }
 
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaInputBoxPreview() {
@@ -194,7 +194,7 @@ private fun ChallaInputBoxPreviewItem(
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaInputBoxInteractivePreview() {

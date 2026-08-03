@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.home
+package com.happyhouse.challa.presentation.home.contract
 
 import com.happyhouse.challa.presentation.base.UiSideEffect
 

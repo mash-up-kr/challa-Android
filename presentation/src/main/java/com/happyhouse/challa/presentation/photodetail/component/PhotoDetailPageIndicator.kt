@@ -41,7 +41,7 @@ fun PhotoDetailPageIndicator(
     val pageCount = pagerState.pageCount
     if (pageCount <= 1) return
 
-    val currentColor = ChallaTheme.colors.primaryYellow
+    val currentColor = ChallaTheme.colors.primary
     val otherColor = ChallaTheme.colors.labelDisable
 
     Canvas(

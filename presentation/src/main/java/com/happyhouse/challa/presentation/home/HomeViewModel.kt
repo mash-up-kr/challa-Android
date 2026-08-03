@@ -2,9 +2,11 @@ package com.happyhouse.challa.presentation.home
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.presentation.base.BaseViewModel
-import com.happyhouse.challa.presentation.home.model.HomeRoomStatus
+import com.happyhouse.challa.presentation.home.contract.HomeIntent
+import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
+import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.PrintState
-import com.happyhouse.challa.presentation.home.model.Room
+import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -39,58 +41,46 @@ class HomeViewModel
                         //  방이 없는 상태(케이스 1)를 보려면 persistentListOf()로 교체
                         rooms =
                             persistentListOf(
-                                Room(
+                                RoomUiModel.Shooting(
                                     id = "1",
                                     name = "친구들과 강릉 여행",
                                     participantCount = 1,
-                                    status =
-                                        HomeRoomStatus.Shooting(
-                                            takenCount = 24,
-                                            coverImageUrl = "https://picsum.photos/250/251",
-                                        ),
+                                    takenCount = 24,
+                                    coverImageUrl = "https://picsum.photos/250/251",
                                 ),
-                                Room(
+                                RoomUiModel.Shooting(
                                     id = "2",
                                     name = "제주도 우정여행",
                                     participantCount = 4,
-                                    status =
-                                        HomeRoomStatus.Shooting(
-                                            takenCount = 12,
-                                            coverImageUrl = "https://picsum.photos/250/252",
-                                        ),
+                                    takenCount = 12,
+                                    coverImageUrl = "https://picsum.photos/250/252",
                                 ),
-                                Room(
+                                RoomUiModel.Completed(
                                     id = "3",
                                     name = "친구들과 강릉 여행",
                                     participantCount = 11,
-                                    status =
-                                        HomeRoomStatus.Completed(
-                                            printState = PrintState.WAITING,
-                                            photoImageUrls =
-                                                persistentListOf(
-                                                    "https://picsum.photos/250/253",
-                                                    "https://picsum.photos/250/254",
-                                                    "https://picsum.photos/250/255",
-                                                    "https://picsum.photos/250/256",
-                                                ),
-                                            totalPhotoCount = 24,
+                                    printState = PrintState.WAITING,
+                                    photoImageUrls =
+                                        persistentListOf(
+                                            "https://picsum.photos/250/253",
+                                            "https://picsum.photos/250/254",
+                                            "https://picsum.photos/250/255",
+                                            "https://picsum.photos/250/256",
                                         ),
+                                    totalPhotoCount = 24,
                                 ),
-                                Room(
+                                RoomUiModel.Completed(
                                     id = "4",
                                     name = "인화 완료 된 방이에요",
                                     participantCount = 7,
-                                    status =
-                                        HomeRoomStatus.Completed(
-                                            printState = PrintState.COMPLETED,
-                                            photoImageUrls =
-                                                persistentListOf(
-                                                    "https://picsum.photos/250/257",
-                                                    "https://picsum.photos/250/258",
-                                                    "https://picsum.photos/250/259",
-                                                ),
-                                            totalPhotoCount = 3,
+                                    printState = PrintState.COMPLETED,
+                                    photoImageUrls =
+                                        persistentListOf(
+                                            "https://picsum.photos/250/257",
+                                            "https://picsum.photos/250/258",
+                                            "https://picsum.photos/250/259",
                                         ),
+                                    totalPhotoCount = 3,
                                 ),
                             ),
                     )
