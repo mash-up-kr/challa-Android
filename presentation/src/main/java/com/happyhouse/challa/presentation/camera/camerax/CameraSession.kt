@@ -1,8 +1,6 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.os.Build
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.view.CameraController
@@ -18,17 +16,20 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
-import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -38,8 +39,8 @@ import timber.log.Timber
  * [lensFacing]이 변경되면 Controller가 새 렌즈로 UseCase를 다시 바인딩합니다.
  * [bindingRetryKey]가 바뀐 때는 Controller와 PreviewView를 재생성해 초기화부터 재시도합니다.
  * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
- * Android 13 이상에서는 모든 LUT를 IO 스레드에서 미리 읽고 [selectedFilter]를 프리뷰에 적용합니다.
- * LUT가 준비되지 않았거나 로드에 실패하면 선택한 필터의 ColorMatrix fallback을 적용합니다.
+ * Android 13 이상에서는 서버가 제공한 모든 LUT를 미리 내려받고 [selectedFilter]를 프리뷰에 적용합니다.
+ * LUT가 준비되지 않았거나 로드에 실패하면 색상 효과를 적용하지 않습니다.
  * 실패한 제어 요청은 기록합니다.
  * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
  * Composable이 Composition에서 제거되면 Controller를 해제하고 진행 중인 촬영 코루틴을 취소합니다.
@@ -57,14 +58,15 @@ internal fun CameraSession(
     lensFacing: CameraLensFacing,
     isFlashEnabled: Boolean,
     zoomLevel: Float,
-    selectedFilter: CameraFilter,
+    filters: ImmutableList<CameraFilterUiModel>,
+    selectedFilter: CameraFilterUiModel,
     captureRequest: PhotoCaptureRequest?,
     bindingRetryKey: Int,
+    getCameraFilterFile: suspend (String) -> ByteArray?,
     onStateChanged: (CameraSessionState) -> Unit,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
-    val resources = LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraController = remember(context, bindingRetryKey) { createCameraController(context) }
     val previewView =
@@ -73,37 +75,48 @@ internal fun CameraSession(
     val callbackExecutor = remember(context) { ContextCompat.getMainExecutor(context) }
     val currentOnStateChanged by rememberUpdatedState(onStateChanged)
     val currentOnEvent by rememberUpdatedState(onEvent)
+    val currentGetCameraFilterFile by rememberUpdatedState(getCameraFilterFile)
     var sessionState by remember { mutableStateOf(CameraSessionState()) }
-    var loadedLuts by remember { mutableStateOf(emptyMap<CameraFilter, Bitmap>()) }
+    var loadedLuts by remember { mutableStateOf(emptyMap<String, CubeLut.Data>()) }
 
-    // 필터 전환 시 디스크 파싱을 기다리지 않도록 모든 cube LUT를 백그라운드에서 미리 읽습니다.
-    LaunchedEffect(resources) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@LaunchedEffect
-
+    // 필터 전환 시 네트워크와 파싱을 기다리지 않도록 모든 cube LUT를 백그라운드에서 미리 준비합니다.
+    LaunchedEffect(filters) {
+        val loadFilterFile = currentGetCameraFilterFile
+        loadedLuts = emptyMap()
         loadedLuts =
             withContext(Dispatchers.IO) {
-                CameraFilter.availableFilters
-                    .mapNotNull { filter ->
-                        val resourceId = filter.cubeResId ?: return@mapNotNull null
-
-                        try {
-                            filter to CubeLut.load(resources, resourceId)
-                        } catch (cancellationException: CancellationException) {
-                            throw cancellationException
-                        } catch (exception: Exception) {
-                            Timber.e(
-                                exception,
-                                "LUT 로드에 실패했습니다: filter=%s",
-                                filter.name,
-                            )
-                            null
-                        }
-                    }.toMap()
+                coroutineScope {
+                    filters
+                        .filterIsInstance<CameraFilterUiModel.Remote>()
+                        .map { filter ->
+                            async {
+                                try {
+                                    val cubeFile =
+                                        loadFilterFile(filter.fileUrl)
+                                            ?: return@async null
+                                    filter.fileUrl to CubeLut.load(cubeFile)
+                                } catch (cancellationException: CancellationException) {
+                                    throw cancellationException
+                                } catch (exception: Exception) {
+                                    Timber.e(
+                                        exception,
+                                        "LUT 로드에 실패했습니다: filter=%s",
+                                        filter.name,
+                                    )
+                                    null
+                                }
+                            }
+                        }.awaitAll()
+                        .filterNotNull()
+                        .toMap()
+                }
             }
     }
 
     LaunchedEffect(previewView, selectedFilter, loadedLuts) {
-        previewView.applyCameraFilter(selectedFilter, loadedLuts[selectedFilter])
+        val lut =
+            (selectedFilter as? CameraFilterUiModel.Remote)?.let { loadedLuts[it.fileUrl] }
+        previewView.applyCameraFilter(selectedFilter, lut)
     }
 
     // Controller 초기화 후 선택한 렌즈를 Lifecycle에 바인딩하고 세션 해제 시 unbind합니다.

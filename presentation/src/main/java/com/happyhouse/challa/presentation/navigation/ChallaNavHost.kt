@@ -99,7 +99,7 @@ fun ChallaNavHost(
                             navigator.navigate(ChallaRoute.Setting)
                         },
                         onNavigateToCreateRoom = {
-                            navigator.navigate(ChallaRoute.CreateRoom)
+                            navigator.navigate(ChallaRoute.Camera(1L))
                         },
                         onNavigateToRoom = { _ ->
                             // TODO JH: 방 상태별 화면(Gallery/Waiting/RoomMain) 구현되면 navigator.navigate(...) 연결

@@ -9,7 +9,7 @@ import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
-import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
@@ -90,8 +90,14 @@ class CameraViewModel @AssistedInject constructor(
         viewModelScope.launch {
             when (val result = cameraRepository.getCameraFilters()) {
                 is ChallaResult.Success -> {
+                    val cameraFilters =
+                        (listOf(CameraFilterUiModel.Original) + result.data.map { it.toUiModel() })
+                            .toPersistentList()
                     updateState {
-                        copy(cameraFilters = result.data.map { it.toUiModel() }.toPersistentList())
+                        copy(
+                            cameraFilters = cameraFilters,
+                            selectedFilterIndex = selectedFilterIndex.coerceIn(0, cameraFilters.lastIndex),
+                        )
                     }
                 }
 
@@ -208,15 +214,27 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun handleRoomClick(room: CameraRoomUiModel) {
         updateState {
-            copy(selectedRoomId = room.id)
+            copy(
+                selectedRoomId = room.id,
+                selectedFilterIndex = 0,
+            )
         }
     }
 
     private fun handleFilterClick(index: Int) {
         updateState {
-            copy(selectedFilterIndex = index.coerceIn(0, CameraFilter.availableFilters.lastIndex))
+            copy(selectedFilterIndex = index.coerceIn(0, cameraFilters.lastIndex))
         }
     }
+
+    suspend fun getCameraFilterFile(fileUrl: String): ByteArray? =
+        when (val result = cameraRepository.getCameraFilterFile(fileUrl)) {
+            is ChallaResult.Success -> result.data
+            is ChallaResult.Failure -> {
+                Timber.e("카메라 필터 파일을 불러오지 못했습니다: fileUrl=%s, result=%s", fileUrl, result)
+                null
+            }
+        }
 
     @AssistedFactory
     interface Factory {

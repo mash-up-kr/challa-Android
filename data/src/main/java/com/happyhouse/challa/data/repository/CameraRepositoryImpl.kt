@@ -1,16 +1,20 @@
 package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.CameraApi
+import com.happyhouse.challa.data.network.api.CameraFilterFileApi
 import com.happyhouse.challa.domain.model.CameraFilter
 import com.happyhouse.challa.domain.repository.CameraRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class CameraRepositoryImpl @Inject constructor(
     private val cameraApi: CameraApi,
+    private val cameraFilterFileApi: CameraFilterFileApi,
 ) : CameraRepository {
     override suspend fun getCameraFilters(): ChallaResult<List<CameraFilter>> =
         cameraApi.getCameraFilters().mapCatching { response ->
@@ -24,5 +28,12 @@ class CameraRepositoryImpl @Inject constructor(
                         fileUrl = filter.fileUrl,
                     )
                 }
+        }
+
+    override suspend fun getCameraFilterFile(fileUrl: String): ChallaResult<ByteArray> =
+        withContext(Dispatchers.IO) {
+            cameraFilterFileApi.getCameraFilterFile(fileUrl).mapCatching { responseBody ->
+                responseBody.use { it.bytes() }
+            }
         }
 }

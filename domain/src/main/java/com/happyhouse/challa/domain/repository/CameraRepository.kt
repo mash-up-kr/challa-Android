@@ -5,4 +5,6 @@ import com.happyhouse.challa.domain.result.ChallaResult
 
 interface CameraRepository {
     suspend fun getCameraFilters(): ChallaResult<List<CameraFilter>>
+
+    suspend fun getCameraFilterFile(fileUrl: String): ChallaResult<ByteArray>
 }

@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
-import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
@@ -28,7 +28,7 @@ internal fun CameraContentLayout(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,
-    filters: ImmutableList<CameraFilter>,
+    filters: ImmutableList<CameraFilterUiModel>,
     selectedFilterIndex: Int,
     isFlashEnabled: Boolean,
     isCameraSwitchEnabled: Boolean,
@@ -104,7 +104,7 @@ private fun CameraContentLayoutPreview() {
         roomName = "해피하우스강릉여행",
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-        filters = CameraFilter.availableFilters,
+        filters = previewCameraFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
@@ -130,7 +130,7 @@ private fun CameraContentLimitReachedPreview() {
         roomName = "방이름방이름방이름3",
         remainingCount = 0,
         totalCount = 48,
-        filters = CameraFilter.availableFilters,
+        filters = previewCameraFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
@@ -146,3 +146,10 @@ private fun CameraContentLimitReachedPreview() {
         viewFinder = { PreviewViewfinderPlaceholder(it) },
     )
 }
+
+private val previewCameraFilters =
+    kotlinx.collections.immutable.persistentListOf(
+        CameraFilterUiModel.Original,
+        CameraFilterUiModel.Remote(name = "필터1", fileUrl = "https://example.com/filter1.cube"),
+        CameraFilterUiModel.Remote(name = "필터2", fileUrl = "https://example.com/filter2.cube"),
+    )
