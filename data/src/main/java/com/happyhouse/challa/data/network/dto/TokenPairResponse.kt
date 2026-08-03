@@ -4,6 +4,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TokenPairResponse(
-    val accessToken: String,
-    val refreshToken: String,
-)
+    val auth: Auth,
+) {
+    @Serializable
+    data class Auth(
+        val accessToken: String,
+        val refreshToken: String,
+    )
+}
