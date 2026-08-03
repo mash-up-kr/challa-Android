@@ -45,8 +45,8 @@ class TokenAuthenticator
             if (refreshToken.isNullOrBlank()) return null
 
             val newTokens =
-                when (val result = runBlocking { refreshApi.refresh(RefreshRequest(refreshToken)) }) {
-                    is ChallaResult.Success -> result.data.data?.takeIf { result.data.success }
+                when (val result = runBlocking { refreshApi.refresh(RefreshRequest(RefreshRequest.Auth(refreshToken))) }) {
+                    is ChallaResult.Success -> result.data.data?.takeIf { result.data.success }?.auth
                     is ChallaResult.Failure -> null
                 }
 

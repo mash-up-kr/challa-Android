@@ -83,6 +83,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 # Navigation
 androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "navigation3" }
 androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "navigation3" }
+androidx-lifecycle-viewmodel-navigation3 = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-navigation3", version.ref = "lifecycleRuntimeKtx" }
 
 # CameraX
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
@@ -153,6 +154,7 @@ androidx-compose-debug = [
 androidx-navigation3 = [
     "androidx-navigation3-runtime",
     "androidx-navigation3-ui",
+    "androidx-lifecycle-viewmodel-navigation3",
 ]
 androidx-camera = [
     "androidx-camera-core",

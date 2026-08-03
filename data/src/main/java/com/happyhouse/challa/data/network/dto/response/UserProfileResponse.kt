@@ -4,7 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserProfileResponse(
-    val id: Long,
-    val nickname: String? = null,
-    val profileImageUrl: String? = null,
-)
+    val user: User,
+) {
+    @Serializable
+    data class User(
+        val id: Long,
+        val nickname: String? = null,
+        val profileImageUrl: String? = null,
+    )
+}

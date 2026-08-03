@@ -4,5 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RefreshRequest(
-    val refreshToken: String,
-)
+    val auth: Auth,
+) {
+    @Serializable
+    data class Auth(
+        val refreshToken: String,
+    )
+}
