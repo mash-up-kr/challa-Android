@@ -16,10 +16,10 @@ class CameraRepositoryImpl @Inject constructor(
         cameraApi.getCameraFilters().mapCatching { response ->
             check(response.success) { response.message }
             requireNotNull(response.data) { "카메라 필터 응답 데이터가 비어 있습니다." }
+                .shoot
                 .cameraFilters
                 .map { filter ->
                     CameraFilter(
-                        id = filter.id,
                         name = filter.name,
                         fileUrl = filter.fileUrl,
                     )

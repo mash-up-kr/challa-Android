@@ -4,11 +4,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CameraFilterResponse(
-    val cameraFilters: List<CameraFilter>,
+    val shoot: Shoot,
 ) {
     @Serializable
+    data class Shoot(
+        val cameraFilters: List<CameraFilter>,
+    )
+
+    @Serializable
     data class CameraFilter(
-        val id: Long,
         val name: String,
         val fileUrl: String,
     )
