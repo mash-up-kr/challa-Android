@@ -19,7 +19,7 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
-import com.happyhouse.challa.presentation.home.HomeScreen
+import com.happyhouse.challa.presentation.home.HomeRoute
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
@@ -110,15 +110,19 @@ fun ChallaNavHost(
                     )
                 }
                 entry<ChallaRoute.Home> {
-                    HomeScreen(
-                        onNavigateToSetting = {
-                            navigator.navigate(ChallaRoute.Setting)
-                        },
+                    HomeRoute(
                         onNavigateToCreateRoom = {
                             navigator.navigate(ChallaRoute.CreateRoom)
                         },
-                        onNavigateToRoom = { _ ->
-                            // TODO JH: 방 상태별 화면(Gallery/Waiting/RoomMain) 구현되면 navigator.navigate(...) 연결
+                        onNavigateToInviteCode = {
+                            // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
+                        },
+                        onNavigateToSetting = {
+                            navigator.navigate(ChallaRoute.Setting)
+                        },
+                        onNavigateToRoom = {
+                            // TODO JH: roomId 전달 방식 확정되면 RoomMain에 인자 연결
+                            navigator.navigate(ChallaRoute.RoomMain)
                         },
                     )
                 }

@@ -1,7 +1,9 @@
 package com.happyhouse.challa.presentation.profile
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.UserRepository
+import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
@@ -20,6 +22,7 @@ class CreateProfileViewModel
     @Inject
     constructor(
         private val userRepository: UserRepository,
+        private val imageUploadRepository: ImageUploadRepository,
     ) : BaseViewModel<CreateProfileState, CreateProfileIntent, CreateProfileSideEffect>(
             initialState = CreateProfileState(),
         ) {
@@ -55,11 +58,24 @@ class CreateProfileViewModel
             if (!currentState.canSubmit) return
             viewModelScope.launch {
                 updateState { copy(isSubmitting = true) }
+
+                // 선택한 이미지가 있으면 먼저 업로드해 공개 URL 을 확보한다. 업로드에 실패하면 프로필 저장으로 넘어가지 않는다.
+                val profileImageUrl =
+                    currentState.profileImageUri?.let { uri ->
+                        when (val result = imageUploadRepository.uploadProfileImage(uri)) {
+                            is ChallaResult.Success -> result.data
+                            is ChallaResult.Failure -> {
+                                updateState { copy(isSubmitting = false) }
+                                sendEffect(CreateProfileSideEffect.ProfileCreateFailed)
+                                return@launch
+                            }
+                        }
+                    }
+
                 userRepository
                     .updateProfile(
                         nickname = currentState.nickname.trim(),
-                        // TODO JH: 이미지 업로드 API 연동 후 업로드된 URL 을 전달한다. (현재는 업로드 엔드포인트 부재로 null)
-                        profileImageUrl = null,
+                        profileImageUrl = profileImageUrl,
                     ).onSuccess { profile ->
                         updateState { copy(isSubmitting = false, isCompleted = true) }
                         delay(PROFILE_COMPLETED_NAVIGATE_DELAY_MS)
