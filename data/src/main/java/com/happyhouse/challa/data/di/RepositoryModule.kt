@@ -1,8 +1,10 @@
 package com.happyhouse.challa.data.di
 
 import com.happyhouse.challa.data.repository.AuthRepositoryImpl
+import com.happyhouse.challa.data.repository.ImageUploadRepositoryImpl
 import com.happyhouse.challa.data.repository.UserRepositoryImpl
 import com.happyhouse.challa.domain.repository.AuthRepository
+import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -20,4 +22,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindImageUploadRepository(impl: ImageUploadRepositoryImpl): ImageUploadRepository
 }
