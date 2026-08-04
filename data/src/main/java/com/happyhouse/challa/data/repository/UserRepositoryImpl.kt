@@ -22,16 +22,19 @@ class UserRepositoryImpl
             userApi
                 .updateProfile(
                     UpdateProfileRequest(
-                        nickname = nickname,
-                        profileImageUrl = profileImageUrl,
+                        user =
+                            UpdateProfileRequest.User(
+                                nickname = nickname,
+                                profileImageUrl = profileImageUrl,
+                            ),
                     ),
                 ).mapCatching { response ->
                     check(response.success) { response.message }
-                    val data = requireNotNull(response.data) { "프로필 응답 데이터가 비어 있습니다." }
+                    val user = requireNotNull(response.data) { "프로필 응답 데이터가 비어 있습니다." }.user
                     UserProfile(
-                        id = data.id,
-                        nickname = data.nickname,
-                        profileImageUrl = data.profileImageUrl,
+                        id = user.id,
+                        nickname = user.nickname,
+                        profileImageUrl = user.profileImageUrl,
                     )
                 }
     }
