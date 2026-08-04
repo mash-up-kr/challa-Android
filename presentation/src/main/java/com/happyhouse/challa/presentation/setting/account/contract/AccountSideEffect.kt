@@ -6,4 +6,8 @@ sealed interface AccountSideEffect : UiSideEffect {
     data object LogoutSuccess : AccountSideEffect
 
     data object LogoutFailed : AccountSideEffect
+
+    data object WithdrawalSuccess : AccountSideEffect
+
+    data object WithdrawalFailed : AccountSideEffect
 }

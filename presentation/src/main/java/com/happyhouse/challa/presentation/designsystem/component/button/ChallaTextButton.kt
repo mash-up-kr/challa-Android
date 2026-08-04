@@ -29,6 +29,7 @@ fun ChallaTextButton(
     enabled: Boolean = true,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
     size: ChallaButtonSize = ChallaButtonSize.LARGE,
+    containerColor: Color? = null,
     contentColor: Color? = null,
 ) {
     val sizeSpec = size.spec
@@ -38,6 +39,7 @@ fun ChallaTextButton(
         modifier = modifier,
         enabled = enabled,
         variant = variant,
+        containerColor = containerColor,
         minHeight = sizeSpec.minHeight,
         cornerRadius = size.cornerRadius,
         contentPadding =
@@ -91,7 +93,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                 )
         }
 
-@Preview(widthDp = 480)
+@Preview(widthDp = 600)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaTextButtonPreview() {

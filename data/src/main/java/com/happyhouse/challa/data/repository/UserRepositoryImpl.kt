@@ -1,11 +1,14 @@
 package com.happyhouse.challa.data.repository
 
+import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.dto.UpdateProfileRequest
 import com.happyhouse.challa.domain.model.UserProfile
 import com.happyhouse.challa.domain.repository.UserRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
+import com.happyhouse.challa.domain.result.onSuccess
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +17,22 @@ class UserRepositoryImpl
     @Inject
     constructor(
         private val userApi: UserApi,
+        private val tokenDataStore: TokenDataStore,
     ) : UserRepository {
+        override suspend fun withdraw(): ChallaResult<Unit> =
+            try {
+                userApi
+                    .withdraw()
+                    .mapCatching { response ->
+                        check(response.success) { response.message }
+                    }.onSuccess {
+                        tokenDataStore.clear()
+                    }
+            } catch (throwable: Throwable) {
+                if (throwable is CancellationException) throw throwable
+                ChallaResult.Failure.Unknown(throwable)
+            }
+
         override suspend fun updateProfile(
             nickname: String,
             profileImageUrl: String?,

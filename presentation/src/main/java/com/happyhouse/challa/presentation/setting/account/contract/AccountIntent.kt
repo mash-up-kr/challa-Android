@@ -4,4 +4,6 @@ import com.happyhouse.challa.presentation.base.UiIntent
 
 sealed interface AccountIntent : UiIntent {
     data object LogoutClick : AccountIntent
+
+    data object WithdrawalConfirmClick : AccountIntent
 }

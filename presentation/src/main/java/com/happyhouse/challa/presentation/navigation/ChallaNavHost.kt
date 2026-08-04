@@ -166,7 +166,9 @@ fun ChallaNavHost(
                                 )
                             }
                         },
-                        onWithdrawClick = {},
+                        onWithdrawSuccess = {
+                            navigator.clearAndNavigate(ChallaRoute.Login)
+                        },
                     )
                 }
                 entry<ChallaRoute.CreateRoom> {
