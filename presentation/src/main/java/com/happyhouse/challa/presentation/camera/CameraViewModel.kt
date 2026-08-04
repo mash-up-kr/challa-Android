@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
+import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
@@ -39,6 +40,7 @@ class CameraViewModel @AssistedInject constructor(
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
             is CameraIntent.FetchData -> fetchData(intent.roomId)
+            CameraIntent.RoomLoadRetry -> fetchRooms(roomId)
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             CameraIntent.ShutterClick -> handleShutterClick()
@@ -55,12 +57,15 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun fetchRooms(roomId: Long) {
         viewModelScope.launch {
+            updateState { copy(roomLoadState = CameraRoomLoadState.LOADING) }
+
             when (val result = roomRepository.getRooms()) {
                 is ChallaResult.Success -> {
                     val rooms = result.data.map { it.toUiModel() }.toPersistentList()
                     val selectedRoomId = rooms.firstOrNull { it.id == roomId }?.id
 
                     if (selectedRoomId == null) {
+                        updateState { copy(roomLoadState = CameraRoomLoadState.FAILED) }
                         Timber.e(
                             "선택할 방을 찾을 수 없습니다: roomId=%d, roomCount=%d",
                             roomId,
@@ -73,12 +78,14 @@ class CameraViewModel @AssistedInject constructor(
                     updateState {
                         copy(
                             selectedRoomId = selectedRoomId,
+                            roomLoadState = CameraRoomLoadState.LOADED,
                             rooms = rooms,
                         )
                     }
                 }
 
                 is ChallaResult.Failure -> {
+                    updateState { copy(roomLoadState = CameraRoomLoadState.FAILED) }
                     Timber.e("방 목록을 불러오지 못했습니다: $result")
                     sendEffect(CameraSideEffect.RoomLoadFailed)
                 }

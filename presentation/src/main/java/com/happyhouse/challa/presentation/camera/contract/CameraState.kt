@@ -20,6 +20,7 @@ import kotlinx.collections.immutable.persistentListOf
 @Immutable
 data class CameraState(
     val selectedRoomId: Long = 0L,
+    val roomLoadState: CameraRoomLoadState = CameraRoomLoadState.LOADING,
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashEnabled: Boolean = false,
     val captureRequest: PhotoCaptureRequest? = null,
@@ -37,6 +38,12 @@ data class CameraState(
 
     val selectedFilter: CameraFilterUiModel
         get() = cameraFilters.getOrElse(selectedFilterIndex) { CameraFilterUiModel.Original }
+}
+
+enum class CameraRoomLoadState {
+    LOADING,
+    LOADED,
+    FAILED,
 }
 
 enum class CameraLensFacing {

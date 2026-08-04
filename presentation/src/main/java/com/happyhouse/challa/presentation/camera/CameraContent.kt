@@ -16,7 +16,9 @@ import com.happyhouse.challa.presentation.camera.camerax.CameraSessionState
 import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -55,6 +57,10 @@ internal fun CameraContent(
         cameraSessionState.isReady &&
             cameraSessionState.boundLensFacing == state.lensFacing &&
             isCameraIdle
+    val canCapture =
+        canControlCamera &&
+            state.roomLoadState == CameraRoomLoadState.LOADED &&
+            selectedRoom?.remainingCaptureStatus?.isCaptureAvailable == true
     val canSwitchCamera =
         canControlCamera ||
             (cameraSessionState.bindingState as? CameraBindingState.Failed)?.reason ==
@@ -76,7 +82,7 @@ internal fun CameraContent(
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashEnabled = state.isFlashEnabled && cameraSessionState.hasFlashUnit,
         isCameraSwitchEnabled = canSwitchCamera,
-        shutterEnabled = canControlCamera,
+        shutterEnabled = canCapture,
         isShutterEffectVisible = isShutterEffectVisible,
         zoomLevel = state.zoomLevel,
         onFlashClick = {

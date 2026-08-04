@@ -9,6 +9,8 @@ sealed interface CameraIntent : UiIntent {
         val roomId: Long,
     ) : CameraIntent
 
+    data object RoomLoadRetry : CameraIntent
+
     /**
      * 플래시 버튼을 누른 시점의 하드웨어 지원 여부와 함께 전달합니다.
      *
