@@ -2,12 +2,14 @@ package com.happyhouse.challa.data.di
 
 import com.happyhouse.challa.data.repository.AuthRepositoryImpl
 import com.happyhouse.challa.data.repository.CameraRepositoryImpl
+import com.happyhouse.challa.data.repository.ImageUploadRepositoryImpl
 import com.happyhouse.challa.data.repository.PhotoRepositoryImpl
 import com.happyhouse.challa.data.repository.RoomRepositoryImpl
 import com.happyhouse.challa.data.repository.ThemeRepositoryImpl
 import com.happyhouse.challa.data.repository.UserRepositoryImpl
 import com.happyhouse.challa.domain.repository.AuthRepository
 import com.happyhouse.challa.domain.repository.CameraRepository
+import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.repository.ThemeRepository
@@ -44,4 +46,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindImageUploadRepository(impl: ImageUploadRepositoryImpl): ImageUploadRepository
 }

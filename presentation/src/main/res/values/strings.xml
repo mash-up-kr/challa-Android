@@ -56,14 +56,23 @@
     <string name="login_brand" translatable="false">challa</string>
     <string name="login_kakao">카카오로 시작하기</string>
 
-    <string name="home_greeting">안녕하세요, %1$s 님</string>
+    <string name="home_title" translatable="false">home</string>
+    <string name="home_add_description">방 만들기</string>
     <string name="home_setting_description">설정</string>
-    <string name="home_cover_placeholder">[표지]</string>
-    <!-- TODO JH 배지 문구는 디자인/카피 확정 시 보강 -->
-    <string name="home_badge_shooting">촬영중 %1$d/%2$d</string>
-    <string name="home_badge_waiting">대기중 D-%1$d %2$s</string>
-    <string name="home_badge_opened">공개됨</string>
-    <string name="home_badge_expiring">삭제 D-%1$d</string>
+    <string name="home_profile_description">프로필 이미지</string>
+    <string name="home_empty_subtitle">행복한 찰나를 남겨 보세요</string>
+    <string name="home_create_room">방 만들기</string>
+    <string name="home_enter_invite_code">초대 코드로 입장하기</string>
+    <string name="home_menu_create_room">방 만들기</string>
+    <string name="home_menu_enter_room">방 입장하기</string>
+    <string name="home_section_shooting">촬영 중</string>
+    <string name="home_section_completed">촬영 완료</string>
+    <string name="home_print_waiting">인화 대기</string>
+    <string name="home_print_completed">인화 완료</string>
+    <string name="home_participant_description">참여 인원</string>
+    <string name="home_taken_count_description">촬영한 사진 수</string>
+    <string name="home_room_photo_description">방 사진</string>
+    <string name="home_film_overflow" translatable="false">+%1$d</string>
 
     <string name="create_room_close">‹ 닫기</string>
     <string name="create_room_title">새 방 만들기</string>
