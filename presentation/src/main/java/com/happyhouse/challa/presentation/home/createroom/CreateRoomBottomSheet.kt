@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.home.createroom
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -15,12 +14,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,8 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaBottomSheet
 import com.happyhouse.challa.presentation.designsystem.component.ChallaInputBox
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -62,11 +65,26 @@ fun CreateRoomBottomSheet(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val destructiveTint = ChallaTheme.colors.statusDestructive
 
     // 스크림/뒤로가기 외의 경로(닫기 아이콘·방 생성 완료)로 닫을 때 내려가는 애니메이션을 태운 뒤 실제 콜백을 실행한다.
     fun hideThen(action: () -> Unit) {
         scope.launch { sheetState.hide() }.invokeOnCompletion {
             if (!sheetState.isVisible) action()
+        }
+    }
+
+    fun showToast(message: String) {
+        snackbarHostState.currentSnackbarData?.dismiss()
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                ChallaToastVisuals(
+                    message = message,
+                    icon = ChallaIcons.Error,
+                    iconTint = destructiveTint,
+                ),
+            )
         }
     }
 
@@ -94,7 +112,7 @@ fun CreateRoomBottomSheet(
                     val message =
                         effect.message?.takeIf { it.isNotBlank() }
                             ?: context.getString(R.string.create_room_failed)
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    showToast(message)
                 }
             }
         }
@@ -117,10 +135,16 @@ fun CreateRoomBottomSheet(
             )
         },
     ) {
-        CreateRoomSheetBody(
-            state = state,
-            onIntent = viewModel::onIntent,
-        )
+        Box {
+            CreateRoomSheetBody(
+                state = state,
+                onIntent = viewModel::onIntent,
+            )
+            ChallaSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.matchParentSize(),
+            )
+        }
     }
 }
 
