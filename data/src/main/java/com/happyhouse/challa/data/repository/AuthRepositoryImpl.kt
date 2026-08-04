@@ -3,12 +3,14 @@ package com.happyhouse.challa.data.repository
 import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.AuthApi
 import com.happyhouse.challa.data.network.dto.LoginRequest
+import com.happyhouse.challa.data.network.dto.LogoutRequest
 import com.happyhouse.challa.data.network.qualifier.RefreshClient
 import com.happyhouse.challa.domain.model.AuthTokens
 import com.happyhouse.challa.domain.repository.AuthRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
 import com.happyhouse.challa.domain.result.onSuccess
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,11 +21,12 @@ class AuthRepositoryImpl
     constructor(
         // 로그인은 인증이 불필요하므로, AuthInterceptor·TokenAuthenticator 가 없는 무인증 클라이언트를 쓴다.
         // (잘못된 idToken 에 서버가 401 을 주더라도 불필요한 refresh 시도·토큰 clear 로 이어지지 않게 한다.)
-        @RefreshClient private val authApi: AuthApi,
+        @RefreshClient private val unauthenticatedAuthApi: AuthApi,
+        private val authApi: AuthApi,
         private val tokenDataStore: TokenDataStore,
     ) : AuthRepository {
         override suspend fun loginWithKakao(idToken: String): ChallaResult<AuthTokens> =
-            authApi
+            unauthenticatedAuthApi
                 .login(
                     LoginRequest(
                         auth =
@@ -43,6 +46,28 @@ class AuthRepositoryImpl
                 }.onSuccess { tokens ->
                     tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
                 }
+
+        override suspend fun logout(): ChallaResult<Unit> =
+            try {
+                val refreshToken =
+                    requireNotNull(tokenDataStore.refreshToken.first()) {
+                        "저장된 리프레시 토큰이 없습니다."
+                    }
+
+                authApi
+                    .logout(
+                        LogoutRequest(
+                            auth = LogoutRequest.Auth(refreshToken = refreshToken),
+                        ),
+                    ).mapCatching { response ->
+                        check(response.success) { response.message }
+                    }.onSuccess {
+                        tokenDataStore.clear()
+                    }
+            } catch (throwable: Throwable) {
+                if (throwable is CancellationException) throw throwable
+                ChallaResult.Failure.Unknown(throwable)
+            }
 
         override suspend fun isLoggedIn(): Boolean = tokenDataStore.accessToken.first() != null
 

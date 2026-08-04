@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,13 +42,16 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 fun AccountScreen(
     nickname: String,
     maskedEmail: String,
+    isLoggingOut: Boolean,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onWithdrawClick: () -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState? = null,
 ) {
     ChallaScaffold(
         modifier = modifier,
+        snackbarHostState = snackbarHostState,
         topBar = {
             ChallaTopNavigation(
                 title = stringResource(R.string.account_title),
@@ -80,7 +84,10 @@ fun AccountScreen(
                     maskedEmail = maskedEmail,
                 )
 
-                LogoutCard(onClick = onLogoutClick)
+                LogoutCard(
+                    enabled = !isLoggingOut,
+                    onClick = onLogoutClick,
+                )
             }
 
             WithdrawButton(
@@ -131,6 +138,7 @@ private fun AccountProfile(
 
 @Composable
 private fun LogoutCard(
+    enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -141,6 +149,7 @@ private fun LogoutCard(
                 .clip(RoundedCornerShape(12.dp))
                 .background(ChallaTheme.colors.backgroundLevel1)
                 .noRippleClickOnce(
+                    enabled = enabled,
                     role = Role.Button,
                     onClick = onClick,
                 )
@@ -196,6 +205,7 @@ private fun AccountScreenPreview() {
     AccountScreen(
         nickname = "나는야멋쟁이토마토",
         maskedEmail = "hap****@naver.com",
+        isLoggingOut = false,
         onBackClick = {},
         onLogoutClick = {},
         onWithdrawClick = {},

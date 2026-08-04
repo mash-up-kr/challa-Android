@@ -119,6 +119,7 @@
     <string name="create_profile_image_source_close">닫기</string>
 
     <!-- settingScreen -->
+    <string name="setting_title">설정</string>
     <string name="setting_back_description">뒤로가기</string>
     <string name="setting_profile_edit_description">프로필 수정</string>
     <string name="setting_app_section">앱 설정</string>
@@ -141,6 +142,8 @@
     <string name="account_title">계정 관리</string>
     <string name="account_back_description">설정으로 돌아가기</string>
     <string name="account_logout">로그아웃</string>
+    <string name="account_logout_success">로그아웃되었습니다</string>
+    <string name="account_logout_failure">로그아웃에 실패했어요.</string>
     <string name="account_withdraw">탈퇴하기</string>
 
     <!-- themeScreen -->
