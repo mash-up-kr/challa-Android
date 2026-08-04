@@ -5,6 +5,9 @@ import com.happyhouse.challa.presentation.R
 
 object ChallaIcons {
     @DrawableRes
+    val Add = R.drawable.ic_add
+
+    @DrawableRes
     val Apple = R.drawable.ic_apple
 
     @DrawableRes
@@ -57,6 +60,9 @@ object ChallaIcons {
 
     @DrawableRes
     val Palette = R.drawable.ic_palette
+
+    @DrawableRes
+    val Person = R.drawable.ic_person
 
     @DrawableRes
     val Profile = R.drawable.ic_profile
