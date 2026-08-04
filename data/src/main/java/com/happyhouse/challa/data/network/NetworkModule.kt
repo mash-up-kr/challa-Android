@@ -7,6 +7,7 @@ import com.happyhouse.challa.data.network.adapter.ChallaResultCallAdapterFactory
 import com.happyhouse.challa.data.network.api.AuthApi
 import com.happyhouse.challa.data.network.api.CameraApi
 import com.happyhouse.challa.data.network.api.CameraFilterFileApi
+import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.interceptor.AuthInterceptor
 import com.happyhouse.challa.data.network.interceptor.TokenAuthenticator
@@ -101,6 +102,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideCameraApi(retrofit: Retrofit): CameraApi = retrofit.create()
+
+    @Provides
+    @Singleton
+    fun provideRoomApi(retrofit: Retrofit): RoomApi = retrofit.create()
 
     @Provides
     @Singleton
