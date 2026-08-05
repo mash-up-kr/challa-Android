@@ -47,6 +47,9 @@ object ChallaIcons {
     val Feedback = R.drawable.ic_feedback
 
     @DrawableRes
+    val Image = R.drawable.ic_image
+
+    @DrawableRes
     val Kakao = R.drawable.ic_kakao
 
     @DrawableRes
