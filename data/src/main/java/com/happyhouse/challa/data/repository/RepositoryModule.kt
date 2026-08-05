@@ -1,5 +1,6 @@
 package com.happyhouse.challa.data.repository
 
+import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.repository.ThemeRepository
@@ -12,6 +13,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(notificationRepositoryImpl: NotificationRepositoryImpl): NotificationRepository
+
     @Binds
     @Singleton
     abstract fun bindPhotoRepository(photoRepositoryImpl: PhotoRepositoryImpl): PhotoRepository
