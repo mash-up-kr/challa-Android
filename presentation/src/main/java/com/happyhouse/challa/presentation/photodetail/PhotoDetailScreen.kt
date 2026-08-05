@@ -4,10 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -16,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailBottomBar
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailContent
@@ -52,11 +51,10 @@ fun PhotoDetailScreen(
         }
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
 
-    Scaffold(
+    ChallaScaffold(
         modifier = modifier,
         containerColor = PhotoDetailBackgroundColor,
-        // 사진이 화면 끝까지 차야 해서 content에는 기본 인셋을 주지 않는다.
-        // 대신 인셋이 필요한 바가 각자 직접 적용한다.
+        // 사진이 화면 끝까지 차야 해서 content에는 기본 인셋을 주지 않는다(시스템 바는 ChallaScaffold가 바에 적용).
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             PhotoDetailTopBar(
@@ -67,15 +65,10 @@ fun PhotoDetailScreen(
             )
         },
         bottomBar = {
-            // 반응·메시지는 사진이 있을 때만 의미가 있으므로 로드된 사진이 있을 때만 그린다.
             if (currentPhoto != null) {
                 PhotoDetailBottomBar(
-                    // 앱이 edge-to-edge라 하단 바가 인셋을 직접 처리한다.
-                    // navigationBarsPadding을 먼저 적용하면 그만큼 소비되어 imePadding과 이중으로 더해지지 않는다.
-                    modifier =
-                        Modifier
-                            .navigationBarsPadding()
-                            .imePadding(),
+                    // navigationBarsPadding은 ChallaScaffold가 이미 적용해 인셋을 소비했다.
+                    modifier = Modifier.imePadding(),
                     message = state.messageInput,
                     isMessageSendable = state.isMessageSendable,
                     onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
@@ -98,7 +91,8 @@ fun PhotoDetailScreen(
                 onRetryClick = onRetryClick,
             )
 
-            // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
+            // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
+            // 여기 두면 Route가 지정하는 topOffset 기준점이 상단 바 아래라 기기별 상태바 높이에 흔들리지 않는다.
             ChallaSnackbarHost(hostState = snackbarHostState)
         }
     }
