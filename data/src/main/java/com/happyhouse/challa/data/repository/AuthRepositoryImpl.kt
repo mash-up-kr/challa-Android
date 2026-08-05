@@ -26,16 +26,19 @@ class AuthRepositoryImpl
             authApi
                 .login(
                     LoginRequest(
-                        provider = KAKAO_PROVIDER,
-                        idToken = idToken,
+                        auth =
+                            LoginRequest.Auth(
+                                provider = KAKAO_PROVIDER,
+                                idToken = idToken,
+                            ),
                     ),
                 ).mapCatching { response ->
                     check(response.success) { response.message }
-                    val data = requireNotNull(response.data) { "로그인 응답 데이터가 비어 있습니다." }
+                    val auth = requireNotNull(response.data) { "로그인 응답 데이터가 비어 있습니다." }.auth
                     AuthTokens(
-                        accessToken = data.accessToken,
-                        refreshToken = data.refreshToken,
-                        isNewUser = data.isNew,
+                        accessToken = auth.accessToken,
+                        refreshToken = auth.refreshToken,
+                        isNewUser = auth.isNew,
                     )
                 }.onSuccess { tokens ->
                     tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
