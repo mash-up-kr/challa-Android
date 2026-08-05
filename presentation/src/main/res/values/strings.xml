@@ -90,6 +90,12 @@
     <string name="create_room_submit">만들기</string>
     <string name="create_room_failed">방 생성에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
 
+    <string name="enter_room_close_description">닫기</string>
+    <string name="enter_room_title">방 입장하기</string>
+    <string name="enter_room_code_placeholder">입장 코드 입력</string>
+    <string name="enter_room_submit">입장하기</string>
+    <string name="enter_room_failed">방 입장에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
+
     <!-- photoDetailScreen -->
     <string name="photo_detail_back_description">뒤로가기</string>
     <string name="photo_detail_photo_content_description">사진</string>
