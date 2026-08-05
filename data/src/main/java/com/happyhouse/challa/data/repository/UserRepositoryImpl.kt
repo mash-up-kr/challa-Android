@@ -1,5 +1,6 @@
 package com.happyhouse.challa.data.repository
 
+import com.happyhouse.challa.data.local.ThemeDataStore
 import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.dto.UpdateProfileRequest
@@ -18,6 +19,7 @@ class UserRepositoryImpl
     constructor(
         private val userApi: UserApi,
         private val tokenDataStore: TokenDataStore,
+        private val themeDataStore: ThemeDataStore,
     ) : UserRepository {
         override suspend fun withdraw(): ChallaResult<Unit> =
             try {
@@ -26,6 +28,7 @@ class UserRepositoryImpl
                     .mapCatching { response ->
                         check(response.success) { response.message }
                     }.onSuccess {
+                        themeDataStore.clearPrimaryTheme()
                         tokenDataStore.clear()
                     }
             } catch (throwable: Throwable) {

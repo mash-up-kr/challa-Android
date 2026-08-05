@@ -1,5 +1,6 @@
 package com.happyhouse.challa.data.repository
 
+import com.happyhouse.challa.data.local.ThemeDataStore
 import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.AuthApi
 import com.happyhouse.challa.data.network.dto.LoginRequest
@@ -21,9 +22,10 @@ class AuthRepositoryImpl
     constructor(
         // 로그인은 인증이 불필요하므로, AuthInterceptor·TokenAuthenticator 가 없는 무인증 클라이언트를 쓴다.
         // (잘못된 idToken 에 서버가 401 을 주더라도 불필요한 refresh 시도·토큰 clear 로 이어지지 않게 한다.)
-        @RefreshClient private val unauthenticatedAuthApi: AuthApi,
+        @param:RefreshClient private val unauthenticatedAuthApi: AuthApi,
         private val authApi: AuthApi,
         private val tokenDataStore: TokenDataStore,
+        private val themeDataStore: ThemeDataStore,
     ) : AuthRepository {
         override suspend fun loginWithKakao(idToken: String): ChallaResult<AuthTokens> =
             unauthenticatedAuthApi
@@ -62,6 +64,7 @@ class AuthRepositoryImpl
                     ).mapCatching { response ->
                         check(response.success) { response.message }
                     }.onSuccess {
+                        themeDataStore.clearPrimaryTheme()
                         tokenDataStore.clear()
                     }
             } catch (throwable: Throwable) {
