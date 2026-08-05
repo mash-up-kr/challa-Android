@@ -25,11 +25,11 @@ class AccountViewModel @Inject constructor(
     }
 
     private fun handleLogoutClick() {
-        if (currentState.isLoggingOut) return
+        if (currentState.isProcessing) return
+
+        updateState { copy(isLoggingOut = true) }
 
         viewModelScope.launch {
-            updateState { copy(isLoggingOut = true) }
-
             when (authRepository.logout()) {
                 is ChallaResult.Success -> sendEffect(AccountSideEffect.LogoutSuccess)
                 is ChallaResult.Failure -> sendEffect(AccountSideEffect.LogoutFailed)
@@ -40,11 +40,11 @@ class AccountViewModel @Inject constructor(
     }
 
     private fun handleWithdrawalConfirmClick() {
-        if (currentState.isWithdrawing) return
+        if (currentState.isProcessing) return
+
+        updateState { copy(isWithdrawing = true) }
 
         viewModelScope.launch {
-            updateState { copy(isWithdrawing = true) }
-
             when (userRepository.withdraw()) {
                 is ChallaResult.Success -> sendEffect(AccountSideEffect.WithdrawalSuccess)
                 is ChallaResult.Failure -> sendEffect(AccountSideEffect.WithdrawalFailed)

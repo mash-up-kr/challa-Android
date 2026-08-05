@@ -7,4 +7,7 @@ import com.happyhouse.challa.presentation.base.UiState
 data class AccountState(
     val isLoggingOut: Boolean = false,
     val isWithdrawing: Boolean = false,
-) : UiState
+) : UiState {
+    val isProcessing: Boolean
+        get() = isLoggingOut || isWithdrawing
+}

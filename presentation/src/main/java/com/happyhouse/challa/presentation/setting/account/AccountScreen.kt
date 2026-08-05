@@ -42,7 +42,7 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 fun AccountScreen(
     nickname: String,
     maskedEmail: String,
-    isLoggingOut: Boolean,
+    isProcessing: Boolean,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
     onWithdrawClick: () -> Unit,
@@ -85,12 +85,13 @@ fun AccountScreen(
                 )
 
                 LogoutCard(
-                    enabled = !isLoggingOut,
+                    enabled = !isProcessing,
                     onClick = onLogoutClick,
                 )
             }
 
             WithdrawButton(
+                enabled = !isProcessing,
                 onClick = onWithdrawClick,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
@@ -185,6 +186,7 @@ private fun LogoutCard(
 
 @Composable
 private fun WithdrawButton(
+    enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -192,6 +194,7 @@ private fun WithdrawButton(
         text = stringResource(R.string.account_withdraw),
         onClick = onClick,
         modifier = modifier,
+        enabled = enabled,
         variant = ChallaButtonVariant.TRANSPARENT,
         size = ChallaButtonSize.LARGE,
         contentColor = ChallaTheme.colors.labelAlternative,
@@ -205,7 +208,7 @@ private fun AccountScreenPreview() {
     AccountScreen(
         nickname = "나는야멋쟁이토마토",
         maskedEmail = "hap****@naver.com",
-        isLoggingOut = false,
+        isProcessing = false,
         onBackClick = {},
         onLogoutClick = {},
         onWithdrawClick = {},
