@@ -93,7 +93,6 @@ private const val FILM_PREVIEW_MAX = 3
 
 @Composable
 fun HomeRoute(
-    onNavigateToInviteCode: () -> Unit,
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: String) -> Unit,
     modifier: Modifier = Modifier,
