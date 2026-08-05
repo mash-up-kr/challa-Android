@@ -20,7 +20,6 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
-import com.happyhouse.challa.presentation.home.createroom.CreateRoomScreen
 import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
@@ -169,18 +168,6 @@ fun ChallaNavHost(
                         },
                         onWithdrawSuccess = {
                             navigator.clearAndNavigate(ChallaRoute.Login)
-                        },
-                    )
-                }
-                entry<ChallaRoute.CreateRoom> {
-                    CreateRoomScreen(
-                        onClose = {
-                            navigator.goBack()
-                        },
-                        onRoomCreated = { roomId, roomName ->
-                            navigator.replace(
-                                ChallaRoute.ShareInvite(roomId = roomId, roomName = roomName),
-                            )
                         },
                     )
                 }
