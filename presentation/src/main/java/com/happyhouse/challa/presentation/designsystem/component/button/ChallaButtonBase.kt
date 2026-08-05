@@ -20,6 +20,7 @@ internal fun ChallaButtonBase(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    loading: Boolean = false,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
     containerColor: Color? = null,
     minHeight: Dp,
@@ -27,6 +28,7 @@ internal fun ChallaButtonBase(
     contentPadding: PaddingValues,
     content: @Composable (contentColor: Color) -> Unit,
 ) {
+    // 로딩 중에는 활성 상태의 색을 유지하되 클릭만 막는다.
     val colorSpec = variant.colorSpec(enabled)
 
     Box(
@@ -36,7 +38,7 @@ internal fun ChallaButtonBase(
                 .clip(shape = RoundedCornerShape(cornerRadius))
                 .background(containerColor ?: colorSpec.containerColor)
                 .noRippleClickOnce(
-                    enabled = enabled,
+                    enabled = enabled && !loading,
                     role = Role.Button,
                     onClick = onClick,
                 )

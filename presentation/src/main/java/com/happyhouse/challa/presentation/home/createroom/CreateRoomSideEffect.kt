@@ -4,7 +4,11 @@ import com.happyhouse.challa.presentation.base.UiSideEffect
 
 sealed interface CreateRoomSideEffect : UiSideEffect {
     data class RoomCreated(
-        val roomId: String,
+        val roomId: Long,
         val roomName: String,
+    ) : CreateRoomSideEffect
+
+    data class RoomCreateFailed(
+        val message: String?,
     ) : CreateRoomSideEffect
 }
