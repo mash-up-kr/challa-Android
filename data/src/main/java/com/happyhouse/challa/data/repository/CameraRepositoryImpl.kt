@@ -1,7 +1,7 @@
 package com.happyhouse.challa.data.repository
 
-import com.happyhouse.challa.data.network.api.CameraApi
 import com.happyhouse.challa.data.network.api.CameraFilterFileApi
+import com.happyhouse.challa.data.network.api.ShootApi
 import com.happyhouse.challa.domain.model.CameraFilter
 import com.happyhouse.challa.domain.repository.CameraRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -15,11 +15,11 @@ import javax.inject.Singleton
 
 @Singleton
 class CameraRepositoryImpl @Inject constructor(
-    private val cameraApi: CameraApi,
+    private val shootApi: ShootApi,
     private val cameraFilterFileApi: CameraFilterFileApi,
 ) : CameraRepository {
     override suspend fun getCameraFilters(): ChallaResult<List<CameraFilter>> =
-        cameraApi.getCameraFilters().mapCatching { response ->
+        shootApi.getCameraFilters().mapCatching { response ->
             check(response.success) { response.message }
             requireNotNull(response.data) { "카메라 필터 응답 데이터가 비어 있습니다." }
                 .shoot
