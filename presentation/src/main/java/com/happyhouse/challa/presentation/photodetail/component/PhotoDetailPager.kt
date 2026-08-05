@@ -1,11 +1,12 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -36,12 +37,17 @@ fun PhotoDetailPager(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
+        // weight를 쓰면 Column이 높이를 다 차지하므로 가운데 정렬은 Arrangement로 잡는다.
+        verticalArrangement = Arrangement.Center,
     ) {
         HorizontalPager(
+            // 키보드가 올라오면 쓸 수 있는 높이가 줄어든다. 높이를 고정하면 그만큼 잘리므로
+            // 남는 높이에 맞춰 줄어들되 PhotoCardHeight는 넘지 않게 한다.
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(PhotoCardHeight),
+                    .weight(weight = 1f, fill = false)
+                    .heightIn(max = PhotoCardHeight),
             state = pagerState,
             contentPadding = PaddingValues(horizontal = PhotoHorizontalPadding),
             pageSpacing = PhotoPageSpacing,
