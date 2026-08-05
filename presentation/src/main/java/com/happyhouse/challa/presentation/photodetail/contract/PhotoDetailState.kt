@@ -19,7 +19,6 @@ data class PhotoDetailState(
     val messageInput: String = "",
     val isSendingMessage: Boolean = false,
 ) : UiState {
-    /** 입력한 내용이 있을 때만 전송 버튼을 노출한다. */
     val isMessageSendable: Boolean get() = messageInput.isNotBlank() && !isSendingMessage
 
     @Immutable
@@ -53,8 +52,6 @@ data class PhotoDetailUiModel(
 ) : Parcelable
 
 /**
- * 사진에 남긴 이모지 반응 1개.
- *
  * @param id 사진 위 노출 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려져야 한다.
  */
 @Immutable

@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
 
-/** 사진에 남길 이모지를 고르는 반응 바. */
 @Composable
 fun PhotoReactionBar(
     onEmojiClick: (ReactionEmoji) -> Unit,

@@ -87,7 +87,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * 이모지 반응 남기기.
      * TODO: 반응 API 스펙 확정 전까지 로컬 state에만 쌓는다. (이슈 #62)
      * TODO: 같은 사람이 여러 번 남길 수 있는지 / 취소 가능한지 기획 미확정. 현재는 누를 때마다 계속 추가된다.
      */
@@ -113,7 +112,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * 사진에 메시지 보내기. 보낸 뒤 입력만 비우고 키보드는 유지한다.
+     * 보낸 뒤 입력만 비우고 키보드는 유지한다.
      * TODO: 메시지 API 스펙 확정 전까지 전송 결과를 성공으로 가정한다. (이슈 #62)
      *   실패 경로가 생기면 MessageSendFailed SideEffect를 다시 추가할 것.
      */

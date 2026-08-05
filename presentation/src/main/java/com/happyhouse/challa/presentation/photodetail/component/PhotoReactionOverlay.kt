@@ -40,7 +40,6 @@ private val ReactionStickerEmojiSize = 44.dp
 private const val MIN_CENTER_DISTANCE = 0.3
 private const val MAX_CENTER_DISTANCE = 0.5
 
-/** 사진 위에 남겨진 이모지 반응을 스티커로 그린다. */
 @Composable
 fun PhotoReactionOverlay(
     reactions: ImmutableList<PhotoReactionUiModel>,
@@ -93,7 +92,6 @@ private fun ReactionSticker(
 /**
  * 반응 id를 seed로 스티커 좌표를 정한다. 같은 반응은 스크롤·재진입과 무관하게 항상 같은 자리에 그려진다.
  *
- * 사진 중심에서 [MIN_CENTER_DISTANCE] 이상 떨어진 곳에만 두어 정중앙을 피한다.
  * 스티커가 사진 밖으로 나가지 않도록 배치 범위는 사진 크기에서 스티커 크기를 뺀 영역으로 잡는다.
  */
 private fun reactionStickerOffset(

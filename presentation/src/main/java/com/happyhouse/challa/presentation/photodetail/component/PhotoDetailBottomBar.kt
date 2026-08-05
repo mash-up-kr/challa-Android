@@ -18,7 +18,6 @@ private val BottomBarTopPadding = 8.dp
 private val BottomBarBottomPadding = 16.dp
 private val BottomBarSpacing = 12.dp
 
-/** 사진 상세 하단의 반응·메시지 영역. 사진이 있을 때만 그린다. */
 @Composable
 fun PhotoDetailBottomBar(
     message: String,

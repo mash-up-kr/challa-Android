@@ -43,8 +43,6 @@ private val InputPadding = 16.dp
 private val SendButtonSpacing = 8.dp
 
 /**
- * 사진에 메시지를 보내는 입력 바.
- *
  * 전송 버튼은 보낼 수 있을 때만 노출한다(ref. 인스타그램).
  * 전송 후 키보드를 유지해야 해서 IME 액션으로는 보내지 않고 전송 버튼으로만 보낸다.
  */
