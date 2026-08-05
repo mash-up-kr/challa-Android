@@ -45,8 +45,8 @@ internal fun CameraFilterSelector(
                     .fillMaxWidth()
                     .fadingHorizontalEdges(),
             state = listState,
-            contentPadding = PaddingValues(horizontal = FILTER_CONTENT_PADDING),
-            horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             items(
                 count = filters.size,
@@ -67,7 +67,7 @@ internal fun CameraFilterSelector(
     } else {
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
         ) {
             filters.forEachIndexed { index, filter ->
                 CameraFilterItem(
@@ -141,5 +141,3 @@ private fun CameraFilterSelectorPreview() {
 }
 
 private const val SCROLLABLE_FILTER_COUNT = 5
-private val FILTER_ITEM_SPACING = 20.dp
-private val FILTER_CONTENT_PADDING = 20.dp

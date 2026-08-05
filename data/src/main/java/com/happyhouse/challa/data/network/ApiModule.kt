@@ -1,8 +1,9 @@
 package com.happyhouse.challa.data.network
 
 import com.happyhouse.challa.data.network.api.AuthApi
-import com.happyhouse.challa.data.network.api.CameraApi
 import com.happyhouse.challa.data.network.api.CameraFilterFileApi
+import com.happyhouse.challa.data.network.api.RoomApi
+import com.happyhouse.challa.data.network.api.ShootApi
 import com.happyhouse.challa.data.network.api.UploadApi
 import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.qualifier.CameraFilterClient
@@ -24,13 +25,17 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun provideCameraApi(retrofit: Retrofit): CameraApi = retrofit.create()
+    fun provideShootApi(retrofit: Retrofit): ShootApi = retrofit.create()
 
     @Provides
     @Singleton
     fun provideCameraFilterFileApi(
         @CameraFilterClient retrofit: Retrofit,
     ): CameraFilterFileApi = retrofit.create()
+
+    @Provides
+    @Singleton
+    fun provideRoomApi(retrofit: Retrofit): RoomApi = retrofit.create()
 
     @Provides
     @Singleton
