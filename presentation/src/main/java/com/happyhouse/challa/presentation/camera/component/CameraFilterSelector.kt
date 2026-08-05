@@ -26,6 +26,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -129,7 +130,7 @@ private fun Modifier.fadingHorizontalEdges(): Modifier =
 private fun CameraFilterSelectorPreview() {
     CameraFilterSelector(
         filters =
-            kotlinx.collections.immutable.persistentListOf(
+            persistentListOf(
                 CameraFilterUiModel.Original,
                 CameraFilterUiModel.Remote("필터1", "https://example.com/filter1.cube"),
                 CameraFilterUiModel.Remote("필터2", "https://example.com/filter2.cube"),

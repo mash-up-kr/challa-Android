@@ -20,6 +20,7 @@ import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
 
@@ -148,7 +149,7 @@ private fun CameraContentLimitReachedPreview() {
 }
 
 private val previewCameraFilters =
-    kotlinx.collections.immutable.persistentListOf(
+    persistentListOf(
         CameraFilterUiModel.Original,
         CameraFilterUiModel.Remote(name = "필터1", fileUrl = "https://example.com/filter1.cube"),
         CameraFilterUiModel.Remote(name = "필터2", fileUrl = "https://example.com/filter2.cube"),

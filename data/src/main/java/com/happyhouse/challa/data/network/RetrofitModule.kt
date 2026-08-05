@@ -31,14 +31,17 @@ object RetrofitModule {
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
         json: Json,
-    ): Retrofit = createRetrofit(okHttpClient, json)
+    ): Retrofit =
+        createRetrofitBuilder(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(JSON_MEDIA_TYPE.toMediaType()))
+            .build()
 
     @Provides
     @Singleton
     @CameraFilterClient
     fun provideCameraFilterRetrofit(
         @CameraFilterClient okHttpClient: OkHttpClient,
-    ): Retrofit = createRetrofit(okHttpClient)
+    ): Retrofit = createRetrofitBuilder(okHttpClient).build()
 
     @Provides
     @Singleton
@@ -46,22 +49,17 @@ object RetrofitModule {
     fun provideRefreshRetrofit(
         @RefreshClient okHttpClient: OkHttpClient,
         json: Json,
-    ): Retrofit = createRetrofit(okHttpClient, json)
-
-    private fun createRetrofit(
-        okHttpClient: OkHttpClient,
-        json: Json? = null,
     ): Retrofit =
+        createRetrofitBuilder(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(JSON_MEDIA_TYPE.toMediaType()))
+            .build()
+
+    private fun createRetrofitBuilder(okHttpClient: OkHttpClient): Retrofit.Builder =
         Retrofit
             .Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addCallAdapterFactory(ChallaResultCallAdapterFactory())
-            .apply {
-                json?.let {
-                    addConverterFactory(it.asConverterFactory(JSON_MEDIA_TYPE.toMediaType()))
-                }
-            }.build()
 
     private const val JSON_MEDIA_TYPE = "application/json"
 }
