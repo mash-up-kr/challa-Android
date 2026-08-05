@@ -4,6 +4,7 @@ import com.happyhouse.challa.data.BuildConfig
 import com.happyhouse.challa.data.FlavorExtraFunction
 import com.happyhouse.challa.data.network.adapter.ChallaResultCallAdapterFactory
 import com.happyhouse.challa.data.network.api.AuthApi
+import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.api.UploadApi
 import com.happyhouse.challa.data.network.api.UserApi
 import com.happyhouse.challa.data.network.interceptor.AuthInterceptor
@@ -121,6 +122,10 @@ object NetworkModule {
             .readTimeout(S3_UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(S3_UPLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
+
+    @Provides
+    @Singleton
+    fun provideRoomApi(retrofit: Retrofit): RoomApi = retrofit.create(RoomApi::class.java)
 
     /**
      * 토큰 재발급 전용 클라이언트. [TokenAuthenticator]·[AuthInterceptor] 를 달지 않아

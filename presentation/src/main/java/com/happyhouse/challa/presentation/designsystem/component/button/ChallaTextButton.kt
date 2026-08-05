@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +28,7 @@ fun ChallaTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    loading: Boolean = false,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
     size: ChallaButtonSize = ChallaButtonSize.LARGE,
 ) {
@@ -35,6 +38,7 @@ fun ChallaTextButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
+        loading = loading,
         variant = variant,
         minHeight = sizeSpec.minHeight,
         cornerRadius = size.cornerRadius,
@@ -43,13 +47,21 @@ fun ChallaTextButton(
                 horizontal = sizeSpec.horizontalPadding,
                 vertical = sizeSpec.verticalPadding,
             ),
-    ) {
-        Text(
-            text = text,
-            color = it,
-            textAlign = TextAlign.Center,
-            style = sizeSpec.textStyle,
-        )
+    ) { contentColor ->
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(sizeSpec.loadingIndicatorSize),
+                color = contentColor,
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Text(
+                text = text,
+                color = contentColor,
+                textAlign = TextAlign.Center,
+                style = sizeSpec.textStyle,
+            )
+        }
     }
 }
 
@@ -58,6 +70,7 @@ private data class ChallaTextButtonSizeSpec(
     val horizontalPadding: Dp,
     val verticalPadding: Dp,
     val textStyle: TextStyle,
+    val loadingIndicatorSize: Dp,
 )
 
 private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
@@ -70,6 +83,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     horizontalPadding = 20.dp,
                     verticalPadding = 15.dp,
                     textStyle = ChallaTheme.typography.bodyLarge.bold,
+                    loadingIndicatorSize = 20.dp,
                 )
 
             ChallaButtonSize.MEDIUM ->
@@ -78,6 +92,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     horizontalPadding = 16.dp,
                     verticalPadding = 12.dp,
                     textStyle = ChallaTheme.typography.bodySmall.bold,
+                    loadingIndicatorSize = 18.dp,
                 )
 
             ChallaButtonSize.SMALL ->
@@ -86,6 +101,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                     horizontalPadding = 10.dp,
                     verticalPadding = 8.dp,
                     textStyle = ChallaTheme.typography.bodyXSmall.bold,
+                    loadingIndicatorSize = 16.dp,
                 )
         }
 
