@@ -83,6 +83,7 @@ fun SettingProfile(
             icon = ChallaIcons.Edit,
             onClick = onEditClick,
             contentDescription = stringResource(R.string.setting_profile_edit_description),
+            enabled = state.isProfileLoaded,
             variant = ChallaButtonVariant.TRANSPARENT,
             size = ChallaButtonSize.LARGE,
         )
@@ -98,6 +99,7 @@ private fun SettingProfilePreview() {
             SettingState(
                 nickname = "나는야멋쟁이토마토",
                 profileImageUrl = "https://example.com/profile.jpg",
+                isProfileLoaded = true,
             ),
         onEditClick = {},
     )

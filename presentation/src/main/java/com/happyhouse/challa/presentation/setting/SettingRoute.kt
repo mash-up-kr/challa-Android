@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.setting
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
@@ -8,11 +7,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
-import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -38,9 +37,9 @@ fun SettingRoute(
     val retryLabel = stringResource(R.string.theme_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
-    LifecycleResumeEffect(viewModel) {
+    // 프로필 수정 후 설정 화면으로 돌아오면 최신 정보를 다시 조회한다.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.onIntent(SettingIntent.FetchData)
-        onPauseOrDispose {}
     }
 
     LaunchedEffect(viewModel) {
@@ -49,6 +48,7 @@ fun SettingRoute(
                 when (effect) {
                     SettingSideEffect.ProfileReadFailed ->
                         profileReadFailureMessage to SettingIntent.ProfileReadRetry
+
                     SettingSideEffect.ThemeReadFailed ->
                         themeReadFailureMessage to SettingIntent.ThemeReadRetry
                 }
@@ -74,20 +74,17 @@ fun SettingRoute(
         }
     }
 
-    Box {
-        SettingScreen(
-            state = state,
-            onBackClick = onBackClick,
-            onProfileEditClick = {
-                onProfileEditClick(state.nickname, state.profileImageUrl)
-            },
-            onThemeClick = onThemeClick,
-            onNotificationClick = onNotificationClick,
-            onAccountClick = onAccountClick,
-            onSupportClick = onSupportClick,
-            onFeedbackClick = onFeedbackClick,
-        )
-
-        ChallaSnackbarHost(hostState = snackbarHostState)
-    }
+    SettingScreen(
+        state = state,
+        onBackClick = onBackClick,
+        onProfileEditClick = {
+            onProfileEditClick(state.nickname, state.profileImageUrl)
+        },
+        onThemeClick = onThemeClick,
+        onNotificationClick = onNotificationClick,
+        onAccountClick = onAccountClick,
+        onSupportClick = onSupportClick,
+        onFeedbackClick = onFeedbackClick,
+        snackbarHostState = snackbarHostState,
+    )
 }

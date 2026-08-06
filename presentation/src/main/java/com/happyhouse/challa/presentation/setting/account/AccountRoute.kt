@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.setting.account
 
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,7 +17,6 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.setting.SettingViewModel
 import com.happyhouse.challa.presentation.setting.account.contract.AccountIntent
 import com.happyhouse.challa.presentation.setting.account.contract.AccountSideEffect
 import kotlinx.coroutines.launch
@@ -26,14 +26,14 @@ fun AccountRoute(
     onBackClick: () -> Unit,
     onLogoutSuccess: () -> Unit,
     onWithdrawSuccess: () -> Unit,
-    settingViewModel: SettingViewModel = hiltViewModel(),
     accountViewModel: AccountViewModel = hiltViewModel(),
 ) {
-    val settingState by settingViewModel.uiState.collectAsStateWithLifecycle()
     val accountState by accountViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val profileReadFailureMessage = stringResource(R.string.setting_profile_read_failure)
     val logoutFailureMessage = stringResource(R.string.account_logout_failure)
     val withdrawalFailureMessage = stringResource(R.string.account_withdraw_failure)
+    val retryLabel = stringResource(R.string.theme_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
     var withdrawalDrawerState by rememberSaveable {
         mutableStateOf<WithdrawalDrawerState?>(null)
@@ -42,6 +42,26 @@ fun AccountRoute(
     LaunchedEffect(accountViewModel) {
         accountViewModel.uiEffect.collect { effect ->
             when (effect) {
+                AccountSideEffect.ProfileReadFailed ->
+                    launch {
+                        val result =
+                            snackbarHostState.showSnackbar(
+                                ChallaSnackbarVisuals(
+                                    content =
+                                        ChallaSnackbarContent.HeadingOnly(
+                                            heading = profileReadFailureMessage,
+                                        ),
+                                    icon = ChallaIcons.Error,
+                                    iconTint = destructiveIconTint,
+                                    actionLabel = retryLabel,
+                                ),
+                            )
+
+                        if (result == SnackbarResult.ActionPerformed) {
+                            accountViewModel.onIntent(AccountIntent.ProfileReadRetry)
+                        }
+                    }
+
                 AccountSideEffect.LogoutSuccess -> onLogoutSuccess()
                 AccountSideEffect.LogoutFailed ->
                     launch {
@@ -81,7 +101,7 @@ fun AccountRoute(
     }
 
     AccountScreen(
-        nickname = settingState.nickname,
+        nickname = accountState.nickname,
         isProcessing = accountState.isProcessing,
         onBackClick = onBackClick,
         onLogoutClick = { accountViewModel.onIntent(AccountIntent.LogoutClick) },

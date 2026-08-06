@@ -8,6 +8,6 @@ import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 data class SettingState(
     val nickname: String = "",
     val profileImageUrl: String? = null,
-    val isProfileLoading: Boolean = false,
+    val isProfileLoaded: Boolean = false,
     val primaryTheme: ThemeUiModel? = null,
 ) : UiState

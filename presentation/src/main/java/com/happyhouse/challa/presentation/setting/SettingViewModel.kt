@@ -44,7 +44,7 @@ class SettingViewModel
 
             profileReadJob =
                 viewModelScope.launch {
-                    updateState { copy(isProfileLoading = true) }
+                    updateState { copy(isProfileLoaded = false) }
 
                     when (val result = userRepository.getMyProfile()) {
                         is ChallaResult.Success ->
@@ -52,12 +52,11 @@ class SettingViewModel
                                 copy(
                                     nickname = result.data.nickname.orEmpty(),
                                     profileImageUrl = result.data.profileImageUrl,
-                                    isProfileLoading = false,
+                                    isProfileLoaded = true,
                                 )
                             }
 
                         is ChallaResult.Failure -> {
-                            updateState { copy(isProfileLoading = false) }
                             sendEffect(SettingSideEffect.ProfileReadFailed)
                         }
                     }
