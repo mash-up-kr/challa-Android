@@ -17,7 +17,6 @@ import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
-import com.happyhouse.challa.presentation.camera.model.CameraFilter
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -42,6 +41,7 @@ internal fun CameraContent(
     onCameraBindingFailed: (CameraBindingFailure) -> Unit,
     onPhotoCaptureResult: (requestId: Long, succeeded: Boolean) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
+    getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val captureRequest = state.captureRequest
@@ -72,7 +72,7 @@ internal fun CameraContent(
         roomName = selectedRoom?.name.orEmpty(),
         remainingCount = remainingCount,
         totalCount = selectedRoom?.totalCount ?: 0,
-        filters = CameraFilter.availableFilters,
+        filters = state.cameraFilters,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashEnabled = state.isFlashEnabled && cameraSessionState.hasFlashUnit,
         isCameraSwitchEnabled = canSwitchCamera,
@@ -103,9 +103,11 @@ internal fun CameraContent(
                     lensFacing = state.lensFacing,
                     isFlashEnabled = state.isFlashEnabled,
                     zoomLevel = state.zoomLevel,
+                    filters = state.cameraFilters,
                     selectedFilter = state.selectedFilter,
                     captureRequest = captureRequest,
                     bindingRetryKey = cameraBindingRetryKey,
+                    getCameraFilterFile = getCameraFilterFile,
                     onStateChanged = { cameraSessionState = it },
                     onEvent = { event ->
                         when (event) {

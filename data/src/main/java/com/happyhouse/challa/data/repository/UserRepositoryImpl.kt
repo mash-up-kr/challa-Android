@@ -1,7 +1,7 @@
 package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.UserApi
-import com.happyhouse.challa.data.network.dto.UpdateProfileRequest
+import com.happyhouse.challa.data.network.dto.request.UpdateProfileRequest
 import com.happyhouse.challa.domain.model.UserProfile
 import com.happyhouse.challa.domain.repository.UserRepository
 import com.happyhouse.challa.domain.result.ChallaResult
