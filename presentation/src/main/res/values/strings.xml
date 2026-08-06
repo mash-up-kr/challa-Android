@@ -28,14 +28,6 @@
     <string name="camera_binding_failed_message">카메라를 시작하지 못했어요.</string>
     <string name="camera_retry">재시도</string>
     <string name="camera_filter_original">원본</string>
-    <string name="camera_filter_true_cinematic">트루 시네마틱</string>
-    <string name="camera_filter_vintage_color">빈티지 컬러</string>
-    <string name="camera_filter_cool_blue_steel">쿨 블루 스틸</string>
-    <string name="camera_filter_classic_black_and_white">클래식 흑백</string>
-    <string name="camera_filter_cinematic_teal_orange">시네마틱 틸 &amp; 오렌지</string>
-    <string name="camera_filter_faded_kodak">페이디드 코닥</string>
-    <string name="camera_filter_high_contrast">하이 콘트라스트</string>
-    <string name="camera_filter_matte_fade">매트 페이드</string>
     <string name="camera_room_selector_description">방 선택</string>
     <string name="camera_room_sheet_title">방 선택하기</string>
     <string name="camera_room_sheet_close_description">방 선택 닫기</string>
@@ -90,6 +82,12 @@
     <string name="create_room_submit">만들기</string>
     <string name="create_room_failed">방 생성에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
 
+    <string name="enter_room_close_description">닫기</string>
+    <string name="enter_room_title">방 입장하기</string>
+    <string name="enter_room_code_placeholder">입장 코드 입력</string>
+    <string name="enter_room_submit">입장하기</string>
+    <string name="enter_room_failed">방 입장에 실패했어요. 잠시 후 다시 시도해 주세요.</string>
+
     <!-- photoDetailScreen -->
     <string name="photo_detail_back_description">뒤로가기</string>
     <string name="photo_detail_photo_content_description">사진</string>
@@ -99,6 +97,14 @@
     <string name="photo_detail_load_failure">사진을 불러오지 못했어요.</string>
     <string name="photo_detail_retry">다시 시도</string>
     <string name="photo_detail_empty">표시할 사진이 없어요.</string>
+    <string name="photo_detail_message_placeholder">이 사진에 메시지를 보내세요.</string>
+    <string name="photo_detail_message_send_description">메시지 보내기</string>
+    <string name="photo_detail_reaction_medal">메달 반응 남기기</string>
+    <string name="photo_detail_reaction_heart">하트 반응 남기기</string>
+    <string name="photo_detail_reaction_poop">똥 반응 남기기</string>
+    <string name="photo_detail_reaction_clap">박수 반응 남기기</string>
+    <string name="photo_detail_reaction_skull">해골 반응 남기기</string>
+    <string name="photo_detail_reaction_failure">반응을 남기지 못했어요.</string>
 
     <string name="share_invite_title">초대 링크 공유</string>
     <string name="share_invite_card_body">방이 생성되었어요. 일행을 초대하세요.</string>
@@ -150,6 +156,7 @@
     <string name="notification_system_disabled">휴대폰의 앱 알림이 꺼져있어요.</string>
     <string name="notification_service_title">서비스 알림</string>
     <string name="notification_service_description">인화 대기, 인화 완료 등</string>
+    <string name="notification_save_failure">알림 설정을 저장하지 못했어요.</string>
 
     <!-- accountScreen -->
     <string name="account_title">계정 관리</string>

@@ -9,19 +9,17 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class NotificationRepositoryImpl
-    @Inject
-    constructor(
-        private val notificationSettingsDataStore: NotificationSettingsDataStore,
-    ) : NotificationRepository {
-        override val isEnabled: Flow<ChallaResult<Boolean>> = notificationSettingsDataStore.isEnabled
+class NotificationRepositoryImpl @Inject constructor(
+    private val notificationSettingsDataStore: NotificationSettingsDataStore,
+) : NotificationRepository {
+    override val isEnabled: Flow<ChallaResult<Boolean>> = notificationSettingsDataStore.isEnabled
 
-        override suspend fun setEnabled(enabled: Boolean): ChallaResult<Unit> =
-            try {
-                notificationSettingsDataStore.setEnabled(enabled)
-                ChallaResult.Success(Unit)
-            } catch (throwable: Throwable) {
-                if (throwable is CancellationException) throw throwable
-                ChallaResult.Failure.Unknown(throwable)
-            }
-    }
+    override suspend fun setEnabled(enabled: Boolean): ChallaResult<Unit> =
+        try {
+            notificationSettingsDataStore.setEnabled(enabled)
+            ChallaResult.Success(Unit)
+        } catch (throwable: Throwable) {
+            if (throwable is CancellationException) throw throwable
+            ChallaResult.Failure.Unknown(throwable)
+        }
+}

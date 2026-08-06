@@ -1,9 +1,7 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Color
-import androidx.annotation.RawRes
 
 /**
  * `.cube` 3D LUT를 RuntimeShader가 샘플링할 수 있는 2D 비트맵으로 변환합니다.
@@ -13,20 +11,22 @@ import androidx.annotation.RawRes
  * 함께 변경되어야 합니다.
  */
 internal object CubeLut {
+    class Data(
+        val bitmap: Bitmap,
+        val fallbackColorMatrix: FloatArray,
+    )
+
     /**
-     * raw 리소스의 `LUT_3D_SIZE`와 RGB 샘플을 읽어 ARGB_8888 비트맵으로 변환합니다.
+     * `.cube` 파일 바이트의 `LUT_3D_SIZE`와 RGB 샘플을 읽어 ARGB_8888 비트맵으로 변환합니다.
      * 주석, `TITLE`, `DOMAIN_MIN`, `DOMAIN_MAX` 행은 색상 샘플에서 제외합니다.
      *
      * @throws IllegalArgumentException 크기 선언이 없거나 선언된 크기와 RGB 샘플 수가 다를 때
      */
-    fun load(
-        resources: Resources,
-        @RawRes resourceId: Int,
-    ): Bitmap {
+    fun load(cubeFile: ByteArray): Data {
         var size: Int? = null
         val colors = mutableListOf<Int>()
 
-        resources.openRawResource(resourceId).bufferedReader().useLines { lines ->
+        cubeFile.inputStream().bufferedReader().useLines { lines ->
             lines.forEach { rawLine ->
                 val line = rawLine.substringBefore('#').trim()
                 if (line.isEmpty()) return@forEach
@@ -40,7 +40,12 @@ internal object CubeLut {
                             val red = values[0].toFloatOrNull() ?: return@forEach
                             val green = values[1].toFloatOrNull() ?: return@forEach
                             val blue = values[2].toFloatOrNull() ?: return@forEach
-                            colors += Color.rgb(red.toColorByte(), green.toColorByte(), blue.toColorByte())
+                            colors +=
+                                Color.rgb(
+                                    red.toColorByte(),
+                                    green.toColorByte(),
+                                    blue.toColorByte(),
+                                )
                         }
                     }
                 }
@@ -63,11 +68,55 @@ internal object CubeLut {
             }
         }
 
-        return Bitmap.createBitmap(
-            pixels,
-            lutSize * lutSize,
-            lutSize,
-            Bitmap.Config.ARGB_8888,
+        return Data(
+            bitmap =
+                Bitmap.createBitmap(
+                    pixels,
+                    lutSize * lutSize,
+                    lutSize,
+                    Bitmap.Config.ARGB_8888,
+                ),
+            fallbackColorMatrix = createFallbackColorMatrix(colors, lutSize),
+        )
+    }
+
+    /** 3D LUT의 검정·RGB 기준점을 Android 4x5 ColorMatrix로 선형 근사합니다. */
+    private fun createFallbackColorMatrix(
+        colors: List<Int>,
+        lutSize: Int,
+    ): FloatArray {
+        val black = colors.first()
+        val red = colors[lutSize - 1]
+        val green = colors[(lutSize - 1) * lutSize]
+        val blue = colors[(lutSize - 1) * lutSize * lutSize]
+
+        fun coefficient(
+            color: Int,
+            base: Int,
+            component: (Int) -> Int,
+        ): Float = (component(color) - component(base)) / COLOR_BYTE_MAX
+
+        return floatArrayOf(
+            coefficient(red, black, Color::red),
+            coefficient(green, black, Color::red),
+            coefficient(blue, black, Color::red),
+            0f,
+            Color.red(black).toFloat(),
+            coefficient(red, black, Color::green),
+            coefficient(green, black, Color::green),
+            coefficient(blue, black, Color::green),
+            0f,
+            Color.green(black).toFloat(),
+            coefficient(red, black, Color::blue),
+            coefficient(green, black, Color::blue),
+            coefficient(blue, black, Color::blue),
+            0f,
+            Color.blue(black).toFloat(),
+            0f,
+            0f,
+            0f,
+            1f,
+            0f,
         )
     }
 }
@@ -75,4 +124,5 @@ internal object CubeLut {
 private fun Float.toColorByte(): Int = (coerceIn(0f, 1f) * 255f + 0.5f).toInt()
 
 private const val COLOR_COMPONENT_COUNT = 3
+private const val COLOR_BYTE_MAX = 255f
 private val WHITESPACE = Regex("\\s+")

@@ -20,16 +20,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.camera.model.CameraFilter
+import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
 internal fun CameraFilterSelector(
-    filters: ImmutableList<CameraFilter>,
+    filters: ImmutableList<CameraFilterUiModel>,
     selectedFilterIndex: Int,
     onFilterClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -43,12 +45,17 @@ internal fun CameraFilterSelector(
                     .fillMaxWidth()
                     .fadingHorizontalEdges(),
             state = listState,
-            contentPadding = PaddingValues(horizontal = FILTER_CONTENT_PADDING),
-            horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             items(
                 count = filters.size,
-                key = { filters[it].name },
+                key = { index ->
+                    when (val filter = filters[index]) {
+                        CameraFilterUiModel.Original -> "original"
+                        is CameraFilterUiModel.Remote -> filter.fileUrl
+                    }
+                },
             ) { index ->
                 CameraFilterItem(
                     filter = filters[index],
@@ -60,7 +67,7 @@ internal fun CameraFilterSelector(
     } else {
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
         ) {
             filters.forEachIndexed { index, filter ->
                 CameraFilterItem(
@@ -75,12 +82,16 @@ internal fun CameraFilterSelector(
 
 @Composable
 private fun CameraFilterItem(
-    filter: CameraFilter,
+    filter: CameraFilterUiModel,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
     Text(
-        text = stringResource(filter.labelResId),
+        text =
+            when (filter) {
+                CameraFilterUiModel.Original -> stringResource(R.string.camera_filter_original)
+                is CameraFilterUiModel.Remote -> filter.name
+            },
         modifier =
             Modifier.noRippleClickOnce(
                 role = Role.Tab,
@@ -118,12 +129,15 @@ private fun Modifier.fadingHorizontalEdges(): Modifier =
 @Composable
 private fun CameraFilterSelectorPreview() {
     CameraFilterSelector(
-        filters = CameraFilter.availableFilters,
+        filters =
+            persistentListOf(
+                CameraFilterUiModel.Original,
+                CameraFilterUiModel.Remote("필터1", "https://example.com/filter1.cube"),
+                CameraFilterUiModel.Remote("필터2", "https://example.com/filter2.cube"),
+            ),
         selectedFilterIndex = 0,
         onFilterClick = {},
     )
 }
 
 private const val SCROLLABLE_FILTER_COUNT = 5
-private val FILTER_ITEM_SPACING = 20.dp
-private val FILTER_CONTENT_PADDING = 20.dp

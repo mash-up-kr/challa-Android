@@ -8,4 +8,6 @@ sealed interface PhotoDetailSideEffect : UiSideEffect {
     data object SaveSucceeded : PhotoDetailSideEffect
 
     data object SaveFailed : PhotoDetailSideEffect
+
+    data object ReactionSendFailed : PhotoDetailSideEffect
 }

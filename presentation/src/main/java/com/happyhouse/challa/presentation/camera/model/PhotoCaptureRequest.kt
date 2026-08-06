@@ -14,6 +14,6 @@ import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 data class PhotoCaptureRequest(
     val requestId: Long,
     val roomId: Long,
-    val selectedFilter: CameraFilter,
+    val selectedFilter: CameraFilterUiModel,
     val lensFacing: CameraLensFacing,
 )

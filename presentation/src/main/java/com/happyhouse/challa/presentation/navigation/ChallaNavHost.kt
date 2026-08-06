@@ -20,7 +20,6 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
-import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.CreateProfileRoute
@@ -133,9 +132,6 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Home> {
                     HomeRoute(
-                        onNavigateToInviteCode = {
-                            // TODO JH: 초대 코드 입력 화면 구현되면 navigator.navigate(...) 연결
-                        },
                         onNavigateToSetting = {
                             navigator.navigate(ChallaRoute.Setting)
                         },
@@ -199,15 +195,6 @@ fun ChallaNavHost(
                         },
                         onWithdrawSuccess = {
                             navigator.clearAndNavigate(ChallaRoute.Login)
-                        },
-                    )
-                }
-                entry<ChallaRoute.ShareInvite> { route ->
-                    ShareInviteScreen(
-                        roomId = route.roomId,
-                        roomName = route.roomName,
-                        onClose = {
-                            navigator.goBack()
                         },
                     )
                 }

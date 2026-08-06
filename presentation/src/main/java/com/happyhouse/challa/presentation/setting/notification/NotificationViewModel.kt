@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,6 +21,9 @@ class NotificationViewModel
     constructor(
         private val notificationRepository: NotificationRepository,
     ) : ViewModel() {
+        private val _saveFailure = Channel<Unit>()
+        val saveFailure: Flow<Unit> = _saveFailure.receiveAsFlow()
+
         val isEnabled: StateFlow<Boolean> =
             notificationRepository.isEnabled
                 .mapNotNull { result ->
@@ -31,9 +37,11 @@ class NotificationViewModel
                     initialValue = true,
                 )
 
-        fun setEnabled(enabled: Boolean) {
+        fun onEnabledChange(enabled: Boolean) {
             viewModelScope.launch {
-                notificationRepository.setEnabled(enabled)
+                if (notificationRepository.setEnabled(enabled) is ChallaResult.Failure) {
+                    _saveFailure.send(Unit)
+                }
             }
         }
     }

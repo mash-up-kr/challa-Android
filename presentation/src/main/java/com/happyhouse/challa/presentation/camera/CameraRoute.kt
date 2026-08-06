@@ -131,6 +131,7 @@ fun CameraRoute(
         },
         onPhotoCaptureResult = viewModel::onPhotoCaptureResult,
         onPhotoCaptureCancelled = viewModel::onPhotoCaptureCancelled,
+        getCameraFilterFile = viewModel::getCameraFilterFile,
         onIntent = viewModel::onIntent,
     )
 }
