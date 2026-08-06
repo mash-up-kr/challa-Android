@@ -24,6 +24,7 @@ import com.happyhouse.challa.presentation.home.shareinvite.ShareInviteScreen
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.CreateProfileRoute
+import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
@@ -108,6 +109,14 @@ fun ChallaNavHost(
                         },
                     )
                 }
+                entry<ChallaRoute.EditProfile> { route ->
+                    EditProfileRoute(
+                        initialNickname = route.nickname,
+                        initialProfileImageUrl = route.profileImageUrl,
+                        onBackClick = { navigator.goBack() },
+                        onProfileUpdated = { navigator.goBack() },
+                    )
+                }
                 entry<ChallaRoute.Home> {
                     HomeRoute(
                         onNavigateToInviteCode = {
@@ -125,7 +134,14 @@ fun ChallaNavHost(
                 entry<ChallaRoute.Setting> {
                     SettingRoute(
                         onBackClick = { navigator.goBack() },
-                        onProfileEditClick = {},
+                        onProfileEditClick = { nickname, profileImageUrl ->
+                            navigator.navigate(
+                                ChallaRoute.EditProfile(
+                                    nickname = nickname,
+                                    profileImageUrl = profileImageUrl,
+                                ),
+                            )
+                        },
                         onThemeClick = {
                             navigator.navigate(ChallaRoute.ThemeSetting)
                         },

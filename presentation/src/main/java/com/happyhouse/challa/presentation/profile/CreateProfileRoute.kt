@@ -52,6 +52,7 @@ import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaBottomSheet
 import com.happyhouse.challa.presentation.designsystem.component.ChallaInputBox
+import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
@@ -69,12 +70,66 @@ import kotlinx.coroutines.launch
 fun CreateProfileRoute(
     onProfileCreated: (nickname: String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CreateProfileViewModel = hiltViewModel(),
+    viewModel: CreateProfileViewModel =
+        hiltViewModel<CreateProfileViewModel, CreateProfileViewModel.Factory>(
+            creationCallback = { factory ->
+                factory.create(
+                    mode = ProfileSettingMode.CREATE,
+                    nickname = "",
+                    profileImageUrl = null,
+                )
+            },
+        ),
+) {
+    ProfileSettingRoute(
+        onBackClick = {},
+        onProfileCreated = onProfileCreated,
+        onProfileUpdated = {},
+        modifier = modifier,
+        viewModel = viewModel,
+    )
+}
+
+@Composable
+fun EditProfileRoute(
+    initialNickname: String,
+    initialProfileImageUrl: String?,
+    onBackClick: () -> Unit,
+    onProfileUpdated: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: CreateProfileViewModel =
+        hiltViewModel<CreateProfileViewModel, CreateProfileViewModel.Factory>(
+            creationCallback = { factory ->
+                factory.create(
+                    mode = ProfileSettingMode.EDIT,
+                    nickname = initialNickname,
+                    profileImageUrl = initialProfileImageUrl,
+                )
+            },
+        ),
+) {
+    ProfileSettingRoute(
+        onBackClick = onBackClick,
+        onProfileCreated = {},
+        onProfileUpdated = onProfileUpdated,
+        modifier = modifier,
+        viewModel = viewModel,
+    )
+}
+
+@Composable
+private fun ProfileSettingRoute(
+    onBackClick: () -> Unit,
+    onProfileCreated: (nickname: String) -> Unit,
+    onProfileUpdated: () -> Unit,
+    modifier: Modifier,
+    viewModel: CreateProfileViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val profileCreateFailedMessage = stringResource(R.string.create_profile_submit_failure)
+    val profileUpdateFailedMessage = stringResource(R.string.edit_profile_submit_failure)
     val nicknameLengthExceededMessage =
         stringResource(R.string.create_profile_nickname_length_exceeded, NICKNAME_MAX_LENGTH)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
@@ -102,11 +157,13 @@ fun CreateProfileRoute(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is CreateProfileSideEffect.ProfileCreated -> onProfileCreated(effect.nickname)
+                CreateProfileSideEffect.ProfileUpdated -> onProfileUpdated()
                 CreateProfileSideEffect.ProfileCreateFailed -> showToast(profileCreateFailedMessage)
+                CreateProfileSideEffect.ProfileUpdateFailed -> showToast(profileUpdateFailedMessage)
                 CreateProfileSideEffect.NicknameLengthExceeded -> showToast(nicknameLengthExceededMessage)
             }
         }
@@ -115,6 +172,7 @@ fun CreateProfileRoute(
     CreateProfileScreen(
         state = state,
         onIntent = viewModel::onIntent,
+        onBackClick = onBackClick,
         onEditImageClick = { isImageSourceSheetVisible = true },
         modifier = modifier,
     )
@@ -189,9 +247,12 @@ private fun ProfileImageSourceBottomSheet(
 private fun CreateProfileScreen(
     state: CreateProfileState,
     onIntent: (CreateProfileIntent) -> Unit,
+    onBackClick: () -> Unit,
     onEditImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isEditMode = state.mode == ProfileSettingMode.EDIT
+
     Column(
         modifier =
             modifier
@@ -201,8 +262,28 @@ private fun CreateProfileScreen(
                 .imePadding(),
     ) {
         ChallaTopNavigation(
-            title = stringResource(id = R.string.create_profile_title),
+            title =
+                stringResource(
+                    id =
+                        if (isEditMode) {
+                            R.string.edit_profile_title
+                        } else {
+                            R.string.create_profile_title
+                        },
+                ),
             variant = ChallaTopNavigationVariant.SUB,
+            leadingIcon =
+                if (isEditMode) {
+                    {
+                        ChallaNavigationIconButton(
+                            icon = ChallaIcons.Left,
+                            onClick = onBackClick,
+                            contentDescription = stringResource(R.string.edit_profile_back_description),
+                        )
+                    }
+                } else {
+                    null
+                },
         )
 
         Column(
@@ -225,6 +306,7 @@ private fun CreateProfileScreen(
                 nickname = state.nickname,
                 profileImageUri = state.profileImageUri,
                 isCompleted = state.isCompleted,
+                isSubmitting = state.isSubmitting,
                 isNicknameLengthExceeded = state.isNicknameLengthExceeded,
                 onNicknameChange = { onIntent(CreateProfileIntent.NicknameChanged(it)) },
                 onEditImageClick = onEditImageClick,
@@ -234,7 +316,15 @@ private fun CreateProfileScreen(
 
         if (!state.isCompleted) {
             ChallaTextButton(
-                text = stringResource(id = R.string.create_profile_submit),
+                text =
+                    stringResource(
+                        id =
+                            if (isEditMode) {
+                                R.string.edit_profile_submit
+                            } else {
+                                R.string.create_profile_submit
+                            },
+                    ),
                 onClick = { onIntent(CreateProfileIntent.DoneClick) },
                 enabled = state.canSubmit,
                 modifier =
@@ -269,6 +359,7 @@ private fun ProfileCard(
     nickname: String,
     profileImageUri: String?,
     isCompleted: Boolean,
+    isSubmitting: Boolean,
     isNicknameLengthExceeded: Boolean,
     onNicknameChange: (String) -> Unit,
     onEditImageClick: () -> Unit,
@@ -286,7 +377,7 @@ private fun ProfileCard(
     ) {
         ProfileImagePicker(
             profileImageUri = profileImageUri,
-            isEditable = !isCompleted,
+            isEditable = !isCompleted && !isSubmitting,
             onClick = onEditImageClick,
         )
 
@@ -294,7 +385,7 @@ private fun ProfileCard(
             value = nickname,
             onValueChange = onNicknameChange,
             placeholder = stringResource(id = R.string.create_profile_nickname_placeholder),
-            enabled = !isCompleted,
+            enabled = !isCompleted && !isSubmitting,
             isError = isNicknameLengthExceeded,
         )
     }
@@ -378,6 +469,7 @@ private fun CreateProfileScreenEmptyPreview() {
         CreateProfileScreen(
             state = CreateProfileState(),
             onIntent = {},
+            onBackClick = {},
             onEditImageClick = {},
         )
     }
@@ -391,6 +483,7 @@ private fun CreateProfileScreenFilledPreview() {
         CreateProfileScreen(
             state = CreateProfileState(nickname = "찰나"),
             onIntent = {},
+            onBackClick = {},
             onEditImageClick = {},
         )
     }
@@ -404,6 +497,7 @@ private fun CreateProfileScreenCompletedPreview() {
         CreateProfileScreen(
             state = CreateProfileState(nickname = "찰나", isCompleted = true),
             onIntent = {},
+            onBackClick = {},
             onEditImageClick = {},
         )
     }

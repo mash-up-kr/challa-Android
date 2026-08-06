@@ -29,6 +29,12 @@ sealed interface ChallaRoute : NavKey {
     data object CreateProfile : ChallaRoute
 
     @Serializable
+    data class EditProfile(
+        val nickname: String,
+        val profileImageUrl: String?,
+    ) : ChallaRoute
+
+    @Serializable
     data object RoomMain : ChallaRoute
 
     @Serializable

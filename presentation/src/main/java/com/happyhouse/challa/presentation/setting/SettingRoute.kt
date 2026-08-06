@@ -6,9 +6,13 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
@@ -23,7 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingRoute(
     onBackClick: () -> Unit,
-    onProfileEditClick: () -> Unit,
+    onProfileEditClick: (nickname: String, profileImageUrl: String?) -> Unit,
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
@@ -37,6 +41,16 @@ fun SettingRoute(
     val themeReadFailureMessage = stringResource(R.string.theme_read_failure)
     val retryLabel = stringResource(R.string.theme_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
+    var hasResumedOnce by rememberSaveable { mutableStateOf(false) }
+
+    LifecycleResumeEffect(viewModel) {
+        if (hasResumedOnce) {
+            viewModel.onIntent(SettingIntent.FetchData)
+        } else {
+            hasResumedOnce = true
+        }
+        onPauseOrDispose {}
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -73,7 +87,9 @@ fun SettingRoute(
         SettingScreen(
             state = state,
             onBackClick = onBackClick,
-            onProfileEditClick = onProfileEditClick,
+            onProfileEditClick = {
+                onProfileEditClick(state.nickname, state.profileImageUrl)
+            },
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,

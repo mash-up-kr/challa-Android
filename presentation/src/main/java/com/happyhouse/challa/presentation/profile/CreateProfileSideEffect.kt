@@ -7,7 +7,11 @@ sealed interface CreateProfileSideEffect : UiSideEffect {
         val nickname: String,
     ) : CreateProfileSideEffect
 
+    data object ProfileUpdated : CreateProfileSideEffect
+
     data object ProfileCreateFailed : CreateProfileSideEffect
+
+    data object ProfileUpdateFailed : CreateProfileSideEffect
 
     data object NicknameLengthExceeded : CreateProfileSideEffect
 }
