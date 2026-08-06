@@ -40,7 +40,7 @@ class CameraViewModel @AssistedInject constructor(
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
             is CameraIntent.FetchData -> fetchData(intent.roomId)
-            CameraIntent.RoomLoadRetry -> fetchRooms(roomId)
+            CameraIntent.RoomLoadRetry -> fetchShootableRooms(roomId)
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             CameraIntent.ShutterClick -> handleShutterClick()
@@ -51,15 +51,15 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun fetchData(roomId: Long) {
-        fetchRooms(roomId)
+        fetchShootableRooms(roomId)
         fetchCameraFilters()
     }
 
-    private fun fetchRooms(roomId: Long) {
+    private fun fetchShootableRooms(roomId: Long) {
         viewModelScope.launch {
             updateState { copy(roomLoadState = CameraRoomLoadState.LOADING) }
 
-            when (val result = roomRepository.getRooms()) {
+            when (val result = roomRepository.getShootableRooms()) {
                 is ChallaResult.Success -> {
                     val rooms = result.data.map { it.toUiModel() }.toPersistentList()
                     val selectedRoomId = rooms.firstOrNull { it.id == roomId }?.id
@@ -103,7 +103,11 @@ class CameraViewModel @AssistedInject constructor(
                     updateState {
                         copy(
                             cameraFilters = cameraFilters,
-                            selectedFilterIndex = selectedFilterIndex.coerceIn(0, cameraFilters.lastIndex),
+                            selectedFilterIndex =
+                                selectedFilterIndex.coerceIn(
+                                    0,
+                                    cameraFilters.lastIndex,
+                                ),
                         )
                     }
                 }
