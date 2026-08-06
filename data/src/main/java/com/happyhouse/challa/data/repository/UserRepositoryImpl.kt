@@ -15,6 +15,17 @@ class UserRepositoryImpl
     constructor(
         private val userApi: UserApi,
     ) : UserRepository {
+        override suspend fun getMyProfile(): ChallaResult<UserProfile> =
+            userApi.getMyProfile().mapCatching { response ->
+                check(response.success) { response.message }
+                val user = requireNotNull(response.data) { "프로필 응답 데이터가 비어 있습니다." }.user
+                UserProfile(
+                    id = user.id,
+                    nickname = user.nickname,
+                    profileImageUrl = user.profileImageUrl,
+                )
+            }
+
         override suspend fun updateProfile(
             nickname: String,
             profileImageUrl: String?,

@@ -41,6 +41,10 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // Figma(390x844) 기준 카드 높이. 화면 폭에 비례시키면 폴더블·태블릿에서 화면 밖으로 넘쳐서 높이는 고정한다.
@@ -57,6 +61,7 @@ private val PhotoDimBrush =
 @Composable
 fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
+    reactions: ImmutableList<PhotoReactionUiModel>,
     modifier: Modifier = Modifier,
 ) {
     // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다.
@@ -99,6 +104,12 @@ fun PhotoDetailPage(
                     .align(Alignment.TopCenter)
                     .padding(top = 32.dp),
             photo = photo,
+        )
+
+        // 카드가 clip(PhotoShape)돼 있어 스티커는 사진 영역 안에서만 보인다.
+        PhotoReactionOverlay(
+            modifier = Modifier.fillMaxSize(),
+            reactions = reactions,
         )
     }
 }
@@ -191,6 +202,11 @@ private fun PhotoDetailPagePreview() {
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토",
                 capturedDate = "2026. 7. 16. 14:34",
+            ),
+        reactions =
+            persistentListOf(
+                PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.HEART),
+                PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.CLAP),
             ),
     )
 }
