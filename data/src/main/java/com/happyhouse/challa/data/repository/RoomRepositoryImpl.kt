@@ -107,12 +107,16 @@ class RoomRepositoryImpl
                 ),
             )
 
+        /**
+         * 서버가 상태를 새로 추가해도 방 이름·사진까지 통째로 못 보게 되지는 않도록,
+         * 모르는 상태는 촬영 중으로 본다.
+         */
         private fun String.toRoomStatus(): RoomStatus =
             when (this) {
                 SHOOTING -> RoomStatus.SHOOTING
                 PHOTO_PRINT_PENDING -> RoomStatus.PHOTO_PRINT_PENDING
                 PHOTO_PRINT_COMPLETED -> RoomStatus.PHOTO_PRINT_COMPLETED
-                else -> error("알 수 없는 방 상태입니다: $this")
+                else -> RoomStatus.SHOOTING
             }
 
         /**
