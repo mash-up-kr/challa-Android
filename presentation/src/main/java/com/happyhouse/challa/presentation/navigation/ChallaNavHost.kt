@@ -3,13 +3,21 @@ package com.happyhouse.challa.presentation.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.CameraRoute
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
 import com.happyhouse.challa.presentation.login.LoginRoute
@@ -17,13 +25,20 @@ import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.CreateProfileRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
+import com.happyhouse.challa.presentation.setting.account.AccountRoute
+import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChallaNavHost(
     navigator: ChallaNavigator,
     modifier: Modifier = Modifier,
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val logoutSuccessMessage = stringResource(R.string.account_logout_success)
+
     NavDisplay(
         backStack = navigator.backStack,
         modifier = modifier,
@@ -76,6 +91,7 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Login> {
                     LoginRoute(
+                        snackbarHostState = snackbarHostState,
                         onLoginSuccess = { isNewUser ->
                             // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
                             navigator.replace(
@@ -109,8 +125,12 @@ fun ChallaNavHost(
                         onThemeClick = {
                             navigator.navigate(ChallaRoute.ThemeSetting)
                         },
-                        onNotificationClick = {},
-                        onAccountClick = {},
+                        onNotificationClick = {
+                            navigator.navigate(ChallaRoute.Notification)
+                        },
+                        onAccountClick = {
+                            navigator.navigate(ChallaRoute.Account)
+                        },
                         onSupportClick = {},
                         onFeedbackClick = {},
                     )
@@ -118,6 +138,33 @@ fun ChallaNavHost(
                 entry<ChallaRoute.ThemeSetting> {
                     ThemeRoute(
                         onBackClick = { navigator.goBack() },
+                    )
+                }
+                entry<ChallaRoute.Notification> {
+                    NotificationRoute(
+                        onBackClick = { navigator.goBack() },
+                    )
+                }
+                entry<ChallaRoute.Account> {
+                    AccountRoute(
+                        onBackClick = { navigator.goBack() },
+                        onLogoutSuccess = {
+                            navigator.clearAndNavigate(ChallaRoute.Login)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    ChallaSnackbarVisuals(
+                                        content =
+                                            ChallaSnackbarContent.HeadingOnly(
+                                                heading = logoutSuccessMessage,
+                                            ),
+                                        icon = ChallaIcons.Check,
+                                    ),
+                                )
+                            }
+                        },
+                        onWithdrawSuccess = {
+                            navigator.clearAndNavigate(ChallaRoute.Login)
+                        },
                     )
                 }
             },
