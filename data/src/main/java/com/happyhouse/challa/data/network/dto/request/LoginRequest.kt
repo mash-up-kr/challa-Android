@@ -1,4 +1,4 @@
-package com.happyhouse.challa.data.network.dto
+package com.happyhouse.challa.data.network.dto.request
 
 import kotlinx.serialization.Serializable
 

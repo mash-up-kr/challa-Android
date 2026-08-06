@@ -2,7 +2,7 @@ package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.AuthApi
-import com.happyhouse.challa.data.network.dto.LoginRequest
+import com.happyhouse.challa.data.network.dto.request.LoginRequest
 import com.happyhouse.challa.data.network.qualifier.RefreshClient
 import com.happyhouse.challa.domain.model.AuthTokens
 import com.happyhouse.challa.domain.repository.AuthRepository
