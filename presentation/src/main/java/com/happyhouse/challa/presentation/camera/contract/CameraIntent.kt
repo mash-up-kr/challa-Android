@@ -5,10 +5,6 @@ import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 
 /** 카메라 화면의 사용자 입력과 화면 동작 요청입니다. */
 sealed interface CameraIntent : UiIntent {
-    data class FetchData(
-        val roomId: Long,
-    ) : CameraIntent
-
     data object RoomLoadRetry : CameraIntent
 
     /**

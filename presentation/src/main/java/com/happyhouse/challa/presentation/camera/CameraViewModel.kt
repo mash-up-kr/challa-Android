@@ -25,7 +25,7 @@ import timber.log.Timber
 
 @HiltViewModel(assistedFactory = CameraViewModel.Factory::class)
 class CameraViewModel @AssistedInject constructor(
-    @Assisted private val roomId: Long,
+    @Assisted roomId: Long,
     private val cameraRepository: CameraRepository,
     private val roomRepository: RoomRepository,
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
@@ -34,13 +34,12 @@ class CameraViewModel @AssistedInject constructor(
     private var nextCaptureRequestId = 0L
 
     init {
-        onIntent(CameraIntent.FetchData(roomId))
+        fetchData()
     }
 
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
-            is CameraIntent.FetchData -> fetchData(intent.roomId)
-            CameraIntent.RoomLoadRetry -> fetchShootableRooms(roomId)
+            CameraIntent.RoomLoadRetry -> fetchShootableRooms()
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             CameraIntent.ShutterClick -> handleShutterClick()
@@ -50,25 +49,27 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
-    private fun fetchData(roomId: Long) {
-        fetchShootableRooms(roomId)
+    private fun fetchData() {
+        fetchShootableRooms()
         fetchCameraFilters()
     }
 
-    private fun fetchShootableRooms(roomId: Long) {
+    private fun fetchShootableRooms() {
+        val requestedRoomId = currentState.selectedRoomId
+
         viewModelScope.launch {
             updateState { copy(roomLoadState = CameraRoomLoadState.LOADING) }
 
             when (val result = roomRepository.getShootableRooms()) {
                 is ChallaResult.Success -> {
                     val rooms = result.data.map { it.toUiModel() }.toPersistentList()
-                    val selectedRoomId = rooms.firstOrNull { it.id == roomId }?.id
+                    val selectedRoomId = rooms.firstOrNull { it.id == requestedRoomId }?.id
 
                     if (selectedRoomId == null) {
                         updateState { copy(roomLoadState = CameraRoomLoadState.FAILED) }
                         Timber.e(
                             "선택할 방을 찾을 수 없습니다: roomId=%d, roomCount=%d",
-                            roomId,
+                            requestedRoomId,
                             rooms.size,
                         )
                         sendEffect(CameraSideEffect.RoomLoadFailed)

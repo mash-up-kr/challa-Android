@@ -48,6 +48,5 @@ enum class CameraRoomLoadState {
 
 enum class CameraLensFacing {
     BACK,
-
     FRONT,
 }
