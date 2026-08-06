@@ -75,7 +75,10 @@ class GalleryViewModel @AssistedInject constructor(
                 val photosResult = photosDeferred.await()
 
                 if (roomResult !is ChallaResult.Success || photosResult !is ChallaResult.Success) {
-                    Timber.e("갤러리를 불러오지 못했습니다. room=$roomResult, photos=$photosResult")
+                    Timber.e(
+                        roomResult.causeOrNull() ?: photosResult.causeOrNull(),
+                        "갤러리를 불러오지 못했습니다. room=$roomResult, photos=$photosResult",
+                    )
                     updateState { copy(photoInfo = PhotoInfo.Error) }
                     return@launch
                 }
@@ -208,3 +211,14 @@ class GalleryViewModel @AssistedInject constructor(
         private const val MOCK_MEMBER_COUNT = 6
     }
 }
+
+/**
+ * 실패에 딸린 원인 예외. 스택트레이스가 남도록 로그에 함께 넘긴다.
+ * 원인 예외가 없는 실패(HTTP 응답 코드로만 표현되는 실패)는 null이다.
+ */
+private fun ChallaResult<*>.causeOrNull(): Throwable? =
+    when (this) {
+        is ChallaResult.Failure.Network -> cause
+        is ChallaResult.Failure.Unknown -> cause
+        is ChallaResult.Failure.Http, is ChallaResult.Success -> null
+    }
