@@ -119,10 +119,11 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     /**
-     * 인화 대기 중이고 남은 시간이 있을 때만 카운트다운을 시작한다.
+     * 인화 대기 중일 때만 인화 완료를 지켜본다.
      *
-     * 0초에서 시작하면 첫 tick에 곧바로 끝나면서 완료 콜백이 그 자리에서 실행되고,
-     * 아직 끝나지 않은 조회를 취소하게 되므로 아예 시작하지 않는다.
+     * 남은 시간이 있으면 카운트다운을 돌리고, 완료 시각이 이미 지났는데도 서버 상태가 아직
+     * 인화 대기면 잠시 뒤 상태를 다시 확인한다. 이때 카운트다운을 0초에서 시작하면 첫 tick에
+     * 곧바로 끝나면서 완료 콜백이 그 자리에서 실행되어 아직 끝나지 않은 조회를 취소한다.
      */
     private fun startCountdownIfNeeded(
         room: RoomDetail,
@@ -131,7 +132,8 @@ class GalleryViewModel @AssistedInject constructor(
         if (room.status != RoomStatus.PHOTO_PRINT_PENDING) return
 
         if (remainingSeconds <= 0L) {
-            Timber.w("인화 대기 중이지만 남은 시간이 없어 카운트다운을 시작하지 않습니다. 완료 시각=${room.photoPrintCompletionAt}")
+            Timber.w("인화 대기지만 남은 시간이 없어 잠시 뒤 상태를 다시 확인합니다. 완료 시각=${room.photoPrintCompletionAt}")
+            schedulePrintStatusRecheck()
             return
         }
 
@@ -145,23 +147,42 @@ class GalleryViewModel @AssistedInject constructor(
      * 화면이 백그라운드로 내려갔다 돌아와도 값이 어긋나지 않게 하기 위함이다.
      */
     private fun startCountdown() {
-        val job =
-            viewModelScope.launch {
-                while (true) {
-                    // 조건과 표시에 같은 값을 쓰도록 한 번만 읽는다.
-                    val remainingSeconds = remainingSecondsUntilPrintComplete()
-                    updateRemainingSeconds(remainingSeconds)
+        watchPrintCompletion {
+            while (true) {
+                // 조건과 표시에 같은 값을 쓰도록 한 번만 읽는다.
+                val remainingSeconds = remainingSecondsUntilPrintComplete()
+                updateRemainingSeconds(remainingSeconds)
 
-                    if (remainingSeconds <= 0L) break
-                    delay(COUNTDOWN_TICK_MS)
-                }
+                if (remainingSeconds <= 0L) break
+                delay(COUNTDOWN_TICK_MS)
             }
+        }
+    }
+
+    /**
+     * 완료 시각은 지났는데 서버 상태가 아직 인화 대기일 때, 잠시 뒤 방 상태를 다시 확인한다.
+     *
+     * 이 처리가 없으면 화면이 남은 시간 0인 인화 대기로 굳어 재조회할 방법이 없다.
+     * 다시 확인해도 여전히 인화 대기면 같은 경로를 타므로, 서버 상태가 넘어갈 때까지
+     * 이 화면에 머무는 동안 [PRINT_STATUS_RECHECK_MS] 간격으로 조용히 재조회한다.
+     */
+    private fun schedulePrintStatusRecheck() {
+        watchPrintCompletion {
+            delay(PRINT_STATUS_RECHECK_MS)
+        }
+    }
+
+    /**
+     * 인화 완료를 지켜보는 작업을 걸고, 정상적으로 끝나면 공개된 사진을 다시 받아온다.
+     *
+     * 재조회를 작업 코루틴 안에서 부르면 자기 자신을 취소하게 되므로 완료된 뒤에 잇는다.
+     * 취소로 끝난 경우(cause != null)는 재조회하지 않는다.
+     */
+    private fun watchPrintCompletion(block: suspend () -> Unit) {
+        val job = viewModelScope.launch { block() }
         // 콜백에서 countdownJob을 취소하므로 대입을 먼저 끝낸다.
         countdownJob = job
 
-        // 인화가 끝났으니 공개된 사진을 다시 받아온다.
-        // 카운트다운 코루틴 안에서 부르면 자기 자신을 취소하게 되므로 완료된 뒤에 잇는다.
-        // 취소로 끝난 경우(cause != null)는 재조회하지 않는다.
         job.invokeOnCompletion { cause ->
             if (cause == null) handlePhotosLoad(showLoading = false)
         }
@@ -207,6 +228,9 @@ class GalleryViewModel @AssistedInject constructor(
     companion object {
         private const val MILLIS_PER_SECOND = 1_000L
         private const val COUNTDOWN_TICK_MS = 1_000L
+
+        /** 완료 시각이 지났는데도 서버 상태가 인화 대기일 때 다시 확인하기까지 기다리는 시간 */
+        private const val PRINT_STATUS_RECHECK_MS = 5_000L
 
         private const val MOCK_MEMBER_COUNT = 6
     }
