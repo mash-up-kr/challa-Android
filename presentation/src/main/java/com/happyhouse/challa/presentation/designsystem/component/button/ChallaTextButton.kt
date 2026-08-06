@@ -51,17 +51,19 @@ fun ChallaTextButton(
                 horizontal = sizeSpec.horizontalPadding,
                 vertical = sizeSpec.verticalPadding,
             ),
-    ) { contentColor ->
+    ) { defaultContentColor ->
+        val resolvedContentColor = contentColor ?: defaultContentColor
+
         if (loading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(sizeSpec.loadingIndicatorSize),
-                color = contentColor,
+                color = resolvedContentColor,
                 strokeWidth = 2.dp,
             )
         } else {
             Text(
                 text = text,
-                color = contentColor,
+                color = resolvedContentColor,
                 textAlign = TextAlign.Center,
                 style = sizeSpec.textStyle,
             )

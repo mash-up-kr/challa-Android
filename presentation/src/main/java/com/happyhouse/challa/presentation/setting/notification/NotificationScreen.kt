@@ -18,6 +18,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,9 +51,11 @@ fun NotificationScreen(
     onSystemNotificationSettingClick: () -> Unit,
     onServiceNotificationEnabledChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState? = null,
 ) {
     ChallaScaffold(
         modifier = modifier,
+        snackbarHostState = snackbarHostState,
         topBar = {
             ChallaTopNavigation(
                 title = stringResource(R.string.notification_title),

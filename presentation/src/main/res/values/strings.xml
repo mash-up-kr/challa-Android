@@ -151,6 +151,7 @@
     <string name="notification_system_disabled">휴대폰의 앱 알림이 꺼져있어요.</string>
     <string name="notification_service_title">서비스 알림</string>
     <string name="notification_service_description">인화 대기, 인화 완료 등</string>
+    <string name="notification_save_failure">알림 설정을 저장하지 못했어요.</string>
 
     <!-- accountScreen -->
     <string name="account_title">계정 관리</string>

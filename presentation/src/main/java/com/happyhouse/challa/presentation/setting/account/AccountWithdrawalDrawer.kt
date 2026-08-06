@@ -76,8 +76,8 @@ private fun AccountWithdrawalConfirmationDrawerContent(
                 onClick = onConfirmClick,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isWithdrawing,
-                variant = ChallaButtonVariant.NEUTRAL,
                 containerColor = ChallaTheme.colors.statusDestructive.takeUnless { isWithdrawing },
+                contentColor = ChallaTheme.colors.labelNormal.takeUnless { isWithdrawing },
             )
             Spacer(modifier = Modifier.height(8.dp))
             ChallaTextButton(
