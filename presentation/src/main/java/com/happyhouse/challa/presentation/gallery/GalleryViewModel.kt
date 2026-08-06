@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.gallery
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -18,6 +19,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -71,8 +73,10 @@ class GalleryViewModel @AssistedInject constructor(
                 // 방 정보와 사진 목록이 둘 다 있어야 화면을 그릴 수 있으므로 함께 요청한다.
                 val roomDeferred = async { roomRepository.getRoom(roomId) }
                 val photosDeferred = async { photoRepository.getPhotos(roomId) }
+                val usersDeferred = async { roomRepository.getRoomUsers(roomId) }
                 val roomResult = roomDeferred.await()
                 val photosResult = photosDeferred.await()
+                val usersResult = usersDeferred.await()
 
                 if (roomResult !is ChallaResult.Success || photosResult !is ChallaResult.Success) {
                     Timber.e(
@@ -87,11 +91,20 @@ class GalleryViewModel @AssistedInject constructor(
                 printCompletionAt = room.photoPrintCompletionAt
                 val remainingSeconds = remainingSecondsUntilPrintComplete()
 
+                // 참여자는 사진 위에 얹히는 부가 정보라, 실패해도 갤러리 본문까지 막지 않고 프로필 바만 비운다.
+                val members =
+                    when (usersResult) {
+                        is ChallaResult.Success -> usersResult.data.toGalleryMembers()
+                        is ChallaResult.Failure -> {
+                            Timber.w(usersResult.causeOrNull(), "방 참여자를 불러오지 못했습니다. users=$usersResult")
+                            persistentListOf()
+                        }
+                    }
+
                 updateState {
                     copy(
                         roomName = room.title,
-                        // TODO: 참여자 목록 API가 나오면 실제 참여자로 교체할 것.
-                        members = loadMockMembers(),
+                        members = members,
                         photoInfo = room.toPhotoInfo(photosResult.data, remainingSeconds),
                     )
                 }
@@ -210,16 +223,6 @@ class GalleryViewModel @AssistedInject constructor(
         return ceil(remainingMillis.toDouble() / MILLIS_PER_SECOND).toLong()
     }
 
-    // TODO: 참여자 목록 API가 없어 임시로 쓰는 mock 참여자
-    private fun loadMockMembers(): ImmutableList<GalleryMemberUiModel> =
-        (0 until MOCK_MEMBER_COUNT)
-            .map { index ->
-                GalleryMemberUiModel(
-                    id = index.toLong(),
-                    profileImageUrl = "https://picsum.photos/seed/${roomId}_member_$index/60/60",
-                )
-            }.toPersistentList()
-
     @AssistedFactory
     interface Factory {
         fun create(roomId: Long): GalleryViewModel
@@ -231,10 +234,16 @@ class GalleryViewModel @AssistedInject constructor(
 
         /** 완료 시각이 지났는데도 서버 상태가 인화 대기일 때 다시 확인하기까지 기다리는 시간 */
         private const val PRINT_STATUS_RECHECK_MS = 5_000L
-
-        private const val MOCK_MEMBER_COUNT = 6
     }
 }
+
+private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiModel> =
+    map { user ->
+        GalleryMemberUiModel(
+            id = user.id,
+            profileImageUrl = user.profileImageUrl,
+        )
+    }.toPersistentList()
 
 /**
  * 실패에 딸린 원인 예외. 스택트레이스가 남도록 로그에 함께 넘긴다.

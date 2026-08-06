@@ -71,11 +71,13 @@ data class GalleryFilmSlotUiModel(
 
 /**
  * 방 참여자 UI 모델
+ *
+ * @param profileImageUrl 프로필 사진을 등록하지 않은 참여자는 null
  */
 @Immutable
 data class GalleryMemberUiModel(
     val id: Long,
-    val profileImageUrl: String,
+    val profileImageUrl: String?,
 )
 
 /**

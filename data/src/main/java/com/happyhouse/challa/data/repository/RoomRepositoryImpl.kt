@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomSummary
+import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -35,6 +36,19 @@ class RoomRepositoryImpl
                     status = room.status.toRoomStatus(),
                     photoPrintCompletionAt = room.photoPrintCompletionAt?.toInstantOrNull(),
                 )
+            }
+
+        override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
+            roomApi.getRoomUsers(roomId).mapCatching { response ->
+                check(response.success) { response.message }
+                val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.room
+                users.map { user ->
+                    RoomUser(
+                        id = user.id,
+                        nickname = user.nickname,
+                        profileImageUrl = user.profileImageUrl,
+                    )
+                }
             }
 
         override suspend fun postRoom(
