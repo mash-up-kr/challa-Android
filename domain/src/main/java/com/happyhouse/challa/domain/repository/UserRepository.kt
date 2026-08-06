@@ -6,6 +6,8 @@ import com.happyhouse.challa.domain.result.ChallaResult
 interface UserRepository {
     suspend fun getMyProfile(): ChallaResult<UserProfile>
 
+    suspend fun withdraw(): ChallaResult<Unit>
+
     suspend fun updateProfile(
         nickname: String,
         profileImageUrl: String?,

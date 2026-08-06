@@ -26,6 +26,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -44,8 +45,8 @@ internal fun CameraFilterSelector(
                     .fillMaxWidth()
                     .fadingHorizontalEdges(),
             state = listState,
-            contentPadding = PaddingValues(horizontal = FILTER_CONTENT_PADDING),
-            horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             items(
                 count = filters.size,
@@ -66,7 +67,7 @@ internal fun CameraFilterSelector(
     } else {
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(FILTER_ITEM_SPACING, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
         ) {
             filters.forEachIndexed { index, filter ->
                 CameraFilterItem(
@@ -129,7 +130,7 @@ private fun Modifier.fadingHorizontalEdges(): Modifier =
 private fun CameraFilterSelectorPreview() {
     CameraFilterSelector(
         filters =
-            kotlinx.collections.immutable.persistentListOf(
+            persistentListOf(
                 CameraFilterUiModel.Original,
                 CameraFilterUiModel.Remote("필터1", "https://example.com/filter1.cube"),
                 CameraFilterUiModel.Remote("필터2", "https://example.com/filter2.cube"),
@@ -140,5 +141,3 @@ private fun CameraFilterSelectorPreview() {
 }
 
 private const val SCROLLABLE_FILTER_COUNT = 5
-private val FILTER_ITEM_SPACING = 20.dp
-private val FILTER_CONTENT_PADDING = 20.dp

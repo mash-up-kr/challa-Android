@@ -10,5 +10,12 @@ interface RoomRepository {
         totalPhotoCount: Int,
     ): ChallaResult<CreatedRoom>
 
+    /**
+     * 입장 코드로 방에 참여한다. 성공 시 참여한 방의 식별자를 반환한다.
+     *
+     * @param code 방 입장 코드.
+     */
+    suspend fun enterRoom(code: String): ChallaResult<CreatedRoom>
+
     suspend fun getShootableRooms(): ChallaResult<List<ShootableRoom>>
 }

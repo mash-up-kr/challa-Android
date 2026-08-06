@@ -2,7 +2,6 @@ package com.happyhouse.challa.presentation.photodetail.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -59,12 +58,10 @@ fun PhotoDetailContent(
             }
 
             is PhotoInfo.Loaded -> {
+                // 카드 높이를 남는 공간에 맞춰 줄여야 해서 높이를 다 넘긴다. 가운데 정렬은 Pager가 한다.
                 PhotoDetailPager(
-                    modifier =
-                        Modifier
-                            .align(Alignment.Center)
-                            .fillMaxWidth(),
-                    photos = photoInfo.photos,
+                    modifier = Modifier.fillMaxSize(),
+                    loaded = photoInfo,
                     pagerState = pagerState,
                 )
             }
