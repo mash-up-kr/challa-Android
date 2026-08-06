@@ -1,11 +1,12 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -16,9 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
-import kotlinx.collections.immutable.ImmutableList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val PhotoHorizontalPadding = 16.dp
@@ -28,27 +28,37 @@ private val PhotoPageSpacing = PhotoHorizontalPadding * 2
 
 @Composable
 fun PhotoDetailPager(
-    photos: ImmutableList<PhotoDetailUiModel>,
+    loaded: PhotoInfo.Loaded,
     pagerState: PagerState,
     modifier: Modifier = Modifier,
 ) {
+    val photos = loaded.photos
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
+        // weight를 쓰면 Column이 높이를 다 차지하므로 가운데 정렬은 Arrangement로 잡는다.
+        verticalArrangement = Arrangement.Center,
     ) {
         HorizontalPager(
+            // 키보드가 올라오면 쓸 수 있는 높이가 줄어든다. 높이를 고정하면 그만큼 잘리므로
+            // 남는 높이에 맞춰 줄어들되 PhotoCardHeight는 넘지 않게 한다.
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(PhotoCardHeight),
+                    .weight(weight = 1f, fill = false)
+                    .heightIn(max = PhotoCardHeight),
             state = pagerState,
             contentPadding = PaddingValues(horizontal = PhotoHorizontalPadding),
             pageSpacing = PhotoPageSpacing,
             key = { page -> photos[page].id },
         ) { page ->
+            val photo = photos[page]
+
             PhotoDetailPage(
                 modifier = Modifier.fillMaxSize(),
-                photo = photos[page],
+                photo = photo,
+                reactions = loaded.reactionsOf(photo.id),
             )
         }
 
@@ -71,7 +81,7 @@ private fun PhotoDetailPagerPreview() {
     ) {
         PhotoDetailPager(
             modifier = Modifier.fillMaxWidth(),
-            photos = photos,
+            loaded = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
         )
     }
@@ -93,7 +103,7 @@ private fun PhotoDetailPagerSinglePhotoPreview() {
     ) {
         PhotoDetailPager(
             modifier = Modifier.fillMaxWidth(),
-            photos = photos,
+            loaded = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
         )
     }
