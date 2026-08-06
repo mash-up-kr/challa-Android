@@ -82,7 +82,6 @@ fun AccountRoute(
 
     AccountScreen(
         nickname = settingState.nickname,
-        maskedEmail = settingState.email,
         isProcessing = accountState.isProcessing,
         onBackClick = onBackClick,
         onLogoutClick = { accountViewModel.onIntent(AccountIntent.LogoutClick) },

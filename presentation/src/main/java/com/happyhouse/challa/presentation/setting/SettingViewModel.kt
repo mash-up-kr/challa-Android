@@ -21,7 +21,7 @@ class SettingViewModel
         private val themeRepository: ThemeRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<SettingState, SettingIntent, SettingSideEffect>(
-            initialState = SettingState(email = "abc@email.com"),
+            initialState = SettingState(),
         ) {
         private var profileReadJob: Job? = null
         private var themeReadJob: Job? = null

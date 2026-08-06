@@ -1,8 +1,6 @@
 package com.happyhouse.challa.presentation.setting.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -71,24 +69,15 @@ fun SettingProfile(
             )
         }
 
-        Column(
+        Text(
+            text = state.nickname,
             modifier =
                 Modifier
                     .weight(1f)
                     .padding(start = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text(
-                text = state.nickname,
-                color = ChallaTheme.colors.labelNormal,
-                style = ChallaTheme.typography.bodyMedium.bold,
-            )
-            Text(
-                text = state.email,
-                color = ChallaTheme.colors.labelAlternative,
-                style = ChallaTheme.typography.bodyMedium.regular,
-            )
-        }
+            color = ChallaTheme.colors.labelNormal,
+            style = ChallaTheme.typography.bodyMedium.bold,
+        )
 
         ChallaIconButton(
             icon = ChallaIcons.Edit,
@@ -109,7 +98,6 @@ private fun SettingProfilePreview() {
             SettingState(
                 nickname = "나는야멋쟁이토마토",
                 profileImageUrl = "https://example.com/profile.jpg",
-                email = "abc@email.com",
             ),
         onEditClick = {},
     )

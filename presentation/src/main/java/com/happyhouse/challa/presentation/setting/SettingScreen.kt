@@ -118,7 +118,6 @@ private fun SettingScreenPreview() {
             SettingState(
                 nickname = "나는야멋쟁이토마토",
                 profileImageUrl = "https://example.com/profile.jpg",
-                email = "abc@email.com",
                 primaryTheme = ThemeUiModel.LEMONADE,
             ),
         onBackClick = {},
