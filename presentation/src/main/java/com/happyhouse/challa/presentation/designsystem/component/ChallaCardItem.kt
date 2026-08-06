@@ -44,9 +44,14 @@ sealed interface ChallaCardType {
     /** 촬영 전 */
     data object NotCaptured : ChallaCardType
 
-    /** 인화 대기 */
+    /**
+     * 인화 대기
+     *
+     * @param imageUrl 서버가 인화 전 이미지를 감추면 null. 그려줄 이미지는 없지만
+     *  실선 테두리로 [NotCaptured] 와 구분된다.
+     */
     data class PrintWaiting(
-        val imageUrl: String,
+        val imageUrl: String?,
     ) : ChallaCardType
 
     /** 인화 완료 */
@@ -116,11 +121,13 @@ fun ChallaCardItem(
             ChallaCardType.NotCaptured -> Unit
 
             is ChallaCardType.PrintWaiting -> {
-                CardImage(
-                    imageUrl = type.imageUrl,
-                    // TODO: 서버가 블러 이미지를 내려주면 이중 블러가 되므로 제거할 것
-                    blurred = true,
-                )
+                type.imageUrl?.let { imageUrl ->
+                    CardImage(
+                        imageUrl = imageUrl,
+                        // TODO: 서버가 블러 이미지를 내려주면 이중 블러가 되므로 제거할 것
+                        blurred = true,
+                    )
+                }
             }
 
             is ChallaCardType.Printed -> CardImage(imageUrl = type.imageUrl, blurred = false)
@@ -185,6 +192,18 @@ private fun ChallaCardItemPrintWaitingPreview() {
         modifier = Modifier.width(82.dp),
         order = 2,
         type = ChallaCardType.PrintWaiting(imageUrl = ""),
+        contentDescription = "2번째 사진, 인화 전",
+    )
+}
+
+@ComposePreview(showBackground = true, name = "CardItem - 인화 대기(이미지 감춤)")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun ChallaCardItemPrintWaitingHiddenImagePreview() {
+    ChallaCardItem(
+        modifier = Modifier.width(82.dp),
+        order = 2,
+        type = ChallaCardType.PrintWaiting(imageUrl = null),
         contentDescription = "2번째 사진, 인화 전",
     )
 }

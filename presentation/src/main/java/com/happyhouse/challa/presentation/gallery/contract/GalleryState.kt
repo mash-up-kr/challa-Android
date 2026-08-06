@@ -46,14 +46,28 @@ data class GalleryState(
 
 /**
  * 인화 전 필름 슬롯 UI 모델
- *
- * @param imageUrl 아직 촬영되지 않은 자리는 null
  */
 @Immutable
 data class GalleryFilmSlotUiModel(
     val order: Int,
-    val imageUrl: String?,
-)
+    val state: State,
+) {
+    /** 필름 한 칸의 상태 */
+    @Immutable
+    sealed interface State {
+        /** 아직 촬영되지 않은 자리 */
+        data object Empty : State
+
+        /**
+         * 촬영했지만 아직 인화되지 않은 자리
+         *
+         * @param imageUrl 서버가 인화 전 이미지를 감추면 null. 이때도 빈 자리와는 구분해서 그린다.
+         */
+        data class Captured(
+            val imageUrl: String?,
+        ) : State
+    }
+}
 
 /**
  * 방 참여자 UI 모델

@@ -37,7 +37,12 @@ internal fun previewGalleryFilmSlots(
         .map { index ->
             GalleryFilmSlotUiModel(
                 order = index + 1,
-                imageUrl = if (index < capturedCount) "" else null,
+                state =
+                    if (index < capturedCount) {
+                        GalleryFilmSlotUiModel.State.Captured(imageUrl = "")
+                    } else {
+                        GalleryFilmSlotUiModel.State.Empty
+                    },
             )
         }.toPersistentList()
 

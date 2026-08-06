@@ -31,17 +31,28 @@ internal fun RoomDetail.toPhotoInfo(
     }
 
 /**
- * 필름은 방의 전체 칸 수만큼 그리고, 앞에서부터 받아온 사진으로 채운다.
- * 아직 찍지 않은 칸과, 서버가 이미지를 감춘 칸은 모두 빈 자리로 남는다.
+ * 필름은 방의 전체 칸 수만큼 그리고, 앞에서부터 촬영된 칸을 채운다.
+ *
+ * 촬영 여부는 서버가 내려준 촬영 수(`totalPhotoCount - remainedPhotoCount`)로 판단한다.
+ * 인화 전에는 사진의 `imageUrl`이 비어 올 수 있어, 이미지 유무로만 판단하면
+ * 이미 찍은 칸까지 촬영 전으로 보이기 때문이다.
  */
-private fun RoomDetail.toFilmSlots(photos: List<Photo>): ImmutableList<GalleryFilmSlotUiModel> =
-    (0 until totalPhotoCount)
+private fun RoomDetail.toFilmSlots(photos: List<Photo>): ImmutableList<GalleryFilmSlotUiModel> {
+    val capturedCount = (totalPhotoCount - remainedPhotoCount).coerceIn(0, totalPhotoCount)
+
+    return (0 until totalPhotoCount)
         .map { index ->
             GalleryFilmSlotUiModel(
                 order = index + 1,
-                imageUrl = photos.getOrNull(index)?.imageUrl,
+                state =
+                    if (index < capturedCount) {
+                        GalleryFilmSlotUiModel.State.Captured(imageUrl = photos.getOrNull(index)?.imageUrl)
+                    } else {
+                        GalleryFilmSlotUiModel.State.Empty
+                    },
             )
         }.toPersistentList()
+}
 
 /** 인화가 끝나 공개된 사진만 그린다. 이미지가 없는 사진은 띄울 것이 없으므로 제외한다. */
 private fun List<Photo>.toGalleryPhotos(): ImmutableList<GalleryPhotoUiModel> =
