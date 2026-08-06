@@ -23,6 +23,7 @@ fun CameraScreen(
     onCameraBindingFailed: (CameraBindingFailure) -> Unit,
     onPhotoCaptureResult: (requestId: Long, succeeded: Boolean) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
+    getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val cameraBackgroundColor = ChallaTheme.colors.staticBlack.copy(alpha = 0.9f)
@@ -44,6 +45,7 @@ fun CameraScreen(
             onCameraBindingFailed = onCameraBindingFailed,
             onPhotoCaptureResult = onPhotoCaptureResult,
             onPhotoCaptureCancelled = onPhotoCaptureCancelled,
+            getCameraFilterFile = getCameraFilterFile,
             onIntent = onIntent,
         )
     }

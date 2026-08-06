@@ -2,7 +2,7 @@ package com.happyhouse.challa.data.network.interceptor
 
 import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.AuthApi
-import com.happyhouse.challa.data.network.dto.RefreshRequest
+import com.happyhouse.challa.data.network.dto.request.RefreshRequest
 import com.happyhouse.challa.data.network.qualifier.RefreshClient
 import com.happyhouse.challa.domain.result.ChallaResult
 import kotlinx.coroutines.flow.first
