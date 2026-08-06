@@ -40,6 +40,7 @@ fun ChallaNavHost(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
+    val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
 
     NavDisplay(
         backStack = navigator.backStack,
@@ -114,7 +115,20 @@ fun ChallaNavHost(
                         initialNickname = route.nickname,
                         initialProfileImageUrl = route.profileImageUrl,
                         onBackClick = { navigator.goBack() },
-                        onProfileUpdated = { navigator.goBack() },
+                        onProfileUpdated = {
+                            navigator.goBack()
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    ChallaSnackbarVisuals(
+                                        content =
+                                            ChallaSnackbarContent.HeadingOnly(
+                                                heading = profileUpdateSuccessMessage,
+                                            ),
+                                        icon = ChallaIcons.Check,
+                                    ),
+                                )
+                            }
+                        },
                     )
                 }
                 entry<ChallaRoute.Home> {
@@ -133,6 +147,7 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Setting> {
                     SettingRoute(
+                        snackbarHostState = snackbarHostState,
                         onBackClick = { navigator.goBack() },
                         onProfileEditClick = { nickname, profileImageUrl ->
                             navigator.navigate(

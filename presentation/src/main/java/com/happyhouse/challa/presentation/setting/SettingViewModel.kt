@@ -26,10 +26,6 @@ class SettingViewModel
         private var profileReadJob: Job? = null
         private var themeReadJob: Job? = null
 
-        init {
-            onIntent(SettingIntent.FetchData)
-        }
-
         override fun onIntent(intent: SettingIntent) {
             when (intent) {
                 SettingIntent.FetchData -> fetchData()

@@ -6,10 +6,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -26,6 +22,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SettingRoute(
+    snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     onProfileEditClick: (nickname: String, profileImageUrl: String?) -> Unit,
     onThemeClick: () -> Unit,
@@ -36,19 +33,13 @@ fun SettingRoute(
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
     val profileReadFailureMessage = stringResource(R.string.setting_profile_read_failure)
     val themeReadFailureMessage = stringResource(R.string.theme_read_failure)
     val retryLabel = stringResource(R.string.theme_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
-    var hasResumedOnce by rememberSaveable { mutableStateOf(false) }
 
     LifecycleResumeEffect(viewModel) {
-        if (hasResumedOnce) {
-            viewModel.onIntent(SettingIntent.FetchData)
-        } else {
-            hasResumedOnce = true
-        }
+        viewModel.onIntent(SettingIntent.FetchData)
         onPauseOrDispose {}
     }
 
