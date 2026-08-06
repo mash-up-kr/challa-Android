@@ -161,6 +161,8 @@
     <string name="account_withdraw_completed_confirm">확인</string>
     <string name="account_withdraw_failure">회원 탈퇴에 실패했어요.</string>
 
+    <string name="setting_profile_read_failure">프로필을 불러오지 못했어요.</string>
+
     <!-- themeScreen -->
     <string name="theme_title">테마</string>
     <string name="theme_back_description">설정으로 돌아가기</string>

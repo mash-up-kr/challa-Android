@@ -117,7 +117,8 @@ private fun SettingScreenPreview() {
         state =
             SettingState(
                 nickname = "나는야멋쟁이토마토",
-                maskedEmail = "juy***@naver.com",
+                profileImageUrl = "https://example.com/profile.jpg",
+                email = "abc@email.com",
                 primaryTheme = ThemeUiModel.LEMONADE,
             ),
         onBackClick = {},

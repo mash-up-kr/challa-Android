@@ -33,32 +33,38 @@ fun SettingRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val readFailureMessage = stringResource(R.string.theme_read_failure)
+    val profileReadFailureMessage = stringResource(R.string.setting_profile_read_failure)
+    val themeReadFailureMessage = stringResource(R.string.theme_read_failure)
     val retryLabel = stringResource(R.string.theme_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                SettingSideEffect.ThemeReadFailed ->
-                    launch {
-                        val result =
-                            snackbarHostState.showSnackbar(
-                                ChallaSnackbarVisuals(
-                                    content =
-                                        ChallaSnackbarContent.HeadingOnly(
-                                            heading = readFailureMessage,
-                                        ),
-                                    icon = ChallaIcons.Error,
-                                    iconTint = destructiveIconTint,
-                                    actionLabel = retryLabel,
-                                ),
-                            )
+            val (message, retryIntent) =
+                when (effect) {
+                    SettingSideEffect.ProfileReadFailed ->
+                        profileReadFailureMessage to SettingIntent.ProfileReadRetry
+                    SettingSideEffect.ThemeReadFailed ->
+                        themeReadFailureMessage to SettingIntent.ThemeReadRetry
+                }
 
-                        if (result == SnackbarResult.ActionPerformed) {
-                            viewModel.onIntent(SettingIntent.ThemeReadRetry)
-                        }
-                    }
+            launch {
+                val result =
+                    snackbarHostState.showSnackbar(
+                        ChallaSnackbarVisuals(
+                            content =
+                                ChallaSnackbarContent.HeadingOnly(
+                                    heading = message,
+                                ),
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                            actionLabel = retryLabel,
+                        ),
+                    )
+
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.onIntent(retryIntent)
+                }
             }
         }
     }

@@ -6,7 +6,9 @@ import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 
 @Immutable
 data class SettingState(
-    val nickname: String,
-    val maskedEmail: String,
+    val nickname: String = "",
+    val profileImageUrl: String? = null,
+    val email: String,
+    val isProfileLoading: Boolean = false,
     val primaryTheme: ThemeUiModel? = null,
 ) : UiState
