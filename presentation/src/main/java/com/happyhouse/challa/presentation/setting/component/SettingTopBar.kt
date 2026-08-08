@@ -18,7 +18,7 @@ fun SettingTopBar(
     modifier: Modifier = Modifier,
 ) {
     ChallaTopNavigation(
-        title = "",
+        title = stringResource(R.string.setting_title),
         modifier = modifier,
         variant = ChallaTopNavigationVariant.SUB,
         leadingIcon = {

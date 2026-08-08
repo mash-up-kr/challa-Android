@@ -8,12 +8,15 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEf
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -27,6 +30,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
+    // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 좌표 seed로 쓰이므로 반응마다 고유해야 한다.
+    private var nextReactionId = 0L
+
     init {
         onIntent(PhotoDetailIntent.PhotosLoad)
     }
@@ -35,6 +41,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
         when (intent) {
             PhotoDetailIntent.PhotosLoad -> handlePhotosLoad()
             is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.photo)
+            is PhotoDetailIntent.ReactionClick -> handleReactionClick(intent.photo, intent.emoji)
+            is PhotoDetailIntent.MessageChange -> handleMessageChange(intent.message)
+            is PhotoDetailIntent.MessageSend -> handleMessageSend(intent.photo)
         }
     }
 
@@ -73,6 +82,55 @@ class PhotoDetailViewModel @AssistedInject constructor(
                     }
             } finally {
                 updateState { copy(isSaving = false) }
+            }
+        }
+    }
+
+    /**
+     * TODO: 반응 API 스펙 확정 전까지 로컬 state에만 쌓는다. (이슈 #62)
+     * TODO: 같은 사람이 여러 번 남길 수 있는지 / 취소 가능한지 기획 미확정. 현재는 누를 때마다 계속 추가된다.
+     */
+    private fun handleReactionClick(
+        photo: PhotoDetailUiModel,
+        emoji: ReactionEmoji,
+    ) {
+        val loaded = currentState.photoInfo as? PhotoInfo.Loaded
+        if (loaded == null) {
+            Timber.w("사진이 로드되지 않아 반응을 남기지 못했습니다: photoId=${photo.id}")
+            viewModelScope.launch { sendEffect(PhotoDetailSideEffect.ReactionSendFailed) }
+            return
+        }
+
+        val reaction = PhotoReactionUiModel(id = nextReactionId++, emoji = emoji)
+        val updated = (loaded.reactionsOf(photo.id) + reaction).toPersistentList()
+        val reactions = (loaded.reactions + (photo.id to updated)).toPersistentMap()
+        updateState { copy(photoInfo = loaded.copy(reactions = reactions)) }
+    }
+
+    private fun handleMessageChange(message: String) {
+        updateState { copy(messageInput = message) }
+    }
+
+    /**
+     * 보낸 뒤 입력만 비우고 키보드는 유지한다.
+     * TODO: 메시지 API 스펙 확정 전까지 전송 결과를 성공으로 가정한다. (이슈 #62)
+     *   실패 경로가 생기면 MessageSendFailed SideEffect를 다시 추가할 것.
+     */
+    private fun handleMessageSend(photo: PhotoDetailUiModel) {
+        val message = currentState.messageInput.trim()
+        if (message.isEmpty() || currentState.isSendingMessage) {
+            Timber.w("보낼 수 없는 메시지라 전송하지 않았습니다: photoId=${photo.id}")
+            return
+        }
+
+        updateState { copy(isSendingMessage = true) }
+        viewModelScope.launch {
+            try {
+                // 메시지 본문은 개인정보라 로그에 남기지 않는다.
+                Timber.d("사진 메시지 전송: photoId=${photo.id}, length=${message.length}")
+                updateState { copy(messageInput = "") }
+            } finally {
+                updateState { copy(isSendingMessage = false) }
             }
         }
     }

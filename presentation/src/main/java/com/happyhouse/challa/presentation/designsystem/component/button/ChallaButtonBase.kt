@@ -22,6 +22,7 @@ internal fun ChallaButtonBase(
     enabled: Boolean = true,
     loading: Boolean = false,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
+    containerColor: Color? = null,
     minHeight: Dp,
     cornerRadius: Dp,
     contentPadding: PaddingValues,
@@ -35,7 +36,7 @@ internal fun ChallaButtonBase(
             modifier
                 .heightIn(min = minHeight)
                 .clip(shape = RoundedCornerShape(cornerRadius))
-                .background(colorSpec.containerColor)
+                .background(containerColor ?: colorSpec.containerColor)
                 .noRippleClickOnce(
                     enabled = enabled && !loading,
                     role = Role.Button,

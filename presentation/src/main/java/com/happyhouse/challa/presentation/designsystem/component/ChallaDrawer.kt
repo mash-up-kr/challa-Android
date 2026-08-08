@@ -87,9 +87,9 @@ private fun ChallaDrawerSurface(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
                 .clip(shape = RoundedCornerShape(32.dp))
-                .background(ChallaTheme.colors.backgroundLevel2)
+                .background(ChallaTheme.colors.backgroundLevel1)
                 .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

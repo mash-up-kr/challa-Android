@@ -1,10 +1,11 @@
 package com.happyhouse.challa.data.network
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import okhttp3.logging.HttpLoggingInterceptor
 
 internal class NetworkLogPrinter(
-    private val logText: (String) -> Unit,
-    private val logJson: (String) -> Unit,
+    private val printLog: (String) -> Unit,
 ) : HttpLoggingInterceptor.Logger {
     private val pendingLines =
         object : ThreadLocal<MutableList<String>>() {
@@ -15,22 +16,18 @@ internal class NetworkLogPrinter(
         val trimmedMessage = message.trimStart()
 
         when {
-            message.isBlank() -> flushPendingLines()
             trimmedMessage.isExchangeStart() -> {
                 flushPendingLines()
-                logText(message)
+                currentLines().add(message)
             }
 
             trimmedMessage.isExchangeEnd() -> {
+                currentLines().add(message)
                 flushPendingLines()
-                logText(message)
                 pendingLines.remove()
             }
 
-            trimmedMessage.isJson() -> {
-                flushPendingLines()
-                logJson(message)
-            }
+            trimmedMessage.isJson() -> currentLines().add(message.formatJson())
 
             else -> currentLines().add(message)
         }
@@ -40,7 +37,7 @@ internal class NetworkLogPrinter(
         val lines = currentLines()
         if (lines.isEmpty()) return
 
-        logText(lines.joinToString(separator = "\n"))
+        printLog(lines.joinToString(separator = "\n"))
         lines.clear()
     }
 
@@ -48,7 +45,20 @@ internal class NetworkLogPrinter(
 
     private fun String.isExchangeStart(): Boolean = (startsWith("-->") || startsWith("<--")) && !isExchangeEnd()
 
-    private fun String.isExchangeEnd(): Boolean = startsWith("--> END") || startsWith("<-- END")
+    private fun String.isExchangeEnd(): Boolean =
+        startsWith("--> END") ||
+            startsWith("<-- END") ||
+            startsWith("<-- HTTP FAILED")
 
     private fun String.isJson(): Boolean = startsWith("{") || startsWith("[")
+
+    private fun String.formatJson(): String =
+        runCatching {
+            val json = PRETTY_JSON.parseToJsonElement(this)
+            PRETTY_JSON.encodeToString(JsonElement.serializer(), json)
+        }.getOrDefault(this)
+
+    private companion object {
+        val PRETTY_JSON = Json { prettyPrint = true }
+    }
 }

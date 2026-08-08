@@ -69,6 +69,13 @@ class ThemeDataStore
             retryPrimaryThemeRead()
         }
 
+        suspend fun clearPrimaryTheme() {
+            dataStore.edit { preferences ->
+                preferences.remove(PRIMARY_THEME_KEY)
+            }
+            retryPrimaryThemeRead()
+        }
+
         fun retryPrimaryThemeRead() {
             themeReadRequests.tryEmit(Unit)
         }

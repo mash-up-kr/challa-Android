@@ -2,6 +2,7 @@ package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
+import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.toDomain
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
@@ -33,6 +34,21 @@ class RoomRepositoryImpl
                 ).mapCatching { response ->
                     check(response.success) { response.message }
                     val data = requireNotNull(response.data) { "방 생성 응답 데이터가 비어 있습니다." }
+                    CreatedRoom(id = data.room.id)
+                }
+
+        override suspend fun enterRoom(code: String): ChallaResult<CreatedRoom> =
+            roomApi
+                .joinRoom(
+                    JoinRoomRequest(
+                        room =
+                            JoinRoomRequest.Room(
+                                invitationCode = code,
+                            ),
+                    ),
+                ).mapCatching { response ->
+                    check(response.success) { response.message }
+                    val data = requireNotNull(response.data) { "방 입장 응답 데이터가 비어 있습니다." }
                     CreatedRoom(id = data.room.id)
                 }
 

@@ -78,11 +78,7 @@ fun SettingProfile(
 @Composable
 private fun SettingProfilePreview() {
     SettingProfile(
-        state =
-            SettingState(
-                nickname = "나는야멋쟁이토마토",
-                maskedEmail = "juy***@naver.com",
-            ),
+        state = SettingState(nickname = "나는야멋쟁이토마토", maskedEmail = "juy***@naver.com"),
         onEditClick = {},
     )
 }

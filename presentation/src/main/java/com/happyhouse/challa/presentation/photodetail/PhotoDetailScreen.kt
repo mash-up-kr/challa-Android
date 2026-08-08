@@ -3,9 +3,9 @@ package com.happyhouse.challa.presentation.photodetail
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -14,12 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailBottomBar
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailContent
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBar
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -32,6 +35,9 @@ fun PhotoDetailScreen(
     snackbarHostState: SnackbarHostState,
     onRetryClick: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
+    onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
+    onMessageChange: (String) -> Unit,
+    onSendClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -43,24 +49,33 @@ fun PhotoDetailScreen(
                 pageCount = { photos.size },
             )
         }
+    val currentPhoto = photos.getOrNull(pagerState.currentPage)
 
-    Scaffold(
+    ChallaScaffold(
         modifier = modifier,
         containerColor = PhotoDetailBackgroundColor,
-        // 시스템 바 인셋은 화면 밖에서 처리한다.
-        // 하단은 ChallaNavHost의 navigationBarsPadding이, 상단은 PhotoDetailTopBar의 statusBarsPadding이 담당하므로
-        // 여기서 기본 인셋을 다시 적용하지 않는다.
+        // 사진이 화면 끝까지 차야 해서 content에는 기본 인셋을 주지 않는다(시스템 바는 ChallaScaffold가 바에 적용).
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             PhotoDetailTopBar(
                 title = state.roomName,
                 onBackClick = onBackClick,
-                onSaveClick =
-                    photos.takeIf { it.isNotEmpty() }?.let { loadedPhotos ->
-                        { onSaveClick(loadedPhotos[pagerState.currentPage]) }
-                    },
+                onSaveClick = currentPhoto?.let { photo -> { onSaveClick(photo) } },
                 isSaveEnabled = !state.isSaving,
             )
+        },
+        bottomBar = {
+            if (currentPhoto != null) {
+                PhotoDetailBottomBar(
+                    // navigationBarsPadding은 ChallaScaffold가 이미 적용해 인셋을 소비했다.
+                    modifier = Modifier.imePadding(),
+                    message = state.messageInput,
+                    isMessageSendable = state.isMessageSendable,
+                    onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
+                    onMessageChange = onMessageChange,
+                    onSendClick = { onSendClick(currentPhoto) },
+                )
+            }
         },
     ) { innerPadding ->
         Box(
@@ -76,7 +91,8 @@ fun PhotoDetailScreen(
                 onRetryClick = onRetryClick,
             )
 
-            // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
+            // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
+            // 여기 두면 Route가 지정하는 topOffset 기준점이 상단 바 아래라 기기별 상태바 높이에 흔들리지 않는다.
             ChallaSnackbarHost(hostState = snackbarHostState)
         }
     }
@@ -97,6 +113,9 @@ private fun PhotoDetailScreenPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
@@ -120,6 +139,9 @@ private fun PhotoDetailScreenLoadingPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
@@ -143,6 +165,9 @@ private fun PhotoDetailScreenErrorPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }
@@ -166,6 +191,9 @@ private fun PhotoDetailScreenEmptyPreview() {
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
         onSaveClick = {},
+        onEmojiClick = { _, _ -> },
+        onMessageChange = {},
+        onSendClick = {},
         onBackClick = {},
     )
 }

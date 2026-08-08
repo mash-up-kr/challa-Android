@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.designsystem.component.snackbar
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -20,7 +21,10 @@ fun ChallaSnackbarHost(
 ) {
     SnackbarHost(
         hostState = hostState,
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .navigationBarsPadding(),
     ) { data ->
         Box(modifier = Modifier.fillMaxSize()) {
             when (val visuals = data.visuals) {
