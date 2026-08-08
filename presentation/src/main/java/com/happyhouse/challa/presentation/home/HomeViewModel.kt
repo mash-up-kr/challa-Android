@@ -1,23 +1,26 @@
 package com.happyhouse.challa.presentation.home
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.result.onFailure
+import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.home.contract.HomeIntent
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
-import com.happyhouse.challa.presentation.home.model.PrintState
-import com.happyhouse.challa.presentation.home.model.RoomUiModel
+import com.happyhouse.challa.presentation.home.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.delay
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel
     @Inject
-    constructor() :
-    BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(
+    constructor(
+        private val roomRepository: RoomRepository,
+    ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(
             initialState = HomeState(isLoading = true),
         ) {
         init {
@@ -29,62 +32,31 @@ class HomeViewModel
         private fun loadHome() {
             viewModelScope.launch {
                 updateState { copy(isLoading = true) }
-                delay(1000L) // TODO JH: API 호출
+                // TODO JH: API 연동 시 실제 유저 정보로 대체
                 updateState {
                     copy(
-                        isLoading = false,
-                        // TODO JH: API 연동 시 실제 유저 정보로 대체
                         nickname = "나는야멋쟁이토마토",
                         profileImageUrl = "https://picsum.photos/250/250",
-                        // 아래 이미지 URL들은 캐싱 방지를 위해 뒷 숫자를 1씩 증가시켜 유니크하게 유지
-                        // TODO JH: API 연동 시 실제 방 목록으로 대체
-                        //  방이 없는 상태(케이스 1)를 보려면 persistentListOf()로 교체
-                        rooms =
-                            persistentListOf(
-                                RoomUiModel.Shooting(
-                                    id = "1",
-                                    name = "친구들과 강릉 여행",
-                                    participantCount = 1,
-                                    takenCount = 24,
-                                    coverImageUrl = "https://picsum.photos/250/251",
-                                ),
-                                RoomUiModel.Shooting(
-                                    id = "2",
-                                    name = "제주도 우정여행",
-                                    participantCount = 4,
-                                    takenCount = 12,
-                                    coverImageUrl = "https://picsum.photos/250/252",
-                                ),
-                                RoomUiModel.Completed(
-                                    id = "3",
-                                    name = "친구들과 강릉 여행",
-                                    participantCount = 11,
-                                    printState = PrintState.WAITING,
-                                    photoImageUrls =
-                                        persistentListOf(
-                                            "https://picsum.photos/250/253",
-                                            "https://picsum.photos/250/254",
-                                            "https://picsum.photos/250/255",
-                                            "https://picsum.photos/250/256",
-                                        ),
-                                    totalPhotoCount = 24,
-                                ),
-                                RoomUiModel.Completed(
-                                    id = "4",
-                                    name = "인화 완료 된 방이에요",
-                                    participantCount = 7,
-                                    printState = PrintState.COMPLETED,
-                                    photoImageUrls =
-                                        persistentListOf(
-                                            "https://picsum.photos/250/257",
-                                            "https://picsum.photos/250/258",
-                                            "https://picsum.photos/250/259",
-                                        ),
-                                    totalPhotoCount = 3,
-                                ),
-                            ),
                     )
                 }
+                roomRepository
+                    .getRoomList(ALL_ROOM_STATUSES)
+                    .onSuccess { rooms ->
+                        updateState {
+                            copy(
+                                isLoading = false,
+                                rooms = rooms.mapNotNull { it.toUiModel() }.toImmutableList(),
+                            )
+                        }
+                    }.onFailure {
+                        updateState { copy(isLoading = false) }
+                        sendEffect(HomeSideEffect.RoomsLoadFailed)
+                    }
             }
+        }
+
+        companion object {
+            /** 홈 화면은 촬영 중/인화 대기/인화 완료 방을 모두 노출한다. UNKNOWN 타입은 repoImpl에서 필터링된다. */
+            private val ALL_ROOM_STATUSES = RoomStatus.entries.toList()
         }
     }

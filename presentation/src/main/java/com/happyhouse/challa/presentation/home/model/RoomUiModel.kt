@@ -1,7 +1,10 @@
 package com.happyhouse.challa.presentation.home.model
 
 import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.domain.model.Room
+import com.happyhouse.challa.domain.model.RoomStatus
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
 @Immutable
 sealed interface RoomUiModel {
@@ -30,3 +33,36 @@ sealed interface RoomUiModel {
         val totalPhotoCount: Int,
     ) : RoomUiModel
 }
+
+fun Room.toUiModel(): RoomUiModel? =
+    when (status) {
+        RoomStatus.SHOOTING ->
+            RoomUiModel.Shooting(
+                id = id.toString(),
+                name = title,
+                participantCount = memberCount,
+                // "촬영한 사진 수" = 전체 장수 - 남은 장수
+                takenCount = (totalPhotoCount - remainedPhotoCount).coerceAtLeast(0),
+                coverImageUrl = thumbnailImageUrls.firstOrNull(),
+            )
+
+        RoomStatus.PHOTO_PRINT_PENDING,
+        RoomStatus.PHOTO_PRINT_COMPLETED,
+        ->
+            RoomUiModel.Completed(
+                id = id.toString(),
+                name = title,
+                participantCount = memberCount,
+                printState = status.toPrintState(),
+                photoImageUrls = thumbnailImageUrls.toImmutableList(),
+                totalPhotoCount = totalPhotoCount,
+            )
+
+        RoomStatus.UNKNOWN -> null
+    }
+
+private fun RoomStatus.toPrintState(): PrintState =
+    when (this) {
+        RoomStatus.PHOTO_PRINT_COMPLETED -> PrintState.COMPLETED
+        else -> PrintState.WAITING
+    }

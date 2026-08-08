@@ -29,8 +29,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,10 +66,13 @@ import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.model.PrintState
@@ -101,9 +106,28 @@ fun HomeRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showCreateRoomSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
+    val destructiveTint = ChallaTheme.colors.statusDestructive
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                HomeSideEffect.RoomsLoadFailed ->
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = roomLoadFailedMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveTint,
+                        ),
+                    )
+            }
+        }
+    }
 
     HomeScreen(
         state = state,
+        snackbarHostState = snackbarHostState,
         onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = onNavigateToInviteCode,
         onSettingClick = onNavigateToSetting,
@@ -126,6 +150,7 @@ fun HomeRoute(
 @Composable
 private fun HomeScreen(
     state: HomeState,
+    snackbarHostState: SnackbarHostState,
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
@@ -193,6 +218,8 @@ private fun HomeScreen(
                     )
             }
         }
+
+        ChallaSnackbarHost(hostState = snackbarHostState)
     }
 }
 
@@ -918,6 +945,7 @@ private fun HomeRoomsPreview() {
                     profileImageUrl = null,
                     rooms = previewRooms(),
                 ),
+            snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
@@ -938,6 +966,7 @@ private fun HomeEmptyPreview() {
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                 ),
+            snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
@@ -953,6 +982,7 @@ private fun HomeLoadingPreview() {
     ChallaTheme {
         HomeScreen(
             state = HomeState(isLoading = true),
+            snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
