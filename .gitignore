@@ -5,6 +5,7 @@
 .idea/
 
 /local.properties
+google-services.json
 
 /.idea/caches/
 /.idea/libraries/
