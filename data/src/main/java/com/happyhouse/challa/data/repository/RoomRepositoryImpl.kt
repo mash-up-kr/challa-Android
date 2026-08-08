@@ -2,7 +2,10 @@ package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
+import com.happyhouse.challa.data.network.dto.toDomain
 import com.happyhouse.challa.domain.model.CreatedRoom
+import com.happyhouse.challa.domain.model.Room
+import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomSummary
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -68,4 +71,13 @@ class RoomRepositoryImpl
                     ),
                 ),
             )
+
+        override suspend fun getRoomList(statuses: List<RoomStatus>): ChallaResult<List<Room>> =
+            roomApi
+                .getRooms(statuses.filterNot { it == RoomStatus.UNKNOWN }.map { it.name })
+                .mapCatching { response ->
+                    check(response.success) { response.message }
+                    val data = requireNotNull(response.data) { "방 목록 응답 데이터가 비어 있습니다." }
+                    data.rooms.map { it.toDomain() }
+                }
     }
