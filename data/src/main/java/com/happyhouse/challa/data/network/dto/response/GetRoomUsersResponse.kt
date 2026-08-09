@@ -14,7 +14,7 @@ data class GetRoomUsersResponse(
     @Serializable
     data class User(
         val id: Long,
-        val nickname: String? = null,
+        val nickname: String,
         val profileImageUrl: String? = null,
     )
 }

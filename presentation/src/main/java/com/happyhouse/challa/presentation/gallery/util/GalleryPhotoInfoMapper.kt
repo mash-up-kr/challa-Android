@@ -8,6 +8,7 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import timber.log.Timber
 
 /**
  * 방 상태와 사진 목록을 갤러리 본문 상태로 옮긴다.
@@ -28,6 +29,11 @@ internal fun RoomDetail.toPhotoInfo(
             )
 
         RoomStatus.PHOTO_PRINT_COMPLETED -> PhotoInfo.Printed(photos = photos.toGalleryPhotos())
+
+        RoomStatus.UNKNOWN -> {
+            Timber.w("방 상태를 해석하지 못해 갤러리를 에러로 표시합니다. roomId=$id")
+            PhotoInfo.Error
+        }
     }
 
 /**
