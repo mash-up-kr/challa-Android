@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ShootableRoomResponse(
-    val room: List<Room>,
+    val rooms: List<Room>,
 ) {
     @Serializable
     data class Room(

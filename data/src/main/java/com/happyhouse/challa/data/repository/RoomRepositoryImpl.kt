@@ -51,7 +51,7 @@ class RoomRepositoryImpl @Inject constructor(
         roomApi.getShootableRooms().mapCatching { response ->
             check(response.success) { response.message }
             requireNotNull(response.data) { "촬영 가능한 방 응답 데이터가 비어 있습니다." }
-                .room
+                .rooms
                 .map { room ->
                     ShootableRoom(
                         id = room.id,
