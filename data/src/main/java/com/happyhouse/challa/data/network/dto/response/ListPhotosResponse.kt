@@ -9,6 +9,6 @@ data class ListPhotosResponse(
     @Serializable
     data class Photo(
         val id: Long,
-        val imageUrl: String? = null,
+        val imageUrl: String,
     )
 }
