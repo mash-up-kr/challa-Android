@@ -64,4 +64,13 @@ class RoomRepositoryImpl @Inject constructor(
                     )
                 }
         }
+
+    override suspend fun getRoomList(statuses: List<RoomStatus>): ChallaResult<List<Room>> =
+        roomApi
+            .getRooms(statuses.filterNot { it == RoomStatus.UNKNOWN }.map { it.name })
+            .mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "방 목록 응답 데이터가 비어 있습니다." }
+                data.rooms.map { it.toDomain() }
+            }
 }
