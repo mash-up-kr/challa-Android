@@ -247,7 +247,7 @@ internal fun CameraSession(
                                     CameraSessionEvent.CaptureStarted(request.requestId),
                                 )
                             },
-                        ).let(capturedImageProcessor::process)
+                        ).let { image -> capturedImageProcessor.process(image) }
                 CameraCaptureResult.Success(imageBytes)
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(

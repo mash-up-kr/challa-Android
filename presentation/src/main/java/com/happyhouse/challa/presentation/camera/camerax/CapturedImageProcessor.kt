@@ -2,6 +2,8 @@ package com.happyhouse.challa.presentation.camera.camerax
 
 import android.graphics.ImageFormat
 import androidx.camera.core.ImageProxy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * CameraX가 촬영한 JPEG 이미지를 업로드 가능한 바이트 배열로 변환합니다.
@@ -10,15 +12,17 @@ import androidx.camera.core.ImageProxy
  * JPEG만 허용하며, 촬영 필터는 서버가 `cameraFilterName`을 기준으로 처리합니다.
  */
 internal class CapturedImageProcessor {
-    fun process(image: ImageProxy): ByteArray =
+    suspend fun process(image: ImageProxy): ByteArray =
         image.use {
-            require(it.format == ImageFormat.JPEG) { "지원하지 않는 촬영 이미지 포맷입니다: ${it.format}" }
-            val buffer =
-                requireNotNull(it.planes.singleOrNull()) { "JPEG 이미지 plane이 유효하지 않습니다." }.buffer
-            val bytes = ByteArray(buffer.remaining())
-            buffer.get(bytes)
-            require(bytes.isJpeg()) { "촬영 이미지가 올바른 JPEG 데이터가 아닙니다." }
-            bytes
+            withContext(Dispatchers.Default) {
+                require(it.format == ImageFormat.JPEG) { "지원하지 않는 촬영 이미지 포맷입니다: ${it.format}" }
+                val buffer =
+                    requireNotNull(it.planes.singleOrNull()) { "JPEG 이미지 plane이 유효하지 않습니다." }.buffer
+                val bytes = ByteArray(buffer.remaining())
+                buffer.get(bytes)
+                require(bytes.isJpeg()) { "촬영 이미지가 올바른 JPEG 데이터가 아닙니다." }
+                bytes
+            }
         }
 }
 
