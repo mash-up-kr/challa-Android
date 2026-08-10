@@ -59,9 +59,9 @@ data class GalleryFilmSlotUiModel(
         data object Empty : State
 
         /**
-         * 촬영했지만 아직 인화되지 않은 자리
+         * 촬영했지만 아직 인화되지 않은 자리. 원본을 앱에서 블러 처리해 보여준다.
          *
-         * @param imageUrl 서버가 인화 전 이미지를 감추면 null. 이때도 빈 자리와는 구분해서 그린다.
+         * @param imageUrl 아직 이미지를 받지 못했으면 null. 이때도 빈 자리와는 구분해서 그린다.
          */
         data class Captured(
             val imageUrl: String?,

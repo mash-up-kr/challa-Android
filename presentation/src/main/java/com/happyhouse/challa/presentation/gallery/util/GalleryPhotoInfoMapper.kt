@@ -40,11 +40,20 @@ internal fun RoomDetail.toPhotoInfo(
  * 필름은 방의 전체 칸 수만큼 그리고, 앞에서부터 촬영된 칸을 채운다.
  *
  * 촬영 여부는 서버가 내려준 촬영 수(`totalPhotoCount - remainedPhotoCount`)로 판단한다.
- * 인화 전에는 사진의 `imageUrl`이 비어 올 수 있어, 이미지 유무로만 판단하면
- * 이미 찍은 칸까지 촬영 전으로 보이기 때문이다.
+ * 사진 목록이 촬영 수보다 적게 와도 이미 찍은 칸이 촬영 전으로 보이지 않게 하기 위해서다.
+ *
+ * 인화 전 사진은 서버가 원본 `imageUrl` 을 내려주고 앱이 블러 처리해 보여준다.
+ * 따라서 촬영된 칸에 이미지가 없는 것은 정상 흐름이 아니므로, 조용히 빈 칸으로 두지 않고 경고를 남긴다.
  */
 private fun RoomDetail.toFilmSlots(photos: List<Photo>): ImmutableList<GalleryFilmSlotUiModel> {
     val capturedCount = (totalPhotoCount - remainedPhotoCount).coerceIn(0, totalPhotoCount)
+
+    val missingImageCount = (0 until capturedCount).count { photos.getOrNull(it)?.imageUrl == null }
+    if (missingImageCount > 0) {
+        Timber.w(
+            "촬영된 칸 ${capturedCount}개 중 ${missingImageCount}개에 이미지가 없어 블러를 그리지 못합니다. roomId=$id",
+        )
+    }
 
     return (0 until totalPhotoCount)
         .map { index ->
@@ -60,13 +69,19 @@ private fun RoomDetail.toFilmSlots(photos: List<Photo>): ImmutableList<GalleryFi
         }.toPersistentList()
 }
 
-/** 인화가 끝나 공개된 사진만 그린다. 이미지가 없는 사진은 띄울 것이 없으므로 제외한다. */
+/**
+ * 인화가 끝나 공개된 사진만 그린다. 이미지가 없는 사진은 띄울 것이 없으므로 제외한다.
+ *
+ * 번호는 걸러내기 전 원래 자리로 매긴다. 거른 뒤 다시 세면 빠진 사진 뒤의 번호가 앞당겨져
+ * 촬영 순서와 어긋나기 때문이다.
+ */
 private fun List<Photo>.toGalleryPhotos(): ImmutableList<GalleryPhotoUiModel> =
-    mapNotNull { photo -> photo.imageUrl?.let { imageUrl -> photo.id to imageUrl } }
-        .mapIndexed { index, (id, imageUrl) ->
+    mapIndexedNotNull { index, photo ->
+        photo.imageUrl?.let { imageUrl ->
             GalleryPhotoUiModel(
-                id = id,
+                id = photo.id,
                 order = index + 1,
                 imageUrl = imageUrl,
             )
-        }.toPersistentList()
+        }
+    }.toPersistentList()
