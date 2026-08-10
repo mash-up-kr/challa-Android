@@ -12,6 +12,11 @@ interface AuthRepository {
     suspend fun loginWithKakao(idToken: String): ChallaResult<AuthTokens>
 
     /**
+     * 서버에서 리프레시 토큰을 무효화하고, 성공하면 로컬에 저장된 로그인 토큰을 삭제한다.
+     */
+    suspend fun logout(): ChallaResult<Unit>
+
+    /**
      * 저장된 로그인 세션(토큰)이 있는지 확인한다.
      *
      * 앱 시작 시 로그인 화면부터 시작할지, 로그인된 화면으로 바로 진입할지 결정하는 데 쓴다.

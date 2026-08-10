@@ -7,8 +7,8 @@ import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
-import com.happyhouse.challa.domain.model.RoomSummary
 import com.happyhouse.challa.domain.model.RoomUser
+import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -18,125 +18,102 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
 
-class RoomRepositoryImpl
-    @Inject
-    constructor(
-        private val roomApi: RoomApi,
-    ) : RoomRepository {
-        override suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail> =
-            roomApi.getRoom(roomId).mapCatching { response ->
-                check(response.success) { response.message }
-                val room = requireNotNull(response.data) { "방 상세 응답 데이터가 비어 있습니다." }.room
-                RoomDetail(
-                    id = room.id,
-                    title = room.title,
-                    totalPhotoCount = room.totalPhotoCount,
-                    remainedPhotoCount = room.remainedPhotoCount,
-                    invitationCode = room.invitationCode,
-                    status = room.status.toRoomStatus(),
-                    photoPrintCompletionAt = room.photoPrintCompletionAt?.toInstant(),
+class RoomRepositoryImpl @Inject constructor(
+    private val roomApi: RoomApi,
+) : RoomRepository {
+    override suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail> =
+        roomApi.getRoom(roomId).mapCatching { response ->
+            check(response.success) { response.message }
+            val room = requireNotNull(response.data) { "방 상세 응답 데이터가 비어 있습니다." }.room
+            RoomDetail(
+                id = room.id,
+                title = room.title,
+                totalPhotoCount = room.totalPhotoCount,
+                remainedPhotoCount = room.remainedPhotoCount,
+                invitationCode = room.invitationCode,
+                status = room.status.toRoomStatus(),
+                photoPrintCompletionAt = room.photoPrintCompletionAt?.toInstant(),
+            )
+        }
+
+    override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
+        roomApi.getRoomUsers(roomId).mapCatching { response ->
+            check(response.success) { response.message }
+            val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.room
+            users.map { user ->
+                RoomUser(
+                    id = user.id,
+                    nickname = user.nickname,
+                    profileImageUrl = user.profileImageUrl,
                 )
             }
+        }
 
-        override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
-            roomApi.getRoomUsers(roomId).mapCatching { response ->
+    override suspend fun postRoom(
+        title: String,
+        totalPhotoCount: Int,
+    ): ChallaResult<CreatedRoom> =
+        roomApi
+            .postRoom(
+                CreateRoomRequest(
+                    room =
+                        CreateRoomRequest.Room(
+                            title = title,
+                            totalPhotoCount = totalPhotoCount,
+                        ),
+                ),
+            ).mapCatching { response ->
                 check(response.success) { response.message }
-                val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.room
-                users.map { user ->
-                    RoomUser(
-                        id = user.id,
-                        nickname = user.nickname,
-                        profileImageUrl = user.profileImageUrl,
+                val data = requireNotNull(response.data) { "방 생성 응답 데이터가 비어 있습니다." }
+                CreatedRoom(id = data.room.id)
+            }
+
+    override suspend fun enterRoom(code: String): ChallaResult<CreatedRoom> =
+        roomApi
+            .joinRoom(
+                JoinRoomRequest(
+                    room =
+                        JoinRoomRequest.Room(
+                            invitationCode = code,
+                        ),
+                ),
+            ).mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "방 입장 응답 데이터가 비어 있습니다." }
+                CreatedRoom(id = data.room.id)
+            }
+
+    override suspend fun getShootableRooms(): ChallaResult<List<ShootableRoom>> =
+        roomApi.getShootableRooms().mapCatching { response ->
+            check(response.success) { response.message }
+            requireNotNull(response.data) { "촬영 가능한 방 응답 데이터가 비어 있습니다." }
+                .rooms
+                .map { room ->
+                    ShootableRoom(
+                        id = room.id,
+                        title = room.title,
+                        remainingCount = room.remainedPhotoCount,
+                        totalCount = room.totalPhotoCount,
                     )
                 }
-            }
+        }
 
-        override suspend fun postRoom(
-            title: String,
-            totalPhotoCount: Int,
-        ): ChallaResult<CreatedRoom> =
-            roomApi
-                .postRoom(
-                    CreateRoomRequest(
-                        room =
-                            CreateRoomRequest.Room(
-                                title = title,
-                                totalPhotoCount = totalPhotoCount,
-                            ),
-                    ),
-                ).mapCatching { response ->
-                    check(response.success) { response.message }
-                    val data = requireNotNull(response.data) { "방 생성 응답 데이터가 비어 있습니다." }
-                    CreatedRoom(id = data.room.id)
-                }
+    private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
+        when (this) {
+            GetRoomResponse.Status.SHOOTING -> RoomStatus.SHOOTING
+            GetRoomResponse.Status.PHOTO_PRINT_PENDING -> RoomStatus.PHOTO_PRINT_PENDING
+            GetRoomResponse.Status.PHOTO_PRINT_COMPLETED -> RoomStatus.PHOTO_PRINT_COMPLETED
+            GetRoomResponse.Status.UNKNOWN -> RoomStatus.UNKNOWN
+        }
 
-        override suspend fun enterRoom(code: String): ChallaResult<CreatedRoom> =
-            roomApi
-                .joinRoom(
-                    JoinRoomRequest(
-                        room =
-                            JoinRoomRequest.Room(
-                                invitationCode = code,
-                            ),
-                    ),
-                ).mapCatching { response ->
-                    check(response.success) { response.message }
-                    val data = requireNotNull(response.data) { "방 입장 응답 데이터가 비어 있습니다." }
-                    CreatedRoom(id = data.room.id)
-                }
-
-        override suspend fun getRooms(): ChallaResult<List<RoomSummary>> =
-            ChallaResult.Success(
-                listOf(
-                    RoomSummary(
-                        id = 1L,
-                        name = "방이름1",
-                        remainingCount = 24,
-                        totalCount = 24,
-                    ),
-                    RoomSummary(
-                        id = 2L,
-                        name = "방이름방이름방이름2",
-                        remainingCount = 6,
-                        totalCount = 24,
-                    ),
-                    RoomSummary(
-                        id = 3L,
-                        name = "방이름방이름방이름3방이름",
-                        remainingCount = 5,
-                        totalCount = 48,
-                    ),
-                    RoomSummary(
-                        id = 4L,
-                        name = "방이름방이름방이름4",
-                        remainingCount = 0,
-                        totalCount = 48,
-                    ),
-                    RoomSummary(
-                        id = 5L,
-                        name = "방이름5",
-                        remainingCount = 12,
-                        totalCount = 24,
-                    ),
-                ),
-            )
-
-        private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
-            when (this) {
-                GetRoomResponse.Status.SHOOTING -> RoomStatus.SHOOTING
-                GetRoomResponse.Status.PHOTO_PRINT_PENDING -> RoomStatus.PHOTO_PRINT_PENDING
-                GetRoomResponse.Status.PHOTO_PRINT_COMPLETED -> RoomStatus.PHOTO_PRINT_COMPLETED
-                GetRoomResponse.Status.UNKNOWN -> RoomStatus.UNKNOWN
-            }
-
-        /**
-         * 서버가 내려주는 ISO-8601 시각을 파싱한다.
-         *
-         * 오프셋이 붙어 오면 그대로 쓰고, 없으면 UTC로 본다.
-         * 둘 다 아닌 값은 서버가 약속과 다른 응답을 준 것이므로 예외를 그대로 띄워 조회 실패로 만든다.
-         * 시각을 아예 안 내려준 경우(null)와 형식이 깨진 경우를 구분하기 위함이다.
-         */
-        private fun String.toInstant(): Instant =
-            runCatching { OffsetDateTime.parse(this).toInstant() }
-                .getOrElse { LocalDateTime.parse(this).toInstant(ZoneOffset.UTC) }
-    }
+    /**
+     * 서버가 내려주는 ISO-8601 시각을 파싱한다.
+     *
+     * 오프셋이 붙어 오면 그대로 쓰고, 없으면 UTC로 본다.
+     * 둘 다 아닌 값은 서버가 약속과 다른 응답을 준 것이므로 예외를 그대로 띄워 조회 실패로 만든다.
+     * 시각을 아예 안 내려준 경우(null)와 형식이 깨진 경우를 구분하기 위함이다.
+     */
+    private fun String.toInstant(): Instant =
+        runCatching { OffsetDateTime.parse(this).toInstant() }
+            .getOrElse { LocalDateTime.parse(this).toInstant(ZoneOffset.UTC) }
+}

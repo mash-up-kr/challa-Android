@@ -21,11 +21,11 @@ internal data class CameraSessionState(
     val isReady: Boolean
         get() = bindingState is CameraBindingState.Ready
 
-    val hasFlashUnit: Boolean
-        get() = (bindingState as? CameraBindingState.Ready)?.hasFlashUnit == true
-
-    val boundLensFacing: CameraLensFacing?
-        get() = (bindingState as? CameraBindingState.Ready)?.lensFacing
+//    val hasFlashUnit: Boolean
+//        get() = (bindingState as? CameraBindingState.Ready)?.hasFlashUnit == true
+//
+//    val boundLensFacing: CameraLensFacing?
+//        get() = (bindingState as? CameraBindingState.Ready)?.lensFacing
 }
 
 /** LifecycleCameraController의 초기화 및 Lifecycle 바인딩 상태입니다. */

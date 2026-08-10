@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +32,8 @@ fun ChallaTextButton(
     loading: Boolean = false,
     variant: ChallaButtonVariant = ChallaButtonVariant.PRIMARY,
     size: ChallaButtonSize = ChallaButtonSize.LARGE,
+    containerColor: Color? = null,
+    contentColor: Color? = null,
 ) {
     val sizeSpec = size.spec
 
@@ -40,6 +43,7 @@ fun ChallaTextButton(
         enabled = enabled,
         loading = loading,
         variant = variant,
+        containerColor = containerColor,
         minHeight = sizeSpec.minHeight,
         cornerRadius = size.cornerRadius,
         contentPadding =
@@ -47,17 +51,19 @@ fun ChallaTextButton(
                 horizontal = sizeSpec.horizontalPadding,
                 vertical = sizeSpec.verticalPadding,
             ),
-    ) { contentColor ->
+    ) { defaultContentColor ->
+        val resolvedContentColor = contentColor ?: defaultContentColor
+
         if (loading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(sizeSpec.loadingIndicatorSize),
-                color = contentColor,
+                color = resolvedContentColor,
                 strokeWidth = 2.dp,
             )
         } else {
             Text(
                 text = text,
-                color = contentColor,
+                color = resolvedContentColor,
                 textAlign = TextAlign.Center,
                 style = sizeSpec.textStyle,
             )
@@ -105,7 +111,7 @@ private val ChallaButtonSize.spec: ChallaTextButtonSizeSpec
                 )
         }
 
-@Preview(widthDp = 480)
+@Preview(widthDp = 600)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaTextButtonPreview() {

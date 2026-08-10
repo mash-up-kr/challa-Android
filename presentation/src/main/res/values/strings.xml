@@ -133,6 +133,7 @@
     <string name="create_profile_image_source_close">닫기</string>
 
     <!-- settingScreen -->
+    <string name="setting_title">설정</string>
     <string name="setting_back_description">뒤로가기</string>
     <string name="setting_profile_edit_description">프로필 수정</string>
     <string name="setting_app_section">앱 설정</string>
@@ -143,6 +144,29 @@
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
+
+    <!-- notificationScreen -->
+    <string name="notification_title">알림</string>
+    <string name="notification_back_description">설정으로 돌아가기</string>
+    <string name="notification_system_disabled">휴대폰의 앱 알림이 꺼져있어요.</string>
+    <string name="notification_service_title">서비스 알림</string>
+    <string name="notification_service_description">인화 대기, 인화 완료 등</string>
+    <string name="notification_save_failure">알림 설정을 저장하지 못했어요.</string>
+
+    <!-- accountScreen -->
+    <string name="account_title">계정 관리</string>
+    <string name="account_back_description">설정으로 돌아가기</string>
+    <string name="account_logout">로그아웃</string>
+    <string name="account_logout_success">로그아웃되었습니다</string>
+    <string name="account_logout_failure">로그아웃에 실패했어요.</string>
+    <string name="account_withdraw">탈퇴하기</string>
+    <string name="account_withdraw_warning_title">모든 기록이 사라져요</string>
+    <string name="account_withdraw_warning_description">탈퇴 시 참여 중이던 방에서 자동으로 나가져요</string>
+    <string name="account_withdraw_confirm">그래도 탈퇴하기</string>
+    <string name="account_withdraw_close">닫기</string>
+    <string name="account_withdraw_completed_title">회원 탈퇴가\n정상적으로 완료 됐어요</string>
+    <string name="account_withdraw_completed_confirm">확인</string>
+    <string name="account_withdraw_failure">회원 탈퇴에 실패했어요.</string>
 
     <!-- themeScreen -->
     <string name="theme_title">테마</string>
