@@ -133,7 +133,8 @@ fun CameraRoute(
                 }
             }
         },
-        onPhotoCaptureResult = viewModel::onPhotoCaptureResult,
+        onPhotoCaptured = viewModel::onPhotoCaptured,
+        onPhotoCaptureFailed = viewModel::onPhotoCaptureFailed,
         onPhotoCaptureCancelled = viewModel::onPhotoCaptureCancelled,
         getCameraFilterFile = viewModel::getCameraFilterFile,
         onIntent = viewModel::onIntent,

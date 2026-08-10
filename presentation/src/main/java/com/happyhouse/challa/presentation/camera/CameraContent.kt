@@ -41,7 +41,8 @@ internal fun CameraContent(
     cameraBindingRetryKey: Int,
     onRequestPermissionClick: () -> Unit,
     onCameraBindingFailed: (CameraBindingFailure) -> Unit,
-    onPhotoCaptureResult: (requestId: Long, succeeded: Boolean) -> Unit,
+    onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
+    onPhotoCaptureFailed: (requestId: Long) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
@@ -126,12 +127,12 @@ internal fun CameraContent(
 
                             is CameraSessionEvent.CaptureCompleted -> {
                                 when (event.result) {
-                                    CameraCaptureResult.Success -> {
-                                        onPhotoCaptureResult(event.requestId, true)
+                                    is CameraCaptureResult.Success -> {
+                                        onPhotoCaptured(event.requestId, event.result.imageBytes)
                                     }
 
                                     is CameraCaptureResult.Failed -> {
-                                        onPhotoCaptureResult(event.requestId, false)
+                                        onPhotoCaptureFailed(event.requestId)
                                     }
 
                                     CameraCaptureResult.Cancelled -> {

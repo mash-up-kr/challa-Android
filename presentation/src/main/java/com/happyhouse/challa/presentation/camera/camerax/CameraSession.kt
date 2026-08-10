@@ -238,21 +238,17 @@ internal fun CameraSession(
         currentOnStateChanged(sessionState)
         val result =
             try {
-                cameraController
-                    .takePicture(
-                        executor = callbackExecutor,
-                        onCaptureStarted = {
-                            currentOnEvent(
-                                CameraSessionEvent.CaptureStarted(request.requestId),
-                            )
-                        },
-                    ).let { image ->
-                        capturedImageProcessor.process(
-                            image = image,
-                            request = request,
-                        )
-                    }
-                CameraCaptureResult.Success
+                val imageBytes =
+                    cameraController
+                        .takePicture(
+                            executor = callbackExecutor,
+                            onCaptureStarted = {
+                                currentOnEvent(
+                                    CameraSessionEvent.CaptureStarted(request.requestId),
+                                )
+                            },
+                        ).let(capturedImageProcessor::process)
+                CameraCaptureResult.Success(imageBytes)
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(
                     CameraSessionEvent.CaptureCompleted(
