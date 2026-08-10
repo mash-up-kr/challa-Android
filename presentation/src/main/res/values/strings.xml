@@ -140,7 +140,7 @@
     <string name="setting_title">설정</string>
     <string name="setting_back_description">뒤로가기</string>
     <string name="setting_profile_edit_description">프로필 수정</string>
-    <string name="setting_profile_update_success">프로필을 수정했습니다</string>
+    <string name="setting_profile_update_success">프로필을 수정했어요</string>
     <string name="setting_app_section">앱 설정</string>
     <string name="setting_theme">테마</string>
     <string name="setting_notification">알림</string>

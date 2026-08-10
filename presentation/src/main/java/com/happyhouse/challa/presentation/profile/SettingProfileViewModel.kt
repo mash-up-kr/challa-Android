@@ -34,6 +34,8 @@ class SettingProfileViewModel @AssistedInject constructor(
                 profileImageUri = profileImageUrl,
             ),
     ) {
+    private var isProfileImageChanged = false
+
     override fun onIntent(intent: SettingProfileIntent) {
         when (intent) {
             is SettingProfileIntent.NicknameChanged -> onNicknameChanged(intent.nickname)
@@ -55,11 +57,13 @@ class SettingProfileViewModel @AssistedInject constructor(
     }
 
     private fun onProfileImageSelected(uri: String) {
-        updateState { copy(profileImageUri = uri, isProfileImageChanged = true) }
+        isProfileImageChanged = true
+        updateState { copy(profileImageUri = uri) }
     }
 
     private fun onProfileImageDeleted() {
-        updateState { copy(profileImageUri = null, isProfileImageChanged = true) }
+        isProfileImageChanged = true
+        updateState { copy(profileImageUri = null) }
     }
 
     private fun saveProfile() {
@@ -68,7 +72,7 @@ class SettingProfileViewModel @AssistedInject constructor(
             updateState { copy(isSubmitting = true) }
 
             val profileImageUrl =
-                if (currentState.isProfileImageChanged) {
+                if (isProfileImageChanged) {
                     currentState.profileImageUri?.let { uri ->
                         when (val result = imageUploadRepository.uploadProfileImage(uri)) {
                             is ChallaResult.Success -> result.data
