@@ -20,9 +20,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
+import com.happyhouse.challa.presentation.camera.filter.CubeLut
+import com.happyhouse.challa.presentation.camera.filter.applyCameraFilter
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
-import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
+import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -41,13 +42,12 @@ import timber.log.Timber
  * [bindingRetryKey]가 바뀐 때는 Controller와 PreviewView를 재생성해 초기화부터 재시도합니다.
  * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
  * Android 13 이상에서는 서버가 제공한 모든 LUT를 미리 내려받고 [selectedFilter]를 프리뷰에 적용합니다.
- * LUT가 준비되지 않았거나 로드에 실패하면 색상 효과를 적용하지 않습니다.
- * 실패한 제어 요청은 기록합니다.
- * 새로운 [captureRequest]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
+ * LUT가 준비되지 않았거나 로드에 실패하면 색상 효과를 적용하지 않습니다. 실패한 제어 요청은 기록합니다.
+ * 새로운 [captureRequestId]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
  * Composable이 Composition에서 제거되면 Controller를 해제하고 진행 중인 촬영 코루틴을 취소합니다.
  *
- * @param captureRequest 현재 세션에서 처리할 촬영 요청. [PhotoCaptureRequest.requestId]가 바뀔 때마다
- * 새 요청으로 처리하며, 호출자는 결과를 받은 뒤 요청을 제거해야 합니다.
+ * @param captureRequestId 현재 세션에서 처리할 촬영 요청 식별자. 값이 바뀔 때마다 새 요청으로
+ * 처리하며, 호출자는 결과를 받은 뒤 요청 식별자를 제거해야 합니다.
  * @param selectedFilter 프리뷰에 적용할 필터
  * @param bindingRetryKey 카메라 초기화·바인딩 실패 후 Controller를 재생성해 재시도할 때 변경하는 키
  * @param onStateChanged 바인딩·촬영 상태가 바뀐 때 최신 [CameraSessionState]를 전달하는 콜백
@@ -61,7 +61,7 @@ internal fun CameraSession(
     zoomLevel: Float,
     filters: ImmutableList<CameraFilterUiModel>,
     selectedFilter: CameraFilterUiModel,
-    captureRequest: PhotoCaptureRequest?,
+    captureRequestId: Long?,
     bindingRetryKey: Int,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onStateChanged: (CameraSessionState) -> Unit,
@@ -213,13 +213,13 @@ internal fun CameraSession(
     }
 
     // requestId가 바뀐 경우에만 Controller에 새로운 촬영을 요청합니다.
-    LaunchedEffect(cameraController, lensFacing, captureRequest?.requestId) {
-        val request = captureRequest ?: return@LaunchedEffect
+    LaunchedEffect(cameraController, lensFacing, captureRequestId) {
+        val requestId = captureRequestId ?: return@LaunchedEffect
 
         if (!sessionState.isReady || sessionState.isCapturing) {
             currentOnEvent(
                 CameraSessionEvent.CaptureCompleted(
-                    requestId = request.requestId,
+                    requestId = requestId,
                     result =
                         CameraCaptureResult.Failed(
                             reason =
@@ -244,7 +244,7 @@ internal fun CameraSession(
                             executor = callbackExecutor,
                             onCaptureStarted = {
                                 currentOnEvent(
-                                    CameraSessionEvent.CaptureStarted(request.requestId),
+                                    CameraSessionEvent.CaptureStarted(requestId),
                                 )
                             },
                         ).let { image -> capturedImageProcessor.process(image) }
@@ -252,7 +252,7 @@ internal fun CameraSession(
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(
                     CameraSessionEvent.CaptureCompleted(
-                        requestId = request.requestId,
+                        requestId = requestId,
                         result = CameraCaptureResult.Cancelled,
                     ),
                 )
@@ -267,7 +267,7 @@ internal fun CameraSession(
 
         currentOnEvent(
             CameraSessionEvent.CaptureCompleted(
-                requestId = request.requestId,
+                requestId = requestId,
                 result = result,
             ),
         )

@@ -109,7 +109,7 @@ internal fun CameraContent(
                     zoomLevel = state.zoomLevel,
                     filters = state.cameraFilters,
                     selectedFilter = state.selectedFilter,
-                    captureRequest = captureRequest,
+                    captureRequestId = captureRequest?.requestId,
                     bindingRetryKey = cameraBindingRetryKey,
                     getCameraFilterFile = getCameraFilterFile,
                     onStateChanged = { cameraSessionState = it },

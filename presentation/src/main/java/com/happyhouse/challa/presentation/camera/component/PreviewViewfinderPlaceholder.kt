@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera.camerax
+package com.happyhouse.challa.presentation.camera.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

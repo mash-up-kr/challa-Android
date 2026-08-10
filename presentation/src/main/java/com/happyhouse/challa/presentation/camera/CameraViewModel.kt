@@ -7,11 +7,11 @@ import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
-import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
+import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
