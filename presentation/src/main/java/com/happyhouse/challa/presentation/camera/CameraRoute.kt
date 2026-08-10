@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
@@ -55,15 +56,18 @@ fun CameraRoute(
             when (effect) {
                 CameraSideEffect.RoomLoadFailed -> {
                     launch {
-                        launch {
+                        val result =
                             snackbarHostState.showSnackbar(
                                 ChallaSnackbarVisuals(
                                     content =
                                         ChallaSnackbarContent.HeadingOnly(
                                             heading = roomLoadFailedMessage,
                                         ),
+                                    actionLabel = retryLabel,
                                 ),
                             )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            viewModel.onIntent(CameraIntent.RoomLoadRetry)
                         }
                     }
                 }

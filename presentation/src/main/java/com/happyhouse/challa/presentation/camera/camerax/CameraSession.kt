@@ -183,12 +183,11 @@ internal fun CameraSession(
 
     // Controller에 바인딩된 렌즈의 플래시 지원 여부를 확인한 뒤 촬영 플래시를 설정합니다.
     LaunchedEffect(cameraController, sessionState.bindingState, isFlashEnabled) {
-        if (!sessionState.isReady) return@LaunchedEffect
+        val readyState =
+            sessionState.bindingState as? CameraBindingState.Ready ?: return@LaunchedEffect
 
-        val shouldEnableFlash =
-            isFlashEnabled && cameraController.cameraInfo?.hasFlashUnit() == true
         cameraController.imageCaptureFlashMode =
-            if (shouldEnableFlash) {
+            if (isFlashEnabled && readyState.hasFlashUnit) {
                 ImageCapture.FLASH_MODE_ON
             } else {
                 ImageCapture.FLASH_MODE_OFF

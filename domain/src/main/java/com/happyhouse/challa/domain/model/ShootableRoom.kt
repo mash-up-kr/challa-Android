@@ -1,8 +1,8 @@
 package com.happyhouse.challa.domain.model
 
-data class RoomSummary(
+data class ShootableRoom(
     val id: Long,
-    val name: String,
+    val title: String,
     val remainingCount: Int,
     val totalCount: Int,
 )

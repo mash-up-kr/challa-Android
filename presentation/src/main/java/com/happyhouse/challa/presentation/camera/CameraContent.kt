@@ -16,7 +16,9 @@ import com.happyhouse.challa.presentation.camera.camerax.CameraSessionState
 import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -50,11 +52,14 @@ internal fun CameraContent(
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
     var isRoomSelectionSheetVisible by remember { mutableStateOf(false) }
+
+    val readyState = cameraSessionState.bindingState as? CameraBindingState.Ready
     val isCameraIdle = !state.isCapturePending && !cameraSessionState.isCapturing
-    val canControlCamera =
-        cameraSessionState.isReady &&
-            cameraSessionState.boundLensFacing == state.lensFacing &&
-            isCameraIdle
+    val canControlCamera = readyState?.lensFacing == state.lensFacing && isCameraIdle
+    val canCapture =
+        canControlCamera &&
+            state.roomLoadState == CameraRoomLoadState.LOADED &&
+            selectedRoom?.remainingCaptureStatus?.isCaptureAvailable == true
     val canSwitchCamera =
         canControlCamera ||
             (cameraSessionState.bindingState as? CameraBindingState.Failed)?.reason ==
@@ -74,14 +79,12 @@ internal fun CameraContent(
         totalCount = selectedRoom?.totalCount ?: 0,
         filters = state.cameraFilters,
         selectedFilterIndex = state.selectedFilterIndex,
-        isFlashEnabled = state.isFlashEnabled && cameraSessionState.hasFlashUnit,
+        isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,
         isCameraSwitchEnabled = canSwitchCamera,
-        shutterEnabled = canControlCamera,
+        shutterEnabled = canCapture,
         isShutterEffectVisible = isShutterEffectVisible,
         zoomLevel = state.zoomLevel,
-        onFlashClick = {
-            onIntent(CameraIntent.FlashClick(cameraSessionState.hasFlashUnit))
-        },
+        onFlashClick = { onIntent(CameraIntent.FlashClick(readyState?.hasFlashUnit == true)) },
         onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
         onShutterClick = { onIntent(CameraIntent.ShutterClick) },
         onZoomClick = { onIntent(CameraIntent.ZoomClick) },
