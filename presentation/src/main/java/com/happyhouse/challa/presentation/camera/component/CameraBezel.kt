@@ -117,7 +117,7 @@ private fun CameraBezelPreview() {
             isShutterEffectVisible = false,
             zoomLevel = 1f,
             onZoomClick = {},
-            viewFinder = { PreviewViewfinderPlaceholder(it) },
+            viewFinder = {},
         )
     }
 }
@@ -138,7 +138,7 @@ private fun CameraBezelLimitReachedPreview() {
             isShutterEffectVisible = false,
             zoomLevel = 2f,
             onZoomClick = {},
-            viewFinder = { PreviewViewfinderPlaceholder(it) },
+            viewFinder = {},
         )
     }
 }

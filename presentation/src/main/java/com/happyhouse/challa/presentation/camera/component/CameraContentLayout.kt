@@ -117,7 +117,7 @@ private fun CameraContentLayoutPreview() {
         onZoomClick = {},
         onFilterClick = {},
         onRoomInfoClick = {},
-        viewFinder = { PreviewViewfinderPlaceholder(it) },
+        viewFinder = {},
     )
 }
 
@@ -143,7 +143,7 @@ private fun CameraContentLimitReachedPreview() {
         onZoomClick = {},
         onFilterClick = {},
         onRoomInfoClick = {},
-        viewFinder = { PreviewViewfinderPlaceholder(it) },
+        viewFinder = {},
     )
 }
 
