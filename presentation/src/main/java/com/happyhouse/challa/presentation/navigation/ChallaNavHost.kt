@@ -22,8 +22,8 @@ import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
-import com.happyhouse.challa.presentation.profile.CreateProfileRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
+import com.happyhouse.challa.presentation.profile.SettingProfileRoute
 import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
@@ -97,13 +97,13 @@ fun ChallaNavHost(
                         onLoginSuccess = { isNewUser ->
                             // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
                             navigator.replace(
-                                if (isNewUser) ChallaRoute.CreateProfile else ChallaRoute.Home,
+                                if (isNewUser) ChallaRoute.SettingProfile else ChallaRoute.Home,
                             )
                         },
                     )
                 }
-                entry<ChallaRoute.CreateProfile> {
-                    CreateProfileRoute(
+                entry<ChallaRoute.SettingProfile> {
+                    SettingProfileRoute(
                         onProfileCreated = {
                             navigator.replace(ChallaRoute.Home)
                         },

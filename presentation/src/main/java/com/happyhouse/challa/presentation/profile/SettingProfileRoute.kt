@@ -67,11 +67,11 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.coroutines.launch
 
 @Composable
-fun CreateProfileRoute(
+fun SettingProfileRoute(
     onProfileCreated: (nickname: String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CreateProfileViewModel =
-        hiltViewModel<CreateProfileViewModel, CreateProfileViewModel.Factory>(
+    viewModel: SettingProfileViewModel =
+        hiltViewModel<SettingProfileViewModel, SettingProfileViewModel.Factory>(
             creationCallback = { factory ->
                 factory.create(
                     mode = ProfileSettingMode.CREATE,
@@ -97,8 +97,8 @@ fun EditProfileRoute(
     onBackClick: () -> Unit,
     onProfileUpdated: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CreateProfileViewModel =
-        hiltViewModel<CreateProfileViewModel, CreateProfileViewModel.Factory>(
+    viewModel: SettingProfileViewModel =
+        hiltViewModel<SettingProfileViewModel, SettingProfileViewModel.Factory>(
             creationCallback = { factory ->
                 factory.create(
                     mode = ProfileSettingMode.EDIT,
@@ -123,7 +123,7 @@ private fun ProfileSettingRoute(
     onProfileCreated: (nickname: String) -> Unit,
     onProfileUpdated: () -> Unit,
     modifier: Modifier,
-    viewModel: CreateProfileViewModel,
+    viewModel: SettingProfileViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -140,7 +140,7 @@ private fun ProfileSettingRoute(
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.PickVisualMedia(),
         ) { uri ->
-            uri?.let { viewModel.onIntent(CreateProfileIntent.ProfileImageSelected(it.toString())) }
+            uri?.let { viewModel.onIntent(SettingProfileIntent.ProfileImageSelected(it.toString())) }
         }
 
     fun showToast(message: String) {
@@ -160,16 +160,16 @@ private fun ProfileSettingRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is CreateProfileSideEffect.ProfileCreated -> onProfileCreated(effect.nickname)
-                CreateProfileSideEffect.ProfileUpdated -> onProfileUpdated()
-                CreateProfileSideEffect.ProfileCreateFailed -> showToast(profileCreateFailedMessage)
-                CreateProfileSideEffect.ProfileUpdateFailed -> showToast(profileUpdateFailedMessage)
-                CreateProfileSideEffect.NicknameLengthExceeded -> showToast(nicknameLengthExceededMessage)
+                is SettingProfileSideEffect.ProfileCreated -> onProfileCreated(effect.nickname)
+                SettingProfileSideEffect.ProfileUpdated -> onProfileUpdated()
+                SettingProfileSideEffect.ProfileCreateFailed -> showToast(profileCreateFailedMessage)
+                SettingProfileSideEffect.ProfileUpdateFailed -> showToast(profileUpdateFailedMessage)
+                SettingProfileSideEffect.NicknameLengthExceeded -> showToast(nicknameLengthExceededMessage)
             }
         }
     }
 
-    CreateProfileScreen(
+    SettingProfileScreen(
         state = state,
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
@@ -193,7 +193,7 @@ private fun ProfileSettingRoute(
             },
             onDeleteImageClick = {
                 isImageSourceSheetVisible = false
-                viewModel.onIntent(CreateProfileIntent.ProfileImageDeleteClick)
+                viewModel.onIntent(SettingProfileIntent.ProfileImageDeleteClick)
             },
             onDismissRequest = { isImageSourceSheetVisible = false },
         )
@@ -244,15 +244,13 @@ private fun ProfileImageSourceBottomSheet(
 }
 
 @Composable
-private fun CreateProfileScreen(
-    state: CreateProfileState,
-    onIntent: (CreateProfileIntent) -> Unit,
+private fun SettingProfileScreen(
+    state: SettingProfileState,
+    onIntent: (SettingProfileIntent) -> Unit,
     onBackClick: () -> Unit,
     onEditImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isEditMode = state.mode == ProfileSettingMode.EDIT
-
     Column(
         modifier =
             modifier
@@ -265,24 +263,24 @@ private fun CreateProfileScreen(
             title =
                 stringResource(
                     id =
-                        if (isEditMode) {
-                            R.string.edit_profile_title
-                        } else {
-                            R.string.create_profile_title
+                        when (state.mode) {
+                            ProfileSettingMode.CREATE -> R.string.create_profile_title
+                            ProfileSettingMode.EDIT -> R.string.edit_profile_title
                         },
                 ),
             variant = ChallaTopNavigationVariant.SUB,
             leadingIcon =
-                if (isEditMode) {
-                    {
-                        ChallaNavigationIconButton(
-                            icon = ChallaIcons.Left,
-                            onClick = onBackClick,
-                            contentDescription = stringResource(R.string.edit_profile_back_description),
-                        )
+                when (state.mode) {
+                    ProfileSettingMode.CREATE -> null
+                    ProfileSettingMode.EDIT -> {
+                        {
+                            ChallaNavigationIconButton(
+                                icon = ChallaIcons.Left,
+                                onClick = onBackClick,
+                                contentDescription = stringResource(R.string.edit_profile_back_description),
+                            )
+                        }
                     }
-                } else {
-                    null
                 },
         )
 
@@ -308,7 +306,7 @@ private fun CreateProfileScreen(
                 isCompleted = state.isCompleted,
                 isSubmitting = state.isSubmitting,
                 isNicknameLengthExceeded = state.isNicknameLengthExceeded,
-                onNicknameChange = { onIntent(CreateProfileIntent.NicknameChanged(it)) },
+                onNicknameChange = { onIntent(SettingProfileIntent.NicknameChanged(it)) },
                 onEditImageClick = onEditImageClick,
                 modifier = Modifier.padding(horizontal = 32.dp),
             )
@@ -319,13 +317,12 @@ private fun CreateProfileScreen(
                 text =
                     stringResource(
                         id =
-                            if (isEditMode) {
-                                R.string.edit_profile_submit
-                            } else {
-                                R.string.create_profile_submit
+                            when (state.mode) {
+                                ProfileSettingMode.CREATE -> R.string.create_profile_submit
+                                ProfileSettingMode.EDIT -> R.string.edit_profile_submit
                             },
                     ),
-                onClick = { onIntent(CreateProfileIntent.DoneClick) },
+                onClick = { onIntent(SettingProfileIntent.DoneClick) },
                 enabled = state.canSubmit,
                 modifier =
                     Modifier
@@ -461,13 +458,13 @@ private fun ProfileImage(
     }
 }
 
-@Preview(showBackground = true, name = "CreateProfile - Empty")
+@Preview(showBackground = true, name = "SettingProfile - Empty")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun CreateProfileScreenEmptyPreview() {
+private fun SettingProfileScreenEmptyPreview() {
     ChallaTheme {
-        CreateProfileScreen(
-            state = CreateProfileState(),
+        SettingProfileScreen(
+            state = SettingProfileState(),
             onIntent = {},
             onBackClick = {},
             onEditImageClick = {},
@@ -475,13 +472,13 @@ private fun CreateProfileScreenEmptyPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "CreateProfile - Filled")
+@Preview(showBackground = true, name = "SettingProfile - Filled")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun CreateProfileScreenFilledPreview() {
+private fun SettingProfileScreenFilledPreview() {
     ChallaTheme {
-        CreateProfileScreen(
-            state = CreateProfileState(nickname = "찰나"),
+        SettingProfileScreen(
+            state = SettingProfileState(nickname = "찰나"),
             onIntent = {},
             onBackClick = {},
             onEditImageClick = {},
@@ -489,13 +486,13 @@ private fun CreateProfileScreenFilledPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "CreateProfile - Completed")
+@Preview(showBackground = true, name = "SettingProfile - Completed")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun CreateProfileScreenCompletedPreview() {
+private fun SettingProfileScreenCompletedPreview() {
     ChallaTheme {
-        CreateProfileScreen(
-            state = CreateProfileState(nickname = "찰나", isCompleted = true),
+        SettingProfileScreen(
+            state = SettingProfileState(nickname = "찰나", isCompleted = true),
             onIntent = {},
             onBackClick = {},
             onEditImageClick = {},

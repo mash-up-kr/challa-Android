@@ -19,27 +19,27 @@ const val NICKNAME_MAX_LENGTH = 10
 // 완료 화면을 잠시 보여준 뒤 다음 화면으로 이동하기까지의 지연 시간
 private const val PROFILE_COMPLETED_NAVIGATE_DELAY_MS = 2000L
 
-@HiltViewModel(assistedFactory = CreateProfileViewModel.Factory::class)
-class CreateProfileViewModel @AssistedInject constructor(
+@HiltViewModel(assistedFactory = SettingProfileViewModel.Factory::class)
+class SettingProfileViewModel @AssistedInject constructor(
     @Assisted mode: ProfileSettingMode,
     @Assisted("nickname") nickname: String,
     @Assisted("profileImageUrl") profileImageUrl: String?,
     private val userRepository: UserRepository,
     private val imageUploadRepository: ImageUploadRepository,
-) : BaseViewModel<CreateProfileState, CreateProfileIntent, CreateProfileSideEffect>(
+) : BaseViewModel<SettingProfileState, SettingProfileIntent, SettingProfileSideEffect>(
         initialState =
-            CreateProfileState(
+            SettingProfileState(
                 mode = mode,
                 nickname = nickname,
                 profileImageUri = profileImageUrl,
             ),
     ) {
-    override fun onIntent(intent: CreateProfileIntent) {
+    override fun onIntent(intent: SettingProfileIntent) {
         when (intent) {
-            is CreateProfileIntent.NicknameChanged -> onNicknameChanged(intent.nickname)
-            is CreateProfileIntent.ProfileImageSelected -> onProfileImageSelected(intent.uri)
-            CreateProfileIntent.ProfileImageDeleteClick -> onProfileImageDeleted()
-            CreateProfileIntent.DoneClick -> saveProfile()
+            is SettingProfileIntent.NicknameChanged -> onNicknameChanged(intent.nickname)
+            is SettingProfileIntent.ProfileImageSelected -> onProfileImageSelected(intent.uri)
+            SettingProfileIntent.ProfileImageDeleteClick -> onProfileImageDeleted()
+            SettingProfileIntent.DoneClick -> saveProfile()
         }
     }
 
@@ -47,7 +47,7 @@ class CreateProfileViewModel @AssistedInject constructor(
         val isLengthExceeded = nickname.length > NICKNAME_MAX_LENGTH
         if (isLengthExceeded) {
             viewModelScope.launch {
-                sendEffect(CreateProfileSideEffect.NicknameLengthExceeded)
+                sendEffect(SettingProfileSideEffect.NicknameLengthExceeded)
             }
         }
         val truncated = nickname.take(NICKNAME_MAX_LENGTH)
@@ -89,11 +89,11 @@ class CreateProfileViewModel @AssistedInject constructor(
                 ).onSuccess { profile ->
                     if (currentState.mode == ProfileSettingMode.EDIT) {
                         updateState { copy(isSubmitting = false) }
-                        sendEffect(CreateProfileSideEffect.ProfileUpdated)
+                        sendEffect(SettingProfileSideEffect.ProfileUpdated)
                     } else {
                         updateState { copy(isSubmitting = false, isCompleted = true) }
                         delay(PROFILE_COMPLETED_NAVIGATE_DELAY_MS)
-                        sendEffect(CreateProfileSideEffect.ProfileCreated(profile.nickname.orEmpty()))
+                        sendEffect(SettingProfileSideEffect.ProfileCreated(profile.nickname.orEmpty()))
                     }
                 }.onFailure {
                     handleSaveFailure()
@@ -105,9 +105,9 @@ class CreateProfileViewModel @AssistedInject constructor(
         updateState { copy(isSubmitting = false) }
         sendEffect(
             if (currentState.mode == ProfileSettingMode.EDIT) {
-                CreateProfileSideEffect.ProfileUpdateFailed
+                SettingProfileSideEffect.ProfileUpdateFailed
             } else {
-                CreateProfileSideEffect.ProfileCreateFailed
+                SettingProfileSideEffect.ProfileCreateFailed
             },
         )
     }
@@ -118,6 +118,6 @@ class CreateProfileViewModel @AssistedInject constructor(
             mode: ProfileSettingMode,
             @Assisted("nickname") nickname: String,
             @Assisted("profileImageUrl") profileImageUrl: String?,
-        ): CreateProfileViewModel
+        ): SettingProfileViewModel
     }
 }

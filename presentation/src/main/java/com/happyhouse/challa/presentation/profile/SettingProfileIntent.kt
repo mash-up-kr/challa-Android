@@ -2,16 +2,16 @@ package com.happyhouse.challa.presentation.profile
 
 import com.happyhouse.challa.presentation.base.UiIntent
 
-sealed interface CreateProfileIntent : UiIntent {
+sealed interface SettingProfileIntent : UiIntent {
     data class NicknameChanged(
         val nickname: String,
-    ) : CreateProfileIntent
+    ) : SettingProfileIntent
 
     data class ProfileImageSelected(
         val uri: String,
-    ) : CreateProfileIntent
+    ) : SettingProfileIntent
 
-    data object ProfileImageDeleteClick : CreateProfileIntent
+    data object ProfileImageDeleteClick : SettingProfileIntent
 
-    data object DoneClick : CreateProfileIntent
+    data object DoneClick : SettingProfileIntent
 }

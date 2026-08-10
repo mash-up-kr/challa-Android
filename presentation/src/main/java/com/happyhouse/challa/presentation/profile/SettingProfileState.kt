@@ -2,7 +2,7 @@ package com.happyhouse.challa.presentation.profile
 
 import com.happyhouse.challa.presentation.base.UiState
 
-data class CreateProfileState(
+data class SettingProfileState(
     val mode: ProfileSettingMode = ProfileSettingMode.CREATE,
     val nickname: String = "",
     val profileImageUri: String? = null,

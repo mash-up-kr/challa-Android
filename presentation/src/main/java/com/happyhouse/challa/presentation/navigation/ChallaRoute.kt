@@ -26,7 +26,7 @@ sealed interface ChallaRoute : NavKey {
     data object Login : ChallaRoute
 
     @Serializable
-    data object CreateProfile : ChallaRoute
+    data object SettingProfile : ChallaRoute
 
     @Serializable
     data class EditProfile(
