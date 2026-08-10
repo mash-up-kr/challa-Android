@@ -100,7 +100,7 @@ private const val FILM_PREVIEW_MAX = 3
 @Composable
 fun HomeRoute(
     onNavigateToSetting: () -> Unit,
-    onNavigateToRoom: (roomId: String) -> Unit,
+    onNavigateToRoom: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -141,8 +141,8 @@ fun HomeRoute(
             onDismiss = { showCreateRoomSheet = false },
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
-                // 방 생성 완료 후 방 상세(RoomMain) 화면으로 이동한다.
-                onNavigateToRoom(roomId.toString())
+                // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다.
+                onNavigateToRoom(roomId)
             },
         )
     }
@@ -152,7 +152,7 @@ fun HomeRoute(
             onDismiss = { showEnterRoomSheet = false },
             onRoomEntered = { roomId ->
                 showEnterRoomSheet = false
-                onNavigateToRoom(roomId.toString())
+                onNavigateToRoom(roomId)
             },
         )
     }
@@ -165,7 +165,7 @@ private fun HomeScreen(
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -243,7 +243,7 @@ private fun HomeScreen(
 private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -278,7 +278,7 @@ private fun HomeRoomsContent(
 @Composable
 private fun HomeShootingSection(
     rooms: ImmutableList<RoomUiModel.Shooting>,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -412,7 +412,7 @@ private fun HomeShootingCard(
 @Composable
 private fun HomeCompletedSection(
     rooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -912,21 +912,21 @@ private fun HomeActionButton(
 private fun previewRooms(): ImmutableList<RoomUiModel> =
     persistentListOf(
         RoomUiModel.Shooting(
-            id = "1",
+            id = 1L,
             name = "친구들과 강릉 여행",
             participantCount = 1,
             takenCount = 24,
             coverImageUrl = null,
         ),
         RoomUiModel.Shooting(
-            id = "2",
+            id = 2L,
             name = "제주도 우정여행",
             participantCount = 4,
             takenCount = 12,
             coverImageUrl = null,
         ),
         RoomUiModel.Completed(
-            id = "3",
+            id = 3L,
             name = "친구들과 강릉 여행",
             participantCount = 11,
             printState = PrintState.WAITING,
@@ -934,7 +934,7 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             totalPhotoCount = 24,
         ),
         RoomUiModel.Completed(
-            id = "4",
+            id = 4L,
             name = "인화 완료 된 방이에요",
             participantCount = 7,
             printState = PrintState.COMPLETED,
