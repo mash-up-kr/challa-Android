@@ -23,7 +23,7 @@ private const val PROFILE_COMPLETED_NAVIGATE_DELAY_MS = 2000L
 class SettingProfileViewModel @AssistedInject constructor(
     @Assisted mode: ProfileSettingMode,
     @Assisted("nickname") nickname: String,
-    @Assisted("profileImageUrl") profileImageUrl: String?,
+    @Assisted("profileImageUrl") private val initialProfileImageUrl: String?,
     private val userRepository: UserRepository,
     private val imageUploadRepository: ImageUploadRepository,
 ) : BaseViewModel<SettingProfileState, SettingProfileIntent, SettingProfileSideEffect>(
@@ -31,10 +31,11 @@ class SettingProfileViewModel @AssistedInject constructor(
             SettingProfileState(
                 mode = mode,
                 nickname = nickname,
-                profileImageUri = profileImageUrl,
+                profileImageUri = initialProfileImageUrl,
             ),
     ) {
-    private var isProfileImageChanged = false
+    private val isProfileImageChanged: Boolean
+        get() = currentState.profileImageUri != initialProfileImageUrl
 
     override fun onIntent(intent: SettingProfileIntent) {
         when (intent) {
@@ -57,12 +58,10 @@ class SettingProfileViewModel @AssistedInject constructor(
     }
 
     private fun onProfileImageSelected(uri: String) {
-        isProfileImageChanged = true
         updateState { copy(profileImageUri = uri) }
     }
 
     private fun onProfileImageDeleted() {
-        isProfileImageChanged = true
         updateState { copy(profileImageUri = null) }
     }
 
