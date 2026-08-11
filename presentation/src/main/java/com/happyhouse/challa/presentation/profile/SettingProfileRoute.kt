@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,7 +59,8 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTe
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.coroutines.launch
@@ -251,86 +250,88 @@ private fun SettingProfileScreen(
     onEditImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(ChallaTheme.colors.backgroundSurface)
-                .statusBarsPadding()
-                .imePadding(),
-    ) {
-        ChallaTopNavigation(
-            title =
-                stringResource(
-                    id =
-                        when (state.mode) {
-                            ProfileSettingMode.CREATE -> R.string.create_profile_title
-                            ProfileSettingMode.EDIT -> R.string.edit_profile_title
-                        },
-                ),
-            variant = ChallaTopNavigationVariant.SUB,
-            leadingIcon =
-                when (state.mode) {
-                    ProfileSettingMode.CREATE -> null
-                    ProfileSettingMode.EDIT -> {
-                        {
-                            ChallaNavigationIconButton(
-                                icon = ChallaIcons.Left,
-                                onClick = onBackClick,
-                                contentDescription = stringResource(R.string.edit_profile_back_description),
-                            )
-                        }
-                    }
-                },
-        )
-
-        Column(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = headlineText(nickname = state.nickname, isCompleted = state.isCompleted),
-                color = ChallaTheme.colors.labelNormal,
-                style = ChallaTheme.typography.headingSmall.bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-            )
-
-            ProfileCard(
-                nickname = state.nickname,
-                profileImageUri = state.profileImageUri,
-                isCompleted = state.isCompleted,
-                isSubmitting = state.isSubmitting,
-                isNicknameLengthExceeded = state.isNicknameLengthExceeded,
-                onNicknameChange = { onIntent(SettingProfileIntent.NicknameChanged(it)) },
-                onEditImageClick = onEditImageClick,
-                modifier = Modifier.padding(horizontal = 32.dp),
-            )
-        }
-
-        if (!state.isCompleted) {
-            ChallaTextButton(
-                text =
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize().imePadding(),
+        topBar = {
+            ChallaTopNavigation(
+                title =
                     stringResource(
                         id =
                             when (state.mode) {
-                                ProfileSettingMode.CREATE -> R.string.create_profile_submit
-                                ProfileSettingMode.EDIT -> R.string.edit_profile_submit
+                                ProfileSettingMode.CREATE -> R.string.create_profile_title
+                                ProfileSettingMode.EDIT -> R.string.edit_profile_title
                             },
                     ),
-                onClick = { onIntent(SettingProfileIntent.DoneClick) },
-                enabled = state.canSubmit,
+                variant = ChallaTopNavigationVariant.SUB,
+                leadingIcon =
+                    when (state.mode) {
+                        ProfileSettingMode.CREATE -> null
+                        ProfileSettingMode.EDIT -> {
+                            {
+                                ChallaNavigationIconButton(
+                                    icon = ChallaIcons.Left,
+                                    onClick = onBackClick,
+                                    contentDescription = stringResource(R.string.edit_profile_back_description),
+                                )
+                            }
+                        }
+                    },
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+        ) {
+            Column(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 16.dp, bottom = 12.dp)
-                        .navigationBarsPadding(),
-            )
+                        .weight(1f)
+                        .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = headlineText(nickname = state.nickname, isCompleted = state.isCompleted),
+                    color = ChallaTheme.colors.labelNormal,
+                    style = ChallaTheme.typography.headingSmall.bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
+                )
+
+                ProfileCard(
+                    nickname = state.nickname,
+                    profileImageUri = state.profileImageUri,
+                    isCompleted = state.isCompleted,
+                    isSubmitting = state.isSubmitting,
+                    isNicknameLengthExceeded = state.isNicknameLengthExceeded,
+                    onNicknameChange = { onIntent(SettingProfileIntent.NicknameChanged(it)) },
+                    onEditImageClick = onEditImageClick,
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                )
+            }
+
+            if (!state.isCompleted) {
+                ChallaTextButton(
+                    text =
+                        stringResource(
+                            id =
+                                when (state.mode) {
+                                    ProfileSettingMode.CREATE -> R.string.create_profile_submit
+                                    ProfileSettingMode.EDIT -> R.string.edit_profile_submit
+                                },
+                        ),
+                    onClick = { onIntent(SettingProfileIntent.DoneClick) },
+                    enabled = state.canSubmit,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp, bottom = 12.dp),
+                )
+            }
         }
     }
 }
@@ -459,43 +460,37 @@ private fun ProfileImage(
 }
 
 @Preview(showBackground = true, name = "SettingProfile - Empty")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun SettingProfileScreenEmptyPreview() {
-    ChallaTheme {
-        SettingProfileScreen(
-            state = SettingProfileState(),
-            onIntent = {},
-            onBackClick = {},
-            onEditImageClick = {},
-        )
-    }
+    SettingProfileScreen(
+        state = SettingProfileState(),
+        onIntent = {},
+        onBackClick = {},
+        onEditImageClick = {},
+    )
 }
 
 @Preview(showBackground = true, name = "SettingProfile - Filled")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun SettingProfileScreenFilledPreview() {
-    ChallaTheme {
-        SettingProfileScreen(
-            state = SettingProfileState(nickname = "찰나"),
-            onIntent = {},
-            onBackClick = {},
-            onEditImageClick = {},
-        )
-    }
+    SettingProfileScreen(
+        state = SettingProfileState(nickname = "찰나"),
+        onIntent = {},
+        onBackClick = {},
+        onEditImageClick = {},
+    )
 }
 
 @Preview(showBackground = true, name = "SettingProfile - Completed")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun SettingProfileScreenCompletedPreview() {
-    ChallaTheme {
-        SettingProfileScreen(
-            state = SettingProfileState(nickname = "찰나", isCompleted = true),
-            onIntent = {},
-            onBackClick = {},
-            onEditImageClick = {},
-        )
-    }
+    SettingProfileScreen(
+        state = SettingProfileState(nickname = "찰나", isCompleted = true),
+        onIntent = {},
+        onBackClick = {},
+        onEditImageClick = {},
+    )
 }

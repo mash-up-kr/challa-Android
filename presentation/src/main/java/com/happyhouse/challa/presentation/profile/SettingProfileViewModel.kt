@@ -34,9 +34,6 @@ class SettingProfileViewModel @AssistedInject constructor(
                 profileImageUri = initialProfileImageUrl,
             ),
     ) {
-    private val isProfileImageChanged: Boolean
-        get() = currentState.profileImageUri != initialProfileImageUrl
-
     override fun onIntent(intent: SettingProfileIntent) {
         when (intent) {
             is SettingProfileIntent.NicknameChanged -> onNicknameChanged(intent.nickname)
@@ -70,6 +67,7 @@ class SettingProfileViewModel @AssistedInject constructor(
         viewModelScope.launch {
             updateState { copy(isSubmitting = true) }
 
+            val isProfileImageChanged = currentState.profileImageUri != initialProfileImageUrl
             val profileImageUrl =
                 if (isProfileImageChanged) {
                     currentState.profileImageUri?.let { uri ->
