@@ -11,6 +11,9 @@ object ChallaIcons {
     val Apple = R.drawable.ic_apple
 
     @DrawableRes
+    val AppLogo = R.drawable.ic_app_logo
+
+    @DrawableRes
     val Bell = R.drawable.ic_bell
 
     @DrawableRes
@@ -18,6 +21,9 @@ object ChallaIcons {
 
     @DrawableRes
     val Camera = R.drawable.ic_camera
+
+    @DrawableRes
+    val CameraRoll = R.drawable.ic_camera_roll
 
     @DrawableRes
     val Carrot = R.drawable.ic_carrot
@@ -30,6 +36,9 @@ object ChallaIcons {
 
     @DrawableRes
     val Circle = R.drawable.ic_circle
+
+    @DrawableRes
+    val Clock = R.drawable.ic_clock
 
     @DrawableRes
     val Close = R.drawable.ic_close
