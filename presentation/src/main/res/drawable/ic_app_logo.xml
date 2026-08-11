@@ -1,35 +1,18 @@
-<!--
-  ~ Copyright (C) 2026 The Android Open Source Project
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="42dp"
     android:height="42dp"
     android:viewportWidth="42"
     android:viewportHeight="42">
-  <group>
-    <clip-path
-        android:pathData="M0,0h42v42h-42z"/>
     <group>
-      <clip-path
-          android:pathData="M42,0H0V42H42V0Z"/>
-      <path
-          android:pathData="M13.855,20.397L11.873,18.416L16.257,14.032L18.813,16.588L20.965,8.558L26.954,10.163L25.013,17.408L37.681,14.013L39.286,20.002L25.832,23.607L35.955,33.73L31.571,38.114L22.023,28.566L20.082,35.811L14.093,34.206L16.244,26.176L4.361,29.36L2.756,23.371L13.855,20.397Z"
-          android:fillColor="#ffffff"/>
-      <path
-          android:pathData="M10.363,8.137L5.979,12.521L10.402,16.945L14.786,12.561L10.363,8.137Z"
-          android:fillColor="#D5F700"/>
+        <clip-path android:pathData="M0,0h42v42h-42z" />
+        <group>
+            <clip-path android:pathData="M42,0H0V42H42V0Z" />
+            <path
+                android:fillColor="#ffffff"
+                android:pathData="M13.855,20.397L11.873,18.416L16.257,14.032L18.813,16.588L20.965,8.558L26.954,10.163L25.013,17.408L37.681,14.013L39.286,20.002L25.832,23.607L35.955,33.73L31.571,38.114L22.023,28.566L20.082,35.811L14.093,34.206L16.244,26.176L4.361,29.36L2.756,23.371L13.855,20.397Z" />
+            <path
+                android:fillColor="#D5F700"
+                android:pathData="M10.363,8.137L5.979,12.521L10.402,16.945L14.786,12.561L10.363,8.137Z" />
+        </group>
     </group>
-  </group>
 </vector>
