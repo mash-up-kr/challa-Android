@@ -49,11 +49,6 @@
             </intent-filter>
         </activity>
 
-        <!-- FCM의 FID 기반 등록 콜백을 활성화합니다. -->
-        <meta-data
-            android:name="firebase_messaging_installation_id_enabled"
-            android:value="true" />
-
         <!-- 포그라운드 및 data 메시지를 앱에서 처리합니다. -->
         <service
             android:name=".notification.MyFirebaseMessagingService"

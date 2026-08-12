@@ -8,6 +8,7 @@ import com.happyhouse.challa.data.network.dto.request.LoginRequest
 import com.happyhouse.challa.data.network.qualifier.RefreshClient
 import com.happyhouse.challa.domain.model.AuthTokens
 import com.happyhouse.challa.domain.repository.AuthRepository
+import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
 import com.happyhouse.challa.domain.result.onSuccess
@@ -24,6 +25,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val tokenDataStore: TokenDataStore,
     private val themeDataStore: ThemeDataStore,
+    private val notificationRepository: NotificationRepository,
 ) : AuthRepository {
     override suspend fun loginWithKakao(idToken: String): ChallaResult<AuthTokens> =
         unauthenticatedAuthApi
@@ -45,10 +47,16 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             }.onSuccess { tokens ->
                 tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
+                notificationRepository.registerSavedPushToken()
             }
 
     override suspend fun logout(): ChallaResult<Unit> =
         try {
+            when (val result = notificationRepository.deleteSavedPushToken()) {
+                is ChallaResult.Success -> Unit
+                is ChallaResult.Failure -> return result
+            }
+
             val refreshToken =
                 requireNotNull(tokenDataStore.refreshToken.first()) {
                     "저장된 리프레시 토큰이 없습니다."
