@@ -6,14 +6,19 @@ import kotlinx.collections.immutable.toPersistentList
 
 /**
  * @Preview 전용 mock 사진 목록
+ *
+ * @param hasPhotographer false면 촬영자를 받지 못한 경우를 그린다.
  */
-internal fun previewPhotoDetailPhotos(count: Int = 3): ImmutableList<PhotoDetailUiModel> =
+internal fun previewPhotoDetailPhotos(
+    count: Int = 3,
+    hasPhotographer: Boolean = true,
+): ImmutableList<PhotoDetailUiModel> =
     (0 until count)
         .map { index ->
             PhotoDetailUiModel(
                 id = index.toLong(),
                 imageUrl = "",
-                photographer = "나는야멋쟁이토마토",
+                photographer = "나는야멋쟁이토마토".takeIf { hasPhotographer },
                 capturedDate = "2026. 7. 16. 14:34",
             )
         }.toPersistentList()

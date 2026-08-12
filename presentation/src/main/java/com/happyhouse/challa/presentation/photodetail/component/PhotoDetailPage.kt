@@ -64,8 +64,8 @@ fun PhotoDetailPage(
     reactions: ImmutableList<PhotoReactionUiModel>,
     modifier: Modifier = Modifier,
 ) {
-    // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다.
-    var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(false) }
+    // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다. 주소 자체를 못 받았으면 그릴 이미지가 없으니 바로 실패로 본다.
+    var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(photo.imageUrl == null) }
 
     Box(
         modifier =
@@ -74,18 +74,20 @@ fun PhotoDetailPage(
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .border(1.dp, ChallaTheme.colors.lineNormal, PhotoShape),
     ) {
-        AsyncImage(
-            modifier = Modifier.fillMaxSize(),
-            model =
-                ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(photo.imageUrl)
-                    .crossfade(true)
-                    .build(),
-            contentDescription = stringResource(R.string.photo_detail_photo_content_description),
-            contentScale = ContentScale.Crop,
-            onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
-        )
+        photo.imageUrl?.let { imageUrl ->
+            AsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                contentDescription = stringResource(R.string.photo_detail_photo_content_description),
+                contentScale = ContentScale.Crop,
+                onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
+            )
+        }
 
         Spacer(
             modifier =
@@ -165,7 +167,8 @@ private fun PhotographerInfo(
 
             Text(
                 modifier = Modifier.padding(vertical = 2.dp),
-                text = photo.photographer,
+                // 촬영자를 못 받아도 촬영 시각 줄과 균형이 맞도록 자리를 비우지 않고 대체 문구를 그린다.
+                text = photo.photographer ?: stringResource(R.string.photo_detail_unknown_photographer),
                 color = ChallaTheme.colors.labelNormal,
                 style = ChallaTheme.typography.bodyMedium.medium,
             )
@@ -184,6 +187,27 @@ private fun PhotographerInfo(
 @Composable
 private fun PhotoImageLoadFailurePreview() {
     PhotoImageLoadFailure()
+}
+
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 사진 주소·촬영자 없음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoDetailPageWithoutPhotoInfoPreview() {
+    PhotoDetailPage(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(PhotoCardHeight),
+        photo =
+            PhotoDetailUiModel(
+                id = 1L,
+                imageUrl = null,
+                photographer = null,
+                capturedDate = "2026. 7. 16. 14:34",
+            ),
+        reactions = persistentListOf(),
+    )
 }
 
 @ComposePreview(showBackground = true)

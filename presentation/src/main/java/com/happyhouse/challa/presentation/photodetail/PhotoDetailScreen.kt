@@ -60,7 +60,11 @@ fun PhotoDetailScreen(
             PhotoDetailTopBar(
                 title = state.roomName,
                 onBackClick = onBackClick,
-                onSaveClick = currentPhoto?.let { photo -> { onSaveClick(photo) } },
+                // 이미지 주소를 받지 못한 사진은 내려받을 원본이 없어 저장 버튼을 노출하지 않는다.
+                onSaveClick =
+                    currentPhoto
+                        ?.takeIf { photo -> photo.imageUrl != null }
+                        ?.let { photo -> { onSaveClick(photo) } },
                 isSaveEnabled = !state.isSaving,
             )
         },

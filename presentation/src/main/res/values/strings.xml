@@ -91,6 +91,7 @@
     <!-- photoDetailScreen -->
     <string name="photo_detail_back_description">뒤로가기</string>
     <string name="photo_detail_photo_content_description">사진</string>
+    <string name="photo_detail_unknown_photographer">알 수 없음</string>
     <string name="photo_detail_save_description">사진 저장</string>
     <string name="photo_detail_save_success">사진을 저장했어요.</string>
     <string name="photo_detail_save_failure">사진 저장에 실패했어요.</string>

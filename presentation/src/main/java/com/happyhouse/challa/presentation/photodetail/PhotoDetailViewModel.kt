@@ -1,7 +1,11 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.repository.PhotoRepository
+import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
@@ -10,15 +14,17 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
+import com.happyhouse.challa.presentation.photodetail.util.toPhotoDetailUiModels
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -26,10 +32,13 @@ import timber.log.Timber
 class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
     @Assisted("initialPhotoId") private val initialPhotoId: Long,
+    private val roomRepository: RoomRepository,
     private val photoRepository: PhotoRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
+    private var loadJob: Job? = null
+
     // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 좌표 seed로 쓰이므로 반응마다 고유해야 한다.
     private var nextReactionId = 0L
 
@@ -48,33 +57,71 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     private fun handlePhotosLoad() {
-        viewModelScope.launch {
-            updateState { copy(photoInfo = PhotoInfo.Loading) }
-            runCatching {
-                loadMockPhotos()
-            }.onSuccess { photos ->
-                updateState {
-                    copy(
-                        roomName = MOCK_ROOM_NAME,
-                        photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
-                    )
+        // 재시도를 연타하면 조회가 겹쳐 나중에 끝난 응답이 이긴다.
+        loadJob?.cancel()
+
+        loadJob =
+            viewModelScope.launch {
+                updateState { copy(photoInfo = PhotoInfo.Loading) }
+
+                // 방 이름은 상단바에만 쓰이므로 사진과 함께 요청하되 사진 표시를 기다리게 하지 않는다.
+                val roomDeferred = async { roomRepository.getRoom(roomId) }
+                val photosResult = photoRepository.getPhotos(roomId)
+
+                if (photosResult !is ChallaResult.Success) {
+                    Timber.e(photosResult.causeOrNull(), "사진을 불러오지 못했습니다. photos=$photosResult")
+                    roomDeferred.cancel()
+                    updateState { copy(photoInfo = PhotoInfo.Error) }
+                    sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
+                    return@launch
                 }
-            }.onFailure { throwable ->
-                if (throwable is CancellationException) throw throwable
-                Timber.e(throwable, "사진 상세 정보를 불러오지 못했습니다")
-                updateState { copy(photoInfo = PhotoInfo.Error) }
-                sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
+
+                val photos = photosResult.data.toPhotoDetailUiModels()
+                updateState {
+                    copy(photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos))
+                }
+
+                updateRoomNameWhenReady(roomDeferred)
             }
+    }
+
+    /**
+     * 방 이름을 받는 대로 상단바에 채운다.
+     *
+     * 방 이름은 사진 옆의 부가 정보라, 조회가 늦어져도 사진 표시를 붙잡지 않도록 사진을 그린 뒤 따로 기다린다.
+     * 실패하면 사진은 그대로 두고 제목만 비운다.
+     */
+    private fun CoroutineScope.updateRoomNameWhenReady(roomDeferred: Deferred<ChallaResult<RoomDetail>>) {
+        launch {
+            val roomName =
+                when (val roomResult = roomDeferred.await()) {
+                    is ChallaResult.Success -> roomResult.data.title
+                    is ChallaResult.Failure -> {
+                        Timber.w(roomResult.causeOrNull(), "방 정보를 불러오지 못했습니다. room=$roomResult")
+                        ""
+                    }
+                }
+
+            updateState { copy(roomName = roomName) }
         }
     }
 
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {
         if (currentState.isSaving) return
+
+        val imageUrl = photo.imageUrl
+        if (imageUrl == null) {
+            // 화면에서 저장 버튼을 감추지만, 여기까지 들어오면 사용자에게 실패를 알린다.
+            Timber.w("이미지 주소가 없어 저장하지 못했습니다: photoId=${photo.id}")
+            viewModelScope.launch { sendEffect(PhotoDetailSideEffect.SaveFailed) }
+            return
+        }
+
         updateState { copy(isSaving = true) }
         viewModelScope.launch {
             try {
                 photoRepository
-                    .savePhoto(photo.imageUrl)
+                    .savePhoto(imageUrl)
                     .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
                     .onFailure { throwable ->
                         Timber.e(throwable, "사진 저장 실패")
@@ -135,33 +182,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    // TODO: 실제 API 연동 전까지 쓰는 mock 데이터
-    private suspend fun loadMockPhotos(): ImmutableList<PhotoDetailUiModel> {
-        delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
-        return (0 until MOCK_PHOTO_COUNT)
-            .map { index ->
-                PhotoDetailUiModel(
-                    id = index.toLong(),
-                    imageUrl = "https://picsum.photos/seed/${roomId}_$index/600/800",
-                    photographer = MOCK_PHOTOGRAPHER,
-                    capturedDate = MOCK_CAPTURED_DATE,
-                )
-            }.toPersistentList()
-    }
-
     @AssistedFactory
     interface Factory {
         fun create(
             @Assisted("roomId") roomId: Long,
             @Assisted("initialPhotoId") initialPhotoId: Long,
         ): PhotoDetailViewModel
-    }
-
-    companion object {
-        private const val MOCK_PHOTO_COUNT = 24
-        private const val MOCK_LOAD_DELAY_MS = 300L
-        private const val MOCK_ROOM_NAME = "길고양이를찍으러가자"
-        private const val MOCK_PHOTOGRAPHER = "이주연"
-        private const val MOCK_CAPTURED_DATE = "2026. 7. 16. 14:34"
     }
 }

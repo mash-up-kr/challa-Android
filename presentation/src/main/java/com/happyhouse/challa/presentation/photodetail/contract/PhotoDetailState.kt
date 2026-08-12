@@ -42,12 +42,18 @@ data class PhotoDetailState(
     }
 }
 
+/**
+ * 사진 상세 페이지 한 장
+ *
+ * @param imageUrl 서버가 주소를 내려주지 않았으면 null. 이미지를 그리지 못한 것으로 본다.
+ * @param photographer 촬영자 닉네임. 서버가 내려주지 않았으면 null이고 화면에서 대체 문구로 그린다.
+ */
 @Immutable
 @Parcelize
 data class PhotoDetailUiModel(
     val id: Long,
-    val imageUrl: String,
-    val photographer: String,
+    val imageUrl: String?,
+    val photographer: String?,
     val capturedDate: String,
 ) : Parcelable
 

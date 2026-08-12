@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
@@ -258,14 +259,3 @@ private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiMode
             profileImageUrl = user.profileImageUrl,
         )
     }.toPersistentList()
-
-/**
- * 실패에 딸린 원인 예외. 스택트레이스가 남도록 로그에 함께 넘긴다.
- * 원인 예외가 없는 실패(HTTP 응답 코드로만 표현되는 실패)는 null이다.
- */
-private fun ChallaResult<*>.causeOrNull(): Throwable? =
-    when (this) {
-        is ChallaResult.Failure.Network -> cause
-        is ChallaResult.Failure.Unknown -> cause
-        is ChallaResult.Failure.Http, is ChallaResult.Success -> null
-    }
