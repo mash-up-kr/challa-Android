@@ -14,7 +14,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import com.happyhouse.challa.data.network.api.PhotoApi
 import com.happyhouse.challa.data.network.dto.response.ListPhotosResponse
-import com.happyhouse.challa.data.network.toInstant
+import com.happyhouse.challa.data.network.dto.response.toPhoto
 import com.happyhouse.challa.domain.model.Photo
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -61,23 +61,16 @@ class PhotoRepositoryImpl @Inject constructor(
                     }
 
             photos += mapped
-            if (!pageData.hasNext) return ChallaResult.Success(photos)
+            // 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 올 수 있다.
+            // 중복 id가 남으면 목록 화면의 key가 겹쳐 컴포지션이 깨지므로 여기서 걸러낸다.
+            if (!pageData.hasNext) return ChallaResult.Success(photos.distinctBy { it.id })
         }
 
         // 마지막 페이지에도 hasNext가 남아 있으면 서버가 끝을 알려주지 않는 것이라, 무한히 받지 않고 실패로 끊는다.
         return ChallaResult.Failure.Unknown(
-            IllegalStateException("사진 목록 페이지가 ${MAX_PHOTO_PAGE_COUNT}장을 넘었습니다. roomId=$roomId"),
+            IllegalStateException("사진 목록 페이지가 ${MAX_PHOTO_PAGE_COUNT}개를 넘었습니다. roomId=$roomId"),
         )
     }
-
-    private fun ListPhotosResponse.Photo.toPhoto(): Photo =
-        Photo(
-            id = id,
-            imageUrl = imageUrl,
-            photographerNickname = userNickname,
-            photographerProfileImageUrl = userProfileImageUrl,
-            createdAt = createdAt.toInstant(),
-        )
 
     override suspend fun savePhoto(imageUrl: String): Result<Unit> =
         withContext(Dispatchers.IO) {

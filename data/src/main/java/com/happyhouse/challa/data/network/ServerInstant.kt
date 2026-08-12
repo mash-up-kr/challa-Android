@@ -12,6 +12,6 @@ import java.time.ZoneOffset
  * 둘 다 아닌 값은 서버가 약속과 다른 응답을 준 것이므로 예외를 그대로 띄워 조회 실패로 만든다.
  * 시각을 아예 안 내려준 경우(null)와 형식이 깨진 경우를 구분하기 위함이다.
  */
-internal fun String.toInstant(): Instant =
+internal fun String.parseServerInstant(): Instant =
     runCatching { OffsetDateTime.parse(this).toInstant() }
         .getOrElse { LocalDateTime.parse(this).toInstant(ZoneOffset.UTC) }

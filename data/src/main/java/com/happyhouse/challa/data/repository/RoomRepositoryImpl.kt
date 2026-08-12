@@ -4,7 +4,7 @@ import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
-import com.happyhouse.challa.data.network.toInstant
+import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
@@ -29,7 +29,7 @@ class RoomRepositoryImpl @Inject constructor(
                 remainedPhotoCount = room.remainedPhotoCount,
                 invitationCode = room.invitationCode,
                 status = room.status.toRoomStatus(),
-                photoPrintCompletionAt = room.photoPrintCompletionAt?.toInstant(),
+                photoPrintCompletionAt = room.photoPrintCompletionAt?.parseServerInstant(),
             )
         }
 
