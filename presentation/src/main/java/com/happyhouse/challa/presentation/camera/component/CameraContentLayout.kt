@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.camera.camerax.PreviewViewfinderPlaceholder
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
@@ -118,7 +117,7 @@ private fun CameraContentLayoutPreview() {
         onZoomClick = {},
         onFilterClick = {},
         onRoomInfoClick = {},
-        viewFinder = { PreviewViewfinderPlaceholder(it) },
+        viewFinder = {},
     )
 }
 
@@ -144,7 +143,7 @@ private fun CameraContentLimitReachedPreview() {
         onZoomClick = {},
         onFilterClick = {},
         onRoomInfoClick = {},
-        viewFinder = { PreviewViewfinderPlaceholder(it) },
+        viewFinder = {},
     )
 }
 

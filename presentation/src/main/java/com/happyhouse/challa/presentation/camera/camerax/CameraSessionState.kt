@@ -1,7 +1,7 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
 import androidx.compose.runtime.Immutable
-import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
+import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 
 /**
  * CameraX 세션에서 UI가 알아야 하는 최소 상태입니다.
@@ -20,12 +20,6 @@ internal data class CameraSessionState(
 ) {
     val isReady: Boolean
         get() = bindingState is CameraBindingState.Ready
-
-//    val hasFlashUnit: Boolean
-//        get() = (bindingState as? CameraBindingState.Ready)?.hasFlashUnit == true
-//
-//    val boundLensFacing: CameraLensFacing?
-//        get() = (bindingState as? CameraBindingState.Ready)?.lensFacing
 }
 
 /** LifecycleCameraController의 초기화 및 Lifecycle 바인딩 상태입니다. */
