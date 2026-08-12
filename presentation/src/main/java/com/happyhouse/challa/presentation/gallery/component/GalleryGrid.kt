@@ -53,16 +53,23 @@ fun GalleryFilmSlotGrid(
             items = slots,
             key = { slot -> slot.order },
         ) { slot ->
-            val imageUrl = slot.imageUrl
+            val slotState = slot.state
 
             ChallaCardItem(
                 order = slot.order,
-                type = imageUrl?.let(ChallaCardType::PrintWaiting) ?: ChallaCardType.NotCaptured,
+                type =
+                    when (slotState) {
+                        GalleryFilmSlotUiModel.State.Empty -> ChallaCardType.NotCaptured
+                        is GalleryFilmSlotUiModel.State.Captured ->
+                            ChallaCardType.PrintWaiting(imageUrl = slotState.imageUrl)
+                    },
                 contentDescription =
-                    if (imageUrl == null) {
-                        stringResource(R.string.gallery_empty_slot_description, slot.order)
-                    } else {
-                        stringResource(R.string.gallery_film_slot_description, slot.order)
+                    when (slotState) {
+                        GalleryFilmSlotUiModel.State.Empty ->
+                            stringResource(R.string.gallery_empty_slot_description, slot.order)
+
+                        is GalleryFilmSlotUiModel.State.Captured ->
+                            stringResource(R.string.gallery_film_slot_description, slot.order)
                     },
             )
         }

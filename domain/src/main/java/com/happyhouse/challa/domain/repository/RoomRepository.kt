@@ -1,12 +1,18 @@
 package com.happyhouse.challa.domain.repository
 
 import com.happyhouse.challa.domain.model.CreatedRoom
+import com.happyhouse.challa.domain.model.RoomDetail
+import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.result.ChallaResult
 
 interface RoomRepository {
+    suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail>
+
+    suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>>
+
     suspend fun getRoomList(statuses: List<RoomStatus>): ChallaResult<List<Room>>
 
     suspend fun postRoom(

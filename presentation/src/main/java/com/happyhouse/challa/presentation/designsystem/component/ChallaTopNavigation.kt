@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.designsystem.component
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,15 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
-import com.happyhouse.challa.presentation.designsystem.foundation.typography.DirtylineFamily
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewItem
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
@@ -77,16 +75,13 @@ private fun ChallaMainTopNavigation(
                 .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = title,
-            modifier = Modifier.weight(1f),
-            color = ChallaTheme.colors.primary,
-            style =
-                TextStyle(
-                    fontFamily = DirtylineFamily,
-                    fontSize = 36.sp,
-                ),
+        Image(
+            painter = painterResource(ChallaIcons.AppLogo),
+            contentDescription = title,
+            modifier = Modifier.size(42.dp),
         )
+
+        Spacer(modifier = Modifier.weight(1f))
 
         if (trailingIcon != null) {
             Spacer(modifier = Modifier.width(16.dp))
