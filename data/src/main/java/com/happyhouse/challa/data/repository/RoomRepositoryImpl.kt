@@ -36,7 +36,7 @@ class RoomRepositoryImpl @Inject constructor(
     override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
         roomApi.getRoomUsers(roomId).mapCatching { response ->
             check(response.success) { response.message }
-            val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.room
+            val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.users
             users.map { user ->
                 RoomUser(
                     id = user.id,
