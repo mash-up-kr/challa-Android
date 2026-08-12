@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +50,7 @@ import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaBottomSheet
 import com.happyhouse.challa.presentation.designsystem.component.ChallaInputBox
+import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
@@ -60,21 +59,76 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTe
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.coroutines.launch
 
 @Composable
-fun CreateProfileRoute(
+fun SettingProfileRoute(
     onProfileCreated: (nickname: String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CreateProfileViewModel = hiltViewModel(),
+    viewModel: SettingProfileViewModel =
+        hiltViewModel<SettingProfileViewModel, SettingProfileViewModel.Factory>(
+            creationCallback = { factory ->
+                factory.create(
+                    mode = ProfileSettingMode.CREATE,
+                    nickname = "",
+                    profileImageUrl = null,
+                )
+            },
+        ),
+) {
+    ProfileSettingRoute(
+        onBackClick = {},
+        onProfileCreated = onProfileCreated,
+        onProfileUpdated = {},
+        modifier = modifier,
+        viewModel = viewModel,
+    )
+}
+
+@Composable
+fun EditProfileRoute(
+    initialNickname: String,
+    initialProfileImageUrl: String?,
+    onBackClick: () -> Unit,
+    onProfileUpdated: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SettingProfileViewModel =
+        hiltViewModel<SettingProfileViewModel, SettingProfileViewModel.Factory>(
+            creationCallback = { factory ->
+                factory.create(
+                    mode = ProfileSettingMode.EDIT,
+                    nickname = initialNickname,
+                    profileImageUrl = initialProfileImageUrl,
+                )
+            },
+        ),
+) {
+    ProfileSettingRoute(
+        onBackClick = onBackClick,
+        onProfileCreated = {},
+        onProfileUpdated = onProfileUpdated,
+        modifier = modifier,
+        viewModel = viewModel,
+    )
+}
+
+@Composable
+private fun ProfileSettingRoute(
+    onBackClick: () -> Unit,
+    onProfileCreated: (nickname: String) -> Unit,
+    onProfileUpdated: () -> Unit,
+    modifier: Modifier,
+    viewModel: SettingProfileViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val profileCreateFailedMessage = stringResource(R.string.create_profile_submit_failure)
+    val profileUpdateFailedMessage = stringResource(R.string.edit_profile_submit_failure)
     val nicknameLengthExceededMessage =
         stringResource(R.string.create_profile_nickname_length_exceeded, NICKNAME_MAX_LENGTH)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
@@ -85,7 +139,7 @@ fun CreateProfileRoute(
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.PickVisualMedia(),
         ) { uri ->
-            uri?.let { viewModel.onIntent(CreateProfileIntent.ProfileImageSelected(it.toString())) }
+            uri?.let { viewModel.onIntent(SettingProfileIntent.ProfileImageSelected(it.toString())) }
         }
 
     fun showToast(message: String) {
@@ -102,19 +156,22 @@ fun CreateProfileRoute(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is CreateProfileSideEffect.ProfileCreated -> onProfileCreated(effect.nickname)
-                CreateProfileSideEffect.ProfileCreateFailed -> showToast(profileCreateFailedMessage)
-                CreateProfileSideEffect.NicknameLengthExceeded -> showToast(nicknameLengthExceededMessage)
+                is SettingProfileSideEffect.ProfileCreated -> onProfileCreated(effect.nickname)
+                SettingProfileSideEffect.ProfileUpdated -> onProfileUpdated()
+                SettingProfileSideEffect.ProfileCreateFailed -> showToast(profileCreateFailedMessage)
+                SettingProfileSideEffect.ProfileUpdateFailed -> showToast(profileUpdateFailedMessage)
+                SettingProfileSideEffect.NicknameLengthExceeded -> showToast(nicknameLengthExceededMessage)
             }
         }
     }
 
-    CreateProfileScreen(
+    SettingProfileScreen(
         state = state,
         onIntent = viewModel::onIntent,
+        onBackClick = onBackClick,
         onEditImageClick = { isImageSourceSheetVisible = true },
         modifier = modifier,
     )
@@ -135,7 +192,7 @@ fun CreateProfileRoute(
             },
             onDeleteImageClick = {
                 isImageSourceSheetVisible = false
-                viewModel.onIntent(CreateProfileIntent.ProfileImageDeleteClick)
+                viewModel.onIntent(SettingProfileIntent.ProfileImageDeleteClick)
             },
             onDismissRequest = { isImageSourceSheetVisible = false },
         )
@@ -186,64 +243,95 @@ private fun ProfileImageSourceBottomSheet(
 }
 
 @Composable
-private fun CreateProfileScreen(
-    state: CreateProfileState,
-    onIntent: (CreateProfileIntent) -> Unit,
+private fun SettingProfileScreen(
+    state: SettingProfileState,
+    onIntent: (SettingProfileIntent) -> Unit,
+    onBackClick: () -> Unit,
     onEditImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(ChallaTheme.colors.backgroundSurface)
-                .statusBarsPadding()
-                .imePadding(),
-    ) {
-        ChallaTopNavigation(
-            title = stringResource(id = R.string.create_profile_title),
-            variant = ChallaTopNavigationVariant.SUB,
-        )
-
+    ChallaScaffold(
+        modifier = modifier.fillMaxSize().imePadding(),
+        topBar = {
+            ChallaTopNavigation(
+                title =
+                    stringResource(
+                        id =
+                            when (state.mode) {
+                                ProfileSettingMode.CREATE -> R.string.create_profile_title
+                                ProfileSettingMode.EDIT -> R.string.edit_profile_title
+                            },
+                    ),
+                variant = ChallaTopNavigationVariant.SUB,
+                leadingIcon =
+                    when (state.mode) {
+                        ProfileSettingMode.CREATE -> null
+                        ProfileSettingMode.EDIT -> {
+                            {
+                                ChallaNavigationIconButton(
+                                    icon = ChallaIcons.Left,
+                                    onClick = onBackClick,
+                                    contentDescription = stringResource(R.string.edit_profile_back_description),
+                                )
+                            }
+                        }
+                    },
+            )
+        },
+    ) { innerPadding ->
         Column(
             modifier =
                 Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
-            Text(
-                text = headlineText(nickname = state.nickname, isCompleted = state.isCompleted),
-                color = ChallaTheme.colors.labelNormal,
-                style = ChallaTheme.typography.headingSmall.bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-            )
-
-            ProfileCard(
-                nickname = state.nickname,
-                profileImageUri = state.profileImageUri,
-                isCompleted = state.isCompleted,
-                isNicknameLengthExceeded = state.isNicknameLengthExceeded,
-                onNicknameChange = { onIntent(CreateProfileIntent.NicknameChanged(it)) },
-                onEditImageClick = onEditImageClick,
-                modifier = Modifier.padding(horizontal = 32.dp),
-            )
-        }
-
-        if (!state.isCompleted) {
-            ChallaTextButton(
-                text = stringResource(id = R.string.create_profile_submit),
-                onClick = { onIntent(CreateProfileIntent.DoneClick) },
-                enabled = state.canSubmit,
+            Column(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 16.dp, bottom = 12.dp)
-                        .navigationBarsPadding(),
-            )
+                        .weight(1f)
+                        .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = headlineText(nickname = state.nickname, isCompleted = state.isCompleted),
+                    color = ChallaTheme.colors.labelNormal,
+                    style = ChallaTheme.typography.headingSmall.bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
+                )
+
+                ProfileCard(
+                    nickname = state.nickname,
+                    profileImageUri = state.profileImageUri,
+                    isCompleted = state.isCompleted,
+                    isSubmitting = state.isSubmitting,
+                    isNicknameLengthExceeded = state.isNicknameLengthExceeded,
+                    onNicknameChange = { onIntent(SettingProfileIntent.NicknameChanged(it)) },
+                    onEditImageClick = onEditImageClick,
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                )
+            }
+
+            if (!state.isCompleted) {
+                ChallaTextButton(
+                    text =
+                        stringResource(
+                            id =
+                                when (state.mode) {
+                                    ProfileSettingMode.CREATE -> R.string.create_profile_submit
+                                    ProfileSettingMode.EDIT -> R.string.edit_profile_submit
+                                },
+                        ),
+                    onClick = { onIntent(SettingProfileIntent.DoneClick) },
+                    enabled = state.canSubmit,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp, bottom = 12.dp),
+                )
+            }
         }
     }
 }
@@ -269,6 +357,7 @@ private fun ProfileCard(
     nickname: String,
     profileImageUri: String?,
     isCompleted: Boolean,
+    isSubmitting: Boolean,
     isNicknameLengthExceeded: Boolean,
     onNicknameChange: (String) -> Unit,
     onEditImageClick: () -> Unit,
@@ -286,7 +375,7 @@ private fun ProfileCard(
     ) {
         ProfileImagePicker(
             profileImageUri = profileImageUri,
-            isEditable = !isCompleted,
+            isEditable = !isCompleted && !isSubmitting,
             onClick = onEditImageClick,
         )
 
@@ -294,7 +383,7 @@ private fun ProfileCard(
             value = nickname,
             onValueChange = onNicknameChange,
             placeholder = stringResource(id = R.string.create_profile_nickname_placeholder),
-            enabled = !isCompleted,
+            enabled = !isCompleted && !isSubmitting,
             isError = isNicknameLengthExceeded,
         )
     }
@@ -370,41 +459,38 @@ private fun ProfileImage(
     }
 }
 
-@Preview(showBackground = true, name = "CreateProfile - Empty")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Preview(showBackground = true, name = "SettingProfile - Empty")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
-private fun CreateProfileScreenEmptyPreview() {
-    ChallaTheme {
-        CreateProfileScreen(
-            state = CreateProfileState(),
-            onIntent = {},
-            onEditImageClick = {},
-        )
-    }
+private fun SettingProfileScreenEmptyPreview() {
+    SettingProfileScreen(
+        state = SettingProfileState(),
+        onIntent = {},
+        onBackClick = {},
+        onEditImageClick = {},
+    )
 }
 
-@Preview(showBackground = true, name = "CreateProfile - Filled")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Preview(showBackground = true, name = "SettingProfile - Filled")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
-private fun CreateProfileScreenFilledPreview() {
-    ChallaTheme {
-        CreateProfileScreen(
-            state = CreateProfileState(nickname = "찰나"),
-            onIntent = {},
-            onEditImageClick = {},
-        )
-    }
+private fun SettingProfileScreenFilledPreview() {
+    SettingProfileScreen(
+        state = SettingProfileState(nickname = "찰나"),
+        onIntent = {},
+        onBackClick = {},
+        onEditImageClick = {},
+    )
 }
 
-@Preview(showBackground = true, name = "CreateProfile - Completed")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Preview(showBackground = true, name = "SettingProfile - Completed")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
-private fun CreateProfileScreenCompletedPreview() {
-    ChallaTheme {
-        CreateProfileScreen(
-            state = CreateProfileState(nickname = "찰나", isCompleted = true),
-            onIntent = {},
-            onEditImageClick = {},
-        )
-    }
+private fun SettingProfileScreenCompletedPreview() {
+    SettingProfileScreen(
+        state = SettingProfileState(nickname = "찰나", isCompleted = true),
+        onIntent = {},
+        onBackClick = {},
+        onEditImageClick = {},
+    )
 }

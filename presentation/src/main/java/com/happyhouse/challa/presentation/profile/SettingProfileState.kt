@@ -1,8 +1,11 @@
 package com.happyhouse.challa.presentation.profile
 
+import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
 
-data class CreateProfileState(
+@Immutable
+data class SettingProfileState(
+    val mode: ProfileSettingMode = ProfileSettingMode.CREATE,
     val nickname: String = "",
     val profileImageUri: String? = null,
     val isSubmitting: Boolean = false,
@@ -11,4 +14,9 @@ data class CreateProfileState(
 ) : UiState {
     val canSubmit: Boolean
         get() = nickname.trim().isNotEmpty() && !isSubmitting && !isCompleted
+}
+
+enum class ProfileSettingMode {
+    CREATE,
+    EDIT,
 }
