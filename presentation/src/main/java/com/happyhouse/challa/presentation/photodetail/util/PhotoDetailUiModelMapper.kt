@@ -20,6 +20,7 @@ internal fun List<Photo>.toPhotoDetailUiModels(): ImmutableList<PhotoDetailUiMod
             id = photo.id,
             imageUrl = photo.imageUrl,
             photographer = photo.photographerNickname,
+            photographerProfileImageUrl = photo.photographerProfileImageUrl,
             capturedDate = photo.createdAt.toCapturedDate(),
         )
     }.toPersistentList()

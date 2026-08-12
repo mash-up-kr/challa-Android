@@ -52,6 +52,8 @@ internal val PhotoCardHeight = 477.dp
 
 private val PhotoShape = RoundedCornerShape(44.5.dp)
 
+private val ProfileImageSize = 22.dp
+
 private val PhotoDimBrush =
     Brush.verticalGradient(
         0f to Color.Black.copy(alpha = 0.6f),
@@ -153,17 +155,7 @@ private fun PhotographerInfo(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // TODO: 프로필 이미지 API 연동 전까지 쓰는 placeholder
-            Icon(
-                modifier =
-                    Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(ChallaTheme.colors.backgroundLevel2),
-                painter = painterResource(id = ChallaIcons.Profile),
-                contentDescription = null,
-                tint = ChallaTheme.colors.lineNeutral,
-            )
+            PhotographerAvatar(profileImageUrl = photo.photographerProfileImageUrl)
 
             Text(
                 modifier = Modifier.padding(vertical = 2.dp),
@@ -179,6 +171,48 @@ private fun PhotographerInfo(
             color = ChallaTheme.colors.primary,
             style = ChallaTheme.typography.bodySmall.medium,
         )
+    }
+}
+
+/**
+ * 촬영자 프로필 사진. 등록하지 않았거나 불러오지 못하면 기본 프로필 아이콘을 그린다.
+ */
+@Composable
+private fun PhotographerAvatar(
+    profileImageUrl: String?,
+    modifier: Modifier = Modifier,
+) {
+    // URL이 바뀌면 다시 시도하도록 profileImageUrl을 key로 둔다.
+    var isLoadFailed by remember(profileImageUrl) { mutableStateOf(false) }
+
+    Box(
+        modifier =
+            modifier
+                .size(ProfileImageSize)
+                .clip(CircleShape)
+                .background(ChallaTheme.colors.backgroundLevel2),
+    ) {
+        if (profileImageUrl == null || isLoadFailed) {
+            Icon(
+                modifier = Modifier.fillMaxSize(),
+                painter = painterResource(id = ChallaIcons.Profile),
+                contentDescription = null,
+                tint = ChallaTheme.colors.lineNeutral,
+            )
+        } else {
+            AsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(profileImageUrl)
+                        .crossfade(true)
+                        .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
+            )
+        }
     }
 }
 
@@ -204,6 +238,7 @@ private fun PhotoDetailPageWithoutPhotoInfoPreview() {
                 id = 1L,
                 imageUrl = null,
                 photographer = null,
+                photographerProfileImageUrl = null,
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions = persistentListOf(),
@@ -225,6 +260,7 @@ private fun PhotoDetailPagePreview() {
                 id = 1L,
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토",
+                photographerProfileImageUrl = null,
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions =

@@ -19,6 +19,7 @@ internal fun previewPhotoDetailPhotos(
                 id = index.toLong(),
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토".takeIf { hasPhotographer },
+                photographerProfileImageUrl = null,
                 capturedDate = "2026. 7. 16. 14:34",
             )
         }.toPersistentList()
