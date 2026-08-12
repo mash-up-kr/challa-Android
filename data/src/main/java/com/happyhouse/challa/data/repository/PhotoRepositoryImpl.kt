@@ -32,8 +32,7 @@ class PhotoRepositoryImpl @Inject constructor(
     /**
      * 방의 사진을 첫 페이지부터 [hasNext][ListPhotosResponse.hasNext] 가 없을 때까지 이어 받아 한 번에 돌려준다.
      *
-     * 갤러리·사진 상세 모두 방의 사진 전부가 필요해서(필름 칸 수와 페이지 수가 맞아야 한다)
-     * 페이지를 호출부로 노출하지 않고 여기서 모은다.
+     * 갤러리·사진 상세 모두 방의 사진 전부가 필요해서 페이지를 호출부로 노출하지 않는다.
      */
     override suspend fun getPhotos(roomId: Long): ChallaResult<List<Photo>> {
         val photos = mutableListOf<Photo>()
@@ -61,12 +60,11 @@ class PhotoRepositoryImpl @Inject constructor(
                     }
 
             photos += mapped
-            // 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 올 수 있다.
-            // 중복 id가 남으면 목록 화면의 key가 겹쳐 컴포지션이 깨지므로 여기서 걸러낸다.
+            // 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 목록 화면의 key가 겹쳐 깨진다.
             if (!pageData.hasNext) return ChallaResult.Success(photos.distinctBy { it.id })
         }
 
-        // 마지막 페이지에도 hasNext가 남아 있으면 서버가 끝을 알려주지 않는 것이라, 무한히 받지 않고 실패로 끊는다.
+        // 상한까지 hasNext가 남아 있으면 서버가 끝을 알려주지 않는 것이라, 무한히 받지 않고 실패로 끊는다.
         return ChallaResult.Failure.Unknown(
             IllegalStateException("사진 목록 페이지가 ${MAX_PHOTO_PAGE_COUNT}개를 넘었습니다. roomId=$roomId"),
         )
@@ -188,10 +186,10 @@ class PhotoRepositoryImpl @Inject constructor(
         private const val FILE_NAME_PREFIX = "Challa"
         private const val ALBUM_NAME = "Challa"
 
-        /** 사진 목록 한 페이지 크기. 방의 최소 촬영 수(24장)에 맞춘 서버 기본값이다. */
-        private const val PHOTO_PAGE_SIZE = 24
+        /** 사진 목록 한 페이지 크기. 방 최대 촬영 수에 맞춰, 정상적인 방은 요청 한 번으로 끝나게 한다. */
+        private const val PHOTO_PAGE_SIZE = 72
 
-        /** 이어 받을 페이지 상한. 방 최대 촬영 수는 72장이라 3페이지면 충분하고, 여유를 둔다. */
+        /** 이어 받을 페이지 상한 */
         private const val MAX_PHOTO_PAGE_COUNT = 10
     }
 }

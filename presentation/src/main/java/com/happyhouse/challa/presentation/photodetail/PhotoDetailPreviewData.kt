@@ -4,11 +4,7 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiMode
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 
-/**
- * @Preview 전용 mock 사진 목록
- *
- * @param hasPhotographer false면 촬영자를 받지 못한 경우를 그린다.
- */
+/** @Preview 전용 mock 사진 목록 */
 internal fun previewPhotoDetailPhotos(
     count: Int = 3,
     hasPhotographer: Boolean = true,

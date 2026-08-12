@@ -157,33 +157,26 @@ private fun PhotographerInfo(
 
             Text(
                 modifier = Modifier.padding(vertical = 2.dp),
-                // 촬영자를 못 받아도 촬영 시각 줄과 균형이 맞도록 자리를 비우지 않고 대체 문구를 그린다.
                 text = photo.photographer ?: stringResource(R.string.photo_detail_unknown_photographer),
                 color = ChallaTheme.colors.labelNormal,
                 style = ChallaTheme.typography.bodyMedium.medium,
             )
         }
 
-        // 촬영 시각은 대체할 문구가 없어서, 못 받았으면 줄 자체를 그리지 않는다.
-        photo.capturedDate?.let { capturedDate ->
-            Text(
-                text = capturedDate,
-                color = ChallaTheme.colors.primary,
-                style = ChallaTheme.typography.bodySmall.medium,
-            )
-        }
+        Text(
+            text = photo.capturedDate,
+            color = ChallaTheme.colors.primary,
+            style = ChallaTheme.typography.bodySmall.medium,
+        )
     }
 }
 
-/**
- * 촬영자 프로필 사진. 불러오지 못하면 기본 프로필 아이콘을 그린다.
- */
+/** 촬영자 프로필 사진. 불러오지 못하면 기본 프로필 아이콘을 그린다. */
 @Composable
 private fun PhotographerAvatar(
     profileImageUrl: String,
     modifier: Modifier = Modifier,
 ) {
-    // URL이 바뀌면 다시 시도하도록 profileImageUrl을 key로 둔다.
     var isLoadFailed by remember(profileImageUrl) { mutableStateOf(false) }
 
     Box(
@@ -224,10 +217,10 @@ private fun PhotoImageLoadFailurePreview() {
     PhotoImageLoadFailure()
 }
 
-@ComposePreview(showBackground = true, name = "PhotoDetailPage - 촬영자·시각 없음")
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 촬영자 없음")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun PhotoDetailPageWithoutPhotoInfoPreview() {
+private fun PhotoDetailPageWithoutPhotographerPreview() {
     PhotoDetailPage(
         modifier =
             Modifier
@@ -240,7 +233,7 @@ private fun PhotoDetailPageWithoutPhotoInfoPreview() {
                 imageUrl = "",
                 photographer = null,
                 photographerProfileImageUrl = "",
-                capturedDate = null,
+                capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions = persistentListOf(),
     )

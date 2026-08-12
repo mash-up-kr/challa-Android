@@ -44,7 +44,10 @@ class GalleryViewModel @AssistedInject constructor(
     private var countdownJob: Job? = null
 
     /** 서버가 내려준 인화 완료 시각. 아직 정해지지 않았으면 null */
-    private var printCompletionAt: Instant? = null
+    private var printCompletedAt: Instant? = null
+
+    /** 완료 시각이 지났는데도 상태가 인화 대기일 때 다시 확인한 횟수 */
+    private var printStatusRecheckCount = 0
 
     init {
         onIntent(GalleryIntent.PhotosLoad)
@@ -92,7 +95,7 @@ class GalleryViewModel @AssistedInject constructor(
                 }
 
                 val room = roomResult.data
-                printCompletionAt = room.photoPrintCompletionAt
+                printCompletedAt = room.photoPrintCompletedAt
                 val remainingSeconds = remainingSecondsUntilPrintComplete()
 
                 updateState {
@@ -160,11 +163,12 @@ class GalleryViewModel @AssistedInject constructor(
         if (room.status != RoomStatus.PHOTO_PRINT_PENDING) return
 
         if (remainingSeconds <= 0L) {
-            Timber.w("인화 대기지만 남은 시간이 없어 잠시 뒤 상태를 다시 확인합니다. 완료 시각=${room.photoPrintCompletionAt}")
+            Timber.w("인화 대기지만 남은 시간이 없어 잠시 뒤 상태를 다시 확인합니다. 완료 시각=${room.photoPrintCompletedAt}")
             schedulePrintStatusRecheck()
             return
         }
 
+        printStatusRecheckCount = 0
         startCountdown()
     }
 
@@ -191,10 +195,15 @@ class GalleryViewModel @AssistedInject constructor(
      * 완료 시각은 지났는데 서버 상태가 아직 인화 대기일 때, 잠시 뒤 방 상태를 다시 확인한다.
      *
      * 이 처리가 없으면 화면이 남은 시간 0인 인화 대기로 굳어 재조회할 방법이 없다.
-     * 다시 확인해도 여전히 인화 대기면 같은 경로를 타므로, 서버 상태가 넘어갈 때까지
-     * 이 화면에 머무는 동안 [PRINT_STATUS_RECHECK_MS] 간격으로 조용히 재조회한다.
+     * 다만 서버가 완료 시각을 과거로 내려주면 상태가 영영 넘어가지 않으므로 확인 횟수를 제한한다.
      */
     private fun schedulePrintStatusRecheck() {
+        if (printStatusRecheckCount >= MAX_PRINT_STATUS_RECHECK_COUNT) {
+            Timber.w("인화 대기 상태가 풀리지 않아 재조회를 멈춥니다. 완료 시각=$printCompletedAt")
+            return
+        }
+
+        printStatusRecheckCount++
         watchPrintCompletion {
             delay(PRINT_STATUS_RECHECK_MS)
         }
@@ -230,8 +239,8 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     private fun remainingSecondsUntilPrintComplete(): Long {
-        val completionAt = printCompletionAt ?: return 0L
-        val remainingMillis = completionAt.toEpochMilli() - System.currentTimeMillis()
+        val completedAt = printCompletedAt ?: return 0L
+        val remainingMillis = completedAt.toEpochMilli() - System.currentTimeMillis()
         if (remainingMillis <= 0L) return 0L
 
         // 남은 시간이 잘려서 실제보다 짧게 보이지 않도록 올림한다.
@@ -249,6 +258,8 @@ class GalleryViewModel @AssistedInject constructor(
 
         /** 완료 시각이 지났는데도 서버 상태가 인화 대기일 때 다시 확인하기까지 기다리는 시간 */
         private const val PRINT_STATUS_RECHECK_MS = 5_000L
+
+        private const val MAX_PRINT_STATUS_RECHECK_COUNT = 5
     }
 }
 

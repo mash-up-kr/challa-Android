@@ -46,8 +46,6 @@ data class PhotoDetailState(
  * 사진 상세 페이지 한 장
  *
  * @param photographer 촬영자 닉네임. 서버가 내려주지 않았으면 null이고 화면에서 대체 문구로 그린다.
- * @param photographerProfileImageUrl 촬영자 프로필 사진. 불러오지 못하면 화면에서 기본 아이콘을 그린다.
- * @param capturedDate 촬영 시각. 서버가 내려주지 않았으면 null이고 화면에서 줄 자체를 그리지 않는다.
  */
 @Immutable
 @Parcelize
@@ -56,7 +54,7 @@ data class PhotoDetailUiModel(
     val imageUrl: String,
     val photographer: String?,
     val photographerProfileImageUrl: String,
-    val capturedDate: String?,
+    val capturedDate: String,
 ) : Parcelable
 
 /**

@@ -29,7 +29,7 @@ class RoomRepositoryImpl @Inject constructor(
                 remainedPhotoCount = room.remainedPhotoCount,
                 invitationCode = room.invitationCode,
                 status = room.status.toRoomStatus(),
-                photoPrintCompletionAt = room.photoPrintCompletedAt?.parseServerInstant(),
+                photoPrintCompletedAt = room.photoPrintCompletedAt?.parseServerInstant(),
             )
         }
 

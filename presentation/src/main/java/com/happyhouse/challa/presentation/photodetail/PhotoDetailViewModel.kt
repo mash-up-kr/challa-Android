@@ -22,8 +22,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -65,60 +63,52 @@ class PhotoDetailViewModel @AssistedInject constructor(
             viewModelScope.launch {
                 updateState { copy(photoInfo = PhotoInfo.Loading) }
 
-                // 방 이름은 상단바에만 쓰이므로 사진과 함께 요청하되 사진 표시를 기다리게 하지 않는다.
                 val roomDeferred = async { roomRepository.getRoom(roomId) }
                 val photosResult = photoRepository.getPhotos(roomId)
+                val roomResult = roomDeferred.await()
 
                 if (photosResult !is ChallaResult.Success) {
                     Timber.e(photosResult.causeOrNull(), "사진을 불러오지 못했습니다. photos=$photosResult")
-                    roomDeferred.cancel()
                     updateState { copy(photoInfo = PhotoInfo.Error) }
                     sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
                     return@launch
                 }
 
+                val room = roomResult.roomOrNull()
                 val photos = photosResult.data.toPhotoDetailUiModels()
-                updateState {
-                    copy(photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos))
-                }
 
-                updateRoomWhenReady(roomDeferred)
+                // 사진과 제목을 함께 반영해, 제목이 사진보다 늦게 나타나지 않게 한다.
+                updateState {
+                    copy(
+                        roomName = room?.title ?: roomName,
+                        photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
+                    )
+                }
             }
     }
 
     /**
-     * 방 정보를 받는 대로 상단바 제목에 채운다.
+     * 방 이름은 사진 옆의 부가 정보라, 조회에 실패해도 사진은 그대로 그리고 이미 떠 있는 제목을 유지한다.
      *
-     * 방 정보는 사진 옆의 부가 정보라, 조회가 늦어져도 사진 표시를 붙잡지 않도록 사진을 그린 뒤 따로 기다린다.
-     * 실패하면 사진과 이미 떠 있는 제목을 그대로 둔다. 재조회 실패로 멀쩡히 보이던 제목이 사라지지 않게 하기 위함이다.
-     */
-    private fun CoroutineScope.updateRoomWhenReady(roomDeferred: Deferred<ChallaResult<RoomDetail>>) {
-        launch {
-            val room =
-                when (val roomResult = roomDeferred.await()) {
-                    is ChallaResult.Success -> roomResult.data
-                    is ChallaResult.Failure -> {
-                        Timber.w(roomResult.causeOrNull(), "방 정보를 불러오지 못했습니다. room=$roomResult")
-                        return@launch
-                    }
-                }
-
-            warnIfPhotosNotPrinted(room)
-            updateState { copy(roomName = room.title) }
-        }
-    }
-
-    /**
-     * 이 화면은 인화가 끝난 방에서만 열리는 것을 전제로 원본 사진을 그대로 그린다.
-     * (인화 전 사진은 갤러리에서 앱이 블러 처리해 보여주고, 상세로는 들어갈 수 없다.)
-     *
-     * 전제가 깨지면 미공개 사진이 원본으로 노출되므로, 진입 경로가 늘었을 때 알아차릴 수 있게 남긴다.
+     * 상세는 인화가 끝난 방에서만 열리는 것을 전제로 원본을 그린다. 전제가 깨지면 미공개 사진이
+     * 원본으로 노출되므로, 진입 경로가 늘었을 때 알아차릴 수 있게 로그를 남긴다.
      * TODO: 인화 전 방에서도 상세를 열 수 있게 되면 블러 여부를 기획과 맞춰 화면에 반영할 것.
      */
-    private fun warnIfPhotosNotPrinted(room: RoomDetail) {
-        if (room.status == RoomStatus.PHOTO_PRINT_COMPLETED) return
+    private fun ChallaResult<RoomDetail>.roomOrNull(): RoomDetail? {
+        val room =
+            when (this) {
+                is ChallaResult.Success -> data
+                is ChallaResult.Failure -> {
+                    Timber.w(causeOrNull(), "방 정보를 불러오지 못했습니다. room=$this")
+                    return null
+                }
+            }
 
-        Timber.w("인화가 끝나지 않은 방의 사진을 상세에서 원본으로 그리고 있습니다. roomId=$roomId, status=${room.status}")
+        if (room.status != RoomStatus.PHOTO_PRINT_COMPLETED) {
+            Timber.w("인화가 끝나지 않은 방의 사진을 상세에서 원본으로 그리고 있습니다. roomId=$roomId, status=${room.status}")
+        }
+
+        return room
     }
 
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {

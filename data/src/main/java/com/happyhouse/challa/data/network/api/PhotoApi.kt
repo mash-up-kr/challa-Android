@@ -7,10 +7,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface PhotoApi {
-    /**
-     * @param page 0부터 시작한다.
-     * @param size 한 페이지에 받을 사진 수
-     */
+    /** @param page 0부터 시작한다. */
     @GET("api/v1/photos")
     suspend fun getPhotos(
         @Query("roomId") roomId: Long,

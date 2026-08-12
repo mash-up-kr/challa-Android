@@ -14,7 +14,6 @@ data class GetRoomResponse(
         val remainedPhotoCount: Int,
         val invitationCode: String,
         val status: Status = Status.UNKNOWN,
-        /** 인화가 끝나는 시각. 서버 필드명은 `photoPrintCompletedAt` 이다. */
         val photoPrintCompletedAt: String? = null,
     )
 
