@@ -166,11 +166,14 @@ private fun PhotographerInfo(
             )
         }
 
-        Text(
-            text = photo.capturedDate,
-            color = ChallaTheme.colors.primary,
-            style = ChallaTheme.typography.bodySmall.medium,
-        )
+        // 촬영 시각은 대체할 문구가 없어서, 못 받았으면 줄 자체를 그리지 않는다.
+        photo.capturedDate?.let { capturedDate ->
+            Text(
+                text = capturedDate,
+                color = ChallaTheme.colors.primary,
+                style = ChallaTheme.typography.bodySmall.medium,
+            )
+        }
     }
 }
 
@@ -223,7 +226,7 @@ private fun PhotoImageLoadFailurePreview() {
     PhotoImageLoadFailure()
 }
 
-@ComposePreview(showBackground = true, name = "PhotoDetailPage - 사진 주소·촬영자 없음")
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 사진 주소·촬영자·시각 없음")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageWithoutPhotoInfoPreview() {
@@ -239,7 +242,7 @@ private fun PhotoDetailPageWithoutPhotoInfoPreview() {
                 imageUrl = null,
                 photographer = null,
                 photographerProfileImageUrl = null,
-                capturedDate = "2026. 7. 16. 14:34",
+                capturedDate = null,
             ),
         reactions = persistentListOf(),
     )
