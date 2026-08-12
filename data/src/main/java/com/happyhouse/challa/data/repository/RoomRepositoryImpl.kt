@@ -6,10 +6,10 @@ import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
 import com.happyhouse.challa.data.network.dto.toDomain
 import com.happyhouse.challa.domain.model.CreatedRoom
+import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
-import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
