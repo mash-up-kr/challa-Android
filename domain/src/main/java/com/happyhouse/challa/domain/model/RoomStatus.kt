@@ -16,4 +16,9 @@ enum class RoomStatus {
      * 아는 상태로 넘겨짚으면 실제와 다른 화면을 보여주게 되므로, 화면에서 처리할 수 없는 상태로 다룬다.
      */
     UNKNOWN,
+    ;
+
+    companion object {
+        fun from(value: String): RoomStatus = entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
 }

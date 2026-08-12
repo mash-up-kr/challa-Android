@@ -2,4 +2,6 @@ package com.happyhouse.challa.presentation.home.contract
 
 import com.happyhouse.challa.presentation.base.UiSideEffect
 
-sealed interface HomeSideEffect : UiSideEffect
+sealed interface HomeSideEffect : UiSideEffect {
+    data object RoomsLoadFailed : HomeSideEffect
+}

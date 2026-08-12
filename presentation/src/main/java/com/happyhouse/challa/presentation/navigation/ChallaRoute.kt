@@ -35,9 +35,6 @@ sealed interface ChallaRoute : NavKey {
     ) : ChallaRoute
 
     @Serializable
-    data object RoomMain : ChallaRoute
-
-    @Serializable
     data object Home : ChallaRoute
 
     @Serializable
