@@ -15,8 +15,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
- * @param onSaveClick 저장할 사진이 없는 상태(로딩·에러·빈 목록, 이미지 주소를 받지 못한 사진)에서는
- *  null을 넘겨 다운로드 아이콘 자체를 노출하지 않는다.
+ * @param onSaveClick 저장할 사진이 없는 상태(로딩·에러·빈 목록)에서는 null을 넘겨 다운로드 아이콘 자체를 노출하지 않는다.
  * @param isSaveEnabled 저장이 진행 중일 때 false로 넘겨 중복 요청을 막는다.
  */
 @Composable

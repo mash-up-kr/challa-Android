@@ -42,8 +42,8 @@ internal fun RoomDetail.toPhotoInfo(
  * 촬영 여부는 서버가 내려준 촬영 수(`totalPhotoCount - remainedPhotoCount`)로 판단한다.
  * 사진 목록이 촬영 수보다 적게 와도 이미 찍은 칸이 촬영 전으로 보이지 않게 하기 위해서다.
  *
- * 인화 전 사진은 서버가 원본 `imageUrl` 을 내려주면 앱이 블러 처리해 보여준다.
- * 사진 목록이 촬영 수보다 짧은 것은 정상 흐름이 아니므로, 조용히 빈 칸으로 두지 않고 경고를 남긴다.
+ * 인화 전 사진도 서버가 원본 `imageUrl` 을 내려주고 앱이 블러 처리해 보여준다.
+ * 따라서 사진 목록이 촬영 수보다 짧은 것은 정상 흐름이 아니므로, 조용히 빈 칸으로 두지 않고 경고를 남긴다.
  */
 private fun RoomDetail.toFilmSlots(photos: List<Photo>): ImmutableList<GalleryFilmSlotUiModel> {
     val capturedCount = (totalPhotoCount - remainedPhotoCount).coerceIn(0, totalPhotoCount)
@@ -70,15 +70,9 @@ private fun RoomDetail.toFilmSlots(photos: List<Photo>): ImmutableList<GalleryFi
 
 /**
  * 인화가 끝나 공개된 사진을 그린다. 번호는 촬영 순서대로 매긴다.
- *
- * 인화가 끝났으면 주소가 있어야 하므로, 없는 사진은 번호를 밀지 않고 자리를 남기되 경고를 남긴다.
  */
 private fun List<Photo>.toGalleryPhotos(): ImmutableList<GalleryPhotoUiModel> =
     mapIndexed { index, photo ->
-        if (photo.imageUrl == null) {
-            Timber.w("인화가 끝난 사진인데 주소를 받지 못해 이미지를 그리지 못합니다. photoId=${photo.id}")
-        }
-
         GalleryPhotoUiModel(
             id = photo.id,
             order = index + 1,

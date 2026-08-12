@@ -124,19 +124,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {
         if (currentState.isSaving) return
 
-        val imageUrl = photo.imageUrl
-        if (imageUrl == null) {
-            // 화면에서 저장 버튼을 감추지만, 여기까지 들어오면 사용자에게 실패를 알린다.
-            Timber.w("이미지 주소가 없어 저장하지 못했습니다: photoId=${photo.id}")
-            viewModelScope.launch { sendEffect(PhotoDetailSideEffect.SaveFailed) }
-            return
-        }
-
         updateState { copy(isSaving = true) }
         viewModelScope.launch {
             try {
                 photoRepository
-                    .savePhoto(imageUrl)
+                    .savePhoto(photo.imageUrl)
                     .onSuccess { sendEffect(PhotoDetailSideEffect.SaveSucceeded) }
                     .onFailure { throwable ->
                         Timber.e(throwable, "사진 저장 실패")

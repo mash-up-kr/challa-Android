@@ -66,8 +66,8 @@ fun PhotoDetailPage(
     reactions: ImmutableList<PhotoReactionUiModel>,
     modifier: Modifier = Modifier,
 ) {
-    // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다. 주소 자체를 못 받았으면 그릴 이미지가 없으니 바로 실패로 본다.
-    var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(photo.imageUrl == null) }
+    // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다.
+    var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(false) }
 
     Box(
         modifier =
@@ -76,20 +76,18 @@ fun PhotoDetailPage(
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .border(1.dp, ChallaTheme.colors.lineNormal, PhotoShape),
     ) {
-        photo.imageUrl?.let { imageUrl ->
-            AsyncImage(
-                modifier = Modifier.fillMaxSize(),
-                model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(imageUrl)
-                        .crossfade(true)
-                        .build(),
-                contentDescription = stringResource(R.string.photo_detail_photo_content_description),
-                contentScale = ContentScale.Crop,
-                onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
-            )
-        }
+        AsyncImage(
+            modifier = Modifier.fillMaxSize(),
+            model =
+                ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(photo.imageUrl)
+                    .crossfade(true)
+                    .build(),
+            contentDescription = stringResource(R.string.photo_detail_photo_content_description),
+            contentScale = ContentScale.Crop,
+            onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
+        )
 
         Spacer(
             modifier =
@@ -178,11 +176,11 @@ private fun PhotographerInfo(
 }
 
 /**
- * 촬영자 프로필 사진. 등록하지 않았거나 불러오지 못하면 기본 프로필 아이콘을 그린다.
+ * 촬영자 프로필 사진. 불러오지 못하면 기본 프로필 아이콘을 그린다.
  */
 @Composable
 private fun PhotographerAvatar(
-    profileImageUrl: String?,
+    profileImageUrl: String,
     modifier: Modifier = Modifier,
 ) {
     // URL이 바뀌면 다시 시도하도록 profileImageUrl을 key로 둔다.
@@ -195,7 +193,7 @@ private fun PhotographerAvatar(
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.backgroundLevel2),
     ) {
-        if (profileImageUrl == null || isLoadFailed) {
+        if (isLoadFailed) {
             Icon(
                 modifier = Modifier.fillMaxSize(),
                 painter = painterResource(id = ChallaIcons.Profile),
@@ -226,7 +224,7 @@ private fun PhotoImageLoadFailurePreview() {
     PhotoImageLoadFailure()
 }
 
-@ComposePreview(showBackground = true, name = "PhotoDetailPage - 사진 주소·촬영자·시각 없음")
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 촬영자·시각 없음")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoDetailPageWithoutPhotoInfoPreview() {
@@ -239,9 +237,9 @@ private fun PhotoDetailPageWithoutPhotoInfoPreview() {
         photo =
             PhotoDetailUiModel(
                 id = 1L,
-                imageUrl = null,
+                imageUrl = "",
                 photographer = null,
-                photographerProfileImageUrl = null,
+                photographerProfileImageUrl = "",
                 capturedDate = null,
             ),
         reactions = persistentListOf(),
@@ -263,7 +261,7 @@ private fun PhotoDetailPagePreview() {
                 id = 1L,
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토",
-                photographerProfileImageUrl = null,
+                photographerProfileImageUrl = "",
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions =

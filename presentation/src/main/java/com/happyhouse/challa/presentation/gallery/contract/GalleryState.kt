@@ -82,12 +82,10 @@ data class GalleryMemberUiModel(
 
 /**
  * 갤러리 썸네일 UI 모델
- *
- * @param imageUrl 서버가 주소를 내려주지 않았으면 null. 번호는 그대로 두고 이미지만 비운다.
  */
 @Immutable
 data class GalleryPhotoUiModel(
     val id: Long,
     val order: Int,
-    val imageUrl: String?,
+    val imageUrl: String,
 )
