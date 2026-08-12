@@ -4,6 +4,7 @@ import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
+import com.happyhouse.challa.data.network.toInstant
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
@@ -12,10 +13,6 @@ import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
@@ -105,15 +102,4 @@ class RoomRepositoryImpl @Inject constructor(
             GetRoomResponse.Status.PHOTO_PRINT_COMPLETED -> RoomStatus.PHOTO_PRINT_COMPLETED
             GetRoomResponse.Status.UNKNOWN -> RoomStatus.UNKNOWN
         }
-
-    /**
-     * 서버가 내려주는 ISO-8601 시각을 파싱한다.
-     *
-     * 오프셋이 붙어 오면 그대로 쓰고, 없으면 UTC로 본다.
-     * 둘 다 아닌 값은 서버가 약속과 다른 응답을 준 것이므로 예외를 그대로 띄워 조회 실패로 만든다.
-     * 시각을 아예 안 내려준 경우(null)와 형식이 깨진 경우를 구분하기 위함이다.
-     */
-    private fun String.toInstant(): Instant =
-        runCatching { OffsetDateTime.parse(this).toInstant() }
-            .getOrElse { LocalDateTime.parse(this).toInstant(ZoneOffset.UTC) }
 }

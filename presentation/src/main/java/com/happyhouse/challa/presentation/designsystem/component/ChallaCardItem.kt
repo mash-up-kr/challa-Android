@@ -54,9 +54,13 @@ sealed interface ChallaCardType {
         val imageUrl: String?,
     ) : ChallaCardType
 
-    /** 인화 완료 */
+    /**
+     * 인화 완료
+     *
+     * @param imageUrl 서버가 주소를 내려주지 않았으면 null. 이미지 없이 테두리와 번호만 그린다.
+     */
     data class Printed(
-        val imageUrl: String,
+        val imageUrl: String?,
     ) : ChallaCardType
 }
 
@@ -126,7 +130,11 @@ fun ChallaCardItem(
                 }
             }
 
-            is ChallaCardType.Printed -> CardImage(imageUrl = type.imageUrl, blurred = false)
+            is ChallaCardType.Printed -> {
+                type.imageUrl?.let { imageUrl ->
+                    CardImage(imageUrl = imageUrl, blurred = false)
+                }
+            }
         }
 
         Text(
