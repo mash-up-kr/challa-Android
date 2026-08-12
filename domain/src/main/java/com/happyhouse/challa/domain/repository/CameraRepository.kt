@@ -7,4 +7,10 @@ interface CameraRepository {
     suspend fun getCameraFilters(): ChallaResult<List<CameraFilter>>
 
     suspend fun getCameraFilterFile(fileUrl: String): ChallaResult<ByteArray>
+
+    suspend fun postPhoto(
+        roomId: Long,
+        cameraFilterName: String,
+        imageUrl: String,
+    ): ChallaResult<Unit>
 }

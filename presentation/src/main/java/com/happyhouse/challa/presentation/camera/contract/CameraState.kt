@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.camera.contract
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.presentation.base.UiState
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
+import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import kotlinx.collections.immutable.ImmutableList
@@ -44,9 +45,4 @@ enum class CameraRoomLoadState {
     LOADING,
     LOADED,
     FAILED,
-}
-
-enum class CameraLensFacing {
-    BACK,
-    FRONT,
 }

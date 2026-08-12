@@ -41,7 +41,7 @@ class ChallaAppViewModel
 
         /**
          * 앱 시작 시 저장된 토큰과 프로필 설정 여부로 초기 화면을 정한다.
-         * 토큰이 없으면 [ChallaRoute.Login], 토큰은 있지만 닉네임이 없으면 [ChallaRoute.CreateProfile],
+         * 토큰이 없으면 [ChallaRoute.Login], 토큰은 있지만 닉네임이 없으면 [ChallaRoute.SettingProfile],
          * 프로필까지 설정된 유저면 [ChallaRoute.Home] 으로 시작한다.
          * 초기 화면을 아직 확인하지 못한 로딩 상태는 null 로 표현한다.
          */
@@ -61,7 +61,7 @@ class ChallaAppViewModel
             return when (val result = userRepository.getMyProfile()) {
                 is ChallaResult.Success ->
                     if (result.data.nickname.isNullOrBlank()) {
-                        ChallaRoute.CreateProfile
+                        ChallaRoute.SettingProfile
                     } else {
                         ChallaRoute.Home
                     }

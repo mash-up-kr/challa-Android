@@ -22,7 +22,8 @@ import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
-import com.happyhouse.challa.presentation.profile.CreateProfileRoute
+import com.happyhouse.challa.presentation.profile.EditProfileRoute
+import com.happyhouse.challa.presentation.profile.SettingProfileRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
@@ -37,6 +38,7 @@ fun ChallaNavHost(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
+    val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
 
     NavDisplay(
         backStack = navigator.backStack,
@@ -83,15 +85,36 @@ fun ChallaNavHost(
                         onLoginSuccess = { isNewUser ->
                             // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
                             navigator.replace(
-                                if (isNewUser) ChallaRoute.CreateProfile else ChallaRoute.Home,
+                                if (isNewUser) ChallaRoute.SettingProfile else ChallaRoute.Home,
                             )
                         },
                     )
                 }
-                entry<ChallaRoute.CreateProfile> {
-                    CreateProfileRoute(
+                entry<ChallaRoute.SettingProfile> {
+                    SettingProfileRoute(
                         onProfileCreated = {
                             navigator.replace(ChallaRoute.Home)
+                        },
+                    )
+                }
+                entry<ChallaRoute.EditProfile> { route ->
+                    EditProfileRoute(
+                        initialNickname = route.nickname,
+                        initialProfileImageUrl = route.profileImageUrl,
+                        onBackClick = { navigator.goBack() },
+                        onProfileUpdated = {
+                            navigator.goBack()
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    ChallaSnackbarVisuals(
+                                        content =
+                                            ChallaSnackbarContent.HeadingOnly(
+                                                heading = profileUpdateSuccessMessage,
+                                            ),
+                                        icon = ChallaIcons.Check,
+                                    ),
+                                )
+                            }
                         },
                     )
                 }
@@ -107,8 +130,16 @@ fun ChallaNavHost(
                 }
                 entry<ChallaRoute.Setting> {
                     SettingRoute(
+                        snackbarHostState = snackbarHostState,
                         onBackClick = { navigator.goBack() },
-                        onProfileEditClick = {},
+                        onProfileEditClick = { nickname, profileImageUrl ->
+                            navigator.navigate(
+                                ChallaRoute.EditProfile(
+                                    nickname = nickname,
+                                    profileImageUrl = profileImageUrl,
+                                ),
+                            )
+                        },
                         onThemeClick = {
                             navigator.navigate(ChallaRoute.ThemeSetting)
                         },

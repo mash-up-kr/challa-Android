@@ -21,8 +21,10 @@ internal sealed interface CameraSessionEvent {
 
 /** CameraX 촬영 요청의 최종 처리 결과입니다. */
 internal sealed interface CameraCaptureResult {
-    /** CameraX가 이미지를 정상적으로 캡처했습니다. */
-    data object Success : CameraCaptureResult
+    /** CameraX가 업로드 가능한 JPEG 이미지를 정상적으로 캡처했습니다. */
+    class Success(
+        val imageBytes: ByteArray,
+    ) : CameraCaptureResult
 
     /** CameraX가 촬영 요청을 완료하지 못했습니다. */
     data class Failed(

@@ -2,15 +2,16 @@ package com.happyhouse.challa.presentation.camera
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.repository.CameraRepository
+import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
-import com.happyhouse.challa.presentation.camera.contract.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
+import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
@@ -27,6 +28,7 @@ import timber.log.Timber
 class CameraViewModel @AssistedInject constructor(
     @Assisted roomId: Long,
     private val cameraRepository: CameraRepository,
+    private val imageUploadRepository: ImageUploadRepository,
     private val roomRepository: RoomRepository,
 ) : BaseViewModel<CameraState, CameraIntent, CameraSideEffect>(
         initialState = CameraState(selectedRoomId = roomId),
@@ -172,22 +174,49 @@ class CameraViewModel @AssistedInject constructor(
         updateState { copy(captureRequest = captureRequest) }
     }
 
-    fun onPhotoCaptureResult(
+    fun onPhotoCaptured(
         requestId: Long,
-        succeeded: Boolean,
+        imageBytes: ByteArray,
     ) {
         val captureRequest =
             currentState.captureRequest?.takeIf { it.requestId == requestId } ?: return
 
-        if (!succeeded) {
-            updateState { copy(captureRequest = null) }
-            viewModelScope.launch {
-                sendEffect(CameraSideEffect.PhotoCaptureFailed)
-            }
-            return
-        }
+        viewModelScope.launch {
+            val imageUrl =
+                when (val result = imageUploadRepository.uploadPhoto(imageBytes)) {
+                    is ChallaResult.Success -> result.data
+                    is ChallaResult.Failure -> {
+                        handlePhotoCreateFailure(result)
+                        return@launch
+                    }
+                }
 
-        // TODO: 실제 연동 시 CameraX 촬영 성공이 아니라 사진 업로드 성공 응답을 기준으로 갱신합니다.
+            when (
+                val result =
+                    cameraRepository.postPhoto(
+                        roomId = captureRequest.roomId,
+                        cameraFilterName = captureRequest.selectedFilter.name,
+                        imageUrl = imageUrl,
+                    )
+            ) {
+                is ChallaResult.Success -> completePhotoCreation(captureRequest)
+                is ChallaResult.Failure -> handlePhotoCreateFailure(result)
+            }
+        }
+    }
+
+    fun onPhotoCaptureFailed(requestId: Long) {
+        if (currentState.captureRequest?.requestId != requestId) return
+
+        updateState { copy(captureRequest = null) }
+        viewModelScope.launch {
+            sendEffect(CameraSideEffect.PhotoCaptureFailed)
+        }
+    }
+
+    private fun completePhotoCreation(captureRequest: PhotoCaptureRequest) {
+        if (currentState.captureRequest?.requestId != captureRequest.requestId) return
+
         updateState {
             copy(
                 captureRequest = null,
@@ -202,6 +231,12 @@ class CameraViewModel @AssistedInject constructor(
                         }.toPersistentList(),
             )
         }
+    }
+
+    private suspend fun handlePhotoCreateFailure(result: ChallaResult.Failure) {
+        Timber.e("사진 업로드 또는 생성에 실패했습니다: %s", result)
+        updateState { copy(captureRequest = null) }
+        sendEffect(CameraSideEffect.PhotoCaptureFailed)
     }
 
     /** CameraX 촬영이 취소됐음을 반영하고 대기 중 상태를 해제합니다. */

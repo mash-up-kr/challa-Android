@@ -17,10 +17,24 @@ class AccountViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
 ) : BaseViewModel<AccountState, AccountIntent, AccountSideEffect>(initialState = AccountState()) {
+    init {
+        fetchMyProfile()
+    }
+
     override fun onIntent(intent: AccountIntent) {
         when (intent) {
+            AccountIntent.ProfileReadRetry -> fetchMyProfile()
             AccountIntent.LogoutClick -> handleLogoutClick()
             AccountIntent.WithdrawalConfirmClick -> handleWithdrawalConfirmClick()
+        }
+    }
+
+    private fun fetchMyProfile() {
+        viewModelScope.launch {
+            when (val result = userRepository.getMyProfile()) {
+                is ChallaResult.Success -> updateState { copy(nickname = result.data.nickname.orEmpty()) }
+                is ChallaResult.Failure -> sendEffect(AccountSideEffect.ProfileReadFailed)
+            }
         }
     }
 
