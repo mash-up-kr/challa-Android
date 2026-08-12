@@ -40,6 +40,10 @@ object ApiModule {
 
     @Provides
     @Singleton
+    fun providePhotoApi(retrofit: Retrofit): PhotoApi = retrofit.create()
+
+    @Provides
+    @Singleton
     fun provideRoomApi(retrofit: Retrofit): RoomApi = retrofit.create()
 
     @Provides

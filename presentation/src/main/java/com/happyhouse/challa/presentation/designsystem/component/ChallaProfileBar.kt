@@ -60,7 +60,7 @@ private val BarPadding = 2.dp
  */
 @Composable
 fun ChallaProfileBar(
-    profileImageUrls: ImmutableList<String>,
+    profileImageUrls: ImmutableList<String?>,
     contentDescription: String,
     modifier: Modifier = Modifier,
 ) {
@@ -108,9 +108,10 @@ fun ChallaProfileBar(
     }
 }
 
+/** [profileImageUrl] 이 null 이면 Coil 이 이미지를 만들지 못해 기본 프로필 아이콘이 그려진다. */
 @Composable
 private fun MemberAvatar(
-    profileImageUrl: String,
+    profileImageUrl: String?,
     ringColor: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -214,4 +215,14 @@ private fun ChallaProfileBarOverflowPreview() {
     )
 }
 
-private fun previewProfileImageUrls(count: Int): ImmutableList<String> = List(count) { "" }.toPersistentList()
+@ComposePreview(showBackground = true, name = "ProfileBar - 프로필 사진 없음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun ChallaProfileBarNoPhotoPreview() {
+    ChallaProfileBar(
+        profileImageUrls = List<String?>(3) { null }.toPersistentList(),
+        contentDescription = "참여자 3명",
+    )
+}
+
+private fun previewProfileImageUrls(count: Int): ImmutableList<String?> = List<String?>(count) { "" }.toPersistentList()

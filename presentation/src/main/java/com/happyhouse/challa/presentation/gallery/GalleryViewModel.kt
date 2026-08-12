@@ -1,38 +1,49 @@
 package com.happyhouse.challa.presentation.gallery
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.RoomDetail
+import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.domain.model.RoomUser
+import com.happyhouse.challa.domain.repository.PhotoRepository
+import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
-import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
-import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
+import com.happyhouse.challa.presentation.gallery.util.toPhotoInfo
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Instant
 import kotlin.math.ceil
 
 @HiltViewModel(assistedFactory = GalleryViewModel.Factory::class)
 class GalleryViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
+    private val roomRepository: RoomRepository,
+    private val photoRepository: PhotoRepository,
 ) : BaseViewModel<GalleryState, GalleryIntent, GallerySideEffect>(
         initialState = GalleryState(roomId = roomId),
     ) {
     private var loadJob: Job? = null
     private var countdownJob: Job? = null
 
-    // TODO: 실제 API 붙으면 서버가 내려주는 인화 완료 시각으로 교체할 것.
-    private var printCompleteAtMillis: Long = 0L
+    /** 서버가 내려준 인화 완료 시각. 아직 정해지지 않았으면 null */
+    private var printCompletionAt: Instant? = null
 
     init {
         onIntent(GalleryIntent.PhotosLoad)
@@ -60,25 +71,60 @@ class GalleryViewModel @AssistedInject constructor(
                 if (showLoading) {
                     updateState { copy(photoInfo = PhotoInfo.Loading) }
                 }
-                runCatching {
-                    loadMockPhotoInfo()
-                }.onSuccess { photoInfo ->
-                    updateState {
-                        copy(
-                            roomName = MOCK_ROOM_NAME,
-                            members = loadMockMembers(),
-                            photoInfo = photoInfo,
-                        )
-                    }
-                    if (photoInfo is PhotoInfo.Waiting) {
-                        startCountdown()
-                    }
-                }.onFailure { throwable ->
-                    if (throwable is CancellationException) throw throwable
-                    Timber.e(throwable, "갤러리 사진을 불러오지 못했습니다")
+
+                // 방 정보와 사진 목록이 둘 다 있어야 화면을 그릴 수 있으므로 함께 요청한다.
+                val roomDeferred = async { roomRepository.getRoom(roomId) }
+                val photosDeferred = async { photoRepository.getPhotos(roomId) }
+                val usersDeferred = async { roomRepository.getRoomUsers(roomId) }
+                val roomResult = roomDeferred.await()
+                val photosResult = photosDeferred.await()
+
+                if (roomResult !is ChallaResult.Success || photosResult !is ChallaResult.Success) {
+                    Timber.e(
+                        roomResult.causeOrNull() ?: photosResult.causeOrNull(),
+                        "갤러리를 불러오지 못했습니다. room=$roomResult, photos=$photosResult",
+                    )
+                    // 본문이 에러면 프로필 바도 그리지 않으므로 참여자 조회를 끝까지 기다릴 이유가 없다.
+                    usersDeferred.cancel()
                     updateState { copy(photoInfo = PhotoInfo.Error) }
+                    return@launch
                 }
+
+                val room = roomResult.data
+                printCompletionAt = room.photoPrintCompletionAt
+                val remainingSeconds = remainingSecondsUntilPrintComplete()
+
+                updateState {
+                    copy(
+                        roomName = room.title,
+                        photoInfo = room.toPhotoInfo(photosResult.data, remainingSeconds),
+                    )
+                }
+
+                updateMembersWhenReady(usersDeferred)
+                startCountdownIfNeeded(room, remainingSeconds)
             }
+    }
+
+    /**
+     * 참여자를 받는 대로 프로필 바에 채운다.
+     *
+     * 참여자는 사진 위에 얹히는 부가 정보라, 조회가 늦어져도 갤러리 본문 표시를 붙잡지 않도록
+     * 본문을 그린 뒤 따로 기다린다. 실패하면 본문은 그대로 두고 프로필 바만 비운다.
+     */
+    private fun CoroutineScope.updateMembersWhenReady(usersDeferred: Deferred<ChallaResult<List<RoomUser>>>) {
+        launch {
+            val members =
+                when (val usersResult = usersDeferred.await()) {
+                    is ChallaResult.Success -> usersResult.data.toGalleryMembers()
+                    is ChallaResult.Failure -> {
+                        Timber.w(usersResult.causeOrNull(), "방 참여자를 불러오지 못했습니다. users=$usersResult")
+                        persistentListOf()
+                    }
+                }
+
+            updateState { copy(members = members) }
+        }
     }
 
     private fun handlePhotoClick(photoId: Long) {
@@ -100,34 +146,70 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     /**
+     * 인화 대기 중일 때만 인화 완료를 지켜본다.
+     *
+     * 남은 시간이 있으면 카운트다운을 돌리고, 완료 시각이 이미 지났는데도 서버 상태가 아직
+     * 인화 대기면 잠시 뒤 상태를 다시 확인한다. 이때 카운트다운을 0초에서 시작하면 첫 tick에
+     * 곧바로 끝나면서 완료 콜백이 그 자리에서 실행되어 아직 끝나지 않은 조회를 취소한다.
+     */
+    private fun startCountdownIfNeeded(
+        room: RoomDetail,
+        remainingSeconds: Long,
+    ) {
+        if (room.status != RoomStatus.PHOTO_PRINT_PENDING) return
+
+        if (remainingSeconds <= 0L) {
+            Timber.w("인화 대기지만 남은 시간이 없어 잠시 뒤 상태를 다시 확인합니다. 완료 시각=${room.photoPrintCompletionAt}")
+            schedulePrintStatusRecheck()
+            return
+        }
+
+        startCountdown()
+    }
+
+    /**
      * 인화 완료까지 남은 시간을 1초마다 갱신한다.
      *
      * 남은 초를 1씩 빼지 않고 매번 완료 시각과 현재 시각을 비교한다.
      * 화면이 백그라운드로 내려갔다 돌아와도 값이 어긋나지 않게 하기 위함이다.
      */
     private fun startCountdown() {
-        val job =
-            viewModelScope.launch {
-                while (true) {
-                    // 조건과 표시에 같은 값을 쓰도록 한 번만 읽는다.
-                    val remainingSeconds = remainingSecondsUntilPrintComplete()
-                    updateRemainingSeconds(remainingSeconds)
+        watchPrintCompletion {
+            while (true) {
+                // 조건과 표시에 같은 값을 쓰도록 한 번만 읽는다.
+                val remainingSeconds = remainingSecondsUntilPrintComplete()
+                updateRemainingSeconds(remainingSeconds)
 
-                    if (remainingSeconds <= 0L) break
-                    delay(COUNTDOWN_TICK_MS)
-                }
+                if (remainingSeconds <= 0L) break
+                delay(COUNTDOWN_TICK_MS)
             }
+        }
+    }
+
+    /**
+     * 완료 시각은 지났는데 서버 상태가 아직 인화 대기일 때, 잠시 뒤 방 상태를 다시 확인한다.
+     *
+     * 이 처리가 없으면 화면이 남은 시간 0인 인화 대기로 굳어 재조회할 방법이 없다.
+     * 다시 확인해도 여전히 인화 대기면 같은 경로를 타므로, 서버 상태가 넘어갈 때까지
+     * 이 화면에 머무는 동안 [PRINT_STATUS_RECHECK_MS] 간격으로 조용히 재조회한다.
+     */
+    private fun schedulePrintStatusRecheck() {
+        watchPrintCompletion {
+            delay(PRINT_STATUS_RECHECK_MS)
+        }
+    }
+
+    /**
+     * 인화 완료를 지켜보는 작업을 걸고, 정상적으로 끝나면 공개된 사진을 다시 받아온다.
+     *
+     * 재조회를 작업 코루틴 안에서 부르면 자기 자신을 취소하게 되므로 완료된 뒤에 잇는다.
+     * 취소로 끝난 경우(cause != null)는 재조회하지 않는다.
+     */
+    private fun watchPrintCompletion(block: suspend () -> Unit) {
+        val job = viewModelScope.launch { block() }
         // 콜백에서 countdownJob을 취소하므로 대입을 먼저 끝낸다.
         countdownJob = job
 
-        // 인화가 끝났으니 공개된 사진을 다시 받아온다.
-        // 카운트다운 코루틴 안에서 부르면 자기 자신을 취소하게 되므로 완료된 뒤에 잇는다.
-        // 취소로 끝난 경우(cause != null)는 재조회하지 않는다.
-        //
-        // TODO: 카운트다운이 중단 없이 끝나면 이 콜백이 그 자리에서 동기 실행되고,
-        //  handlePhotosLoad가 loadJob(= startCountdown을 호출한 코루틴)을 취소한다.
-        //  남은 시간이 0 이하면 Waiting을 만들지 않으므로 지금은 도달하지 않지만,
-        //  서버가 '거의 지금'인 완료 시각을 내려주면 드러난다.
         job.invokeOnCompletion { cause ->
             if (cause == null) handlePhotosLoad(showLoading = false)
         }
@@ -147,73 +229,13 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     private fun remainingSecondsUntilPrintComplete(): Long {
-        val remainingMillis = printCompleteAtMillis - System.currentTimeMillis()
+        val completionAt = printCompletionAt ?: return 0L
+        val remainingMillis = completionAt.toEpochMilli() - System.currentTimeMillis()
         if (remainingMillis <= 0L) return 0L
 
         // 남은 시간이 잘려서 실제보다 짧게 보이지 않도록 올림한다.
         return ceil(remainingMillis.toDouble() / MILLIS_PER_SECOND).toLong()
     }
-
-    // TODO: 실제 API 연동 전까지 쓰는 mock 데이터. 인화 여부도 서버 응답으로 판단하도록 교체할 것.
-    private suspend fun loadMockPhotoInfo(): PhotoInfo {
-        delay(MOCK_LOAD_DELAY_MS) // TODO: 로딩 상태 확인용으로 실제 API 붙으면 제거하기
-
-        // 필름을 다 채워야 인화 시각이 잡히므로, 그전까지는 카운트다운 없이 촬영을 이어간다.
-        if (MOCK_CAPTURED_COUNT < MOCK_PHOTO_COUNT) {
-            return PhotoInfo.Shooting(slots = loadMockFilmSlots())
-        }
-
-        // 재조회 때마다 새로 잡으면 카운트다운이 끝나도 인화 대기로 남는다.
-        if (printCompleteAtMillis == 0L) {
-            printCompleteAtMillis = System.currentTimeMillis() + MOCK_REMAINING_SECONDS * MILLIS_PER_SECOND
-        }
-
-        val remainingSeconds = remainingSecondsUntilPrintComplete()
-        return if (remainingSeconds <= 0L) {
-            PhotoInfo.Printed(photos = loadMockPhotos())
-        } else {
-            PhotoInfo.Waiting(
-                slots = loadMockFilmSlots(),
-                remainingSeconds = remainingSeconds,
-            )
-        }
-    }
-
-    // TODO: 실제 API 연동 전까지 쓰는 mock 필름 슬롯
-    private fun loadMockFilmSlots(): ImmutableList<GalleryFilmSlotUiModel> =
-        (0 until MOCK_PHOTO_COUNT)
-            .map { index ->
-                GalleryFilmSlotUiModel(
-                    order = index + 1,
-                    imageUrl =
-                        if (index < MOCK_CAPTURED_COUNT) {
-                            "https://picsum.photos/seed/${roomId}_$index/300/400"
-                        } else {
-                            null
-                        },
-                )
-            }.toPersistentList()
-
-    // TODO: 실제 API 연동 전까지 쓰는 mock 공개 사진
-    private fun loadMockPhotos(): ImmutableList<GalleryPhotoUiModel> =
-        (0 until MOCK_PHOTO_COUNT)
-            .map { index ->
-                GalleryPhotoUiModel(
-                    id = index.toLong(),
-                    order = index + 1,
-                    imageUrl = "https://picsum.photos/seed/${roomId}_$index/300/400",
-                )
-            }.toPersistentList()
-
-    // TODO: 실제 API 연동 전까지 쓰는 mock 참여자
-    private fun loadMockMembers(): ImmutableList<GalleryMemberUiModel> =
-        (0 until MOCK_MEMBER_COUNT)
-            .map { index ->
-                GalleryMemberUiModel(
-                    id = index.toLong(),
-                    profileImageUrl = "https://picsum.photos/seed/${roomId}_member_$index/60/60",
-                )
-            }.toPersistentList()
 
     @AssistedFactory
     interface Factory {
@@ -224,16 +246,26 @@ class GalleryViewModel @AssistedInject constructor(
         private const val MILLIS_PER_SECOND = 1_000L
         private const val COUNTDOWN_TICK_MS = 1_000L
 
-        private const val MOCK_PHOTO_COUNT = 24
-
-        // TODO: 실제 API 붙으면 서버가 내려주는 촬영 수로 교체할 것.
-        //  MOCK_PHOTO_COUNT보다 작으면 촬영 중, 같으면 인화 대기부터 시작한다.
-        private const val MOCK_CAPTURED_COUNT = 0
-
-        private const val MOCK_MEMBER_COUNT = 6
-
-        private const val MOCK_REMAINING_SECONDS = 10_798L
-        private const val MOCK_LOAD_DELAY_MS = 300L
-        private const val MOCK_ROOM_NAME = "다낭 4박5일"
+        /** 완료 시각이 지났는데도 서버 상태가 인화 대기일 때 다시 확인하기까지 기다리는 시간 */
+        private const val PRINT_STATUS_RECHECK_MS = 5_000L
     }
 }
+
+private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiModel> =
+    map { user ->
+        GalleryMemberUiModel(
+            id = user.id,
+            profileImageUrl = user.profileImageUrl,
+        )
+    }.toPersistentList()
+
+/**
+ * 실패에 딸린 원인 예외. 스택트레이스가 남도록 로그에 함께 넘긴다.
+ * 원인 예외가 없는 실패(HTTP 응답 코드로만 표현되는 실패)는 null이다.
+ */
+private fun ChallaResult<*>.causeOrNull(): Throwable? =
+    when (this) {
+        is ChallaResult.Failure.Network -> cause
+        is ChallaResult.Failure.Unknown -> cause
+        is ChallaResult.Failure.Http, is ChallaResult.Success -> null
+    }

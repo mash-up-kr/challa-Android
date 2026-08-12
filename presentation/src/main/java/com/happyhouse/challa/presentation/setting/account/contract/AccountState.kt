@@ -5,6 +5,7 @@ import com.happyhouse.challa.presentation.base.UiState
 
 @Immutable
 data class AccountState(
+    val nickname: String = "",
     val isLoggingOut: Boolean = false,
     val isWithdrawing: Boolean = false,
 ) : UiState {

@@ -12,7 +12,11 @@ import coil3.disk.DiskCache
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import com.happyhouse.challa.data.network.api.PhotoApi
+import com.happyhouse.challa.domain.model.Photo
 import com.happyhouse.challa.domain.repository.PhotoRepository
+import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.domain.result.mapCatching
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,7 +25,20 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class PhotoRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val photoApi: PhotoApi,
 ) : PhotoRepository {
+    override suspend fun getPhotos(roomId: Long): ChallaResult<List<Photo>> =
+        photoApi.getPhotos(roomId).mapCatching { response ->
+            check(response.success) { response.message }
+            val photos = requireNotNull(response.data) { "사진 목록 응답 데이터가 비어 있습니다." }.photo
+            photos.map { photo ->
+                Photo(
+                    id = photo.id,
+                    imageUrl = photo.imageUrl,
+                )
+            }
+        }
+
     override suspend fun savePhoto(imageUrl: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
