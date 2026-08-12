@@ -21,6 +21,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -76,13 +78,14 @@ class GalleryViewModel @AssistedInject constructor(
                 val usersDeferred = async { roomRepository.getRoomUsers(roomId) }
                 val roomResult = roomDeferred.await()
                 val photosResult = photosDeferred.await()
-                val usersResult = usersDeferred.await()
 
                 if (roomResult !is ChallaResult.Success || photosResult !is ChallaResult.Success) {
                     Timber.e(
                         roomResult.causeOrNull() ?: photosResult.causeOrNull(),
                         "갤러리를 불러오지 못했습니다. room=$roomResult, photos=$photosResult",
                     )
+                    // 본문이 에러면 프로필 바도 그리지 않으므로 참여자 조회를 끝까지 기다릴 이유가 없다.
+                    usersDeferred.cancel()
                     updateState { copy(photoInfo = PhotoInfo.Error) }
                     return@launch
                 }
@@ -91,26 +94,37 @@ class GalleryViewModel @AssistedInject constructor(
                 printCompletionAt = room.photoPrintCompletionAt
                 val remainingSeconds = remainingSecondsUntilPrintComplete()
 
-                // 참여자는 사진 위에 얹히는 부가 정보라, 실패해도 갤러리 본문까지 막지 않고 프로필 바만 비운다.
-                val members =
-                    when (usersResult) {
-                        is ChallaResult.Success -> usersResult.data.toGalleryMembers()
-                        is ChallaResult.Failure -> {
-                            Timber.w(usersResult.causeOrNull(), "방 참여자를 불러오지 못했습니다. users=$usersResult")
-                            persistentListOf()
-                        }
-                    }
-
                 updateState {
                     copy(
                         roomName = room.title,
-                        members = members,
                         photoInfo = room.toPhotoInfo(photosResult.data, remainingSeconds),
                     )
                 }
 
+                updateMembersWhenReady(usersDeferred)
                 startCountdownIfNeeded(room, remainingSeconds)
             }
+    }
+
+    /**
+     * 참여자를 받는 대로 프로필 바에 채운다.
+     *
+     * 참여자는 사진 위에 얹히는 부가 정보라, 조회가 늦어져도 갤러리 본문 표시를 붙잡지 않도록
+     * 본문을 그린 뒤 따로 기다린다. 실패하면 본문은 그대로 두고 프로필 바만 비운다.
+     */
+    private fun CoroutineScope.updateMembersWhenReady(usersDeferred: Deferred<ChallaResult<List<RoomUser>>>) {
+        launch {
+            val members =
+                when (val usersResult = usersDeferred.await()) {
+                    is ChallaResult.Success -> usersResult.data.toGalleryMembers()
+                    is ChallaResult.Failure -> {
+                        Timber.w(usersResult.causeOrNull(), "방 참여자를 불러오지 못했습니다. users=$usersResult")
+                        persistentListOf()
+                    }
+                }
+
+            updateState { copy(members = members) }
+        }
     }
 
     private fun handlePhotoClick(photoId: Long) {
