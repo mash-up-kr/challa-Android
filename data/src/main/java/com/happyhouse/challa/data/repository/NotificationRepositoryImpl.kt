@@ -11,6 +11,8 @@ import com.happyhouse.challa.domain.result.mapCatching
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,55 +26,86 @@ class NotificationRepositoryImpl @Inject constructor(
     private val tokenDataStore: TokenDataStore,
     private val notificationApi: NotificationApi,
 ) : NotificationRepository {
+    /** 토글 변경과 token 갱신·로그인·로그아웃이 겹쳐 서버 등록 상태가 역전되는 것을 방지합니다. */
+    private val tokenSynchronizationMutex = Mutex()
+
     override val isEnabled: Flow<ChallaResult<Boolean>> = notificationSettingsDataStore.isEnabled
 
     override suspend fun setEnabled(enabled: Boolean): ChallaResult<Unit> =
-        try {
-            notificationSettingsDataStore.setEnabled(enabled)
-            ChallaResult.Success(Unit)
-        } catch (throwable: Throwable) {
-            if (throwable is CancellationException) throw throwable
-            ChallaResult.Failure.Unknown(throwable)
+        tokenSynchronizationMutex.withLock {
+            try {
+                val synchronizationResult =
+                    if (enabled) {
+                        registerSavedPushTokenInternal()
+                    } else {
+                        deleteSavedPushTokenInternal()
+                    }
+                if (synchronizationResult is ChallaResult.Failure) {
+                    return@withLock synchronizationResult
+                }
+
+                notificationSettingsDataStore.setEnabled(enabled)
+                ChallaResult.Success(Unit)
+            } catch (throwable: Throwable) {
+                if (throwable is CancellationException) throw throwable
+                ChallaResult.Failure.Unknown(throwable)
+            }
         }
 
     override suspend fun updatePushToken(token: String): ChallaResult<Unit> =
-        try {
-            val savedToken = notificationSettingsDataStore.pushToken.first()
-            val isLoggedIn = !tokenDataStore.accessToken.first().isNullOrBlank()
+        tokenSynchronizationMutex.withLock {
+            try {
+                val notificationsEnabled =
+                    when (val result = notificationSettingsDataStore.isEnabled.first()) {
+                        is ChallaResult.Success -> result.data
+                        is ChallaResult.Failure -> return@withLock result
+                    }
+                val savedToken = notificationSettingsDataStore.pushToken.first()
+                val isLoggedIn = !tokenDataStore.accessToken.first().isNullOrBlank()
 
-            if (isLoggedIn && savedToken != null && savedToken != token) {
-                when (val result = deleteToken(savedToken)) {
-                    is ChallaResult.Success -> Unit
-                    is ChallaResult.Failure -> return result
+                if (notificationsEnabled && isLoggedIn && savedToken != null && savedToken != token) {
+                    when (val result = deleteToken(savedToken)) {
+                        is ChallaResult.Success -> Unit
+                        is ChallaResult.Failure -> return@withLock result
+                    }
                 }
-            }
 
-            notificationSettingsDataStore.savePushToken(token)
-            registerSavedPushToken()
-        } catch (throwable: Throwable) {
-            if (throwable is CancellationException) throw throwable
-            ChallaResult.Failure.Unknown(throwable)
+                notificationSettingsDataStore.savePushToken(token)
+                if (notificationsEnabled) {
+                    registerSavedPushTokenInternal()
+                } else {
+                    ChallaResult.Success(Unit)
+                }
+            } catch (throwable: Throwable) {
+                if (throwable is CancellationException) throw throwable
+                ChallaResult.Failure.Unknown(throwable)
+            }
         }
 
     override suspend fun registerSavedPushToken(): ChallaResult<Unit> =
-        try {
-            if (tokenDataStore.accessToken.first().isNullOrBlank()) return ChallaResult.Success(Unit)
-            val token = notificationSettingsDataStore.pushToken.first() ?: return ChallaResult.Success(Unit)
+        tokenSynchronizationMutex.withLock {
+            try {
+                when (val result = notificationSettingsDataStore.isEnabled.first()) {
+                    is ChallaResult.Success -> {
+                        if (result.data) registerSavedPushTokenInternal() else ChallaResult.Success(Unit)
+                    }
 
-            registerToken(token)
-        } catch (throwable: Throwable) {
-            if (throwable is CancellationException) throw throwable
-            ChallaResult.Failure.Unknown(throwable)
+                    is ChallaResult.Failure -> result
+                }
+            } catch (throwable: Throwable) {
+                if (throwable is CancellationException) throw throwable
+                ChallaResult.Failure.Unknown(throwable)
+            }
         }
 
     override suspend fun deleteSavedPushToken(): ChallaResult<Unit> =
-        try {
-            val token = notificationSettingsDataStore.pushToken.first() ?: return ChallaResult.Success(Unit)
-
-            deleteToken(token)
-        } catch (throwable: Throwable) {
-            if (throwable is CancellationException) throw throwable
-            ChallaResult.Failure.Unknown(throwable)
+        tokenSynchronizationMutex.withLock {
+            try {
+                deleteSavedPushTokenInternal()
+            } catch (throwable: Throwable) {
+                if (throwable is CancellationException) throw throwable
+                ChallaResult.Failure.Unknown(throwable)
+            }
         }
 
     override suspend fun sendTestPush(
@@ -104,6 +137,20 @@ class NotificationRepositoryImpl @Inject constructor(
         notificationApi
             .registerToken(token.toRequest())
             .mapCatching { response -> check(response.success) { response.message } }
+
+    private suspend fun registerSavedPushTokenInternal(): ChallaResult<Unit> {
+        if (tokenDataStore.accessToken.first().isNullOrBlank()) return ChallaResult.Success(Unit)
+        val token = notificationSettingsDataStore.pushToken.first() ?: return ChallaResult.Success(Unit)
+
+        return registerToken(token)
+    }
+
+    private suspend fun deleteSavedPushTokenInternal(): ChallaResult<Unit> {
+        if (tokenDataStore.accessToken.first().isNullOrBlank()) return ChallaResult.Success(Unit)
+        val token = notificationSettingsDataStore.pushToken.first() ?: return ChallaResult.Success(Unit)
+
+        return deleteToken(token)
+    }
 
     private suspend fun deleteToken(token: String): ChallaResult<Unit> =
         notificationApi

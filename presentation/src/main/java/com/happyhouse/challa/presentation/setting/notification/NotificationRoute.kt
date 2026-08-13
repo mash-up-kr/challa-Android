@@ -54,17 +54,14 @@ fun NotificationRoute(
         }
     }
 
-    LaunchedEffect(permissionController.isEnabled, isEnabled) {
-        if (!permissionController.isEnabled && isEnabled) {
-            viewModel.onEnabledChange(false)
-        }
-    }
-
     NotificationScreen(
         systemNotificationsEnabled = permissionController.isEnabled,
-        serviceNotificationsEnabled = isEnabled && permissionController.isEnabled,
+        serviceNotificationsEnabled = isEnabled,
         onBackClick = onBackClick,
-        onSystemNotificationSettingClick = permissionController.requestPermission,
+        onSystemNotificationSettingClick = {
+            pendingServiceNotificationEnable = true
+            permissionController.requestPermission()
+        },
         onServiceNotificationEnabledChange = { enabled ->
             when {
                 !enabled -> viewModel.onEnabledChange(false)

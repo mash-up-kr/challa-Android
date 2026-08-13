@@ -29,7 +29,7 @@ class NotificationSettingsDataStore
             dataStore.data
                 .map<Preferences, ChallaResult<Boolean>> { preferences ->
                     ChallaResult.Success(
-                        preferences[SERVICE_NOTIFICATIONS_ENABLED_KEY] ?: true,
+                        preferences[SERVICE_NOTIFICATIONS_ENABLED_KEY] ?: false,
                     )
                 }.catch { throwable ->
                     if (throwable is CancellationException) throw throwable

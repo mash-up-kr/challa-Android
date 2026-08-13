@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface NotificationRepository {
     val isEnabled: Flow<ChallaResult<Boolean>>
 
+    /** 알림 사용 여부를 저장하고 현재 기기의 token 등록 상태를 서버와 동기화합니다. */
     suspend fun setEnabled(enabled: Boolean): ChallaResult<Unit>
 
     /**
