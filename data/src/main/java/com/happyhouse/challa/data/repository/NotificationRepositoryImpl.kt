@@ -8,6 +8,7 @@ import com.happyhouse.challa.data.network.dto.request.TestNotificationRequest
 import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
+import com.orhanobut.logger.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -63,19 +64,25 @@ class NotificationRepositoryImpl @Inject constructor(
                 val savedToken = notificationSettingsDataStore.pushToken.first()
                 val isLoggedIn = !tokenDataStore.accessToken.first().isNullOrBlank()
 
-                if (notificationsEnabled && isLoggedIn && savedToken != null && savedToken != token) {
-                    when (val result = deleteToken(savedToken)) {
+                notificationSettingsDataStore.savePushToken(token)
+                if (!notificationsEnabled || !isLoggedIn) {
+                    return@withLock ChallaResult.Success(Unit)
+                }
+
+                when (val result = registerToken(token)) {
+                    is ChallaResult.Success -> Unit
+                    is ChallaResult.Failure -> return@withLock result
+                }
+
+                // 이전 토큰 정리 실패가 새 토큰 동기화를 막지 않도록 best-effort로 처리한다.
+                if (savedToken != null && savedToken != token) {
+                    when (deleteToken(savedToken)) {
                         is ChallaResult.Success -> Unit
-                        is ChallaResult.Failure -> return@withLock result
+                        is ChallaResult.Failure -> Logger.w("이전 FCM 등록 토큰을 삭제하지 못했습니다")
                     }
                 }
 
-                notificationSettingsDataStore.savePushToken(token)
-                if (notificationsEnabled) {
-                    registerSavedPushTokenInternal()
-                } else {
-                    ChallaResult.Success(Unit)
-                }
+                ChallaResult.Success(Unit)
             } catch (throwable: Throwable) {
                 if (throwable is CancellationException) throw throwable
                 ChallaResult.Failure.Unknown(throwable)

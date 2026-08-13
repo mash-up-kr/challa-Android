@@ -12,6 +12,7 @@ import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
 import com.happyhouse.challa.domain.result.onSuccess
+import com.orhanobut.logger.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -47,14 +48,18 @@ class AuthRepositoryImpl @Inject constructor(
                 )
             }.onSuccess { tokens ->
                 tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
-                notificationRepository.registerSavedPushToken()
+                when (notificationRepository.registerSavedPushToken()) {
+                    is ChallaResult.Success -> Unit
+                    is ChallaResult.Failure -> Logger.w("로그인 후 FCM 등록 토큰을 서버에 등록하지 못했습니다")
+                }
             }
 
     override suspend fun logout(): ChallaResult<Unit> =
         try {
-            when (val result = notificationRepository.deleteSavedPushToken()) {
+            // FCM 토큰 정리 실패가 사용자의 로그아웃을 막지 않도록 best-effort로 처리한다.
+            when (notificationRepository.deleteSavedPushToken()) {
                 is ChallaResult.Success -> Unit
-                is ChallaResult.Failure -> return result
+                is ChallaResult.Failure -> Logger.w("FCM 등록 토큰을 삭제하지 못했지만 로그아웃을 계속합니다")
             }
 
             val refreshToken =

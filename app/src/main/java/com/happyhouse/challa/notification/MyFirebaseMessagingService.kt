@@ -10,13 +10,12 @@ import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.happyhouse.challa.R
-import com.happyhouse.challa.di.qualifier.ApplicationScope
 import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -24,17 +23,13 @@ import javax.inject.Inject
  * FCM registration token 갱신과 수신 메시지를 처리하는 Android 진입점입니다.
  *
  * 서버가 기존 registration token을 요구하므로 token이 교체될 때 [onNewToken]에서 서버 동기화를 시작합니다.
- * 포그라운드에서 수신한 메시지는 시스템이 자동으로 표시하지 않으므로 알림을 직접 생성하며,
+ * FCM이 자동으로 표시하지 않는 메시지는 콜백 반환 전에 서비스 알림 설정을 확인해 직접 알림을 생성하며,
  * 서비스 알림 설정이 꺼져 있거나 시스템 알림 권한이 없으면 표시하지 않습니다.
  */
 @AndroidEntryPoint
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var notificationTokenManager: NotificationTokenManager
-
-    @Inject
-    @ApplicationScope
-    lateinit var applicationScope: CoroutineScope
 
     @Inject
     lateinit var notificationRepository: NotificationRepository
@@ -45,26 +40,26 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        Timber.d(
-            // TODO BJ: 개발 후에 메시지, 발신자, 키 제거
-            "FCM 메시지를 수신했습니다: 메시지 ID=%s, 발신자=%s, 데이터 키=%s",
-            message.messageId,
-            message.from,
-            message.data.keys,
-        )
+        Timber.d("FCM 메시지를 수신했습니다")
 
-        applicationScope.launch {
-            when (val result = notificationRepository.isEnabled.first()) {
-                is ChallaResult.Success -> {
-                    if (result.data) {
-                        showNotification(message)
-                    } else {
-                        Timber.d("서비스 알림이 비활성화되어 FCM 알림을 표시하지 않습니다")
-                    }
+        val notificationSetting =
+            runBlocking {
+                withTimeoutOrNull(NOTIFICATION_SETTING_TIMEOUT_MILLIS) {
+                    notificationRepository.isEnabled.first()
                 }
-
-                is ChallaResult.Failure -> Timber.w("서비스 알림 설정을 확인하지 못해 FCM 알림을 표시하지 않습니다")
             }
+
+        when (notificationSetting) {
+            is ChallaResult.Success -> {
+                if (notificationSetting.data) {
+                    showNotification(message)
+                } else {
+                    Timber.d("서비스 알림이 비활성화되어 FCM 알림을 표시하지 않습니다")
+                }
+            }
+
+            is ChallaResult.Failure -> Timber.w("서비스 알림 설정을 확인하지 못해 FCM 알림을 표시하지 않습니다")
+            null -> Timber.w("서비스 알림 설정 확인 시간이 초과되어 FCM 알림을 표시하지 않습니다")
         }
     }
 
@@ -128,5 +123,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private companion object {
         const val TITLE_KEY = "title"
         const val BODY_KEY = "body"
+        const val NOTIFICATION_SETTING_TIMEOUT_MILLIS = 5_000L
     }
 }
