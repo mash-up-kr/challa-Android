@@ -29,8 +29,10 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,10 +66,13 @@ import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.enterroom.EnterRoomBottomSheet
@@ -95,16 +100,35 @@ private const val FILM_PREVIEW_MAX = 3
 @Composable
 fun HomeRoute(
     onNavigateToSetting: () -> Unit,
-    onNavigateToRoom: (roomId: String) -> Unit,
+    onNavigateToRoom: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showCreateRoomSheet by remember { mutableStateOf(false) }
     var showEnterRoomSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
+    val destructiveTint = ChallaTheme.colors.statusDestructive
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                HomeSideEffect.RoomsLoadFailed ->
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = roomLoadFailedMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveTint,
+                        ),
+                    )
+            }
+        }
+    }
 
     HomeScreen(
         state = state,
+        snackbarHostState = snackbarHostState,
         onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
@@ -117,8 +141,8 @@ fun HomeRoute(
             onDismiss = { showCreateRoomSheet = false },
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
-                // 방 생성 완료 후 방 상세(RoomMain) 화면으로 이동한다.
-                onNavigateToRoom(roomId.toString())
+                // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다.
+                onNavigateToRoom(roomId)
             },
         )
     }
@@ -128,7 +152,7 @@ fun HomeRoute(
             onDismiss = { showEnterRoomSheet = false },
             onRoomEntered = { roomId ->
                 showEnterRoomSheet = false
-                onNavigateToRoom(roomId.toString())
+                onNavigateToRoom(roomId)
             },
         )
     }
@@ -137,10 +161,11 @@ fun HomeRoute(
 @Composable
 private fun HomeScreen(
     state: HomeState,
+    snackbarHostState: SnackbarHostState,
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -204,6 +229,8 @@ private fun HomeScreen(
                     )
             }
         }
+
+        ChallaSnackbarHost(hostState = snackbarHostState)
     }
 }
 
@@ -216,7 +243,7 @@ private fun HomeScreen(
 private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -251,7 +278,7 @@ private fun HomeRoomsContent(
 @Composable
 private fun HomeShootingSection(
     rooms: ImmutableList<RoomUiModel.Shooting>,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -385,7 +412,7 @@ private fun HomeShootingCard(
 @Composable
 private fun HomeCompletedSection(
     rooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: String) -> Unit,
+    onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -885,21 +912,21 @@ private fun HomeActionButton(
 private fun previewRooms(): ImmutableList<RoomUiModel> =
     persistentListOf(
         RoomUiModel.Shooting(
-            id = "1",
+            id = 1L,
             name = "친구들과 강릉 여행",
             participantCount = 1,
             takenCount = 24,
             coverImageUrl = null,
         ),
         RoomUiModel.Shooting(
-            id = "2",
+            id = 2L,
             name = "제주도 우정여행",
             participantCount = 4,
             takenCount = 12,
             coverImageUrl = null,
         ),
         RoomUiModel.Completed(
-            id = "3",
+            id = 3L,
             name = "친구들과 강릉 여행",
             participantCount = 11,
             printState = PrintState.WAITING,
@@ -907,7 +934,7 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             totalPhotoCount = 24,
         ),
         RoomUiModel.Completed(
-            id = "4",
+            id = 4L,
             name = "인화 완료 된 방이에요",
             participantCount = 7,
             printState = PrintState.COMPLETED,
@@ -929,6 +956,7 @@ private fun HomeRoomsPreview() {
                     profileImageUrl = null,
                     rooms = previewRooms(),
                 ),
+            snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
@@ -949,6 +977,7 @@ private fun HomeEmptyPreview() {
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                 ),
+            snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
@@ -964,6 +993,7 @@ private fun HomeLoadingPreview() {
     ChallaTheme {
         HomeScreen(
             state = HomeState(isLoading = true),
+            snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},

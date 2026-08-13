@@ -73,6 +73,7 @@
     <string name="home_taken_count_description">촬영한 사진 수</string>
     <string name="home_room_photo_description">방 사진</string>
     <string name="home_film_overflow" translatable="false">+%1$d</string>
+    <string name="home_room_load_failed_message">방 목록을 불러오지 못했어요.</string>
 
     <string name="create_room_close_description">닫기</string>
     <string name="create_room_title">방 만들기</string>
@@ -132,11 +133,16 @@
     <string name="create_profile_image_source_album">앨범에서 선택</string>
     <string name="create_profile_image_source_delete">프로필 사진 삭제</string>
     <string name="create_profile_image_source_close">닫기</string>
+    <string name="edit_profile_title">내 프로필</string>
+    <string name="edit_profile_back_description">설정으로 돌아가기</string>
+    <string name="edit_profile_submit">변경하기</string>
+    <string name="edit_profile_submit_failure">프로필 변경에 실패했어요.</string>
 
     <!-- settingScreen -->
     <string name="setting_title">설정</string>
     <string name="setting_back_description">뒤로가기</string>
     <string name="setting_profile_edit_description">프로필 수정</string>
+    <string name="setting_profile_update_success">프로필을 수정했어요</string>
     <string name="setting_app_section">앱 설정</string>
     <string name="setting_theme">테마</string>
     <string name="setting_notification">알림</string>
@@ -168,6 +174,8 @@
     <string name="account_withdraw_completed_title">회원 탈퇴가\n정상적으로 완료 됐어요</string>
     <string name="account_withdraw_completed_confirm">확인</string>
     <string name="account_withdraw_failure">회원 탈퇴에 실패했어요.</string>
+
+    <string name="setting_profile_read_failure">프로필을 불러오지 못했어요.</string>
 
     <!-- themeScreen -->
     <string name="theme_title">테마</string>

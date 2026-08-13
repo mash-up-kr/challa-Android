@@ -22,7 +22,7 @@ class ImageUploadRepositoryImpl
     constructor(
         private val imageCompressor: ImageCompressor,
         private val uploadApi: UploadApi,
-        @S3UploadClient private val s3UploadClient: OkHttpClient,
+        @param:S3UploadClient private val s3UploadClient: OkHttpClient,
     ) : ImageUploadRepository {
         override suspend fun uploadProfileImage(imageUri: String): ChallaResult<String> {
             // 원본 대신 다운샘플·리사이즈 후 JPEG 로 통일한 바이트를 올린다.
@@ -31,13 +31,29 @@ class ImageUploadRepositoryImpl
                 imageCompressor.compressToJpeg(imageUri)
                     ?: return ChallaResult.Failure.Unknown(IllegalStateException("이미지를 읽을 수 없습니다."))
 
+            return uploadImage(
+                purpose = PURPOSE_PROFILE_IMAGE,
+                bytes = bytes,
+            )
+        }
+
+        override suspend fun uploadPhoto(imageBytes: ByteArray): ChallaResult<String> =
+            uploadImage(
+                purpose = PURPOSE_PHOTO,
+                bytes = imageBytes,
+            )
+
+        private suspend fun uploadImage(
+            purpose: String,
+            bytes: ByteArray,
+        ): ChallaResult<String> =
             // 1단계: 서버에서 S3 업로드용 서명 URL 과 저장에 쓸 공개 URL 을 함께 발급받는다.
-            return uploadApi
+            uploadApi
                 .postUploadUrl(
                     UploadUrlRequest(
                         upload =
                             UploadUrlRequest.Upload(
-                                purpose = PURPOSE_PROFILE_IMAGE,
+                                purpose = purpose,
                                 contentType = CONTENT_TYPE_JPEG,
                             ),
                     ),
@@ -53,15 +69,14 @@ class ImageUploadRepositoryImpl
                         contentType = CONTENT_TYPE_JPEG,
                     )
 
-                    // 3단계에서 프로필에 저장할 공개 URL 을 돌려준다.
+                    // API 요청에 저장할 공개 URL을 돌려준다.
                     upload.imageUrl
                 }
-        }
 
         private suspend fun putImageToS3(
-            uploadUrl: String,
-            bytes: ByteArray,
             contentType: String,
+            bytes: ByteArray,
+            uploadUrl: String,
         ) {
             withContext(Dispatchers.IO) {
                 val request =
@@ -83,6 +98,7 @@ class ImageUploadRepositoryImpl
 
         companion object {
             private const val PURPOSE_PROFILE_IMAGE = "PROFILE_IMAGE"
+            private const val PURPOSE_PHOTO = "PHOTO"
             private const val CONTENT_TYPE_JPEG = "image/jpeg"
         }
     }

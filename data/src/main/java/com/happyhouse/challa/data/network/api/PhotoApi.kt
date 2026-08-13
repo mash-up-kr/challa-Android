@@ -1,9 +1,12 @@
 package com.happyhouse.challa.data.network.api
 
 import com.happyhouse.challa.data.network.dto.BaseResponse
+import com.happyhouse.challa.data.network.dto.CreatePhotoRequest
 import com.happyhouse.challa.data.network.dto.response.ListPhotosResponse
 import com.happyhouse.challa.domain.result.ChallaResult
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface PhotoApi {
@@ -14,4 +17,9 @@ interface PhotoApi {
         @Query("page") page: Int,
         @Query("size") size: Int,
     ): ChallaResult<BaseResponse<ListPhotosResponse>>
+
+    @POST("api/v1/photos")
+    suspend fun postPhoto(
+        @Body request: CreatePhotoRequest,
+    ): ChallaResult<BaseResponse<Unit>>
 }

@@ -30,13 +30,13 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun provideCameraFilterFileApi(
-        @CameraFilterClient retrofit: Retrofit,
-    ): CameraFilterFileApi = retrofit.create()
+    fun providePhotoApi(retrofit: Retrofit): PhotoApi = retrofit.create()
 
     @Provides
     @Singleton
-    fun providePhotoApi(retrofit: Retrofit): PhotoApi = retrofit.create()
+    fun provideCameraFilterFileApi(
+        @CameraFilterClient retrofit: Retrofit,
+    ): CameraFilterFileApi = retrofit.create()
 
     @Provides
     @Singleton

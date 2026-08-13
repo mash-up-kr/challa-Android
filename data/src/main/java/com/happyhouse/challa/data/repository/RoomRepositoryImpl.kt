@@ -4,8 +4,10 @@ import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
+import com.happyhouse.challa.data.network.dto.toDomain
 import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.CreatedRoom
+import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
@@ -94,6 +96,15 @@ class RoomRepositoryImpl @Inject constructor(
                     )
                 }
         }
+
+    override suspend fun getRoomList(statuses: List<RoomStatus>): ChallaResult<List<Room>> =
+        roomApi
+            .getRooms(statuses.filterNot { it == RoomStatus.UNKNOWN }.map { it.name })
+            .mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "방 목록 응답 데이터가 비어 있습니다." }
+                data.rooms.map { it.toDomain() }
+            }
 
     private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
         when (this) {

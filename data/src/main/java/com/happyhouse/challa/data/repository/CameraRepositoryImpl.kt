@@ -1,7 +1,9 @@
 package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.CameraFilterFileApi
+import com.happyhouse.challa.data.network.api.PhotoApi
 import com.happyhouse.challa.data.network.api.ShootApi
+import com.happyhouse.challa.data.network.dto.CreatePhotoRequest
 import com.happyhouse.challa.domain.model.CameraFilter
 import com.happyhouse.challa.domain.repository.CameraRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -16,6 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class CameraRepositoryImpl @Inject constructor(
     private val shootApi: ShootApi,
+    private val photoApi: PhotoApi,
     private val cameraFilterFileApi: CameraFilterFileApi,
 ) : CameraRepository {
     override suspend fun getCameraFilters(): ChallaResult<List<CameraFilter>> =
@@ -38,6 +41,25 @@ class CameraRepositoryImpl @Inject constructor(
                 responseBody.readBytesWithLimit(MAX_CAMERA_FILTER_FILE_SIZE_BYTES)
             }
         }
+
+    override suspend fun postPhoto(
+        roomId: Long,
+        cameraFilterName: String,
+        imageUrl: String,
+    ): ChallaResult<Unit> =
+        photoApi
+            .postPhoto(
+                CreatePhotoRequest(
+                    photo =
+                        CreatePhotoRequest.Photo(
+                            roomId = roomId,
+                            cameraFilterName = cameraFilterName,
+                            imageUrl = imageUrl,
+                        ),
+                ),
+            ).mapCatching { response ->
+                check(response.success) { response.message }
+            }
 }
 
 private fun ResponseBody.readBytesWithLimit(maxSize: Long): ByteArray =
