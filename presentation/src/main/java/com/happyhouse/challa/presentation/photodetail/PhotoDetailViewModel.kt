@@ -7,6 +7,8 @@ import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.causeOrNull
+import com.happyhouse.challa.domain.result.onFailure
+import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
@@ -67,23 +69,23 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 val photosResult = photoRepository.getPhotos(roomId)
                 val roomResult = roomDeferred.await()
 
-                if (photosResult !is ChallaResult.Success) {
-                    Timber.e(photosResult.causeOrNull(), "사진을 불러오지 못했습니다. photos=$photosResult")
-                    updateState { copy(photoInfo = PhotoInfo.Error) }
-                    sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
-                    return@launch
-                }
+                photosResult
+                    .onSuccess { loadedPhotos ->
+                        val room = roomResult.roomOrNull()
+                        val photos = loadedPhotos.toPhotoDetailUiModels()
 
-                val room = roomResult.roomOrNull()
-                val photos = photosResult.data.toPhotoDetailUiModels()
-
-                // 사진과 제목을 함께 반영해, 제목이 사진보다 늦게 나타나지 않게 한다.
-                updateState {
-                    copy(
-                        roomName = room?.title ?: roomName,
-                        photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
-                    )
-                }
+                        // 사진과 제목을 함께 반영해, 제목이 사진보다 늦게 나타나지 않게 한다.
+                        updateState {
+                            copy(
+                                roomName = room?.title ?: roomName,
+                                photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
+                            )
+                        }
+                    }.onFailure { failure ->
+                        Timber.e(failure.causeOrNull(), "사진을 불러오지 못했습니다.")
+                        updateState { copy(photoInfo = PhotoInfo.Error) }
+                        sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
+                    }
             }
     }
 
@@ -99,7 +101,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
             when (this) {
                 is ChallaResult.Success -> data
                 is ChallaResult.Failure -> {
-                    Timber.w(causeOrNull(), "방 정보를 불러오지 못했습니다. room=$this")
+                    Timber.w(causeOrNull(), "방 정보를 불러오지 못했습니다. roomId=$roomId")
                     return null
                 }
             }
