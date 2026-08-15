@@ -14,4 +14,7 @@ sealed interface GallerySideEffect : UiSideEffect {
 
     /** 다음 사진 페이지를 받지 못했을 때. 그려진 사진은 그대로 두고 알리기만 한다. */
     data object PhotosLoadMoreFailed : GallerySideEffect
+
+    /** 참여자를 받지 못했을 때. 본문은 그대로 두고 프로필 바만 채우지 못한다. */
+    data object MembersLoadFailed : GallerySideEffect
 }

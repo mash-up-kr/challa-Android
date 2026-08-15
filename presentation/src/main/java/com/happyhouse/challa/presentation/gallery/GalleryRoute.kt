@@ -38,6 +38,7 @@ fun GalleryRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val printWaitingMessage = stringResource(R.string.gallery_print_waiting_message)
     val loadMoreFailureMessage = stringResource(R.string.gallery_load_more_failure)
+    val membersFailureMessage = stringResource(R.string.gallery_members_load_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     LaunchedEffect(viewModel) {
@@ -63,6 +64,19 @@ fun GalleryRoute(
                         snackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = loadMoreFailureMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = ToastTopOffset,
+                            ),
+                        )
+                    }
+                }
+
+                GallerySideEffect.MembersLoadFailed -> {
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = membersFailureMessage,
                                 icon = ChallaIcons.Error,
                                 iconTint = destructiveIconTint,
                                 topOffset = ToastTopOffset,

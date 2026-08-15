@@ -24,7 +24,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -58,6 +57,9 @@ class GalleryViewModel @AssistedInject constructor(
 
     /** 서버가 내려준 인화 완료 시각. 아직 정해지지 않았으면 null */
     private var printCompletedAt: Instant? = null
+
+    /** 참여자 조회 실패를 이미 알렸는지. 실패가 이어지는 동안 토스트가 반복되지 않게 한다. */
+    private var hasNotifiedMembersFailure = false
 
     /** 완료 시각이 지났는데도 상태가 인화 대기일 때 다시 확인한 횟수 */
     private var printStatusRecheckCount = 0
@@ -184,7 +186,7 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     /**
-     * 참여자를 받는 대로 프로필 바에 채운다. 실패하면 본문은 그대로 두고 프로필 바만 비운다.
+     * 참여자를 받는 대로 프로필 바에 채운다.
      *
      * 본문 조회(loadJob)의 자식으로 두면 참여자 응답이 늦는 동안 loadJob이 살아 있어,
      * 그 사이 올라온 다음 페이지 요청이 [handlePhotosLoadMore] 가드에 걸려 버려진다.
@@ -193,16 +195,19 @@ class GalleryViewModel @AssistedInject constructor(
         membersJob?.cancel()
         membersJob =
             viewModelScope.launch {
-                val members =
-                    when (val usersResult = roomRepository.getRoomUsers(roomId)) {
-                        is ChallaResult.Success -> usersResult.data.toGalleryMembers()
-                        is ChallaResult.Failure -> {
-                            Timber.w(usersResult.causeOrNull(), "방 참여자를 불러오지 못했습니다. usersResult=$usersResult")
-                            persistentListOf()
-                        }
-                    }
+                roomRepository
+                    .getRoomUsers(roomId)
+                    .onSuccess { users ->
+                        hasNotifiedMembersFailure = false
+                        updateState { copy(members = users.toGalleryMembers()) }
+                    }.onFailure { failure ->
+                        Timber.w(failure.causeOrNull(), "방 참여자를 불러오지 못했습니다. roomId=$roomId")
+                        // 이미 그린 프로필 바는 지우지 않는다. 인화 상태 재확인으로 조회가 반복되므로 알림은 한 번만 띄운다.
+                        if (hasNotifiedMembersFailure) return@onFailure
 
-                updateState { copy(members = members) }
+                        hasNotifiedMembersFailure = true
+                        sendEffect(GallerySideEffect.MembersLoadFailed)
+                    }
             }
     }
 

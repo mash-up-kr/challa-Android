@@ -50,6 +50,7 @@
     <string name="gallery_open_photo">사진 열기</string>
     <string name="gallery_error_message">사진을 불러오지 못했어요.</string>
     <string name="gallery_load_more_failure">사진을 더 불러오지 못했어요.</string>
+    <string name="gallery_members_load_failure">참여자 목록을 불러오지 못했어요.</string>
     <string name="gallery_retry">다시 시도</string>
 
     <string name="app_name_kr">찰나</string>
