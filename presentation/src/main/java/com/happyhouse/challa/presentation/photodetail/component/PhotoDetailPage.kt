@@ -157,7 +157,7 @@ private fun PhotographerInfo(
 
             Text(
                 modifier = Modifier.padding(vertical = 2.dp),
-                text = photo.photographer ?: stringResource(R.string.photo_detail_unknown_photographer),
+                text = photo.photographer,
                 color = ChallaTheme.colors.labelNormal,
                 style = ChallaTheme.typography.bodyMedium.medium,
             )
@@ -171,10 +171,10 @@ private fun PhotographerInfo(
     }
 }
 
-/** 촬영자 프로필 사진. 불러오지 못하면 기본 프로필 아이콘을 그린다. */
+/** 촬영자 프로필 사진. 설정하지 않았거나 불러오지 못하면 기본 프로필 아이콘을 그린다. */
 @Composable
 private fun PhotographerAvatar(
-    profileImageUrl: String,
+    profileImageUrl: String?,
     modifier: Modifier = Modifier,
 ) {
     var isLoadFailed by remember(profileImageUrl) { mutableStateOf(false) }
@@ -186,7 +186,7 @@ private fun PhotographerAvatar(
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.backgroundLevel2),
     ) {
-        if (isLoadFailed) {
+        if (profileImageUrl == null || isLoadFailed) {
             Icon(
                 modifier = Modifier.fillMaxSize(),
                 painter = painterResource(id = ChallaIcons.Profile),
@@ -217,10 +217,10 @@ private fun PhotoImageLoadFailurePreview() {
     PhotoImageLoadFailure()
 }
 
-@ComposePreview(showBackground = true, name = "PhotoDetailPage - 촬영자 없음")
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 프로필 사진 없음")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun PhotoDetailPageWithoutPhotographerPreview() {
+private fun PhotoDetailPageWithoutProfileImagePreview() {
     PhotoDetailPage(
         modifier =
             Modifier
@@ -231,8 +231,8 @@ private fun PhotoDetailPageWithoutPhotographerPreview() {
             PhotoDetailUiModel(
                 id = 1L,
                 imageUrl = "",
-                photographer = null,
-                photographerProfileImageUrl = "",
+                photographer = "나는야멋쟁이토마토",
+                photographerProfileImageUrl = null,
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions = persistentListOf(),
@@ -254,7 +254,7 @@ private fun PhotoDetailPagePreview() {
                 id = 1L,
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토",
-                photographerProfileImageUrl = "",
+                photographerProfileImageUrl = "https://challa.example.com/profile.png",
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions =
