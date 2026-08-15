@@ -64,8 +64,8 @@ class NotificationRepositoryImpl @Inject constructor(
                 val savedToken = notificationSettingsDataStore.pushToken.first()
                 val isLoggedIn = !tokenDataStore.accessToken.first().isNullOrBlank()
 
-                notificationSettingsDataStore.savePushToken(token)
                 if (!notificationsEnabled || !isLoggedIn) {
+                    notificationSettingsDataStore.savePushToken(token)
                     return@withLock ChallaResult.Success(Unit)
                 }
 
@@ -73,6 +73,7 @@ class NotificationRepositoryImpl @Inject constructor(
                     is ChallaResult.Success -> Unit
                     is ChallaResult.Failure -> return@withLock result
                 }
+                notificationSettingsDataStore.savePushToken(token)
 
                 // 이전 토큰 정리 실패가 새 토큰 동기화를 막지 않도록 best-effort로 처리한다.
                 if (savedToken != null && savedToken != token) {

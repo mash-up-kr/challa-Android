@@ -42,6 +42,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         Timber.d("FCM 메시지를 수신했습니다")
 
+        // 콜백 반환 후 프로세스 종료로 알림 표시가 누락되지 않도록 설정 조회를 완료하되,
+        // FCM의 짧은 처리 시간을 고려해 대기를 최대 1초로 제한한다.
         val notificationSetting =
             runBlocking {
                 withTimeoutOrNull(NOTIFICATION_SETTING_TIMEOUT_MILLIS) {
@@ -59,7 +61,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
 
             is ChallaResult.Failure -> Timber.w("서비스 알림 설정을 확인하지 못해 FCM 알림을 표시하지 않습니다")
-            null -> Timber.w("서비스 알림 설정 확인 시간이 초과되어 FCM 알림을 표시하지 않습니다")
+            null ->
+                Timber.w(
+                    "서비스 알림 설정을 %dms 안에 확인하지 못해 FCM 알림을 표시하지 않습니다",
+                    NOTIFICATION_SETTING_TIMEOUT_MILLIS,
+                )
         }
     }
 
@@ -123,6 +129,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private companion object {
         const val TITLE_KEY = "title"
         const val BODY_KEY = "body"
-        const val NOTIFICATION_SETTING_TIMEOUT_MILLIS = 5_000L
+        const val NOTIFICATION_SETTING_TIMEOUT_MILLIS = 1_000L
     }
 }
