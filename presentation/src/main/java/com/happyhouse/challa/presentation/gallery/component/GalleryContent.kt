@@ -28,6 +28,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.PREVIEW_FILM_SLOT_COUNT
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
+import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
@@ -84,9 +85,18 @@ fun GalleryContent(
                 }
 
                 is PhotoInfo.Film -> {
+                    val loadedPhotoCount =
+                        remember(photoInfo.slots) {
+                            photoInfo.slots.count { slot ->
+                                (slot.state as? GalleryFilmSlotUiModel.State.Captured)?.imageUrl != null
+                            }
+                        }
+
                     GalleryFilmSlotGrid(
                         modifier = Modifier.fillMaxSize(),
                         slots = photoInfo.slots,
+                        loadedPhotoCount = loadedPhotoCount,
+                        onLoadMore = { onIntent(GalleryIntent.PhotosLoadMore) },
                         state = gridState,
                         extraBottomPadding = extraBottomPadding,
                     )
@@ -97,6 +107,7 @@ fun GalleryContent(
                         modifier = Modifier.fillMaxSize(),
                         photos = photoInfo.photos,
                         onPhotoClick = { photoId -> onIntent(GalleryIntent.PhotoClick(photoId)) },
+                        onLoadMore = { onIntent(GalleryIntent.PhotosLoadMore) },
                         state = gridState,
                         extraBottomPadding = extraBottomPadding,
                     )
