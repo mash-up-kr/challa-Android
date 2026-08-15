@@ -50,6 +50,7 @@ fun CameraRoute(
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
     val retryLabel = stringResource(R.string.camera_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
+    val snackbarActionLabelColor = ChallaTheme.colors.primary
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -64,6 +65,7 @@ fun CameraRoute(
                                             heading = roomLoadFailedMessage,
                                         ),
                                     actionLabel = retryLabel,
+                                    actionLabelColor = snackbarActionLabelColor,
                                 ),
                             )
                         if (result == SnackbarResult.ActionPerformed) {
@@ -125,8 +127,14 @@ fun CameraRoute(
             coroutineScope.launch {
                 val result =
                     snackbarHostState.showSnackbar(
-                        message = cameraBindingFailedMessage,
-                        actionLabel = retryLabel,
+                        ChallaSnackbarVisuals(
+                            content =
+                                ChallaSnackbarContent.HeadingOnly(
+                                    heading = cameraBindingFailedMessage,
+                                ),
+                            actionLabel = retryLabel,
+                            actionLabelColor = snackbarActionLabelColor,
+                        ),
                     )
                 if (result == SnackbarResult.ActionPerformed) {
                     cameraBindingRetryKey += 1

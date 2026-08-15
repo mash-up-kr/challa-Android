@@ -12,6 +12,7 @@ data class ChallaSnackbarVisuals(
     val iconTint: Color? = null,
     val topOffset: Dp? = null,
     override val actionLabel: String? = null,
+    val actionLabelColor: Color? = null,
     override val withDismissAction: Boolean = false,
     override val duration: SnackbarDuration = SnackbarDuration.Short,
 ) : SnackbarVisuals {
