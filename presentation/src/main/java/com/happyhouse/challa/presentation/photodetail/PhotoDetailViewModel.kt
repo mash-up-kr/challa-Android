@@ -1,6 +1,8 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.Photo
+import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.repository.PhotoRepository
@@ -39,6 +41,13 @@ class PhotoDetailViewModel @AssistedInject constructor(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
     private var loadJob: Job? = null
+    private var appendJob: Job? = null
+
+    /** 지금까지 받아둔 사진 */
+    private val loadedPhotos = mutableListOf<Photo>()
+    private val loadedPhotoIds = mutableSetOf<Long>()
+    private var nextPhotoPage = FIRST_PHOTO_PAGE
+    private var hasNextPhotoPage = false
 
     // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 좌표 seed로 쓰이므로 반응마다 고유해야 한다.
     private var nextReactionId = 0L
@@ -50,6 +59,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     override fun onIntent(intent: PhotoDetailIntent) {
         when (intent) {
             PhotoDetailIntent.PhotosLoad -> handlePhotosLoad()
+            PhotoDetailIntent.PhotosLoadMore -> handlePhotosLoadMore()
             is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.photo)
             is PhotoDetailIntent.ReactionClick -> handleReactionClick(intent.photo, intent.emoji)
             is PhotoDetailIntent.MessageChange -> handleMessageChange(intent.message)
@@ -60,17 +70,20 @@ class PhotoDetailViewModel @AssistedInject constructor(
     private fun handlePhotosLoad() {
         // 재시도를 연타하면 조회가 겹쳐 나중에 끝난 응답이 이긴다.
         loadJob?.cancel()
+        // 이전 목록에 이어 붙이려던 페이지가 뒤늦게 도착해 섞이지 않게 한다.
+        appendJob?.cancel()
+        resetPhotoPaging()
 
         loadJob =
             viewModelScope.launch {
                 updateState { copy(photoInfo = PhotoInfo.Loading) }
 
                 val roomDeferred = async { roomRepository.getRoom(roomId) }
-                val photosResult = photoRepository.getPhotos(roomId)
+                val photosResult = loadPagesUntilInitialPhoto()
                 val roomResult = roomDeferred.await()
 
                 photosResult
-                    .onSuccess { loadedPhotos ->
+                    .onSuccess {
                         val room = roomResult.roomOrNull()
                         val photos = loadedPhotos.toPhotoDetailUiModels()
 
@@ -82,11 +95,84 @@ class PhotoDetailViewModel @AssistedInject constructor(
                             )
                         }
                     }.onFailure { failure ->
-                        Timber.e(failure.causeOrNull(), "사진을 불러오지 못했습니다.")
+                        Timber.e(failure.causeOrNull(), "사진을 불러오지 못했습니다. roomId=$roomId")
                         updateState { copy(photoInfo = PhotoInfo.Error) }
                         sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
                     }
             }
+    }
+
+    /**
+     * 진입한 사진이 나올 때까지 첫 페이지부터 이어 받는다.
+     *
+     * 갤러리에서 뒤쪽 사진을 눌러 들어오면 그 사진이 첫 페이지에 없어 페이저를 그 자리에서 열 수 없다.
+     * 서버가 [PhotoPage.hasNext] 를 계속 true로 내려주면 끝나지 않으므로, 상한에 걸리면 받은 만큼이라도 그린다.
+     */
+    private suspend fun loadPagesUntilInitialPhoto(): ChallaResult<Unit> {
+        repeat(MAX_INITIAL_PHOTO_PAGE_COUNT) {
+            val pageResult = photoRepository.getPhotos(roomId, nextPhotoPage)
+
+            when (pageResult) {
+                is ChallaResult.Success -> appendPhotoPage(pageResult.data)
+                is ChallaResult.Failure -> return pageResult
+            }
+
+            if (initialPhotoId in loadedPhotoIds || !hasNextPhotoPage) return ChallaResult.Success(Unit)
+        }
+
+        Timber.w(
+            "진입한 사진을 ${MAX_INITIAL_PHOTO_PAGE_COUNT}페이지까지 찾지 못해 이어 받기를 멈춥니다. " +
+                "roomId=$roomId, photoId=$initialPhotoId",
+        )
+        return ChallaResult.Success(Unit)
+    }
+
+    /** 넘기는 중에 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
+    private fun handlePhotosLoadMore() {
+        if (!hasNextPhotoPage) return
+        if (appendJob?.isActive == true || loadJob?.isActive == true) return
+
+        val requestedPage = nextPhotoPage
+        appendJob =
+            viewModelScope.launch {
+                photoRepository
+                    .getPhotos(roomId, requestedPage)
+                    .onSuccess { photoPage ->
+                        appendPhotoPage(photoPage)
+                        val photos = loadedPhotos.toPhotoDetailUiModels()
+
+                        updateState {
+                            // 이어 받는 동안 다시 조회가 돌면 로딩/에러로 바뀌어 있을 수 있다. 그때는 덮어쓰지 않는다.
+                            val loaded =
+                                photoInfo as? PhotoInfo.Loaded
+                                    ?: run {
+                                        Timber.w("사진 목록이 열려 있지 않아 이어 받은 페이지를 반영하지 않습니다: $photoInfo")
+                                        return@updateState this
+                                    }
+                            copy(photoInfo = loaded.copy(photos = photos))
+                        }
+                    }.onFailure { failure ->
+                        Timber.e(
+                            failure.causeOrNull(),
+                            "다음 사진 페이지를 불러오지 못했습니다. roomId=$roomId, page=$requestedPage",
+                        )
+                        sendEffect(PhotoDetailSideEffect.PhotosLoadMoreFailed)
+                    }
+            }
+    }
+
+    private fun resetPhotoPaging() {
+        loadedPhotos.clear()
+        loadedPhotoIds.clear()
+        nextPhotoPage = FIRST_PHOTO_PAGE
+        hasNextPhotoPage = false
+    }
+
+    /** 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 페이저의 key가 겹쳐 깨진다. */
+    private fun appendPhotoPage(photoPage: PhotoPage) {
+        loadedPhotos += photoPage.photos.filter { photo -> loadedPhotoIds.add(photo.id) }
+        hasNextPhotoPage = photoPage.hasNext
+        nextPhotoPage++
     }
 
     /**
@@ -187,5 +273,12 @@ class PhotoDetailViewModel @AssistedInject constructor(
             @Assisted("roomId") roomId: Long,
             @Assisted("initialPhotoId") initialPhotoId: Long,
         ): PhotoDetailViewModel
+    }
+
+    companion object {
+        private const val FIRST_PHOTO_PAGE = 0
+
+        /** 진입한 사진을 찾느라 이어 받을 페이지 상한 */
+        private const val MAX_INITIAL_PHOTO_PAGE_COUNT = 10
     }
 }

@@ -13,11 +13,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
+import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import kotlinx.coroutines.launch
 
 // 상단바 아래에 토스트가 뜨도록 주는 여백
-private val PrintNotCompletedToastTopOffset = 8.dp
+private val ToastTopOffset = 8.dp
 
 @Composable
 fun GalleryRoute(
@@ -35,6 +37,8 @@ fun GalleryRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val printWaitingMessage = stringResource(R.string.gallery_print_waiting_message)
+    val loadMoreFailureMessage = stringResource(R.string.gallery_load_more_failure)
+    val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -48,7 +52,20 @@ fun GalleryRoute(
                         snackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = printWaitingMessage,
-                                topOffset = PrintNotCompletedToastTopOffset,
+                                topOffset = ToastTopOffset,
+                            ),
+                        )
+                    }
+                }
+
+                GallerySideEffect.PhotosLoadMoreFailed -> {
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = loadMoreFailureMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = ToastTopOffset,
                             ),
                         )
                     }

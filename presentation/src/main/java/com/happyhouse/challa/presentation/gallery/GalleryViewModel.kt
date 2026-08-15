@@ -1,6 +1,8 @@
 package com.happyhouse.challa.presentation.gallery
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.Photo
+import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
@@ -8,6 +10,8 @@ import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.causeOrNull
+import com.happyhouse.challa.domain.result.onFailure
+import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
@@ -41,7 +45,17 @@ class GalleryViewModel @AssistedInject constructor(
         initialState = GalleryState(roomId = roomId),
     ) {
     private var loadJob: Job? = null
+    private var appendJob: Job? = null
     private var countdownJob: Job? = null
+
+    /** 지금까지 받아둔 사진 */
+    private val loadedPhotos = mutableListOf<Photo>()
+    private val loadedPhotoIds = mutableSetOf<Long>()
+    private var nextPhotoPage = FIRST_PHOTO_PAGE
+    private var hasNextPhotoPage = false
+
+    /** 이어 받은 사진으로 본문을 다시 만들 때 쓴다. */
+    private var loadedRoom: RoomDetail? = null
 
     /** 서버가 내려준 인화 완료 시각. 아직 정해지지 않았으면 null */
     private var printCompletedAt: Instant? = null
@@ -56,6 +70,7 @@ class GalleryViewModel @AssistedInject constructor(
     override fun onIntent(intent: GalleryIntent) {
         when (intent) {
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
+            GalleryIntent.PhotosLoadMore -> handlePhotosLoadMore()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
@@ -69,6 +84,8 @@ class GalleryViewModel @AssistedInject constructor(
         countdownJob?.cancel()
         // 재시도를 연타하면 조회가 겹쳐 나중에 끝난 응답이 이긴다.
         loadJob?.cancel()
+        // 이전 목록에 이어 붙이려던 페이지가 뒤늦게 도착해 섞이지 않게 한다.
+        appendJob?.cancel()
 
         loadJob =
             viewModelScope.launch {
@@ -78,7 +95,7 @@ class GalleryViewModel @AssistedInject constructor(
 
                 // 방 정보와 사진 목록이 둘 다 있어야 화면을 그릴 수 있으므로 함께 요청한다.
                 val roomDeferred = async { roomRepository.getRoom(roomId) }
-                val photosDeferred = async { photoRepository.getPhotos(roomId) }
+                val photosDeferred = async { photoRepository.getPhotos(roomId, FIRST_PHOTO_PAGE) }
                 val usersDeferred = async { roomRepository.getRoomUsers(roomId) }
                 val roomResult = roomDeferred.await()
                 val photosResult = photosDeferred.await()
@@ -86,7 +103,7 @@ class GalleryViewModel @AssistedInject constructor(
                 if (roomResult !is ChallaResult.Success || photosResult !is ChallaResult.Success) {
                     Timber.e(
                         roomResult.causeOrNull() ?: photosResult.causeOrNull(),
-                        "갤러리를 불러오지 못했습니다. room=$roomResult, photos=$photosResult",
+                        "갤러리를 불러오지 못했습니다. roomResult=$roomResult, photosResult=$photosResult",
                     )
                     // 본문이 에러면 프로필 바도 그리지 않으므로 참여자 조회를 끝까지 기다릴 이유가 없다.
                     usersDeferred.cancel()
@@ -95,19 +112,76 @@ class GalleryViewModel @AssistedInject constructor(
                 }
 
                 val room = roomResult.data
+                loadedRoom = room
                 printCompletedAt = room.photoPrintCompletedAt
                 val remainingSeconds = remainingSecondsUntilPrintComplete()
+
+                resetPhotoPaging()
+                appendPhotoPage(photosResult.data)
 
                 updateState {
                     copy(
                         roomName = room.title,
-                        photoInfo = room.toPhotoInfo(photosResult.data, remainingSeconds),
+                        photoInfo = room.toPhotoInfo(loadedPhotos, remainingSeconds, hasNextPhotoPage),
                     )
                 }
 
                 updateMembersWhenReady(usersDeferred)
                 startCountdownIfNeeded(room, remainingSeconds)
             }
+    }
+
+    /** 스크롤에서 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
+    private fun handlePhotosLoadMore() {
+        if (!hasNextPhotoPage) return
+        if (appendJob?.isActive == true || loadJob?.isActive == true) return
+
+        val room = loadedRoom
+        if (room == null) {
+            Timber.w("방 정보 없이 다음 사진 페이지 요청이 들어와 건너뜁니다. roomId=$roomId")
+            return
+        }
+
+        val requestedPage = nextPhotoPage
+        appendJob =
+            viewModelScope.launch {
+                photoRepository
+                    .getPhotos(roomId, requestedPage)
+                    .onSuccess { photoPage ->
+                        appendPhotoPage(photoPage)
+
+                        updateState {
+                            copy(
+                                photoInfo =
+                                    room.toPhotoInfo(
+                                        photos = loadedPhotos,
+                                        remainingSeconds = remainingSecondsUntilPrintComplete(),
+                                        hasNextPhotoPage = hasNextPhotoPage,
+                                    ),
+                            )
+                        }
+                    }.onFailure { failure ->
+                        Timber.e(
+                            failure.causeOrNull(),
+                            "다음 사진 페이지를 불러오지 못했습니다. roomId=$roomId, page=$requestedPage",
+                        )
+                        sendEffect(GallerySideEffect.PhotosLoadMoreFailed)
+                    }
+            }
+    }
+
+    private fun resetPhotoPaging() {
+        loadedPhotos.clear()
+        loadedPhotoIds.clear()
+        nextPhotoPage = FIRST_PHOTO_PAGE
+        hasNextPhotoPage = false
+    }
+
+    /** 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 그리드의 key가 겹쳐 깨진다. */
+    private fun appendPhotoPage(photoPage: PhotoPage) {
+        loadedPhotos += photoPage.photos.filter { photo -> loadedPhotoIds.add(photo.id) }
+        hasNextPhotoPage = photoPage.hasNext
+        nextPhotoPage++
     }
 
     /**
@@ -253,6 +327,8 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     companion object {
+        private const val FIRST_PHOTO_PAGE = 0
+
         private const val MILLIS_PER_SECOND = 1_000L
         private const val COUNTDOWN_TICK_MS = 1_000L
 

@@ -13,9 +13,8 @@ import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import com.happyhouse.challa.data.network.api.PhotoApi
-import com.happyhouse.challa.data.network.dto.response.ListPhotosResponse
 import com.happyhouse.challa.data.network.dto.response.toPhoto
-import com.happyhouse.challa.domain.model.Photo
+import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -29,46 +28,22 @@ class PhotoRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val photoApi: PhotoApi,
 ) : PhotoRepository {
-    /**
-     * 방의 사진을 첫 페이지부터 [hasNext][ListPhotosResponse.hasNext] 가 없을 때까지 이어 받아 한 번에 돌려준다.
-     *
-     * 갤러리·사진 상세 모두 방의 사진 전부가 필요해서 페이지를 호출부로 노출하지 않는다.
-     */
-    override suspend fun getPhotos(roomId: Long): ChallaResult<List<Photo>> {
-        val photos = mutableListOf<Photo>()
+    /** 여기서 전 페이지를 모아 돌려주면 페이지를 나눈 의미가 없어, 다음 페이지는 화면이 목록 끝에 닿았을 때 받는다. */
+    override suspend fun getPhotos(
+        roomId: Long,
+        page: Int,
+    ): ChallaResult<PhotoPage> =
+        photoApi
+            .getPhotos(roomId = roomId, page = page, size = PHOTO_PAGE_SIZE)
+            .mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "사진 목록 응답 데이터가 비어 있습니다." }
 
-        for (page in 0 until MAX_PHOTO_PAGE_COUNT) {
-            val pageResult =
-                photoApi
-                    .getPhotos(roomId = roomId, page = page, size = PHOTO_PAGE_SIZE)
-                    .mapCatching { response ->
-                        check(response.success) { response.message }
-                        requireNotNull(response.data) { "사진 목록 응답 데이터가 비어 있습니다." }
-                    }
-
-            val pageData =
-                when (pageResult) {
-                    is ChallaResult.Success -> pageResult.data
-                    is ChallaResult.Failure -> return pageResult
-                }
-
-            val mapped =
-                runCatching { pageData.photos.map { it.toPhoto() } }
-                    .getOrElse { throwable ->
-                        if (throwable is CancellationException) throw throwable
-                        return ChallaResult.Failure.Unknown(throwable)
-                    }
-
-            photos += mapped
-            // 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 목록 화면의 key가 겹쳐 깨진다.
-            if (!pageData.hasNext) return ChallaResult.Success(photos.distinctBy { it.id })
-        }
-
-        // 상한까지 hasNext가 남아 있으면 서버가 끝을 알려주지 않는 것이라, 무한히 받지 않고 실패로 끊는다.
-        return ChallaResult.Failure.Unknown(
-            IllegalStateException("사진 목록 페이지가 ${MAX_PHOTO_PAGE_COUNT}개를 넘었습니다. roomId=$roomId"),
-        )
-    }
+                PhotoPage(
+                    photos = data.photos.map { it.toPhoto() },
+                    hasNext = data.hasNext,
+                )
+            }
 
     override suspend fun savePhoto(imageUrl: String): Result<Unit> =
         withContext(Dispatchers.IO) {
@@ -186,10 +161,7 @@ class PhotoRepositoryImpl @Inject constructor(
         private const val FILE_NAME_PREFIX = "Challa"
         private const val ALBUM_NAME = "Challa"
 
-        /** 사진 목록 한 페이지 크기. 방 최대 촬영 수에 맞춰, 정상적인 방은 요청 한 번으로 끝나게 한다. */
-        private const val PHOTO_PAGE_SIZE = 72
-
-        /** 이어 받을 페이지 상한 */
-        private const val MAX_PHOTO_PAGE_COUNT = 10
+        /** 사진 목록 한 페이지 크기. 서버와 20장 기준으로 맞췄다. */
+        private const val PHOTO_PAGE_SIZE = 20
     }
 }
