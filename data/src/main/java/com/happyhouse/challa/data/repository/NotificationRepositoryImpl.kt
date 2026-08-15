@@ -4,7 +4,6 @@ import com.happyhouse.challa.data.local.NotificationSettingsDataStore
 import com.happyhouse.challa.data.local.TokenDataStore
 import com.happyhouse.challa.data.network.api.NotificationApi
 import com.happyhouse.challa.data.network.dto.request.NotificationTokenRequest
-import com.happyhouse.challa.data.network.dto.request.TestNotificationRequest
 import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -115,26 +114,6 @@ class NotificationRepositoryImpl @Inject constructor(
                 ChallaResult.Failure.Unknown(throwable)
             }
         }
-
-    override suspend fun sendTestPush(
-        title: String?,
-        body: String?,
-    ): ChallaResult<Int> =
-        notificationApi
-            .sendTestNotification(
-                TestNotificationRequest(
-                    notification =
-                        TestNotificationRequest.Notification(
-                            title = title,
-                            body = body,
-                        ),
-                ),
-            ).mapCatching { response ->
-                check(response.success) { response.message }
-                requireNotNull(response.data) { "테스트 푸시 응답 데이터가 비어 있습니다." }
-                    .notification
-                    .sentCount
-            }
 
     private fun String.toRequest(): NotificationTokenRequest =
         NotificationTokenRequest(

@@ -21,13 +21,4 @@ interface NotificationRepository {
 
     /** 로그아웃 전에 로컬에 보관된 token을 현재 사용자에게서 삭제합니다. */
     suspend fun deleteSavedPushToken(): ChallaResult<Unit>
-
-    /**
-     * 현재 사용자에게 테스트 푸시를 전송하고 성공한 token 수를 반환합니다.
-     * [title]이나 [body]가 null이면 해당 필드를 생략해 서버 기본값을 사용합니다.
-     */
-    suspend fun sendTestPush(
-        title: String? = null,
-        body: String? = null,
-    ): ChallaResult<Int>
 }

@@ -2,8 +2,6 @@ package com.happyhouse.challa.data.network.api
 
 import com.happyhouse.challa.data.network.dto.BaseResponse
 import com.happyhouse.challa.data.network.dto.request.NotificationTokenRequest
-import com.happyhouse.challa.data.network.dto.request.TestNotificationRequest
-import com.happyhouse.challa.data.network.dto.response.TestNotificationResponse
 import com.happyhouse.challa.domain.result.ChallaResult
 import retrofit2.http.Body
 import retrofit2.http.HTTP
@@ -23,9 +21,4 @@ interface NotificationApi {
     suspend fun deleteToken(
         @Body request: NotificationTokenRequest,
     ): ChallaResult<BaseResponse<Unit>>
-
-    @POST("api/v1/notifications/test")
-    suspend fun sendTestNotification(
-        @Body request: TestNotificationRequest,
-    ): ChallaResult<BaseResponse<TestNotificationResponse>>
 }
