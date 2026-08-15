@@ -43,7 +43,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         Timber.d("FCM 메시지를 수신했습니다")
 
         // 콜백 반환 후 프로세스 종료로 알림 표시가 누락되지 않도록 설정 조회를 완료하되,
-        // FCM의 짧은 처리 시간을 고려해 대기를 최대 1초로 제한한다.
+        // FCM의 짧은 처리 시간을 고려해 대기를 최대 5초로 제한한다.
         val notificationSetting =
             runBlocking {
                 withTimeoutOrNull(NOTIFICATION_SETTING_TIMEOUT_MILLIS) {
@@ -129,6 +129,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private companion object {
         const val TITLE_KEY = "title"
         const val BODY_KEY = "body"
-        const val NOTIFICATION_SETTING_TIMEOUT_MILLIS = 1_000L
+        const val NOTIFICATION_SETTING_TIMEOUT_MILLIS = 5_000L
     }
 }
