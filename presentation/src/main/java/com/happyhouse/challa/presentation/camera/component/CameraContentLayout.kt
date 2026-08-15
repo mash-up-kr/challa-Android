@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.camera.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -10,18 +11,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
+import com.happyhouse.challa.presentation.camera.onboarding.CameraOnboardingOverlay
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-private const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
+internal const val CAMERA_BEZEL_ASPECT_RATIO = 313f / 401f
+internal val CameraBezelHorizontalPadding = 36.dp
+internal val CameraBezelTopPadding = 40.dp
+internal val CameraControlsTopSpacing = 20.dp
 
 @Composable
 internal fun CameraContentLayout(
@@ -34,6 +40,7 @@ internal fun CameraContentLayout(
     isCameraSwitchEnabled: Boolean,
     shutterEnabled: Boolean,
     isShutterEffectVisible: Boolean,
+    isOnboardingVisible: Boolean,
     zoomLevel: Float,
     onFlashClick: () -> Unit,
     onSwitchCameraClick: () -> Unit,
@@ -46,52 +53,70 @@ internal fun CameraContentLayout(
 ) {
     val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        CameraBezel(
-            isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
-            isShutterEffectVisible = isShutterEffectVisible,
-            zoomLevel = zoomLevel,
-            onZoomClick = onZoomClick,
+    Box(modifier = modifier) {
+        Column(
             modifier =
                 Modifier
-                    .padding(start = 36.dp, top = 40.dp, end = 36.dp)
-                    .fillMaxWidth()
-                    .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
-            viewFinder = viewFinder,
-        )
+                    .fillMaxSize()
+                    .then(
+                        if (isOnboardingVisible) {
+                            Modifier.clearAndSetSemantics {}
+                        } else {
+                            Modifier
+                        },
+                    ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            CameraBezel(
+                isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
+                isShutterEffectVisible = isShutterEffectVisible,
+                zoomLevel = zoomLevel,
+                onZoomClick = onZoomClick,
+                modifier =
+                    Modifier
+                        .padding(
+                            start = CameraBezelHorizontalPadding,
+                            top = CameraBezelTopPadding,
+                            end = CameraBezelHorizontalPadding,
+                        ).fillMaxWidth()
+                        .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
+                viewFinder = viewFinder,
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(CameraControlsTopSpacing))
 
-        CameraControls(
-            isFlashEnabled = isFlashEnabled,
-            isCameraSwitchEnabled = isCameraSwitchEnabled,
-            shutterEnabled = shutterEnabled,
-            onFlashClick = onFlashClick,
-            onSwitchCameraClick = onSwitchCameraClick,
-            onShutterClick = onShutterClick,
-        )
+            CameraControls(
+                isFlashEnabled = isFlashEnabled,
+                isCameraSwitchEnabled = isCameraSwitchEnabled,
+                shutterEnabled = shutterEnabled,
+                onFlashClick = onFlashClick,
+                onSwitchCameraClick = onSwitchCameraClick,
+                onShutterClick = onShutterClick,
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-        CameraFilterSelector(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            filters = filters,
-            selectedFilterIndex = selectedFilterIndex,
-            onFilterClick = onFilterClick,
-        )
+            CameraFilterSelector(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                filters = filters,
+                selectedFilterIndex = selectedFilterIndex,
+                onFilterClick = onFilterClick,
+            )
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
 
-        CameraRoomInfo(
-            roomName = roomName,
-            remainingCount = remainingCount,
-            totalCount = totalCount,
-            onClick = onRoomInfoClick,
-            modifier = Modifier.padding(bottom = 40.dp),
-        )
+            CameraRoomInfo(
+                roomName = roomName,
+                remainingCount = remainingCount,
+                totalCount = totalCount,
+                onClick = onRoomInfoClick,
+                modifier = Modifier.padding(bottom = 40.dp),
+            )
+        }
+
+        if (isOnboardingVisible) {
+            CameraOnboardingOverlay(modifier = Modifier.fillMaxSize())
+        }
     }
 }
 
@@ -110,6 +135,7 @@ private fun CameraContentLayoutPreview() {
         isCameraSwitchEnabled = true,
         shutterEnabled = true,
         isShutterEffectVisible = false,
+        isOnboardingVisible = false,
         zoomLevel = 1f,
         onFlashClick = {},
         onSwitchCameraClick = {},
@@ -136,6 +162,7 @@ private fun CameraContentLimitReachedPreview() {
         isCameraSwitchEnabled = true,
         shutterEnabled = false,
         isShutterEffectVisible = false,
+        isOnboardingVisible = false,
         zoomLevel = 1f,
         onFlashClick = {},
         onSwitchCameraClick = {},

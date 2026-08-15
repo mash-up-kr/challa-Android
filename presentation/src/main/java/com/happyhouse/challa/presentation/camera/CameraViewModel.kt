@@ -36,11 +36,13 @@ class CameraViewModel @AssistedInject constructor(
     private var nextCaptureRequestId = 0L
 
     init {
+        observeOnboardingCompletion()
         fetchData()
     }
 
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
+            CameraIntent.OnboardingConfirmClick -> handleOnboardingCompleted()
             CameraIntent.RoomLoadRetry -> fetchShootableRooms()
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
@@ -48,6 +50,34 @@ class CameraViewModel @AssistedInject constructor(
             CameraIntent.ZoomClick -> handleZoomClick()
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
+        }
+    }
+
+    private fun observeOnboardingCompletion() {
+        viewModelScope.launch {
+            cameraRepository.hasCompletedOnboarding.collect { result ->
+                when (result) {
+                    is ChallaResult.Success -> {
+                        updateState { copy(hasCompletedOnboarding = result.data) }
+                    }
+
+                    is ChallaResult.Failure -> {
+                        Timber.e("카메라 온보딩 완료 여부를 불러오지 못했습니다: %s", result)
+                        updateState { copy(hasCompletedOnboarding = true) }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleOnboardingCompleted() {
+        updateState { copy(hasCompletedOnboarding = true) }
+
+        viewModelScope.launch {
+            val result = cameraRepository.completeOnboarding()
+            if (result is ChallaResult.Failure) {
+                Timber.e("카메라 온보딩 완료 여부를 저장하지 못했습니다: %s", result)
+            }
         }
     }
 

@@ -21,6 +21,7 @@ import kotlinx.collections.immutable.persistentListOf
 @Immutable
 data class CameraState(
     val selectedRoomId: Long = 0L,
+    val hasCompletedOnboarding: Boolean? = null,
     val roomLoadState: CameraRoomLoadState = CameraRoomLoadState.LOADING,
     val lensFacing: CameraLensFacing = CameraLensFacing.BACK,
     val isFlashEnabled: Boolean = false,

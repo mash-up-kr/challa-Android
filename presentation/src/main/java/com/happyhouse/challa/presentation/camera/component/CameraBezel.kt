@@ -22,6 +22,9 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.dashedRoundedBorder
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 
+internal val CameraBezelCornerRadius = 60.dp
+internal val CameraBezelBorderWidth = 4.dp
+
 @Composable
 internal fun CameraBezel(
     isPhotoLimitReached: Boolean,
@@ -34,9 +37,13 @@ internal fun CameraBezel(
     Box(
         modifier =
             modifier
-                .clip(RoundedCornerShape(60.dp))
+                .clip(RoundedCornerShape(CameraBezelCornerRadius))
                 .background(ChallaTheme.colors.staticBlack)
-                .border(4.dp, ChallaTheme.colors.staticWhite, RoundedCornerShape(60.dp))
+                .border(
+                    CameraBezelBorderWidth,
+                    ChallaTheme.colors.staticWhite,
+                    RoundedCornerShape(CameraBezelCornerRadius),
+                )
                 .padding(all = 24.dp),
     ) {
         Box(

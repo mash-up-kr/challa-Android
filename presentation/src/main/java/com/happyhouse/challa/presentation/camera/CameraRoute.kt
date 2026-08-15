@@ -17,7 +17,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
+import com.happyhouse.challa.presentation.camera.onboarding.rememberCameraOnboardingVisibility
+import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
@@ -50,7 +53,16 @@ fun CameraRoute(
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
     val retryLabel = stringResource(R.string.camera_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
-    val snackbarActionLabelColor = ChallaTheme.colors.primary
+    val shouldShowOnboarding =
+        state.value.hasCompletedOnboarding == false &&
+            state.value.roomLoadState == CameraRoomLoadState.LOADED &&
+            permissionController.state == CameraPermissionState.Granted
+    val isOnboardingVisible =
+        rememberCameraOnboardingVisibility(
+            shouldShow = shouldShowOnboarding,
+            snackbarHostState = snackbarHostState,
+            onCompleted = { viewModel.onIntent(CameraIntent.OnboardingConfirmClick) },
+        )
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -65,7 +77,6 @@ fun CameraRoute(
                                             heading = roomLoadFailedMessage,
                                         ),
                                     actionLabel = retryLabel,
-                                    actionLabelColor = snackbarActionLabelColor,
                                 ),
                             )
                         if (result == SnackbarResult.ActionPerformed) {
@@ -121,20 +132,15 @@ fun CameraRoute(
         state = state.value,
         permissionState = permissionController.state,
         snackbarHostState = snackbarHostState,
+        isOnboardingVisible = isOnboardingVisible,
         cameraBindingRetryKey = cameraBindingRetryKey,
         onRequestPermissionClick = permissionController.requestPermission,
         onCameraBindingFailed = { _ ->
             coroutineScope.launch {
                 val result =
                     snackbarHostState.showSnackbar(
-                        ChallaSnackbarVisuals(
-                            content =
-                                ChallaSnackbarContent.HeadingOnly(
-                                    heading = cameraBindingFailedMessage,
-                                ),
-                            actionLabel = retryLabel,
-                            actionLabelColor = snackbarActionLabelColor,
-                        ),
+                        message = cameraBindingFailedMessage,
+                        actionLabel = retryLabel,
                     )
                 if (result == SnackbarResult.ActionPerformed) {
                     cameraBindingRetryKey += 1

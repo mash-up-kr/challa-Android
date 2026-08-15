@@ -26,6 +26,9 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
+internal val CameraShutterButtonSize = 80.dp
+internal val CameraShutterButtonInnerSize = 64.dp
+
 @Composable
 internal fun CameraControls(
     isFlashEnabled: Boolean,
@@ -97,7 +100,7 @@ private fun ShutterButton(
     Box(
         modifier =
             Modifier
-                .size(80.dp)
+                .size(CameraShutterButtonSize)
                 .clip(CircleShape)
                 .border(4.dp, ChallaTheme.colors.primary, CircleShape),
         contentAlignment = Alignment.Center,
@@ -105,7 +108,7 @@ private fun ShutterButton(
         Box(
             modifier =
                 Modifier
-                    .size(64.dp)
+                    .size(CameraShutterButtonInnerSize)
                     .clip(CircleShape)
                     .background(ChallaTheme.colors.labelNormal)
                     .noRippleClickOnce(
