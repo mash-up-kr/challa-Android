@@ -24,7 +24,6 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
-import com.happyhouse.challa.presentation.room.main.RoomMainRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
@@ -71,17 +70,6 @@ fun ChallaNavHost(
                         onShootClick = {
                             navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
                         },
-                    )
-                }
-                entry<ChallaRoute.RoomMain> {
-                    RoomMainRoute(
-                        onBackClick = {
-                            navigator.goBack()
-                        },
-                        onCameraClick = {
-                            navigator.navigate(ChallaRoute.Camera(roomId = 1L))
-                        },
-                        onGalleryClick = {},
                     )
                 }
                 entry<ChallaRoute.PhotoDetail> { route ->
@@ -135,9 +123,8 @@ fun ChallaNavHost(
                         onNavigateToSetting = {
                             navigator.navigate(ChallaRoute.Setting)
                         },
-                        onNavigateToRoom = {
-                            // TODO JH: roomId 전달 방식 확정되면 RoomMain에 인자 연결
-                            navigator.navigate(ChallaRoute.RoomMain)
+                        onNavigateToRoom = { roomId ->
+                            navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
                         },
                     )
                 }
