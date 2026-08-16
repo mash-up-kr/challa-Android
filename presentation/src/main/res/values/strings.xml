@@ -150,6 +150,14 @@
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
+    <string name="setting_open_source_license">오픈 소스 라이선스</string>
+
+    <!-- openSourceLicenseScreen -->
+    <string name="open_source_license_title">오픈 소스 라이선스</string>
+    <string name="open_source_license_back_description">설정으로 돌아가기</string>
+    <string name="open_source_license_film_luts_name" translatable="false">Film-Luts</string>
+    <string name="open_source_license_film_luts_notice" translatable="false">Copyright © 2024 Yahia\nLicensed under the MIT License</string>
+    <string name="open_source_license_film_luts_url" translatable="false">https://github.com/YahiaAngelo/Film-Luts/blob/main/LICENSE</string>
 
     <!-- notificationScreen -->
     <string name="notification_title">알림</string>

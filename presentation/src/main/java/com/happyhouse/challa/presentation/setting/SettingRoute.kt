@@ -29,6 +29,7 @@ fun SettingRoute(
     onAccountClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
+    onOpenSourceLicenseClick: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -85,6 +86,7 @@ fun SettingRoute(
         onAccountClick = onAccountClick,
         onSupportClick = onSupportClick,
         onFeedbackClick = onFeedbackClick,
+        onOpenSourceLicenseClick = onOpenSourceLicenseClick,
         snackbarHostState = snackbarHostState,
     )
 }

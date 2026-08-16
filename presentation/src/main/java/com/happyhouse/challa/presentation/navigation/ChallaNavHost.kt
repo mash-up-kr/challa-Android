@@ -26,6 +26,7 @@ import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
+import com.happyhouse.challa.presentation.setting.license.OpenSourceLicenseScreen
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 import kotlinx.coroutines.launch
@@ -151,6 +152,9 @@ fun ChallaNavHost(
                         },
                         onSupportClick = {},
                         onFeedbackClick = {},
+                        onOpenSourceLicenseClick = {
+                            navigator.navigate(ChallaRoute.OpenSourceLicense)
+                        },
                     )
                 }
                 entry<ChallaRoute.ThemeSetting> {
@@ -183,6 +187,11 @@ fun ChallaNavHost(
                         onWithdrawSuccess = {
                             navigator.clearAndNavigate(ChallaRoute.Login)
                         },
+                    )
+                }
+                entry<ChallaRoute.OpenSourceLicense> {
+                    OpenSourceLicenseScreen(
+                        onBackClick = { navigator.goBack() },
                     )
                 }
             },
