@@ -30,7 +30,6 @@ import com.happyhouse.challa.presentation.setting.component.SettingSection
 import com.happyhouse.challa.presentation.setting.component.SettingTopBar
 import com.happyhouse.challa.presentation.setting.contract.SettingState
 import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
-import com.happyhouse.challa.presentation.setting.theme.titleRes
 
 @Composable
 fun SettingScreen(

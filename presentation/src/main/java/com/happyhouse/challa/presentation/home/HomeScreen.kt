@@ -351,7 +351,7 @@ private fun HomeShootingCard(
                         Brush.verticalGradient(
                             colorStops =
                                 arrayOf(
-                                    0f to ChallaTheme.colors.primaryYellow.copy(alpha = 0.2f),
+                                    0f to ChallaTheme.colors.primary.copy(alpha = 0.2f),
                                     0.76f to Color.Transparent,
                                 ),
                         ),
@@ -388,7 +388,7 @@ private fun HomeShootingCard(
                 modifier =
                     Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(ChallaTheme.colors.primaryYellow)
+                        .background(ChallaTheme.colors.primary)
                         .padding(horizontal = 11.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -503,9 +503,9 @@ private fun HomePrintStateChip(
 
         PrintState.COMPLETED -> {
             label = stringResource(id = R.string.home_print_completed)
-            containerColor = ChallaTheme.colors.primaryYellow.copy(alpha = 0.08f)
-            borderColor = ChallaTheme.colors.primaryYellow.copy(alpha = 0.2f)
-            textColor = ChallaTheme.colors.primaryYellow
+            containerColor = ChallaTheme.colors.primary.copy(alpha = 0.08f)
+            borderColor = ChallaTheme.colors.primary.copy(alpha = 0.2f)
+            textColor = ChallaTheme.colors.primary
         }
     }
 
@@ -667,7 +667,7 @@ private fun RoomAsyncImage(
  */
 @Composable
 private fun Modifier.homeGlow(): Modifier {
-    val glowColor = ChallaTheme.colors.primaryYellow
+    val glowColor = ChallaTheme.colors.primary
     return drawBehind {
         val center = Offset(x = size.width / 2f, y = size.height * 0.92f)
         val radius = size.width * 0.95f
@@ -805,7 +805,7 @@ private fun HomeEmptyMessage(
     ) {
         Text(
             text = nickname,
-            color = ChallaTheme.colors.primaryYellow,
+            color = ChallaTheme.colors.primary,
             textAlign = TextAlign.Center,
             style = ChallaTheme.typography.headingSmall.bold,
         )
@@ -873,7 +873,7 @@ private fun HomeActionButtons(
     ) {
         HomeActionButton(
             text = stringResource(id = R.string.home_create_room),
-            containerColor = ChallaTheme.colors.primaryYellow,
+            containerColor = ChallaTheme.colors.primary,
             onClick = onCreateRoomClick,
         )
         HomeActionButton(

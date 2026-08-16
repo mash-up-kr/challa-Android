@@ -18,6 +18,7 @@ fun ChallaSnackbarHost(
     hostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     horizontalPadding: Dp = 12.dp,
+    bottomPadding: Dp = 10.dp,
 ) {
     SnackbarHost(
         hostState = hostState,
@@ -40,7 +41,10 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessagePadding(
+                                    topOffset = visuals.topOffset,
+                                    bottomPadding = bottomPadding,
+                                )
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -58,7 +62,10 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessagePadding(
+                                    topOffset = visuals.topOffset,
+                                    bottomPadding = bottomPadding,
+                                )
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -83,7 +90,10 @@ fun ChallaSnackbarHost(
     }
 }
 
-private fun Modifier.challaMessageTopOffset(topOffset: Dp?): Modifier =
+private fun Modifier.challaMessagePadding(
+    topOffset: Dp?,
+    bottomPadding: Dp,
+): Modifier =
     topOffset?.let {
         padding(top = it)
-    } ?: this
+    } ?: padding(bottom = bottomPadding)
