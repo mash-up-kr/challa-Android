@@ -17,7 +17,7 @@ import javax.inject.Singleton
  *
  * 서버가 아직 FID가 아닌 기존 registration token을 요구하므로 deprecated FCM token API를 사용합니다.
  * 앱 수명의 scope를 사용해 서비스가 종료돼도 진행 중인 동기화를 보존합니다.
- * 최초 token 생성 시 앱 시작 조회와 [MyFirebaseMessagingService.onNewToken]이 같은 token을 동시에 전달할 수 있어
+ * 최초 token 생성 시 앱 시작 조회와 [ChallaFirebaseMessagingService.onNewToken]이 같은 token을 동시에 전달할 수 있어
  * 동기화를 직렬화하고, 같은 프로세스에서 이미 성공한 token의 중복 동기화를 생략합니다.
  * 실패한 token은 성공한 것으로 기록하지 않아 다음 호출에서 다시 시도합니다.
  */

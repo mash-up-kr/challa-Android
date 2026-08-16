@@ -27,7 +27,7 @@ import javax.inject.Inject
  * 서비스 알림 설정이 꺼져 있거나 시스템 알림 권한이 없으면 표시하지 않습니다.
  */
 @AndroidEntryPoint
-class MyFirebaseMessagingService : FirebaseMessagingService() {
+class ChallaFirebaseMessagingService : FirebaseMessagingService() {
     @Inject
     lateinit var notificationTokenManager: NotificationTokenManager
 

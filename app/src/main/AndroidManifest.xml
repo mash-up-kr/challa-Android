@@ -58,7 +58,7 @@
 
         <!-- 포그라운드 및 data 메시지를 앱에서 처리합니다. -->
         <service
-            android:name=".notification.MyFirebaseMessagingService"
+            android:name=".notification.ChallaFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
