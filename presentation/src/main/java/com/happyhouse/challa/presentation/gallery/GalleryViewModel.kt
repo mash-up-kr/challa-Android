@@ -68,13 +68,6 @@ class GalleryViewModel @AssistedInject constructor(
     /** 완료 시각이 지났는데도 상태가 인화 대기일 때 다시 확인한 횟수 */
     private var printStatusRecheckCount = 0
 
-    /**
-     * 이번이 이 방의 첫 진입인지. 확인과 동시에 방문으로 기록되므로 화면당 한 번만 요청한다.
-     *
-     * 방을 만들자마자 들어온 사람에게 초대 메뉴를 열어주기 위한 값이라, 방 정보가 도착한 뒤에 쓴다.
-     */
-    private val firstVisitDeferred = viewModelScope.async { roomVisitRepository.markVisited(roomId) }
-
     /** 첫 진입 안내를 이미 처리했는지. 인화 상태 재조회로 방 정보를 다시 받아도 메뉴가 또 열리지 않게 한다. */
     private var hasHandledFirstVisit = false
 
@@ -234,14 +227,15 @@ class GalleryViewModel @AssistedInject constructor(
     /**
      * 방을 만들고 처음 들어온 사람에게 초대 메뉴를 열어 초대 코드를 바로 보여준다.
      *
+     * 방 정보를 받은 뒤에 기록해야 조회에 실패해 메뉴를 못 본 진입이 첫 진입을 소진하지 않는다.
      * 첫 진입 확인이 실패하면 안내 없이 평소처럼 닫힌 채로 둔다.
      */
     private suspend fun openInviteMenuIfFirstVisit() {
         if (hasHandledFirstVisit) return
         hasHandledFirstVisit = true
 
-        firstVisitDeferred
-            .await()
+        roomVisitRepository
+            .markVisited(roomId)
             .onSuccess { isFirstVisit ->
                 if (!isFirstVisit) return@onSuccess
 
