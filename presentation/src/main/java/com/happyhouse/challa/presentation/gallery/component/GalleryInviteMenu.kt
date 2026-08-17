@@ -39,13 +39,10 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/** 프로필 바 아래에 붙는 메뉴라 바보다 넓지 않게 고정한다. */
-private val MenuWidth = 208.dp
+private val MenuWidth = 200.dp
 
-/** 초대 코드 영역과 참여자 목록이 같은 여백을 쓴다. */
-private val MenuPadding = 16.dp
+private val MenuPadding = 20.dp
 
-/** 참여자가 많아도 메뉴가 화면을 덮지 않도록 목록에만 두는 최대 높이. 넘으면 목록 안에서 스크롤한다. */
 private val MemberListMaxHeight = 450.dp
 
 /**
@@ -65,7 +62,7 @@ fun GalleryInviteMenu(
             modifier
                 .width(MenuWidth)
                 .clip(RoundedCornerShape(20.dp))
-                .background(ChallaTheme.colors.backgroundLevel2)
+                .background(ChallaTheme.colors.staticBlack)
                 .padding(vertical = MenuPadding),
     ) {
         InviteCode(
@@ -76,7 +73,11 @@ fun GalleryInviteMenu(
 
         if (members.isNotEmpty()) {
             HorizontalDivider(
-                modifier = Modifier.padding(vertical = MenuPadding),
+                modifier =
+                    Modifier.padding(
+                        vertical = 12.dp,
+                        horizontal = MenuPadding,
+                    ),
                 color = ChallaTheme.colors.lineNormal,
             )
 
@@ -100,7 +101,7 @@ private fun InviteCode(
                 role = Role.Button,
                 onClickLabel = stringResource(R.string.gallery_invite_code_copy_label),
                 onClick = onClick,
-            ),
+            ).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -111,7 +112,7 @@ private fun InviteCode(
         )
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -121,15 +122,14 @@ private fun InviteCode(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                style = ChallaTheme.typography.headingXSmall.bold,
+                style = ChallaTheme.typography.headingMedium.bold,
             )
 
             Icon(
-                modifier = Modifier.size(ChallaIconSize.V16.dp),
+                modifier = Modifier.size(ChallaIconSize.V20.dp),
                 painter = painterResource(ChallaIcons.Copy),
-                // 코드 영역 전체가 하나의 복사 버튼이라 아이콘은 따로 읽어주지 않는다.
                 contentDescription = null,
-                tint = ChallaTheme.colors.labelNeutral,
+                tint = ChallaTheme.colors.labelDisable,
             )
         }
     }
@@ -142,7 +142,7 @@ private fun MemberList(
 ) {
     LazyColumn(
         modifier = modifier.heightIn(max = MemberListMaxHeight),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(items = members, key = GalleryMemberUiModel::id) { member ->
             Member(member = member)
@@ -161,7 +161,7 @@ private fun Member(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ChallaProfileImage(
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(20.dp),
             profileImageUrl = member.profileImageUrl,
         )
 
