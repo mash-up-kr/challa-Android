@@ -162,6 +162,14 @@ fun GalleryContent(
                     contentDescription =
                         stringResource(R.string.gallery_member_count_description, state.members.size),
                     isExpanded = inviteMenu is InviteMenu.Opened,
+                    onClickLabel =
+                        stringResource(
+                            if (inviteMenu is InviteMenu.Opened) {
+                                R.string.gallery_invite_menu_close_label
+                            } else {
+                                R.string.gallery_invite_menu_open_label
+                            },
+                        ),
                     onClick = { onIntent(GalleryIntent.ProfileBarClick) },
                 )
 
