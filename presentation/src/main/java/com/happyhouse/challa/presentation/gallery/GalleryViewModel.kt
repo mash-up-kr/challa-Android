@@ -349,6 +349,7 @@ private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiMode
     map { user ->
         GalleryMemberUiModel(
             id = user.id,
+            nickname = user.nickname,
             profileImageUrl = user.profileImageUrl,
         )
     }.toPersistentList()

@@ -77,6 +77,7 @@ data class GalleryFilmSlotUiModel(
 @Immutable
 data class GalleryMemberUiModel(
     val id: Long,
+    val nickname: String,
     val profileImageUrl: String?,
 )
 
