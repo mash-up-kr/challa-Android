@@ -42,14 +42,17 @@ class CameraViewModel @AssistedInject constructor(
 
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
-            CameraIntent.OnboardingConfirmClick -> handleOnboardingCompleted()
+            CameraIntent.OnboardingConfirmClick -> handleOnboardingConfirmClick()
             CameraIntent.RoomLoadRetry -> fetchShootableRooms()
+            CameraIntent.FilterListLoadRetry -> fetchCameraFilters()
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             CameraIntent.ShutterClick -> handleShutterClick()
             CameraIntent.ZoomClick -> handleZoomClick()
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
+            is CameraIntent.SelectedFilterLutLoadFailed ->
+                handleSelectedFilterLutLoadFailed(intent.fileUrl)
         }
     }
 
@@ -70,7 +73,7 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleOnboardingCompleted() {
+    private fun handleOnboardingConfirmClick() {
         updateState { copy(hasCompletedOnboarding = true) }
 
         viewModelScope.launch {
@@ -128,6 +131,8 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun fetchCameraFilters() {
         viewModelScope.launch {
+            updateState { copy(isFilterSelectorReady = false) }
+
             when (val result = cameraRepository.getCameraFilters()) {
                 is ChallaResult.Success -> {
                     val cameraFilters =
@@ -136,7 +141,7 @@ class CameraViewModel @AssistedInject constructor(
                     updateState {
                         copy(
                             cameraFilters = cameraFilters,
-                            isFilterListReady = true,
+                            isFilterSelectorReady = true,
                             selectedFilterIndex =
                                 selectedFilterIndex.coerceIn(
                                     0,
@@ -147,8 +152,9 @@ class CameraViewModel @AssistedInject constructor(
                 }
 
                 is ChallaResult.Failure -> {
-                    updateState { copy(isFilterListReady = true) }
+                    updateState { copy(isFilterSelectorReady = true) }
                     Timber.e("카메라 필터 목록을 불러오지 못했습니다: $result")
+                    sendEffect(CameraSideEffect.FilterListLoadFailed)
                 }
             }
         }
@@ -201,7 +207,6 @@ class CameraViewModel @AssistedInject constructor(
                 requestId = nextCaptureRequestId,
                 roomId = room.id,
                 selectedFilter = currentState.selectedFilter,
-                lensFacing = currentState.lensFacing,
             )
         updateState { copy(captureRequest = captureRequest) }
     }
@@ -303,6 +308,16 @@ class CameraViewModel @AssistedInject constructor(
     private fun handleFilterClick(index: Int) {
         updateState {
             copy(selectedFilterIndex = index.coerceIn(0, cameraFilters.lastIndex))
+        }
+    }
+
+    private fun handleSelectedFilterLutLoadFailed(fileUrl: String) {
+        val failedFilter = currentState.selectedFilter as? CameraFilterUiModel.Remote ?: return
+        if (failedFilter.fileUrl != fileUrl) return
+
+        updateState { copy(selectedFilterIndex = 0) }
+        viewModelScope.launch {
+            sendEffect(CameraSideEffect.SelectedFilterLutLoadFailed)
         }
     }
 

@@ -9,6 +9,8 @@ sealed interface CameraIntent : UiIntent {
 
     data object RoomLoadRetry : CameraIntent
 
+    data object FilterListLoadRetry : CameraIntent
+
     /**
      * 플래시 버튼을 누른 시점의 하드웨어 지원 여부와 함께 전달합니다.
      *
@@ -30,5 +32,10 @@ sealed interface CameraIntent : UiIntent {
 
     data class FilterClick(
         val index: Int,
+    ) : CameraIntent
+
+    /** 선택한 원격 필터의 LUT를 준비하지 못했을 때 원본 필터로 복구한다. */
+    data class SelectedFilterLutLoadFailed(
+        val fileUrl: String,
     ) : CameraIntent
 }

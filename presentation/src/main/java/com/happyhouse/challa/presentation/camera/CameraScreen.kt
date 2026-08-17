@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
@@ -21,10 +20,9 @@ fun CameraScreen(
     feedbackSnackbarHostState: SnackbarHostState,
     onboardingSnackbarHostState: SnackbarHostState,
     isOnboardingVisible: Boolean,
-    cameraBindingRetryKey: Int,
     modifier: Modifier = Modifier,
     onRequestPermissionClick: () -> Unit,
-    onCameraBindingFailed: (CameraBindingFailure) -> Unit,
+    onCameraBindingFailed: () -> Unit,
     onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
     onPhotoCaptureFailed: (requestId: Long) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
@@ -47,7 +45,6 @@ fun CameraScreen(
                 state = state,
                 permissionState = permissionState,
                 isOnboardingVisible = isOnboardingVisible,
-                cameraBindingRetryKey = cameraBindingRetryKey,
                 onRequestPermissionClick = onRequestPermissionClick,
                 onCameraBindingFailed = onCameraBindingFailed,
                 onPhotoCaptured = onPhotoCaptured,

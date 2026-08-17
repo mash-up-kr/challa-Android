@@ -39,7 +39,6 @@ import timber.log.Timber
  * [LifecycleCameraController]로 CameraX Preview, 촬영, 렌즈, 플래시, 줌을 관리합니다.
  *
  * [lensFacing]이 변경되면 Controller가 새 렌즈로 UseCase를 다시 바인딩합니다.
- * [bindingRetryKey]가 바뀐 때는 Controller와 PreviewView를 재생성해 초기화부터 재시도합니다.
  * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
  * Android 13 이상에서는 서버가 제공한 모든 LUT를 미리 내려받고 [selectedFilter]를 프리뷰에 적용합니다.
  * LUT가 준비되지 않았거나 로드에 실패하면 색상 효과를 적용하지 않습니다. 실패한 제어 요청은 기록합니다.
@@ -49,7 +48,6 @@ import timber.log.Timber
  * @param captureRequestId 현재 세션에서 처리할 촬영 요청 식별자. 값이 바뀔 때마다 새 요청으로
  * 처리하며, 호출자는 결과를 받은 뒤 요청 식별자를 제거해야 합니다.
  * @param selectedFilter 프리뷰에 적용할 필터
- * @param bindingRetryKey 카메라 초기화·바인딩 실패 후 Controller를 재생성해 재시도할 때 변경하는 키
  * @param onStateChanged 바인딩·촬영 상태가 바뀐 때 최신 [CameraSessionState]를 전달하는 콜백
  * @param onEvent 바인딩 실패와 촬영 시작·완료처럼 한 번만 소비할 [CameraSessionEvent]를 전달하는 콜백
  */
@@ -62,14 +60,13 @@ internal fun CameraSession(
     filters: ImmutableList<CameraFilterUiModel>,
     selectedFilter: CameraFilterUiModel,
     captureRequestId: Long?,
-    bindingRetryKey: Int,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onStateChanged: (CameraSessionState) -> Unit,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraController = remember(context, bindingRetryKey) { createCameraController(context) }
+    val cameraController = remember(context) { createCameraController(context) }
     val previewView =
         remember(context, cameraController) { createPreviewView(context, cameraController) }
     val capturedImageProcessor = remember { CapturedImageProcessor() }
@@ -85,6 +82,8 @@ internal fun CameraSession(
         val loadFilterFile = currentGetCameraFilterFile
         val downloadSemaphore = Semaphore(MAX_CONCURRENT_FILTER_DOWNLOADS)
         loadedLuts = emptyMap()
+        sessionState = sessionState.copy(failedFilterUrls = sessionState.failedFilterUrls.cleared())
+        currentOnStateChanged(sessionState)
 
         coroutineScope {
             filters
@@ -95,17 +94,30 @@ internal fun CameraSession(
                             val lut =
                                 downloadSemaphore.withPermit {
                                     val cubeFile =
-                                        loadFilterFile(filter.fileUrl)
-                                            ?: return@withPermit null
+                                        checkNotNull(loadFilterFile(filter.fileUrl)) {
+                                            "LUT 파일을 내려받지 못했습니다: ${filter.fileUrl}"
+                                        }
                                     withContext(Dispatchers.Default) {
                                         CubeLut.load(cubeFile)
                                     }
-                                } ?: return@launch
+                                }
 
                             loadedLuts = loadedLuts + (filter.fileUrl to lut)
+                            if (filter.fileUrl in sessionState.failedFilterUrls) {
+                                sessionState =
+                                    sessionState.copy(
+                                        failedFilterUrls = sessionState.failedFilterUrls.removing(filter.fileUrl),
+                                    )
+                                currentOnStateChanged(sessionState)
+                            }
                         } catch (cancellationException: CancellationException) {
                             throw cancellationException
                         } catch (exception: Exception) {
+                            sessionState =
+                                sessionState.copy(
+                                    failedFilterUrls = sessionState.failedFilterUrls.adding(filter.fileUrl),
+                                )
+                            currentOnStateChanged(sessionState)
                             Timber.e(
                                 exception,
                                 "LUT 로드에 실패했습니다: filter=%s",
@@ -183,7 +195,7 @@ internal fun CameraSession(
                     isCapturing = false,
                 )
             currentOnStateChanged(sessionState)
-            currentOnEvent(CameraSessionEvent.BindingFailed(bindingFailure))
+            currentOnEvent(CameraSessionEvent.BindingFailed)
             awaitCancellation()
         } finally {
             cameraController.unbind()
@@ -235,15 +247,7 @@ internal fun CameraSession(
             currentOnEvent(
                 CameraSessionEvent.CaptureCompleted(
                     requestId = requestId,
-                    result =
-                        CameraCaptureResult.Failed(
-                            reason =
-                                if (!sessionState.isReady) {
-                                    CameraCaptureFailure.SESSION_NOT_READY
-                                } else {
-                                    CameraCaptureFailure.CAPTURE_ALREADY_RUNNING
-                                },
-                        ),
+                    result = CameraCaptureResult.Failed,
                 ),
             )
             return@LaunchedEffect
@@ -274,7 +278,7 @@ internal fun CameraSession(
                 throw cancellationException
             } catch (throwable: Throwable) {
                 Timber.e(throwable, "사진 촬영에 실패했습니다")
-                CameraCaptureResult.Failed(CameraCaptureFailure.CAMERA_ERROR)
+                CameraCaptureResult.Failed
             } finally {
                 sessionState = sessionState.copy(isCapturing = false)
                 currentOnStateChanged(sessionState)

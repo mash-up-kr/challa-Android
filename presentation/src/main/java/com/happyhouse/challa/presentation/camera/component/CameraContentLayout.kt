@@ -36,7 +36,7 @@ internal fun CameraContentLayout(
     remainingCount: Int,
     totalCount: Int,
     isRoomLoaded: Boolean,
-    isFilterListReady: Boolean,
+    isFilterSelectorReady: Boolean,
     filters: ImmutableList<CameraFilterUiModel>,
     selectedFilterIndex: Int,
     isFlashEnabled: Boolean,
@@ -106,7 +106,7 @@ internal fun CameraContentLayout(
                     Modifier
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                         .then(
-                            if (isFilterListReady) {
+                            if (isFilterSelectorReady) {
                                 Modifier
                             } else {
                                 Modifier
@@ -116,7 +116,7 @@ internal fun CameraContentLayout(
                         ),
                 filters = filters,
                 selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = if (isFilterListReady) onFilterClick else { _ -> },
+                onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -148,7 +148,7 @@ private fun CameraContentLayoutPreview() {
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
         isRoomLoaded = true,
-        isFilterListReady = true,
+        isFilterSelectorReady = true,
         filters = previewCameraFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
@@ -177,7 +177,7 @@ private fun CameraContentLimitReachedPreview() {
         remainingCount = 0,
         totalCount = 48,
         isRoomLoaded = true,
-        isFilterListReady = true,
+        isFilterSelectorReady = true,
         filters = previewCameraFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,

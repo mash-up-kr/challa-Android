@@ -40,9 +40,8 @@ internal fun CameraContent(
     state: CameraState,
     permissionState: CameraPermissionState,
     isOnboardingVisible: Boolean,
-    cameraBindingRetryKey: Int,
     onRequestPermissionClick: () -> Unit,
-    onCameraBindingFailed: (CameraBindingFailure) -> Unit,
+    onCameraBindingFailed: () -> Unit,
     onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
     onPhotoCaptureFailed: (requestId: Long) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
@@ -63,6 +62,10 @@ internal fun CameraContent(
     val isSelectedFilterReady =
         state.selectedFilter == CameraFilterUiModel.Original ||
             cameraSessionState.previewFilter == state.selectedFilter
+    val failedSelectedFilter =
+        (state.selectedFilter as? CameraFilterUiModel.Remote)?.takeIf { filter ->
+            filter.fileUrl in cameraSessionState.failedFilterUrls
+        }
     val canCapture =
         canControlCamera &&
             isSelectedFilterReady &&
@@ -80,13 +83,19 @@ internal fun CameraContent(
         }
     }
 
+    LaunchedEffect(failedSelectedFilter?.fileUrl) {
+        failedSelectedFilter?.let { filter ->
+            onIntent(CameraIntent.SelectedFilterLutLoadFailed(filter.fileUrl))
+        }
+    }
+
     CameraContentLayout(
         modifier = modifier,
         roomName = selectedRoom?.name.orEmpty(),
         remainingCount = remainingCount,
         totalCount = selectedRoom?.totalCount ?: 0,
         isRoomLoaded = isRoomLoaded,
-        isFilterListReady = state.isFilterListReady,
+        isFilterSelectorReady = state.isFilterSelectorReady,
         filters = state.cameraFilters,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,
@@ -120,13 +129,12 @@ internal fun CameraContent(
                     filters = state.cameraFilters,
                     selectedFilter = state.selectedFilter,
                     captureRequestId = captureRequest?.requestId,
-                    bindingRetryKey = cameraBindingRetryKey,
                     getCameraFilterFile = getCameraFilterFile,
                     onStateChanged = { cameraSessionState = it },
                     onEvent = { event ->
                         when (event) {
-                            is CameraSessionEvent.BindingFailed -> {
-                                onCameraBindingFailed(event.reason)
+                            CameraSessionEvent.BindingFailed -> {
+                                onCameraBindingFailed()
                             }
 
                             is CameraSessionEvent.CaptureStarted -> {
@@ -141,7 +149,7 @@ internal fun CameraContent(
                                         onPhotoCaptured(event.requestId, event.result.imageBytes)
                                     }
 
-                                    is CameraCaptureResult.Failed -> {
+                                    CameraCaptureResult.Failed -> {
                                         onPhotoCaptureFailed(event.requestId)
                                     }
 

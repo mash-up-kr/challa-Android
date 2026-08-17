@@ -44,6 +44,8 @@ fun CameraRoute(
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     val roomLoadFailedMessage = stringResource(R.string.camera_room_load_failed_message)
+    val filterListLoadFailedMessage = stringResource(R.string.camera_filter_list_load_failed_message)
+    val filterLoadFailedMessage = stringResource(R.string.camera_filter_load_failed_message)
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
     val noRemainingCapturesMessage = stringResource(R.string.camera_no_remaining_captures_message)
@@ -79,6 +81,37 @@ fun CameraRoute(
                         if (result == SnackbarResult.ActionPerformed) {
                             viewModel.onIntent(CameraIntent.RoomLoadRetry)
                         }
+                    }
+                }
+
+                CameraSideEffect.FilterListLoadFailed -> {
+                    launch {
+                        val result =
+                            feedbackSnackbarHostState.showSnackbar(
+                                ChallaSnackbarVisuals(
+                                    content =
+                                        ChallaSnackbarContent.HeadingOnly(
+                                            heading = filterListLoadFailedMessage,
+                                        ),
+                                    actionLabel = retryLabel,
+                                ),
+                            )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            viewModel.onIntent(CameraIntent.FilterListLoadRetry)
+                        }
+                    }
+                }
+
+                CameraSideEffect.SelectedFilterLutLoadFailed -> {
+                    launch {
+                        feedbackSnackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = filterLoadFailedMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = 112.dp,
+                            ),
+                        )
                     }
                 }
 
@@ -131,9 +164,8 @@ fun CameraRoute(
         feedbackSnackbarHostState = feedbackSnackbarHostState,
         onboardingSnackbarHostState = onboardingSnackbarHostState,
         isOnboardingVisible = isOnboardingVisible,
-        cameraBindingRetryKey = 0,
         onRequestPermissionClick = permissionController.requestPermission,
-        onCameraBindingFailed = { _ ->
+        onCameraBindingFailed = {
             coroutineScope.launch {
                 feedbackSnackbarHostState.showSnackbar(
                     ChallaToastVisuals(

@@ -91,7 +91,7 @@ private fun CameraOnboardingPreview() {
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
         isRoomLoaded = true,
-        isFilterListReady = true,
+        isFilterSelectorReady = true,
         filters = persistentListOf(CameraFilterUiModel.Original),
         selectedFilterIndex = 0,
         isFlashEnabled = false,

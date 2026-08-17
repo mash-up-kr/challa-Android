@@ -24,6 +24,8 @@
     <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
     <string name="camera_photo_capture_failed_message">사진 촬영에 실패했어요.</string>
     <string name="camera_room_load_failed_message">방 목록을 불러오지 못했어요.</string>
+    <string name="camera_filter_list_load_failed_message">필터 목록을 불러오지 못했어요.</string>
+    <string name="camera_filter_load_failed_message">필터를 적용하지 못해 원본으로 변경했어요.</string>
     <string name="camera_no_remaining_captures_message">앗! 장수가 없어서 촬영할 수 없어요.</string>
     <string name="camera_binding_failed_message">카메라를 시작하지 못했어요.</string>
     <string name="camera_retry">재시도</string>
