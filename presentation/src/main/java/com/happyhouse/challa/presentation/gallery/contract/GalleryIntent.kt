@@ -19,6 +19,9 @@ sealed interface GalleryIntent : UiIntent {
     /** 메뉴 바깥을 눌러 초대 메뉴를 닫는다. */
     data object InviteMenuDismiss : GalleryIntent
 
+    /** 초대 코드를 눌러 클립보드에 복사한다. */
+    data object InviteCodeClick : GalleryIntent
+
     data object PrintCountdownClick : GalleryIntent
 
     data object ShootClick : GalleryIntent

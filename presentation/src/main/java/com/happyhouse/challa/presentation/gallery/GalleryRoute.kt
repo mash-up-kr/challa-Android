@@ -39,6 +39,8 @@ fun GalleryRoute(
     val printWaitingMessage = stringResource(R.string.gallery_print_waiting_message)
     val loadMoreFailureMessage = stringResource(R.string.gallery_load_more_failure)
     val membersFailureMessage = stringResource(R.string.gallery_members_load_failure)
+    val inviteCodeCopySuccessMessage = stringResource(R.string.gallery_invite_code_copy_success)
+    val inviteCodeCopyFailureMessage = stringResource(R.string.gallery_invite_code_copy_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     LaunchedEffect(viewModel) {
@@ -77,6 +79,30 @@ fun GalleryRoute(
                         snackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = membersFailureMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = ToastTopOffset,
+                            ),
+                        )
+                    }
+                }
+
+                GallerySideEffect.InviteCodeCopied -> {
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = inviteCodeCopySuccessMessage,
+                                topOffset = ToastTopOffset,
+                            ),
+                        )
+                    }
+                }
+
+                GallerySideEffect.InviteCodeCopyFailed -> {
+                    launch {
+                        snackbarHostState.showSnackbar(
+                            ChallaToastVisuals(
+                                message = inviteCodeCopyFailureMessage,
                                 icon = ChallaIcons.Error,
                                 iconTint = destructiveIconTint,
                                 topOffset = ToastTopOffset,

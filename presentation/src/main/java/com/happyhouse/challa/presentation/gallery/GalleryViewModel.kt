@@ -6,6 +6,7 @@ import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
+import com.happyhouse.challa.domain.repository.ClipboardRepository
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.repository.RoomVisitRepository
@@ -40,6 +41,7 @@ class GalleryViewModel @AssistedInject constructor(
     private val roomRepository: RoomRepository,
     private val photoRepository: PhotoRepository,
     private val roomVisitRepository: RoomVisitRepository,
+    private val clipboardRepository: ClipboardRepository,
 ) : BaseViewModel<GalleryState, GalleryIntent, GallerySideEffect>(
         initialState = GalleryState(roomId = roomId),
     ) {
@@ -87,6 +89,7 @@ class GalleryViewModel @AssistedInject constructor(
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
             GalleryIntent.ProfileBarClick -> handleProfileBarClick()
             GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()
+            GalleryIntent.InviteCodeClick -> handleInviteCodeClick()
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
         }
@@ -266,6 +269,27 @@ class GalleryViewModel @AssistedInject constructor(
 
     private fun handleInviteMenuDismiss() {
         updateState { copy(inviteMenu = GalleryState.InviteMenu.Closed) }
+    }
+
+    private fun handleInviteCodeClick() {
+        val invitationCode = currentState.invitationCode
+
+        viewModelScope.launch {
+            // 방 정보를 받아야 메뉴가 열리므로 여기서 코드가 비어 있으면 응답이 스펙과 다른 것이다.
+            if (invitationCode.isBlank()) {
+                Timber.w("초대 코드가 비어 있어 복사하지 않습니다. roomId=$roomId")
+                sendEffect(GallerySideEffect.InviteCodeCopyFailed)
+                return@launch
+            }
+
+            clipboardRepository
+                .copyText(invitationCode)
+                .onSuccess { sendEffect(GallerySideEffect.InviteCodeCopied) }
+                .onFailure { failure ->
+                    Timber.e(failure.causeOrNull(), "초대 코드를 복사하지 못했습니다. roomId=$roomId")
+                    sendEffect(GallerySideEffect.InviteCodeCopyFailed)
+                }
+        }
     }
 
     private fun handlePhotoClick(photoId: Long) {
