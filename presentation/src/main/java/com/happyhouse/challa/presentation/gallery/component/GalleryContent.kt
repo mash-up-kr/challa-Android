@@ -182,7 +182,9 @@ fun GalleryContent(
                                 .pointerInput(Unit) { detectTapGestures {} },
                         invitationCode = state.invitationCode,
                         members = state.members,
-                        onInviteCodeClick = { onIntent(GalleryIntent.InviteCodeClick) },
+                        onInviteCodeClick = {
+                            onIntent(GalleryIntent.InviteCodeClick(state.invitationCode))
+                        },
                     )
 
                     if (inviteMenu.showsTooltip) {

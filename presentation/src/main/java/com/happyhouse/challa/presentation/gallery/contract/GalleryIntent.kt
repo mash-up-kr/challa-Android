@@ -20,7 +20,9 @@ sealed interface GalleryIntent : UiIntent {
     data object InviteMenuDismiss : GalleryIntent
 
     /** 초대 코드를 눌러 클립보드에 복사한다. */
-    data object InviteCodeClick : GalleryIntent
+    data class InviteCodeClick(
+        val invitationCode: String,
+    ) : GalleryIntent
 
     data object PrintCountdownClick : GalleryIntent
 

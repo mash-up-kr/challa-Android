@@ -89,7 +89,7 @@ class GalleryViewModel @AssistedInject constructor(
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
             GalleryIntent.ProfileBarClick -> handleProfileBarClick()
             GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()
-            GalleryIntent.InviteCodeClick -> handleInviteCodeClick()
+            is GalleryIntent.InviteCodeClick -> handleInviteCodeClick(intent.invitationCode)
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
         }
@@ -271,9 +271,7 @@ class GalleryViewModel @AssistedInject constructor(
         updateState { copy(inviteMenu = GalleryState.InviteMenu.Closed) }
     }
 
-    private fun handleInviteCodeClick() {
-        val invitationCode = currentState.invitationCode
-
+    private fun handleInviteCodeClick(invitationCode: String) {
         viewModelScope.launch {
             // 방 정보를 받아야 메뉴가 열리므로 여기서 코드가 비어 있으면 응답이 스펙과 다른 것이다.
             if (invitationCode.isBlank()) {
