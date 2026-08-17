@@ -171,7 +171,7 @@ private fun PhotographerInfo(
     }
 }
 
-/** 촬영자 프로필 사진. 설정하지 않았거나 불러오지 못하면 기본 프로필 아이콘을 그린다. */
+/** 촬영자 프로필 사진 */
 @Composable
 private fun PhotographerAvatar(
     profileImageUrl: String?,

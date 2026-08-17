@@ -21,11 +21,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/**
- * 참여자 프로필 바와, 바를 눌러 여는 초대 메뉴
- *
- * 첫 진입에는 [InviteMenu.Opened.showsTooltip]이 켜진 채로 열려 초대 코드 사용을 안내한다.
- */
+/** 참여자 프로필 바와, 바를 눌러 여는 초대 메뉴 */
 @Composable
 fun GalleryProfileMenu(
     members: ImmutableList<GalleryMemberUiModel>,
@@ -39,7 +35,7 @@ fun GalleryProfileMenu(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // 인화 카운트다운으로 1초마다 재구성되므로 참여자가 그대로면 목록을 다시 만들지 않는다.
+        // 카운트다운으로 1초마다 재구성되므로 참여자가 그대로면 목록을 다시 만들지 않는다.
         val profileImageUrls =
             remember(members) {
                 members.map(GalleryMemberUiModel::profileImageUrl).toPersistentList()
@@ -66,7 +62,7 @@ fun GalleryProfileMenu(
             modifier =
                 Modifier
                     .padding(top = 8.dp)
-                    // 메뉴 안쪽 빈 곳을 눌러도 바깥 닫기 레이어로 새지 않도록 여기서 터치를 소비한다.
+                    // 메뉴 안쪽 터치가 바깥 닫기 레이어로 새지 않게 소비한다.
                     .pointerInput(Unit) { detectTapGestures {} },
             invitationCode = invitationCode,
             members = members,

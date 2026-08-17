@@ -53,7 +53,7 @@ private val BarPadding = 2.dp
  * @param contentDescription 아바타가 하나씩 읽히면 소음이 되므로 바 전체를 대신 읽어줄 문구.
  *  아바타가 하나도 없으면 아예 그리지 않으므로 읽어줄 문구가 없는 경우가 없어 필수로 받는다.
  * @param isExpanded 바에 딸린 메뉴가 열려 있는지. 열려 있으면 배경색이 반전된다.
- * @param onClickLabel 누르면 무엇이 일어나는지 읽어줄 문구. [contentDescription]은 바가 무엇인지만 읽어준다.
+ * @param onClickLabel 누르면 무엇이 일어나는지 읽어줄 문구
  * @param onClick null이면 누를 수 없는 바로 그린다.
  */
 @Composable

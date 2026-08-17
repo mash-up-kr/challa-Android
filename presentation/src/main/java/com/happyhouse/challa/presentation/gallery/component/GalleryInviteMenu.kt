@@ -48,7 +48,7 @@ private val MemberListMaxHeight = 450.dp
 /**
  * 초대 코드와 방 참여자 목록을 담은 메뉴
  *
- * @param members 비어 있으면 참여자 영역 없이 초대 코드만 그린다(아직 못 받아온 경우).
+ * @param members 비어 있으면 초대 코드만 그린다.
  */
 @Composable
 fun GalleryInviteMenu(

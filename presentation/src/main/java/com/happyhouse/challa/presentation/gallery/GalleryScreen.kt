@@ -68,9 +68,9 @@ private fun GalleryScaffold(
     onBackClick: () -> Unit,
 ) {
     ChallaScaffold(
-        // 배경과 하단 글로우는 화면 루트에서 그리므로 스캐폴드는 비워 둔다.
+        // 배경과 글로우는 화면 루트에서 그린다.
         containerColor = Color.Transparent,
-        // 그리드가 시스템 바 밑까지 이어져야 해서 content에는 인셋을 주지 않는다(상단 바는 ChallaScaffold가, 하단 바는 스스로 처리).
+        // 그리드가 시스템 바 밑까지 이어지도록 content에는 인셋을 주지 않는다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             GalleryTopBar(
@@ -145,7 +145,7 @@ private fun GalleryScaffold(
                 }
             }
 
-            // 참여자를 못 받으면 프로필 바가 그려지지 않아 메뉴를 열고 닫을 자리도 없다.
+            // 참여자를 못 받으면 프로필 바가 없어 메뉴를 열고 닫을 자리도 없다.
             val showsProfileMenu =
                 state.members.isNotEmpty() &&
                     when (state.photoInfo) {
@@ -155,7 +155,7 @@ private fun GalleryScaffold(
 
             if (showsProfileMenu) {
                 if (state.inviteMenu is GalleryState.InviteMenu.Opened) {
-                    // 메뉴 바깥을 누르면 닫는다. 하단 바보다 위에 깔아 어디를 누르든 닫기가 먼저 먹는다.
+                    // 하단 바보다 위에 깔아야 어디를 누르든 닫기가 먼저 먹는다.
                     Box(
                         modifier =
                             Modifier

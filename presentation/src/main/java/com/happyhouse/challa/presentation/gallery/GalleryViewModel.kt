@@ -68,7 +68,7 @@ class GalleryViewModel @AssistedInject constructor(
     /** 완료 시각이 지났는데도 상태가 인화 대기일 때 다시 확인한 횟수 */
     private var printStatusRecheckCount = 0
 
-    /** 첫 진입 안내를 이미 처리했는지. 인화 상태 재조회로 방 정보를 다시 받아도 메뉴가 또 열리지 않게 한다. */
+    /** 인화 상태 재조회로 방 정보를 다시 받아도 초대 메뉴가 또 열리지 않게 한다. */
     private var hasHandledFirstVisit = false
 
     init {
@@ -140,7 +140,6 @@ class GalleryViewModel @AssistedInject constructor(
                 }
 
                 startCountdownIfNeeded(room, remainingSeconds)
-                // 초대 코드가 담긴 뒤에 열어야 메뉴가 빈 코드로 먼저 그려지지 않는다.
                 openInviteMenuIfFirstVisit()
             }
     }
@@ -225,10 +224,9 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     /**
-     * 방을 만들고 처음 들어온 사람에게 초대 메뉴를 열어 초대 코드를 바로 보여준다.
+     * 방에 처음 들어온 사람에게 초대 메뉴를 열어 초대 코드를 바로 보여준다.
      *
      * 방 정보를 받은 뒤에 기록해야 조회에 실패해 메뉴를 못 본 진입이 첫 진입을 소진하지 않는다.
-     * 첫 진입 확인이 실패하면 안내 없이 평소처럼 닫힌 채로 둔다.
      */
     private suspend fun openInviteMenuIfFirstVisit() {
         if (hasHandledFirstVisit) return
@@ -253,7 +251,7 @@ class GalleryViewModel @AssistedInject constructor(
                 inviteMenu =
                     when (inviteMenu) {
                         is GalleryState.InviteMenu.Opened -> GalleryState.InviteMenu.Closed
-                        // 직접 연 메뉴에는 첫 진입 안내 툴팁을 붙이지 않는다.
+                        // 직접 연 메뉴에는 툴팁을 붙이지 않는다.
                         GalleryState.InviteMenu.Closed ->
                             GalleryState.InviteMenu.Opened(showsTooltip = false)
                     },
@@ -267,7 +265,7 @@ class GalleryViewModel @AssistedInject constructor(
 
     private fun handleInviteCodeClick(invitationCode: String) {
         viewModelScope.launch {
-            // 방 정보를 받아야 메뉴가 열리므로 여기서 코드가 비어 있으면 응답이 스펙과 다른 것이다.
+            // 방 정보를 받아야 메뉴가 열리므로, 코드가 비었다면 응답이 스펙과 다른 것이다.
             if (invitationCode.isBlank()) {
                 Timber.w("초대 코드가 비어 있어 복사하지 않습니다. roomId=$roomId")
                 sendEffect(GallerySideEffect.InviteCodeCopyFailed)

@@ -28,7 +28,6 @@ class ClipboardRepositoryImpl @Inject constructor(
         }
 
     private companion object {
-        /** 복사한 내용을 붙여넣을 때 시스템이 함께 보여줄 수 있는 이름 */
         const val CLIP_LABEL = "challa"
     }
 }

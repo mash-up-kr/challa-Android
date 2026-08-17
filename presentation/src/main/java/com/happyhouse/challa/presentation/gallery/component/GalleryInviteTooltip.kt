@@ -20,11 +20,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/**
- * 초대 메뉴 아래에 붙어 초대 코드 사용법을 알려주는 툴팁
- *
- * 노출 여부는 화면이 정하고, 여기서는 그리기만 한다.
- */
+/** 초대 메뉴 아래에 붙는 안내 툴팁 */
 @Composable
 fun GalleryInviteTooltip(modifier: Modifier = Modifier) {
     val tooltipColor = ChallaTheme.colors.backgroundLevel3

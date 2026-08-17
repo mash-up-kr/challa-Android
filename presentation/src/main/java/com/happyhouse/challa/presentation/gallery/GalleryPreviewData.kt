@@ -12,7 +12,7 @@ internal const val PREVIEW_REMAINING_SECONDS = 10_798L
 /** @Preview 전용 필름 총 칸 수 */
 internal const val PREVIEW_FILM_SLOT_COUNT = 24
 
-/** @Preview 전용 mock 참여자 닉네임. 참여자 수가 이보다 많으면 앞에서부터 다시 쓴다. */
+/** @Preview 전용 mock 닉네임. 참여자가 더 많으면 앞에서부터 다시 쓴다. */
 private val PREVIEW_MEMBER_NICKNAMES =
     listOf("부리부리자에몽", "감자도리", "말차라떼", "우주먼지", "구름과자", "노랑노랑")
 

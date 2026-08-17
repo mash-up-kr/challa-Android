@@ -19,10 +19,7 @@ data class GalleryState(
     sealed interface InviteMenu {
         data object Closed : InviteMenu
 
-        /**
-         * @param showsTooltip 초대 코드 사용을 권하는 툴팁을 함께 띄울지.
-         *  방마다 첫 진입에서 한 번만 true이고, 메뉴가 닫히면 상태가 [Closed]가 되어 툴팁도 사라진다.
-         */
+        /** @param showsTooltip 방마다 첫 진입에서만 true. 메뉴가 닫히면 [Closed]가 되어 툴팁도 사라진다. */
         data class Opened(
             val showsTooltip: Boolean,
         ) : InviteMenu

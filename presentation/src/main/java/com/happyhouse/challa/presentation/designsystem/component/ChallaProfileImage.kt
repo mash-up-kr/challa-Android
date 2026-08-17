@@ -28,12 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 /**
  * 원형 프로필 사진
  *
- * 기본 프로필 아이콘을 바닥에 깔고 그 위에 사진을 덮으므로,
- * 사진이 없거나(null) 불러오는 중이거나 실패해도 늘 기본 아이콘이 보인다.
+ * 기본 아이콘을 깔고 그 위에 사진을 덮으므로, 사진이 없거나 로딩·실패해도 기본 아이콘이 보인다.
  *
- * @param profileImageUrl 프로필 사진을 등록하지 않은 사용자는 null
- * @param backgroundColor 사진 뒤에 깔 색. 기본 아이콘이 배경과 구분돼야 할 때 지정한다.
- * @param fallbackIconTint 기본 프로필 아이콘 색. null이면 아이콘 원본 색을 쓴다.
+ * @param fallbackIconTint null이면 아이콘 원본 색을 쓴다.
  */
 @Composable
 fun ChallaProfileImage(
