@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
@@ -29,11 +34,15 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
 private val PhotoDetailBackgroundColor = Color(0xFF111111)
 
+/** 받아둔 사진의 끝에서 이만큼 남았을 때 다음 페이지를 미리 요청한다. */
+private const val LOAD_MORE_PREFETCH_PAGE_COUNT = 3
+
 @Composable
 fun PhotoDetailScreen(
     state: PhotoDetailState,
     snackbarHostState: SnackbarHostState,
     onRetryClick: () -> Unit,
+    onLoadMore: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
@@ -42,14 +51,26 @@ fun PhotoDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val photos = (state.photoInfo as? PhotoInfo.Loaded)?.photos ?: persistentListOf()
-    val pagerState =
-        key(photos) {
-            rememberPagerState(
-                initialPage = photos.indexOfFirst { it.id == state.initialPhotoId }.coerceAtLeast(0),
-                pageCount = { photos.size },
-            )
-        }
+    val pagerState = rememberPagerState(pageCount = { photos.size })
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
+
+    // 사진이 처음 도착했을 때만 진입한 사진으로 옮긴다. 다음 페이지를 이어 받아도 보던 자리를 지켜야 한다.
+    var hasMovedToInitialPhoto by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(photos, state.initialPhotoId) {
+        if (hasMovedToInitialPhoto || photos.isEmpty()) return@LaunchedEffect
+
+        val initialIndex = photos.indexOfFirst { photo -> photo.id == state.initialPhotoId }
+        if (initialIndex >= 0) pagerState.scrollToPage(initialIndex)
+
+        hasMovedToInitialPhoto = true
+    }
+
+    val reachedLoadMoreThreshold by remember(photos) {
+        derivedStateOf { pagerState.currentPage >= photos.size - LOAD_MORE_PREFETCH_PAGE_COUNT }
+    }
+    LaunchedEffect(reachedLoadMoreThreshold, photos.size) {
+        if (reachedLoadMoreThreshold) onLoadMore()
+    }
 
     ChallaScaffold(
         modifier = modifier,
@@ -112,6 +133,7 @@ private fun PhotoDetailScreenPreview() {
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
+        onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
         onMessageChange = {},
@@ -138,6 +160,7 @@ private fun PhotoDetailScreenLoadingPreview() {
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
+        onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
         onMessageChange = {},
@@ -164,6 +187,7 @@ private fun PhotoDetailScreenErrorPreview() {
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
+        onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
         onMessageChange = {},
@@ -190,6 +214,7 @@ private fun PhotoDetailScreenEmptyPreview() {
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onRetryClick = {},
+        onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
         onMessageChange = {},

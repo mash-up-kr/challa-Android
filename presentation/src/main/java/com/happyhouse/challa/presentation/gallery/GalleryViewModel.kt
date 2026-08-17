@@ -1,12 +1,17 @@
 package com.happyhouse.challa.presentation.gallery
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.Photo
+import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.domain.result.causeOrNull
+import com.happyhouse.challa.domain.result.onFailure
+import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
@@ -19,10 +24,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -40,10 +42,27 @@ class GalleryViewModel @AssistedInject constructor(
         initialState = GalleryState(roomId = roomId),
     ) {
     private var loadJob: Job? = null
+    private var appendJob: Job? = null
+    private var membersJob: Job? = null
     private var countdownJob: Job? = null
 
+    /** 지금까지 받아둔 사진 */
+    private val loadedPhotos = mutableListOf<Photo>()
+    private val loadedPhotoIds = mutableSetOf<Long>()
+    private var nextPhotoPage = FIRST_PHOTO_PAGE
+    private var hasNextPhotoPage = false
+
+    /** 이어 받은 사진으로 본문을 다시 만들 때 쓴다. */
+    private var loadedRoom: RoomDetail? = null
+
     /** 서버가 내려준 인화 완료 시각. 아직 정해지지 않았으면 null */
-    private var printCompletionAt: Instant? = null
+    private var printCompletedAt: Instant? = null
+
+    /** 참여자 조회 실패를 이미 알렸는지. 실패가 이어지는 동안 토스트가 반복되지 않게 한다. */
+    private var hasNotifiedMembersFailure = false
+
+    /** 완료 시각이 지났는데도 상태가 인화 대기일 때 다시 확인한 횟수 */
+    private var printStatusRecheckCount = 0
 
     init {
         onIntent(GalleryIntent.PhotosLoad)
@@ -52,6 +71,7 @@ class GalleryViewModel @AssistedInject constructor(
     override fun onIntent(intent: GalleryIntent) {
         when (intent) {
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
+            GalleryIntent.PhotosLoadMore -> handlePhotosLoadMore()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
@@ -65,6 +85,10 @@ class GalleryViewModel @AssistedInject constructor(
         countdownJob?.cancel()
         // 재시도를 연타하면 조회가 겹쳐 나중에 끝난 응답이 이긴다.
         loadJob?.cancel()
+        // 이전 목록에 이어 붙이려던 페이지가 뒤늦게 도착해 섞이지 않게 한다.
+        appendJob?.cancel()
+
+        loadMembers()
 
         loadJob =
             viewModelScope.launch {
@@ -74,57 +98,117 @@ class GalleryViewModel @AssistedInject constructor(
 
                 // 방 정보와 사진 목록이 둘 다 있어야 화면을 그릴 수 있으므로 함께 요청한다.
                 val roomDeferred = async { roomRepository.getRoom(roomId) }
-                val photosDeferred = async { photoRepository.getPhotos(roomId) }
-                val usersDeferred = async { roomRepository.getRoomUsers(roomId) }
+                val photosDeferred = async { photoRepository.getPhotos(roomId, FIRST_PHOTO_PAGE) }
                 val roomResult = roomDeferred.await()
                 val photosResult = photosDeferred.await()
 
                 if (roomResult !is ChallaResult.Success || photosResult !is ChallaResult.Success) {
                     Timber.e(
                         roomResult.causeOrNull() ?: photosResult.causeOrNull(),
-                        "갤러리를 불러오지 못했습니다. room=$roomResult, photos=$photosResult",
+                        "갤러리를 불러오지 못했습니다. roomResult=$roomResult, photosResult=$photosResult",
                     )
                     // 본문이 에러면 프로필 바도 그리지 않으므로 참여자 조회를 끝까지 기다릴 이유가 없다.
-                    usersDeferred.cancel()
+                    membersJob?.cancel()
                     updateState { copy(photoInfo = PhotoInfo.Error) }
                     return@launch
                 }
 
                 val room = roomResult.data
-                printCompletionAt = room.photoPrintCompletionAt
+                loadedRoom = room
+                printCompletedAt = room.photoPrintCompletedAt
                 val remainingSeconds = remainingSecondsUntilPrintComplete()
+
+                resetPhotoPaging()
+                appendPhotoPage(photosResult.data)
 
                 updateState {
                     copy(
                         roomName = room.title,
-                        photoInfo = room.toPhotoInfo(photosResult.data, remainingSeconds),
+                        photoInfo = room.toPhotoInfo(loadedPhotos, remainingSeconds, hasNextPhotoPage),
                     )
                 }
 
-                updateMembersWhenReady(usersDeferred)
                 startCountdownIfNeeded(room, remainingSeconds)
             }
+    }
+
+    /** 스크롤에서 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
+    private fun handlePhotosLoadMore() {
+        if (!hasNextPhotoPage) return
+        if (appendJob?.isActive == true || loadJob?.isActive == true) return
+
+        val room = loadedRoom
+        if (room == null) {
+            Timber.w("방 정보 없이 다음 사진 페이지 요청이 들어와 건너뜁니다. roomId=$roomId")
+            return
+        }
+
+        val requestedPage = nextPhotoPage
+        appendJob =
+            viewModelScope.launch {
+                photoRepository
+                    .getPhotos(roomId, requestedPage)
+                    .onSuccess { photoPage ->
+                        appendPhotoPage(photoPage)
+
+                        updateState {
+                            copy(
+                                photoInfo =
+                                    room.toPhotoInfo(
+                                        photos = loadedPhotos,
+                                        remainingSeconds = remainingSecondsUntilPrintComplete(),
+                                        hasNextPhotoPage = hasNextPhotoPage,
+                                    ),
+                            )
+                        }
+                    }.onFailure { failure ->
+                        Timber.e(
+                            failure.causeOrNull(),
+                            "다음 사진 페이지를 불러오지 못했습니다. roomId=$roomId, page=$requestedPage",
+                        )
+                        sendEffect(GallerySideEffect.PhotosLoadMoreFailed)
+                    }
+            }
+    }
+
+    private fun resetPhotoPaging() {
+        loadedPhotos.clear()
+        loadedPhotoIds.clear()
+        nextPhotoPage = FIRST_PHOTO_PAGE
+        hasNextPhotoPage = false
+    }
+
+    /** 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 그리드의 key가 겹쳐 깨진다. */
+    private fun appendPhotoPage(photoPage: PhotoPage) {
+        loadedPhotos += photoPage.photos.filter { photo -> loadedPhotoIds.add(photo.id) }
+        hasNextPhotoPage = photoPage.hasNext
+        nextPhotoPage++
     }
 
     /**
      * 참여자를 받는 대로 프로필 바에 채운다.
      *
-     * 참여자는 사진 위에 얹히는 부가 정보라, 조회가 늦어져도 갤러리 본문 표시를 붙잡지 않도록
-     * 본문을 그린 뒤 따로 기다린다. 실패하면 본문은 그대로 두고 프로필 바만 비운다.
+     * 본문 조회(loadJob)의 자식으로 두면 참여자 응답이 늦는 동안 loadJob이 살아 있어,
+     * 그 사이 올라온 다음 페이지 요청이 [handlePhotosLoadMore] 가드에 걸려 버려진다.
      */
-    private fun CoroutineScope.updateMembersWhenReady(usersDeferred: Deferred<ChallaResult<List<RoomUser>>>) {
-        launch {
-            val members =
-                when (val usersResult = usersDeferred.await()) {
-                    is ChallaResult.Success -> usersResult.data.toGalleryMembers()
-                    is ChallaResult.Failure -> {
-                        Timber.w(usersResult.causeOrNull(), "방 참여자를 불러오지 못했습니다. users=$usersResult")
-                        persistentListOf()
-                    }
-                }
+    private fun loadMembers() {
+        membersJob?.cancel()
+        membersJob =
+            viewModelScope.launch {
+                roomRepository
+                    .getRoomUsers(roomId)
+                    .onSuccess { users ->
+                        hasNotifiedMembersFailure = false
+                        updateState { copy(members = users.toGalleryMembers()) }
+                    }.onFailure { failure ->
+                        Timber.w(failure.causeOrNull(), "방 참여자를 불러오지 못했습니다. roomId=$roomId")
+                        // 이미 그린 프로필 바는 지우지 않는다. 인화 상태 재확인으로 조회가 반복되므로 알림은 한 번만 띄운다.
+                        if (hasNotifiedMembersFailure) return@onFailure
 
-            updateState { copy(members = members) }
-        }
+                        hasNotifiedMembersFailure = true
+                        sendEffect(GallerySideEffect.MembersLoadFailed)
+                    }
+            }
     }
 
     private fun handlePhotoClick(photoId: Long) {
@@ -159,11 +243,12 @@ class GalleryViewModel @AssistedInject constructor(
         if (room.status != RoomStatus.PHOTO_PRINT_PENDING) return
 
         if (remainingSeconds <= 0L) {
-            Timber.w("인화 대기지만 남은 시간이 없어 잠시 뒤 상태를 다시 확인합니다. 완료 시각=${room.photoPrintCompletionAt}")
+            Timber.w("인화 대기지만 남은 시간이 없어 잠시 뒤 상태를 다시 확인합니다. 완료 시각=${room.photoPrintCompletedAt}")
             schedulePrintStatusRecheck()
             return
         }
 
+        printStatusRecheckCount = 0
         startCountdown()
     }
 
@@ -190,10 +275,15 @@ class GalleryViewModel @AssistedInject constructor(
      * 완료 시각은 지났는데 서버 상태가 아직 인화 대기일 때, 잠시 뒤 방 상태를 다시 확인한다.
      *
      * 이 처리가 없으면 화면이 남은 시간 0인 인화 대기로 굳어 재조회할 방법이 없다.
-     * 다시 확인해도 여전히 인화 대기면 같은 경로를 타므로, 서버 상태가 넘어갈 때까지
-     * 이 화면에 머무는 동안 [PRINT_STATUS_RECHECK_MS] 간격으로 조용히 재조회한다.
+     * 다만 서버가 완료 시각을 과거로 내려주면 상태가 영영 넘어가지 않으므로 확인 횟수를 제한한다.
      */
     private fun schedulePrintStatusRecheck() {
+        if (printStatusRecheckCount >= MAX_PRINT_STATUS_RECHECK_COUNT) {
+            Timber.w("인화 대기 상태가 풀리지 않아 재조회를 멈춥니다. 완료 시각=$printCompletedAt")
+            return
+        }
+
+        printStatusRecheckCount++
         watchPrintCompletion {
             delay(PRINT_STATUS_RECHECK_MS)
         }
@@ -229,8 +319,8 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     private fun remainingSecondsUntilPrintComplete(): Long {
-        val completionAt = printCompletionAt ?: return 0L
-        val remainingMillis = completionAt.toEpochMilli() - System.currentTimeMillis()
+        val completedAt = printCompletedAt ?: return 0L
+        val remainingMillis = completedAt.toEpochMilli() - System.currentTimeMillis()
         if (remainingMillis <= 0L) return 0L
 
         // 남은 시간이 잘려서 실제보다 짧게 보이지 않도록 올림한다.
@@ -243,11 +333,15 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     companion object {
+        private const val FIRST_PHOTO_PAGE = 0
+
         private const val MILLIS_PER_SECOND = 1_000L
         private const val COUNTDOWN_TICK_MS = 1_000L
 
         /** 완료 시각이 지났는데도 서버 상태가 인화 대기일 때 다시 확인하기까지 기다리는 시간 */
         private const val PRINT_STATUS_RECHECK_MS = 5_000L
+
+        private const val MAX_PRINT_STATUS_RECHECK_COUNT = 5
     }
 }
 
@@ -258,14 +352,3 @@ private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiMode
             profileImageUrl = user.profileImageUrl,
         )
     }.toPersistentList()
-
-/**
- * 실패에 딸린 원인 예외. 스택트레이스가 남도록 로그에 함께 넘긴다.
- * 원인 예외가 없는 실패(HTTP 응답 코드로만 표현되는 실패)는 null이다.
- */
-private fun ChallaResult<*>.causeOrNull(): Throwable? =
-    when (this) {
-        is ChallaResult.Failure.Network -> cause
-        is ChallaResult.Failure.Unknown -> cause
-        is ChallaResult.Failure.Http, is ChallaResult.Success -> null
-    }

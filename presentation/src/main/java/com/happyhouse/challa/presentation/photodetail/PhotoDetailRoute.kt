@@ -42,6 +42,7 @@ fun PhotoDetailRoute(
     val saveSuccessMessage = stringResource(R.string.photo_detail_save_success)
     val saveFailureMessage = stringResource(R.string.photo_detail_save_failure)
     val loadFailureMessage = stringResource(R.string.photo_detail_load_failure)
+    val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
@@ -69,6 +70,14 @@ fun PhotoDetailRoute(
                     PhotoDetailSideEffect.PhotosLoadFailed ->
                         ChallaToastVisuals(
                             message = loadFailureMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                            topOffset = ToastTopOffset,
+                        )
+
+                    PhotoDetailSideEffect.PhotosLoadMoreFailed ->
+                        ChallaToastVisuals(
+                            message = loadMoreFailureMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,
@@ -106,6 +115,7 @@ fun PhotoDetailRoute(
         state = state,
         snackbarHostState = snackbarHostState,
         onRetryClick = { viewModel.onIntent(PhotoDetailIntent.PhotosLoad) },
+        onLoadMore = { viewModel.onIntent(PhotoDetailIntent.PhotosLoadMore) },
         onSaveClick = requestSave,
         onEmojiClick = { photo, emoji -> viewModel.onIntent(PhotoDetailIntent.ReactionClick(photo, emoji)) },
         onMessageChange = { message -> viewModel.onIntent(PhotoDetailIntent.MessageChange(message)) },
