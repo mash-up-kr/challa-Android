@@ -33,6 +33,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -46,14 +47,11 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 /** 프로필 바 아래에 붙는 메뉴라 바보다 넓지 않게 고정한다. */
 private val MenuWidth = 208.dp
 
-private val MenuCornerRadius = 20.dp
+/** 초대 코드 영역과 참여자 목록이 같은 여백을 쓴다. */
 private val MenuPadding = 16.dp
 
 /** 참여자가 많아도 메뉴가 화면을 덮지 않도록 목록에만 두는 최대 높이. 넘으면 목록 안에서 스크롤한다. */
 private val MemberListMaxHeight = 450.dp
-
-private val MemberAvatarSize = 24.dp
-private val CopyIconSize = 16.dp
 
 /**
  * 초대 코드와 방 참여자 목록을 담은 메뉴
@@ -71,7 +69,7 @@ fun GalleryInviteMenu(
         modifier =
             modifier
                 .width(MenuWidth)
-                .clip(RoundedCornerShape(MenuCornerRadius))
+                .clip(RoundedCornerShape(20.dp))
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .padding(vertical = MenuPadding),
     ) {
@@ -132,7 +130,7 @@ private fun InviteCode(
             )
 
             Icon(
-                modifier = Modifier.size(CopyIconSize),
+                modifier = Modifier.size(ChallaIconSize.V16.dp),
                 painter = painterResource(ChallaIcons.Copy),
                 // 코드 영역 전체가 하나의 복사 버튼이라 아이콘은 따로 읽어주지 않는다.
                 contentDescription = null,
@@ -171,7 +169,7 @@ private fun Member(
         AsyncImage(
             modifier =
                 Modifier
-                    .size(MemberAvatarSize)
+                    .size(24.dp)
                     .clip(CircleShape),
             model =
                 ImageRequest

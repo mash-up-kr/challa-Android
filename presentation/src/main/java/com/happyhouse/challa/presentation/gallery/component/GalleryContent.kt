@@ -43,12 +43,6 @@ import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
 import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/** 프로필 바와 그 아래 열리는 초대 메뉴 사이 간격 */
-private val InviteMenuTopSpacing = 8.dp
-
-/** 초대 메뉴와 그 아래 붙는 툴팁 사이 간격 */
-private val InviteTooltipTopSpacing = 4.dp
-
 /**
  * 갤러리 본문
  * 로딩/에러/촬영 중/인화 대기/인화 완료 분기
@@ -177,7 +171,7 @@ fun GalleryContent(
                     GalleryInviteMenu(
                         modifier =
                             Modifier
-                                .padding(top = InviteMenuTopSpacing)
+                                .padding(top = 8.dp)
                                 // 메뉴 안쪽 빈 곳을 눌러도 바깥 닫기로 새지 않도록 여기서 터치를 소비한다.
                                 .pointerInput(Unit) { detectTapGestures {} },
                         invitationCode = state.invitationCode,
@@ -188,7 +182,7 @@ fun GalleryContent(
                     )
 
                     if (inviteMenu.showsTooltip) {
-                        GalleryInviteTooltip(modifier = Modifier.padding(top = InviteTooltipTopSpacing))
+                        GalleryInviteTooltip(modifier = Modifier.padding(top = 4.dp))
                     }
                 }
             }

@@ -20,14 +20,6 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-private val TooltipCornerRadius = 8.dp
-private val TooltipHorizontalPadding = 12.dp
-private val TooltipVerticalPadding = 6.dp
-
-/** 위쪽 메뉴를 가리키는 꼬리 */
-private val TailWidth = 12.dp
-private val TailHeight = 6.dp
-
 /**
  * 초대 메뉴 아래에 붙어 초대 코드 사용법을 알려주는 툴팁
  *
@@ -41,7 +33,8 @@ fun GalleryInviteTooltip(modifier: Modifier = Modifier) {
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Canvas(modifier = Modifier.size(width = TailWidth, height = TailHeight)) {
+        // 위쪽 메뉴를 가리키는 꼬리
+        Canvas(modifier = Modifier.size(width = 12.dp, height = 6.dp)) {
             val tail =
                 Path().apply {
                     moveTo(size.width / 2f, 0f)
@@ -55,12 +48,9 @@ fun GalleryInviteTooltip(modifier: Modifier = Modifier) {
         Text(
             modifier =
                 Modifier
-                    .clip(RoundedCornerShape(TooltipCornerRadius))
+                    .clip(RoundedCornerShape(8.dp))
                     .background(tooltipColor)
-                    .padding(
-                        horizontal = TooltipHorizontalPadding,
-                        vertical = TooltipVerticalPadding,
-                    ),
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
             text = stringResource(R.string.gallery_invite_tooltip),
             color = ChallaTheme.colors.labelSubtle,
             maxLines = 1,
