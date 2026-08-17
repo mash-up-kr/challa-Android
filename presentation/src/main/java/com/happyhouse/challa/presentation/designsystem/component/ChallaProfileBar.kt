@@ -13,9 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -23,11 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
@@ -108,10 +101,12 @@ fun ChallaProfileBar(
     ) {
         // Row는 나중에 놓인 자식이 위에 그려지므로, 왼쪽이 오른쪽을 덮는 디자인에 맞춰 z축을 뒤집는다.
         visibleUrls.forEachIndexed { index, profileImageUrl ->
-            MemberAvatar(
-                modifier = Modifier.zIndex((visibleUrls.size - index).toFloat()),
+            ChallaProfileImage(
+                modifier =
+                    Modifier
+                        .zIndex((visibleUrls.size - index).toFloat())
+                        .memberCircle(barColor),
                 profileImageUrl = profileImageUrl,
-                ringColor = barColor,
             )
         }
 
@@ -124,28 +119,6 @@ fun ChallaProfileBar(
             )
         }
     }
-}
-
-/** [profileImageUrl] 이 null 이면 Coil 이 이미지를 만들지 못해 기본 프로필 아이콘이 그려진다. */
-@Composable
-private fun MemberAvatar(
-    profileImageUrl: String?,
-    ringColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    AsyncImage(
-        modifier = modifier.memberCircle(ringColor),
-        model =
-            ImageRequest
-                .Builder(LocalContext.current)
-                .data(profileImageUrl)
-                .crossfade(true)
-                .build(),
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        placeholder = painterResource(ChallaIcons.Profile),
-        error = painterResource(ChallaIcons.Profile),
-    )
 }
 
 @Composable
