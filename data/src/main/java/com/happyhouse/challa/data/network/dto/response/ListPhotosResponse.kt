@@ -18,8 +18,8 @@ data class ListPhotosResponse(
         // 타입은 약속대로 non-null로 두되, 필드가 빠져도 목록 전체가 MissingFieldException으로
         // 터지지 않도록 기본값을 둔다. 빈 값이 실제로 오면 toPhoto()에서 경고를 남긴다.
         val imageUrl: String = "",
-        // 탈퇴해도 서버가 대체 닉네임을 내려주므로 비는 플로우가 없다. 기본값은 imageUrl과 같은 이유다.
-        val userNickname: String = "",
+        // 탈퇴해도 서버가 대체 닉네임을 내려주므로 비는 플로우가 없다. 항상 온다는 약속대로 필수 필드로 둔다.
+        val userNickname: String,
         // 미설정·탈퇴(삭제)로 실제로 없을 수 있다. 기본값이 없으면 필드 누락 시 파싱이 터진다.
         val userProfileImageUrl: String? = null,
         val createdAt: String,
