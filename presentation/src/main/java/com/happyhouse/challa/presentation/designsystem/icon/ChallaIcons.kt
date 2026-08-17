@@ -44,6 +44,9 @@ object ChallaIcons {
     val Close = R.drawable.ic_close
 
     @DrawableRes
+    val Copy = R.drawable.ic_copy
+
+    @DrawableRes
     val Download = R.drawable.ic_download
 
     @DrawableRes
