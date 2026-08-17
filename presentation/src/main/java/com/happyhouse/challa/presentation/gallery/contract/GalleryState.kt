@@ -9,9 +9,25 @@ import kotlinx.collections.immutable.persistentListOf
 data class GalleryState(
     val roomId: Long = 0L,
     val roomName: String = "",
+    val invitationCode: String = "",
     val members: ImmutableList<GalleryMemberUiModel> = persistentListOf(),
+    val inviteMenu: InviteMenu = InviteMenu.Closed,
     val photoInfo: PhotoInfo = PhotoInfo.Loading,
 ) : UiState {
+    /** 프로필 바에 딸린 초대 코드·참여자 목록 메뉴의 상태 */
+    @Immutable
+    sealed interface InviteMenu {
+        data object Closed : InviteMenu
+
+        /**
+         * @param showsTooltip 초대 코드 사용을 권하는 툴팁을 함께 띄울지.
+         *  방마다 첫 진입에서 한 번만 true이고, 메뉴가 닫히면 상태가 [Closed]가 되어 툴팁도 사라진다.
+         */
+        data class Opened(
+            val showsTooltip: Boolean,
+        ) : InviteMenu
+    }
+
     @Immutable
     sealed interface PhotoInfo {
         data object Loading : PhotoInfo
