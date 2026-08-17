@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraOnboardingState
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
@@ -61,12 +62,18 @@ class CameraViewModel @AssistedInject constructor(
             cameraRepository.hasCompletedOnboarding.collect { result ->
                 when (result) {
                     is ChallaResult.Success -> {
-                        updateState { copy(hasCompletedOnboarding = result.data) }
+                        val onboardingState =
+                            if (result.data) {
+                                CameraOnboardingState.COMPLETED
+                            } else {
+                                CameraOnboardingState.REQUIRED
+                            }
+                        updateState { copy(onboardingState = onboardingState) }
                     }
 
                     is ChallaResult.Failure -> {
                         Timber.e("카메라 온보딩 완료 여부를 불러오지 못했습니다: %s", result)
-                        updateState { copy(hasCompletedOnboarding = true) }
+                        updateState { copy(onboardingState = CameraOnboardingState.COMPLETED) }
                     }
                 }
             }
@@ -74,7 +81,7 @@ class CameraViewModel @AssistedInject constructor(
     }
 
     private fun handleOnboardingConfirmClick() {
-        updateState { copy(hasCompletedOnboarding = true) }
+        updateState { copy(onboardingState = CameraOnboardingState.COMPLETED) }
 
         viewModelScope.launch {
             val result = cameraRepository.completeOnboarding()

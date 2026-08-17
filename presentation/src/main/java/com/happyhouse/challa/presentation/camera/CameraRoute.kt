@@ -14,6 +14,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraOnboardingState
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.onboarding.rememberCameraOnboardingVisibility
@@ -53,7 +54,7 @@ fun CameraRoute(
     val retryLabel = stringResource(R.string.camera_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
     val shouldShowOnboarding =
-        state.value.hasCompletedOnboarding == false &&
+        state.value.onboardingState == CameraOnboardingState.REQUIRED &&
             state.value.roomLoadState == CameraRoomLoadState.LOADED &&
             permissionController.state == CameraPermissionState.Granted
     val isOnboardingVisible =
