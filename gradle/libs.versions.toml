@@ -11,6 +11,7 @@ agp = "9.1.1"
 kotlin = "2.4.0"
 ksp = "2.3.9"
 ktlintGradle = "14.2.0"
+googleServices = "4.5.0"
 
 # AndroidX
 coreKtx = "1.19.0"
@@ -55,6 +56,9 @@ datastore = "1.1.7"
 
 # Auth
 kakao = "2.20.6"
+
+# Firebase
+firebaseBom = "34.16.0"
 
 # Test
 junit = "4.13.2"
@@ -131,6 +135,10 @@ soloader = { group = "com.facebook.soloader", name = "soloader", version.ref = "
 # Kakao
 kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao" }
 
+# Firebase
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+
 # DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
@@ -202,3 +210,4 @@ kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref =
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintGradle" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
