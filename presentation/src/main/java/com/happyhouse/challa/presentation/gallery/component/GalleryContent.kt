@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -19,28 +18,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileBar
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.gallery.PREVIEW_FILM_SLOT_COUNT
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
-import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
-import com.happyhouse.challa.presentation.gallery.contract.GalleryState.InviteMenu
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import com.happyhouse.challa.presentation.gallery.previewGalleryFilmSlots
-import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
-import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
@@ -115,75 +107,6 @@ fun GalleryContent(
                         state = gridState,
                         extraBottomPadding = extraBottomPadding,
                     )
-                }
-            }
-        }
-
-        // 그리드가 크로스페이드되는 동안 겹쳐 보이지 않도록 프로필 바는 밖에 둔다.
-        val showsProfileBar =
-            when (state.photoInfo) {
-                is PhotoInfo.Film, is PhotoInfo.Printed -> true
-                PhotoInfo.Loading, PhotoInfo.Error -> false
-            }
-        if (showsProfileBar) {
-            val inviteMenu = state.inviteMenu
-
-            if (inviteMenu is InviteMenu.Opened) {
-                // 메뉴 바깥을 누르면 닫는다. 그리드보다 위, 메뉴보다 아래에 깔아 다른 터치를 먼저 받는다.
-                Box(
-                    modifier =
-                        Modifier
-                            .matchParentSize()
-                            .noRippleClickOnce(
-                                onClickLabel = stringResource(R.string.gallery_invite_menu_close_label),
-                                onClick = { onIntent(GalleryIntent.InviteMenuDismiss) },
-                            ),
-                )
-            }
-
-            Column(
-                modifier = Modifier.align(Alignment.TopCenter),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                // 카운트다운으로 1초마다 재구성되므로 참여자가 그대로면 목록을 다시 만들지 않는다.
-                val profileImageUrls =
-                    remember(state.members) {
-                        state.members.map(GalleryMemberUiModel::profileImageUrl).toPersistentList()
-                    }
-
-                ChallaProfileBar(
-                    profileImageUrls = profileImageUrls,
-                    contentDescription =
-                        stringResource(R.string.gallery_member_count_description, state.members.size),
-                    isExpanded = inviteMenu is InviteMenu.Opened,
-                    onClickLabel =
-                        stringResource(
-                            if (inviteMenu is InviteMenu.Opened) {
-                                R.string.gallery_invite_menu_close_label
-                            } else {
-                                R.string.gallery_invite_menu_open_label
-                            },
-                        ),
-                    onClick = { onIntent(GalleryIntent.ProfileBarClick) },
-                )
-
-                if (inviteMenu is InviteMenu.Opened) {
-                    GalleryInviteMenu(
-                        modifier =
-                            Modifier
-                                .padding(top = 8.dp)
-                                // 메뉴 안쪽 빈 곳을 눌러도 바깥 닫기로 새지 않도록 여기서 터치를 소비한다.
-                                .pointerInput(Unit) { detectTapGestures {} },
-                        invitationCode = state.invitationCode,
-                        members = state.members,
-                        onInviteCodeClick = {
-                            onIntent(GalleryIntent.InviteCodeClick(state.invitationCode))
-                        },
-                    )
-
-                    if (inviteMenu.showsTooltip) {
-                        GalleryInviteTooltip(modifier = Modifier.padding(top = 4.dp))
-                    }
                 }
             }
         }
@@ -293,51 +216,11 @@ private fun GalleryContentErrorPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Error)
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 640,
-    name = "Gallery - 초대 메뉴 열림",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryContentInviteMenuPreview() {
-    GalleryContentPreviewTemplate(
-        photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()),
-        inviteMenu = InviteMenu.Opened(showsTooltip = false),
-    )
-}
-
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 640,
-    name = "Gallery - 초대 메뉴 열림(첫 진입 툴팁)",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun GalleryContentInviteMenuWithTooltipPreview() {
-    GalleryContentPreviewTemplate(
-        photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()),
-        inviteMenu = InviteMenu.Opened(showsTooltip = true),
-    )
-}
-
-@Composable
-private fun GalleryContentPreviewTemplate(
-    photoInfo: PhotoInfo,
-    inviteMenu: InviteMenu = InviteMenu.Closed,
-) {
+private fun GalleryContentPreviewTemplate(photoInfo: PhotoInfo) {
     GalleryContent(
         modifier = Modifier.fillMaxSize(),
-        state =
-            GalleryState(
-                roomName = "친구들과 강릉 여행",
-                invitationCode = "1928121",
-                members = previewGalleryMembers(),
-                inviteMenu = inviteMenu,
-                photoInfo = photoInfo,
-            ),
+        state = GalleryState(roomName = "친구들과 강릉 여행", photoInfo = photoInfo),
         onIntent = {},
     )
 }
