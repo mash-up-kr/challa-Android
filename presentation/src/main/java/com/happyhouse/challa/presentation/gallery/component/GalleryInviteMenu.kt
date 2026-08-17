@@ -61,7 +61,7 @@ fun GalleryInviteMenu(
         modifier =
             modifier
                 .width(MenuWidth)
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(ChallaTheme.colors.staticBlack)
                 .padding(vertical = MenuPadding),
     ) {
