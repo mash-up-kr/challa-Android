@@ -6,6 +6,7 @@ import com.happyhouse.challa.data.repository.ImageUploadRepositoryImpl
 import com.happyhouse.challa.data.repository.NotificationRepositoryImpl
 import com.happyhouse.challa.data.repository.PhotoRepositoryImpl
 import com.happyhouse.challa.data.repository.RoomRepositoryImpl
+import com.happyhouse.challa.data.repository.RoomVisitRepositoryImpl
 import com.happyhouse.challa.data.repository.ThemeRepositoryImpl
 import com.happyhouse.challa.data.repository.UserRepositoryImpl
 import com.happyhouse.challa.domain.repository.AuthRepository
@@ -14,6 +15,7 @@ import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.NotificationRepository
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.repository.RoomVisitRepository
 import com.happyhouse.challa.domain.repository.ThemeRepository
 import com.happyhouse.challa.domain.repository.UserRepository
 import dagger.Binds
@@ -40,6 +42,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindRoomRepository(impl: RoomRepositoryImpl): RoomRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRoomVisitRepository(impl: RoomVisitRepositoryImpl): RoomVisitRepository
 
     @Binds
     @Singleton
