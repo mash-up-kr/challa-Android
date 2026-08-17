@@ -5,11 +5,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,7 +42,6 @@ fun CameraRoute(
     val coroutineScope = rememberCoroutineScope()
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
-    var cameraBindingRetryKey by remember { mutableIntStateOf(0) }
     val roomLoadFailedMessage = stringResource(R.string.camera_room_load_failed_message)
     val flashNotAvailableMessage = stringResource(R.string.camera_flash_not_available_message)
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
@@ -101,11 +97,11 @@ fun CameraRoute(
                 CameraSideEffect.FlashNotAvailable -> {
                     launch {
                         snackbarHostState.showSnackbar(
-                            ChallaSnackbarVisuals(
-                                content =
-                                    ChallaSnackbarContent.HeadingOnly(
-                                        heading = flashNotAvailableMessage,
-                                    ),
+                            ChallaToastVisuals(
+                                message = flashNotAvailableMessage,
+                                icon = ChallaIcons.Error,
+                                iconTint = destructiveIconTint,
+                                topOffset = 112.dp,
                             ),
                         )
                     }
@@ -133,18 +129,18 @@ fun CameraRoute(
         permissionState = permissionController.state,
         snackbarHostState = snackbarHostState,
         isOnboardingVisible = isOnboardingVisible,
-        cameraBindingRetryKey = cameraBindingRetryKey,
+        cameraBindingRetryKey = 0,
         onRequestPermissionClick = permissionController.requestPermission,
         onCameraBindingFailed = { _ ->
             coroutineScope.launch {
-                val result =
-                    snackbarHostState.showSnackbar(
+                snackbarHostState.showSnackbar(
+                    ChallaToastVisuals(
                         message = cameraBindingFailedMessage,
-                        actionLabel = retryLabel,
-                    )
-                if (result == SnackbarResult.ActionPerformed) {
-                    cameraBindingRetryKey += 1
-                }
+                        icon = ChallaIcons.Error,
+                        iconTint = destructiveIconTint,
+                        topOffset = 112.dp,
+                    ),
+                )
             }
         },
         onPhotoCaptured = viewModel::onPhotoCaptured,

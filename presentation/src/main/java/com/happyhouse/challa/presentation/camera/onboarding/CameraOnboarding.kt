@@ -55,10 +55,6 @@ internal fun rememberCameraOnboardingVisibility(
         actionLabelColor,
     ) {
         val currentStep = step ?: return@LaunchedEffect
-        if (currentStep == CameraOnboardingStep.CAPTURE_COUNT) {
-            snackbarHostState.currentSnackbarData?.dismiss()
-        }
-
         val result =
             snackbarHostState.showSnackbar(
                 ChallaSnackbarVisuals(
