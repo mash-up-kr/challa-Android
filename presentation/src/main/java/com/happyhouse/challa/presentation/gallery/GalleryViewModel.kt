@@ -209,6 +209,8 @@ class GalleryViewModel @AssistedInject constructor(
                     .onSuccess { users ->
                         hasNotifiedMembersFailure = false
                         updateState { copy(members = users.toGalleryMembers()) }
+                        // 참여자가 방 정보보다 늦게 도착했으면 여기서 첫 진입 안내를 연다.
+                        openInviteMenuIfFirstVisit()
                     }.onFailure { failure ->
                         Timber.w(failure.causeOrNull(), "방 참여자를 불러오지 못했습니다. roomId=$roomId")
                         // 이미 그린 프로필 바는 지우지 않는다. 인화 상태 재확인으로 조회가 반복되므로 알림은 한 번만 띄운다.
@@ -223,10 +225,13 @@ class GalleryViewModel @AssistedInject constructor(
     /**
      * 방에 처음 들어온 사람에게 초대 메뉴를 열어 초대 코드를 바로 보여준다.
      *
-     * 방 정보를 받은 뒤에 기록해야 조회에 실패해 메뉴를 못 본 진입이 첫 진입을 소진하지 않는다.
+     * 방 정보와 참여자가 모두 있어야 메뉴를 그리므로, 둘 다 도착한 뒤에 기록한다.
+     * 그래야 메뉴를 보여주지 못한 진입이 첫 진입을 소진하지 않는다.
      */
     private suspend fun openInviteMenuIfFirstVisit() {
         if (hasHandledFirstVisit) return
+        if (loadedRoom == null || currentState.members.isEmpty()) return
+
         hasHandledFirstVisit = true
 
         roomVisitRepository
