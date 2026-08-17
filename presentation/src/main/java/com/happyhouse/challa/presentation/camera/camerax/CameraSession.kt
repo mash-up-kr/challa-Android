@@ -119,16 +119,25 @@ internal fun CameraSession(
 
     val selectedLut =
         (selectedFilter as? CameraFilterUiModel.Remote)?.let { loadedLuts[it.fileUrl] }
+    val previewFilter =
+        if (selectedFilter == CameraFilterUiModel.Original || selectedLut != null) {
+            selectedFilter
+        } else {
+            CameraFilterUiModel.Original
+        }
 
     LaunchedEffect(previewView, selectedFilter, selectedLut) {
         previewView.applyCameraFilter(selectedFilter, selectedLut)
+        sessionState = sessionState.copy(previewFilter = previewFilter)
+        currentOnStateChanged(sessionState)
     }
 
     // Controller 초기화 후 선택한 렌즈를 Lifecycle에 바인딩하고 세션 해제 시 unbind합니다.
     LaunchedEffect(cameraController, lifecycleOwner, previewView, lensFacing) {
         sessionState =
-            CameraSessionState(
+            sessionState.copy(
                 bindingState = CameraBindingState.Binding(lensFacing),
+                isCapturing = false,
             )
         currentOnStateChanged(sessionState)
 
@@ -148,12 +157,13 @@ internal fun CameraSession(
                 }
 
             sessionState =
-                CameraSessionState(
+                sessionState.copy(
                     bindingState =
                         CameraBindingState.Ready(
                             lensFacing = lensFacing,
                             hasFlashUnit = cameraInfo.hasFlashUnit(),
                         ),
+                    isCapturing = false,
                 )
             currentOnStateChanged(sessionState)
             awaitCancellation()
@@ -164,19 +174,24 @@ internal fun CameraSession(
             Timber.e(throwable, "카메라 Controller 초기화 또는 바인딩에 실패했습니다")
             val bindingFailure = throwable.toCameraBindingFailure()
             sessionState =
-                CameraSessionState(
+                sessionState.copy(
                     bindingState =
                         CameraBindingState.Failed(
                             lensFacing = lensFacing,
                             reason = bindingFailure,
                         ),
+                    isCapturing = false,
                 )
             currentOnStateChanged(sessionState)
             currentOnEvent(CameraSessionEvent.BindingFailed(bindingFailure))
             awaitCancellation()
         } finally {
             cameraController.unbind()
-            sessionState = CameraSessionState()
+            sessionState =
+                sessionState.copy(
+                    bindingState = CameraBindingState.Idle,
+                    isCapturing = false,
+                )
             currentOnStateChanged(sessionState)
         }
     }

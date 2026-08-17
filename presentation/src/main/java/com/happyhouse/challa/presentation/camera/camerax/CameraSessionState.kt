@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.camera.camerax
 
 import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 
 /**
@@ -8,6 +9,7 @@ import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
  *
  * @property bindingState Controller의 초기화 및 Lifecycle 바인딩 상태
  * @property isCapturing 사진 한 장의 촬영 요청을 처리하고 있는지 여부
+ * @property previewFilter 현재 프리뷰에 실제로 적용된 필터
  * @property isReady Controller 바인딩이 완료되어 촬영할 수 있는지 여부
  * @property hasFlashUnit 현재 바인딩된 렌즈가 플래시를 지원하는지 여부.
  * [CameraBindingState.Ready]가 아니면 false입니다.
@@ -17,6 +19,7 @@ import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 internal data class CameraSessionState(
     val bindingState: CameraBindingState = CameraBindingState.Idle,
     val isCapturing: Boolean = false,
+    val previewFilter: CameraFilterUiModel = CameraFilterUiModel.Original,
 ) {
     val isReady: Boolean
         get() = bindingState is CameraBindingState.Ready

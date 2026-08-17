@@ -18,6 +18,7 @@ import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelect
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
@@ -59,8 +60,12 @@ internal fun CameraContent(
     val readyState = cameraSessionState.bindingState as? CameraBindingState.Ready
     val isCameraIdle = !state.isCapturePending && !cameraSessionState.isCapturing
     val canControlCamera = readyState?.lensFacing == state.lensFacing && isCameraIdle
+    val isSelectedFilterReady =
+        state.selectedFilter == CameraFilterUiModel.Original ||
+            cameraSessionState.previewFilter == state.selectedFilter
     val canCapture =
         canControlCamera &&
+            isSelectedFilterReady &&
             state.roomLoadState == CameraRoomLoadState.LOADED &&
             selectedRoom?.remainingCaptureStatus?.isCaptureAvailable == true
     val canSwitchCamera =
