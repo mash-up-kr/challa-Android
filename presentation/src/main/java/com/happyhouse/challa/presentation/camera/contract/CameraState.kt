@@ -49,6 +49,7 @@ enum class CameraOnboardingState {
     LOADING,
     REQUIRED,
     COMPLETED,
+    LOAD_FAILED,
 }
 
 enum class CameraRoomLoadState {

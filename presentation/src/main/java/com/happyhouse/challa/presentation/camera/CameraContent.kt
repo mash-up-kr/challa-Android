@@ -45,6 +45,7 @@ internal fun CameraContent(
     onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
     onPhotoCaptureFailed: (requestId: Long) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
+    onSelectedFilterLutLoadFailed: (fileUrl: String) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
 ) {
@@ -85,7 +86,7 @@ internal fun CameraContent(
 
     LaunchedEffect(failedSelectedFilter?.fileUrl) {
         failedSelectedFilter?.let { filter ->
-            onIntent(CameraIntent.SelectedFilterLutLoadFailed(filter.fileUrl))
+            onSelectedFilterLutLoadFailed(filter.fileUrl)
         }
     }
 

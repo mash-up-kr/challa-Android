@@ -181,6 +181,7 @@ fun CameraRoute(
         onPhotoCaptured = viewModel::onPhotoCaptured,
         onPhotoCaptureFailed = viewModel::onPhotoCaptureFailed,
         onPhotoCaptureCancelled = viewModel::onPhotoCaptureCancelled,
+        onSelectedFilterLutLoadFailed = viewModel::onSelectedFilterLutLoadFailed,
         getCameraFilterFile = viewModel::getCameraFilterFile,
         onIntent = viewModel::onIntent,
     )

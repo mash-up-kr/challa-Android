@@ -33,9 +33,4 @@ sealed interface CameraIntent : UiIntent {
     data class FilterClick(
         val index: Int,
     ) : CameraIntent
-
-    /** 선택한 원격 필터의 LUT를 준비하지 못했을 때 원본 필터로 복구한다. */
-    data class SelectedFilterLutLoadFailed(
-        val fileUrl: String,
-    ) : CameraIntent
 }

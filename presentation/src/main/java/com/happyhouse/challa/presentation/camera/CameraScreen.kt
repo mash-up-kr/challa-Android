@@ -26,6 +26,7 @@ fun CameraScreen(
     onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
     onPhotoCaptureFailed: (requestId: Long) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
+    onSelectedFilterLutLoadFailed: (fileUrl: String) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
 ) {
@@ -50,6 +51,7 @@ fun CameraScreen(
                 onPhotoCaptured = onPhotoCaptured,
                 onPhotoCaptureFailed = onPhotoCaptureFailed,
                 onPhotoCaptureCancelled = onPhotoCaptureCancelled,
+                onSelectedFilterLutLoadFailed = onSelectedFilterLutLoadFailed,
                 getCameraFilterFile = getCameraFilterFile,
                 onIntent = onIntent,
             )

@@ -52,8 +52,6 @@ class CameraViewModel @AssistedInject constructor(
             CameraIntent.ZoomClick -> handleZoomClick()
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
-            is CameraIntent.SelectedFilterLutLoadFailed ->
-                handleSelectedFilterLutLoadFailed(intent.fileUrl)
         }
     }
 
@@ -73,7 +71,7 @@ class CameraViewModel @AssistedInject constructor(
 
                     is ChallaResult.Failure -> {
                         Timber.e("카메라 온보딩 완료 여부를 불러오지 못했습니다: %s", result)
-                        updateState { copy(onboardingState = CameraOnboardingState.COMPLETED) }
+                        updateState { copy(onboardingState = CameraOnboardingState.LOAD_FAILED) }
                     }
                 }
             }
@@ -318,9 +316,10 @@ class CameraViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleSelectedFilterLutLoadFailed(fileUrl: String) {
-        val failedFilter = currentState.selectedFilter as? CameraFilterUiModel.Remote ?: return
-        if (failedFilter.fileUrl != fileUrl) return
+    fun onSelectedFilterLutLoadFailed(fileUrl: String) {
+        val selectedFilter = currentState.selectedFilter
+        if (selectedFilter !is CameraFilterUiModel.Remote) return
+        if (selectedFilter.fileUrl != fileUrl) return
 
         updateState { copy(selectedFilterIndex = 0) }
         viewModelScope.launch {
