@@ -38,7 +38,8 @@ fun CameraRoute(
             },
         ),
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val feedbackSnackbarHostState = remember { SnackbarHostState() }
+    val onboardingSnackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,7 +57,7 @@ fun CameraRoute(
     val isOnboardingVisible =
         rememberCameraOnboardingVisibility(
             shouldShow = shouldShowOnboarding,
-            snackbarHostState = snackbarHostState,
+            snackbarHostState = onboardingSnackbarHostState,
             onCompleted = { viewModel.onIntent(CameraIntent.OnboardingConfirmClick) },
         )
 
@@ -66,7 +67,7 @@ fun CameraRoute(
                 CameraSideEffect.RoomLoadFailed -> {
                     launch {
                         val result =
-                            snackbarHostState.showSnackbar(
+                            feedbackSnackbarHostState.showSnackbar(
                                 ChallaSnackbarVisuals(
                                     content =
                                         ChallaSnackbarContent.HeadingOnly(
@@ -83,7 +84,7 @@ fun CameraRoute(
 
                 CameraSideEffect.PhotoCaptureFailed -> {
                     launch {
-                        snackbarHostState.showSnackbar(
+                        feedbackSnackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = photoCaptureFailedMessage,
                                 icon = ChallaIcons.Error,
@@ -96,7 +97,7 @@ fun CameraRoute(
 
                 CameraSideEffect.FlashNotAvailable -> {
                     launch {
-                        snackbarHostState.showSnackbar(
+                        feedbackSnackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = flashNotAvailableMessage,
                                 icon = ChallaIcons.Error,
@@ -109,7 +110,7 @@ fun CameraRoute(
 
                 CameraSideEffect.NoRemainingCaptures -> {
                     launch {
-                        snackbarHostState.showSnackbar(
+                        feedbackSnackbarHostState.showSnackbar(
                             ChallaToastVisuals(
                                 message = noRemainingCapturesMessage,
                                 icon = ChallaIcons.Error,
@@ -127,13 +128,14 @@ fun CameraRoute(
         modifier = Modifier.fillMaxSize(),
         state = state.value,
         permissionState = permissionController.state,
-        snackbarHostState = snackbarHostState,
+        feedbackSnackbarHostState = feedbackSnackbarHostState,
+        onboardingSnackbarHostState = onboardingSnackbarHostState,
         isOnboardingVisible = isOnboardingVisible,
         cameraBindingRetryKey = 0,
         onRequestPermissionClick = permissionController.requestPermission,
         onCameraBindingFailed = { _ ->
             coroutineScope.launch {
-                snackbarHostState.showSnackbar(
+                feedbackSnackbarHostState.showSnackbar(
                     ChallaToastVisuals(
                         message = cameraBindingFailedMessage,
                         icon = ChallaIcons.Error,

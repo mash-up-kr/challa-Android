@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.camera
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
@@ -9,6 +10,7 @@ import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
@@ -16,7 +18,8 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 fun CameraScreen(
     state: CameraState,
     permissionState: CameraPermissionState,
-    snackbarHostState: SnackbarHostState,
+    feedbackSnackbarHostState: SnackbarHostState,
+    onboardingSnackbarHostState: SnackbarHostState,
     isOnboardingVisible: Boolean,
     cameraBindingRetryKey: Int,
     modifier: Modifier = Modifier,
@@ -30,27 +33,34 @@ fun CameraScreen(
 ) {
     val cameraBackgroundColor = ChallaTheme.colors.staticBlack.copy(alpha = 0.9f)
 
-    ChallaScaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = cameraBackgroundColor,
-        snackbarHostState = snackbarHostState,
-    ) { innerPadding ->
-        CameraContent(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            state = state,
-            permissionState = permissionState,
-            isOnboardingVisible = isOnboardingVisible,
-            cameraBindingRetryKey = cameraBindingRetryKey,
-            onRequestPermissionClick = onRequestPermissionClick,
-            onCameraBindingFailed = onCameraBindingFailed,
-            onPhotoCaptured = onPhotoCaptured,
-            onPhotoCaptureFailed = onPhotoCaptureFailed,
-            onPhotoCaptureCancelled = onPhotoCaptureCancelled,
-            getCameraFilterFile = getCameraFilterFile,
-            onIntent = onIntent,
+    Box(modifier = modifier.fillMaxSize()) {
+        ChallaScaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = cameraBackgroundColor,
+            snackbarHostState = onboardingSnackbarHostState,
+        ) { innerPadding ->
+            CameraContent(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                state = state,
+                permissionState = permissionState,
+                isOnboardingVisible = isOnboardingVisible,
+                cameraBindingRetryKey = cameraBindingRetryKey,
+                onRequestPermissionClick = onRequestPermissionClick,
+                onCameraBindingFailed = onCameraBindingFailed,
+                onPhotoCaptured = onPhotoCaptured,
+                onPhotoCaptureFailed = onPhotoCaptureFailed,
+                onPhotoCaptureCancelled = onPhotoCaptureCancelled,
+                getCameraFilterFile = getCameraFilterFile,
+                onIntent = onIntent,
+            )
+        }
+
+        ChallaSnackbarHost(
+            hostState = feedbackSnackbarHostState,
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
