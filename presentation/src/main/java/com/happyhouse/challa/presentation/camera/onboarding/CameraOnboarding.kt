@@ -90,7 +90,7 @@ internal fun rememberCameraOnboardingVisibility(
         }
     }
 
-    return step != null
+    return shouldShow
 }
 
 private enum class CameraOnboardingStep {

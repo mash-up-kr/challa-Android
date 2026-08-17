@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
@@ -34,6 +35,8 @@ internal fun CameraContentLayout(
     roomName: String,
     remainingCount: Int,
     totalCount: Int,
+    isRoomLoaded: Boolean,
+    isFilterListReady: Boolean,
     filters: ImmutableList<CameraFilterUiModel>,
     selectedFilterIndex: Int,
     isFlashEnabled: Boolean,
@@ -68,7 +71,9 @@ internal fun CameraContentLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             CameraBezel(
-                isPhotoLimitReached = remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
+                isPhotoLimitReached =
+                    isRoomLoaded &&
+                        remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
                 isShutterEffectVisible = isShutterEffectVisible,
                 zoomLevel = zoomLevel,
                 onZoomClick = onZoomClick,
@@ -97,21 +102,34 @@ internal fun CameraContentLayout(
             Spacer(modifier = Modifier.height(20.dp))
 
             CameraFilterSelector(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                modifier =
+                    Modifier
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                        .then(
+                            if (isFilterListReady) {
+                                Modifier
+                            } else {
+                                Modifier
+                                    .alpha(0f)
+                                    .clearAndSetSemantics {}
+                            },
+                        ),
                 filters = filters,
                 selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = onFilterClick,
+                onFilterClick = if (isFilterListReady) onFilterClick else { _ -> },
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            CameraRoomInfo(
-                roomName = roomName,
-                remainingCount = remainingCount,
-                totalCount = totalCount,
-                onClick = onRoomInfoClick,
-                modifier = Modifier.padding(bottom = 40.dp),
-            )
+            if (isRoomLoaded) {
+                CameraRoomInfo(
+                    roomName = roomName,
+                    remainingCount = remainingCount,
+                    totalCount = totalCount,
+                    onClick = onRoomInfoClick,
+                    modifier = Modifier.padding(bottom = 40.dp),
+                )
+            }
         }
 
         if (isOnboardingVisible) {
@@ -129,6 +147,8 @@ private fun CameraContentLayoutPreview() {
         roomName = "해피하우스강릉여행",
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
+        isRoomLoaded = true,
+        isFilterListReady = true,
         filters = previewCameraFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,
@@ -156,6 +176,8 @@ private fun CameraContentLimitReachedPreview() {
         roomName = "방이름방이름방이름3",
         remainingCount = 0,
         totalCount = 48,
+        isRoomLoaded = true,
+        isFilterListReady = true,
         filters = previewCameraFilters,
         selectedFilterIndex = 0,
         isFlashEnabled = false,

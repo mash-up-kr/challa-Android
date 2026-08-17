@@ -50,6 +50,7 @@ internal fun CameraContent(
 ) {
     val captureRequest = state.captureRequest
     val selectedRoom = state.selectedRoom
+    val isRoomLoaded = state.roomLoadState == CameraRoomLoadState.LOADED && selectedRoom != null
     val remainingCount = selectedRoom?.remainingCount ?: 0
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
@@ -79,6 +80,8 @@ internal fun CameraContent(
         roomName = selectedRoom?.name.orEmpty(),
         remainingCount = remainingCount,
         totalCount = selectedRoom?.totalCount ?: 0,
+        isRoomLoaded = isRoomLoaded,
+        isFilterListReady = state.isFilterListReady,
         filters = state.cameraFilters,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,

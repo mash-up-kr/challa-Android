@@ -90,6 +90,8 @@ private fun CameraOnboardingPreview() {
         roomName = "해피하우스강릉여행",
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
+        isRoomLoaded = true,
+        isFilterListReady = true,
         filters = persistentListOf(CameraFilterUiModel.Original),
         selectedFilterIndex = 0,
         isFlashEnabled = false,

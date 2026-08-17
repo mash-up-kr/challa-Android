@@ -136,6 +136,7 @@ class CameraViewModel @AssistedInject constructor(
                     updateState {
                         copy(
                             cameraFilters = cameraFilters,
+                            isFilterListReady = true,
                             selectedFilterIndex =
                                 selectedFilterIndex.coerceIn(
                                     0,
@@ -146,6 +147,7 @@ class CameraViewModel @AssistedInject constructor(
                 }
 
                 is ChallaResult.Failure -> {
+                    updateState { copy(isFilterListReady = true) }
                     Timber.e("카메라 필터 목록을 불러오지 못했습니다: $result")
                 }
             }

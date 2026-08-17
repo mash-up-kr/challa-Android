@@ -14,6 +14,7 @@ import kotlinx.collections.immutable.persistentListOf
  *
  * @property captureRequest ViewModel이 생성하고 완료 또는 취소까지 소유하는 촬영 요청.
  * 대기 중인 요청이 없으면 null입니다.
+ * @property isFilterListReady 필터 목록 요청이 끝나 선택 UI를 표시할 수 있는지 여부
  * @property selectedFilterIndex [cameraFilters]에서 선택한 필터의 인덱스
  * @property isCapturePending 처리할 촬영 요청이 있는지 여부
  * @property selectedFilter 인덱스가 유효하지 않으면 [CameraFilterUiModel.Original]로 복구한 선택 필터
@@ -27,6 +28,7 @@ data class CameraState(
     val isFlashEnabled: Boolean = false,
     val captureRequest: PhotoCaptureRequest? = null,
     val zoomLevel: Float = 1f,
+    val isFilterListReady: Boolean = false,
     val selectedFilterIndex: Int = 0,
     val cameraFilters: ImmutableList<CameraFilterUiModel> =
         persistentListOf(CameraFilterUiModel.Original),
