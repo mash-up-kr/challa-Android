@@ -13,7 +13,6 @@ data class ListPhotosResponse(
     @Serializable
     data class PhotoItem(
         val id: Long,
-        // 스웨거상 필수 필드가 아니라 응답에서 빠질 수 있다. 타입은 non-null로 두고 파싱만 방어한다.
         val imageUrl: String = "",
         val userNickname: String,
         val userProfileImageUrl: String? = null,
