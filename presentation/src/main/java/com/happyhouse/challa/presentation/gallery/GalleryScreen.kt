@@ -186,13 +186,28 @@ private fun GalleryScreenErrorPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Error)
 }
 
+@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 초대 메뉴 열림")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryScreenPreviewTemplate(photoInfo: PhotoInfo) {
+private fun GalleryScreenInviteMenuPreview() {
+    GalleryScreenPreviewTemplate(
+        photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()),
+        inviteMenu = GalleryState.InviteMenu.Opened(showsTooltip = true),
+    )
+}
+
+@Composable
+private fun GalleryScreenPreviewTemplate(
+    photoInfo: PhotoInfo,
+    inviteMenu: GalleryState.InviteMenu = GalleryState.InviteMenu.Closed,
+) {
     GalleryScreen(
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
+                invitationCode = "1928121",
                 members = previewGalleryMembers(),
+                inviteMenu = inviteMenu,
                 photoInfo = photoInfo,
             ),
         snackbarHostState = remember { SnackbarHostState() },
