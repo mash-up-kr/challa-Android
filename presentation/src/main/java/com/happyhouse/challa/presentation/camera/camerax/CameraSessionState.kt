@@ -14,9 +14,7 @@ import kotlinx.collections.immutable.persistentSetOf
  * @property previewFilter 현재 프리뷰에 실제로 적용된 필터
  * @property failedFilterUrls LUT 다운로드 또는 파싱에 실패한 원격 필터 URL
  * @property isReady Controller 바인딩이 완료되어 촬영할 수 있는지 여부
- * @property hasFlashUnit 현재 바인딩된 렌즈가 플래시를 지원하는지 여부.
  * [CameraBindingState.Ready]가 아니면 false입니다.
- * @property boundLensFacing 현재 바인딩된 렌즈. [CameraBindingState.Ready]가 아니면 null입니다.
  */
 @Immutable
 internal data class CameraSessionState(
