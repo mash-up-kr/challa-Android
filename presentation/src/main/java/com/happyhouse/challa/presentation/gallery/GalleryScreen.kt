@@ -46,6 +46,7 @@ fun GalleryScreen(
     snackbarHostState: SnackbarHostState,
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
+    onInviteCodeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.background(ChallaTheme.colors.backgroundSurface)) {
@@ -56,6 +57,7 @@ fun GalleryScreen(
             snackbarHostState = snackbarHostState,
             onIntent = onIntent,
             onBackClick = onBackClick,
+            onInviteCodeClick = onInviteCodeClick,
         )
     }
 }
@@ -66,6 +68,7 @@ private fun GalleryScaffold(
     snackbarHostState: SnackbarHostState,
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
+    onInviteCodeClick: (String) -> Unit,
 ) {
     ChallaScaffold(
         // 배경과 글로우는 화면 루트에서 그린다.
@@ -173,7 +176,7 @@ private fun GalleryScaffold(
                     invitationCode = state.invitationCode,
                     inviteMenu = state.inviteMenu,
                     onProfileBarClick = { onIntent(GalleryIntent.ProfileBarClick) },
-                    onInviteCodeClick = { code -> onIntent(GalleryIntent.InviteCodeClick(code)) },
+                    onInviteCodeClick = onInviteCodeClick,
                 )
             }
 
@@ -251,5 +254,6 @@ private fun GalleryScreenPreviewTemplate(
         snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
         onBackClick = {},
+        onInviteCodeClick = {},
     )
 }

@@ -17,8 +17,4 @@ sealed interface GallerySideEffect : UiSideEffect {
 
     /** 참여자를 받지 못했을 때. 본문은 그대로 두고 프로필 바만 채우지 못한다. */
     data object MembersLoadFailed : GallerySideEffect
-
-    data object InviteCodeCopied : GallerySideEffect
-
-    data object InviteCodeCopyFailed : GallerySideEffect
 }

@@ -1,12 +1,18 @@
 package com.happyhouse.challa.presentation.gallery
 
+import android.content.ClipData
+import android.os.Build
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -16,10 +22,15 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 // 상단바 아래에 토스트가 뜨도록 주는 여백
 private val ToastTopOffset = 8.dp
+
+/** 붙여넣을 때 시스템이 함께 보여줄 수 있는 이름 */
+private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 
 @Composable
 fun GalleryRoute(
@@ -36,6 +47,8 @@ fun GalleryRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val clipboard = LocalClipboard.current
+    val coroutineScope = rememberCoroutineScope()
     val printWaitingMessage = stringResource(R.string.gallery_print_waiting_message)
     val loadMoreFailureMessage = stringResource(R.string.gallery_load_more_failure)
     val membersFailureMessage = stringResource(R.string.gallery_members_load_failure)
@@ -86,30 +99,6 @@ fun GalleryRoute(
                         )
                     }
                 }
-
-                GallerySideEffect.InviteCodeCopied -> {
-                    launch {
-                        snackbarHostState.showSnackbar(
-                            ChallaToastVisuals(
-                                message = inviteCodeCopySuccessMessage,
-                                topOffset = ToastTopOffset,
-                            ),
-                        )
-                    }
-                }
-
-                GallerySideEffect.InviteCodeCopyFailed -> {
-                    launch {
-                        snackbarHostState.showSnackbar(
-                            ChallaToastVisuals(
-                                message = inviteCodeCopyFailureMessage,
-                                icon = ChallaIcons.Error,
-                                iconTint = destructiveIconTint,
-                                topOffset = ToastTopOffset,
-                            ),
-                        )
-                    }
-                }
             }
         }
     }
@@ -120,5 +109,49 @@ fun GalleryRoute(
         snackbarHostState = snackbarHostState,
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
+        onInviteCodeClick = { invitationCode ->
+            coroutineScope.launch {
+                if (clipboard.copyInviteCode(invitationCode)) {
+                    // Android 13부터는 복사하면 시스템이 안내를 띄워 우리 토스트와 겹친다.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return@launch
+
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = inviteCodeCopySuccessMessage,
+                            topOffset = ToastTopOffset,
+                        ),
+                    )
+                } else {
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = inviteCodeCopyFailureMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                            topOffset = ToastTopOffset,
+                        ),
+                    )
+                }
+            }
+        },
     )
+}
+
+/**
+ * 초대 코드를 클립보드에 복사한다.
+ *
+ * @return 복사에 성공하면 true
+ */
+private suspend fun Clipboard.copyInviteCode(invitationCode: String): Boolean {
+    // 방 정보를 받아야 메뉴가 열리므로, 코드가 비었다면 응답이 스펙과 다른 것이다.
+    if (invitationCode.isBlank()) {
+        Timber.w("초대 코드가 비어 있어 복사하지 않습니다.")
+        return false
+    }
+
+    return runCatching {
+        setClipEntry(ClipEntry(ClipData.newPlainText(INVITE_CODE_CLIP_LABEL, invitationCode)))
+    }.onFailure { throwable ->
+        if (throwable is CancellationException) throw throwable
+        Timber.e(throwable, "초대 코드를 복사하지 못했습니다.")
+    }.isSuccess
 }

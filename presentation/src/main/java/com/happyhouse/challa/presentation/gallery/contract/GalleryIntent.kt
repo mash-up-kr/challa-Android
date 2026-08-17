@@ -19,10 +19,6 @@ sealed interface GalleryIntent : UiIntent {
     /** 메뉴 바깥을 눌렀을 때 */
     data object InviteMenuDismiss : GalleryIntent
 
-    data class InviteCodeClick(
-        val invitationCode: String,
-    ) : GalleryIntent
-
     data object PrintCountdownClick : GalleryIntent
 
     data object ShootClick : GalleryIntent
