@@ -42,12 +42,18 @@ data class PhotoDetailState(
     }
 }
 
+/**
+ * 사진 상세 페이지 한 장
+ *
+ * @param photographerProfileImageUrl 촬영자 프로필 사진. 없으면 null이고 화면에서 기본 프로필 아이콘을 그린다.
+ */
 @Immutable
 @Parcelize
 data class PhotoDetailUiModel(
     val id: Long,
     val imageUrl: String,
     val photographer: String,
+    val photographerProfileImageUrl: String?,
     val capturedDate: String,
 ) : Parcelable
 

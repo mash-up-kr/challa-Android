@@ -10,9 +10,12 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface PhotoApi {
+    /** @param page 0부터 시작한다. */
     @GET("api/v1/photos")
     suspend fun getPhotos(
         @Query("roomId") roomId: Long,
+        @Query("page") page: Int,
+        @Query("size") size: Int,
     ): ChallaResult<BaseResponse<ListPhotosResponse>>
 
     @POST("api/v1/photos")

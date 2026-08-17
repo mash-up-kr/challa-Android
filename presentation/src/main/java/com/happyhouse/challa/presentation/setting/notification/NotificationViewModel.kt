@@ -34,7 +34,7 @@ class NotificationViewModel
                 }.stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.Eagerly,
-                    initialValue = true,
+                    initialValue = false,
                 )
 
         fun onEnabledChange(enabled: Boolean) {
