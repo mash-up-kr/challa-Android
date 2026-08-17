@@ -13,7 +13,8 @@ import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import com.happyhouse.challa.data.network.api.PhotoApi
-import com.happyhouse.challa.domain.model.Photo
+import com.happyhouse.challa.data.network.dto.response.toPhoto
+import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -27,17 +28,22 @@ class PhotoRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val photoApi: PhotoApi,
 ) : PhotoRepository {
-    override suspend fun getPhotos(roomId: Long): ChallaResult<List<Photo>> =
-        photoApi.getPhotos(roomId).mapCatching { response ->
-            check(response.success) { response.message }
-            val photos = requireNotNull(response.data) { "사진 목록 응답 데이터가 비어 있습니다." }.photo
-            photos.map { photo ->
-                Photo(
-                    id = photo.id,
-                    imageUrl = photo.imageUrl,
+    /** 여기서 전 페이지를 모아 돌려주면 페이지를 나눈 의미가 없어, 다음 페이지는 화면이 목록 끝에 닿았을 때 받는다. */
+    override suspend fun getPhotos(
+        roomId: Long,
+        page: Int,
+    ): ChallaResult<PhotoPage> =
+        photoApi
+            .getPhotos(roomId = roomId, page = page, size = PHOTO_PAGE_SIZE)
+            .mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "사진 목록 응답 데이터가 비어 있습니다." }
+
+                PhotoPage(
+                    photos = data.photos.map { it.toPhoto() },
+                    hasNext = data.hasNext,
                 )
             }
-        }
 
     override suspend fun savePhoto(imageUrl: String): Result<Unit> =
         withContext(Dispatchers.IO) {
@@ -154,5 +160,8 @@ class PhotoRepositoryImpl @Inject constructor(
     companion object {
         private const val FILE_NAME_PREFIX = "Challa"
         private const val ALBUM_NAME = "Challa"
+
+        /** 사진 목록 한 페이지 크기. 서버와 20장 기준으로 맞췄다. */
+        private const val PHOTO_PAGE_SIZE = 20
     }
 }

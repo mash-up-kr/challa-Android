@@ -38,6 +38,17 @@ inline fun <T> ChallaResult<T>.onFailure(action: (ChallaResult.Failure) -> Unit)
         }
     }
 
+/**
+ * 실패에 딸린 원인 예외. 스택트레이스가 남도록 로그에 함께 넘긴다.
+ * 원인 예외가 없는 실패(HTTP 응답 코드로만 표현되는 실패)는 null이다.
+ */
+fun ChallaResult<*>.causeOrNull(): Throwable? =
+    when (this) {
+        is ChallaResult.Failure.Network -> cause
+        is ChallaResult.Failure.Unknown -> cause
+        is ChallaResult.Failure.Http, is ChallaResult.Success -> null
+    }
+
 inline fun <T> ChallaResult<T>.mapFailure(transform: (ChallaResult.Failure) -> ChallaResult.Failure): ChallaResult<T> =
     when (this) {
         is ChallaResult.Success -> this
