@@ -14,6 +14,9 @@ object ChallaIcons {
     val AppLogo = R.drawable.ic_app_logo
 
     @DrawableRes
+    val ArrowTip = R.drawable.ic_arrow_tip
+
+    @DrawableRes
     val Bell = R.drawable.ic_bell
 
     @DrawableRes
@@ -42,6 +45,9 @@ object ChallaIcons {
 
     @DrawableRes
     val Close = R.drawable.ic_close
+
+    @DrawableRes
+    val Copy = R.drawable.ic_copy
 
     @DrawableRes
     val Download = R.drawable.ic_download

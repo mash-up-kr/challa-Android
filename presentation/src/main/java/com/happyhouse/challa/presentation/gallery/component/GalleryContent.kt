@@ -23,20 +23,16 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileBar
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.PREVIEW_FILM_SLOT_COUNT
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
 import com.happyhouse.challa.presentation.gallery.contract.GalleryFilmSlotUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
-import com.happyhouse.challa.presentation.gallery.contract.GalleryMemberUiModel
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import com.happyhouse.challa.presentation.gallery.previewGalleryFilmSlots
-import com.happyhouse.challa.presentation.gallery.previewGalleryMembers
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
-import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /**
@@ -113,27 +109,6 @@ fun GalleryContent(
                     )
                 }
             }
-        }
-
-        // 그리드가 크로스페이드되는 동안 겹쳐 보이지 않도록 프로필 바는 밖에 둔다.
-        val showsProfileBar =
-            when (state.photoInfo) {
-                is PhotoInfo.Film, is PhotoInfo.Printed -> true
-                PhotoInfo.Loading, PhotoInfo.Error -> false
-            }
-        if (showsProfileBar) {
-            // 카운트다운으로 1초마다 재구성되므로 참여자가 그대로면 목록을 다시 만들지 않는다.
-            val profileImageUrls =
-                remember(state.members) {
-                    state.members.map(GalleryMemberUiModel::profileImageUrl).toPersistentList()
-                }
-
-            ChallaProfileBar(
-                modifier = Modifier.align(Alignment.TopCenter),
-                profileImageUrls = profileImageUrls,
-                contentDescription =
-                    stringResource(R.string.gallery_member_count_description, state.members.size),
-            )
         }
     }
 }
@@ -245,12 +220,7 @@ private fun GalleryContentErrorPreview() {
 private fun GalleryContentPreviewTemplate(photoInfo: PhotoInfo) {
     GalleryContent(
         modifier = Modifier.fillMaxSize(),
-        state =
-            GalleryState(
-                roomName = "친구들과 강릉 여행",
-                members = previewGalleryMembers(),
-                photoInfo = photoInfo,
-            ),
+        state = GalleryState(roomName = "친구들과 강릉 여행", photoInfo = photoInfo),
         onIntent = {},
     )
 }

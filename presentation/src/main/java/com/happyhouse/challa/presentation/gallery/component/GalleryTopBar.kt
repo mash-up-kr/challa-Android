@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.gallery.component
 
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -24,8 +23,9 @@ fun GalleryTopBar(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 상태바 인셋은 ChallaScaffold의 topBar 슬롯이 적용한다.
     ChallaTopNavigation(
-        modifier = modifier.statusBarsPadding(),
+        modifier = modifier,
         title = title,
         variant = ChallaTopNavigationVariant.SUB,
         leadingIcon = {
