@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.navigation
 
+import android.content.Intent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
@@ -8,7 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -31,6 +34,9 @@ import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 import kotlinx.coroutines.launch
 
+// TODO: 배포를 위해 임시로 추가. 삭제 예정
+private const val REPORT_FORM_URL = "https://forms.gle/FNhiTp6wt5Qxt3De8"
+
 @Composable
 fun ChallaNavHost(
     navigator: ChallaNavigator,
@@ -51,6 +57,15 @@ fun ChallaNavHost(
                 ChallaToastVisuals(message = featureNotReadyMessage),
             )
         }
+    }
+
+    // TODO: 배포를 위해 임시로 추가. 삭제 예정
+    val context = LocalContext.current
+
+    // TODO: 배포를 위해 임시로 추가. 삭제 예정
+    fun openReportForm() {
+        val intent = Intent(Intent.ACTION_VIEW, REPORT_FORM_URL.toUri())
+        context.startActivity(intent)
     }
 
     NavDisplay(
@@ -166,6 +181,8 @@ fun ChallaNavHost(
                         onSupportClick = { showFeatureNotReadyToast() },
                         // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
                         onFeedbackClick = { showFeatureNotReadyToast() },
+                        // TODO: 배포를 위해 임시로 추가. 삭제 예정
+                        onReportClick = { openReportForm() },
                     )
                 }
                 entry<ChallaRoute.ThemeSetting> {

@@ -37,6 +37,8 @@ fun SettingScreen(
     onAccountClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
+    // TODO: 배포를 위해 임시로 추가. 삭제 예정
+    onReportClick: () -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState? = null,
 ) {
@@ -106,6 +108,12 @@ fun SettingScreen(
                         leadingIcon = ChallaIcons.Feedback,
                         onClick = onFeedbackClick,
                     )
+                    // TODO: 배포를 위해 임시로 추가. 삭제 예정
+                    ChallaListItem(
+                        text = stringResource(R.string.setting_report),
+                        leadingIcon = ChallaIcons.Error,
+                        onClick = onReportClick,
+                    )
                 }
             }
         }
@@ -131,5 +139,6 @@ private fun SettingScreenPreview() {
         onAccountClick = {},
         onSupportClick = {},
         onFeedbackClick = {},
+        onReportClick = {},
     )
 }

@@ -160,6 +160,8 @@
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
+    <!-- TODO: 배포를 위해 임시로 추가. 삭제 예정 -->
+    <string name="setting_report">신고, 차단하기</string>
     <!-- TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준 -->
     <string name="setting_feature_not_ready">준비중인 기능입니다.</string>
 
