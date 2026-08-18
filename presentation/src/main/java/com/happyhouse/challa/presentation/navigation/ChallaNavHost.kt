@@ -17,6 +17,7 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.CameraRoute
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
@@ -39,6 +40,18 @@ fun ChallaNavHost(
     val coroutineScope = rememberCoroutineScope()
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
+
+    // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
+    val featureNotReadyMessage = stringResource(R.string.setting_feature_not_ready)
+
+    // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
+    fun showFeatureNotReadyToast() {
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(
+                ChallaToastVisuals(message = featureNotReadyMessage),
+            )
+        }
+    }
 
     NavDisplay(
         backStack = navigator.backStack,
@@ -149,8 +162,10 @@ fun ChallaNavHost(
                         onAccountClick = {
                             navigator.navigate(ChallaRoute.Account)
                         },
-                        onSupportClick = {},
-                        onFeedbackClick = {},
+                        // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
+                        onSupportClick = { showFeatureNotReadyToast() },
+                        // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
+                        onFeedbackClick = { showFeatureNotReadyToast() },
                     )
                 }
                 entry<ChallaRoute.ThemeSetting> {
