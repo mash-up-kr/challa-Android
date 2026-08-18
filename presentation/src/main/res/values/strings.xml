@@ -53,6 +53,8 @@
     <string name="gallery_members_load_failure">참여자 목록을 불러오지 못했어요.</string>
     <string name="gallery_retry">다시 시도</string>
 
+    <string name="room_member_joined_suffix">에 참여했어요.</string>
+
     <string name="app_name_kr">찰나</string>
     <string name="app_name_en">Challa</string>
     <string name="login_brand" translatable="false">challa</string>

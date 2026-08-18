@@ -3,12 +3,16 @@ package com.happyhouse.challa.domain.repository
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
+import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.result.ChallaResult
+import kotlinx.coroutines.flow.Flow
 
 interface RoomRepository {
+    fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedEvent>
+
     suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail>
 
     suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>>

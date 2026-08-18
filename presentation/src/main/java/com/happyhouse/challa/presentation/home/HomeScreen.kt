@@ -101,6 +101,7 @@ private const val FILM_PREVIEW_MAX = 3
 fun HomeRoute(
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: Long) -> Unit,
+    onRoomIdsLoaded: (Set<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -110,6 +111,12 @@ fun HomeRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
+
+    LaunchedEffect(state.hasLoadedRooms, state.rooms) {
+        if (state.hasLoadedRooms) {
+            onRoomIdsLoaded(state.rooms.mapTo(mutableSetOf()) { it.id })
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->

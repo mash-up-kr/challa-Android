@@ -46,6 +46,7 @@ class HomeViewModel
                             copy(
                                 isLoading = false,
                                 rooms = rooms.mapNotNull { it.toUiModel() }.toImmutableList(),
+                                hasLoadedRooms = true,
                             )
                         }
                     }.onFailure {
