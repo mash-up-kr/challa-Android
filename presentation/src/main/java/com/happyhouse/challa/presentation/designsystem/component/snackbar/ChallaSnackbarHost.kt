@@ -13,12 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+private val DefaultMessageBottomOffset = 10.dp
+
 @Composable
 fun ChallaSnackbarHost(
     hostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     horizontalPadding: Dp = 12.dp,
-    bottomPadding: Dp = 10.dp,
 ) {
     SnackbarHost(
         hostState = hostState,
@@ -41,10 +42,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessagePadding(
-                                    topOffset = visuals.topOffset,
-                                    bottomPadding = bottomPadding,
-                                )
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -62,10 +60,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessagePadding(
-                                    topOffset = visuals.topOffset,
-                                    bottomPadding = bottomPadding,
-                                )
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -84,17 +79,19 @@ fun ChallaSnackbarHost(
                 else ->
                     Snackbar(
                         snackbarData = data,
-                        modifier = Modifier.align(Alignment.BottomCenter),
+                        modifier =
+                            Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = DefaultMessageBottomOffset),
                     )
             }
         }
     }
 }
 
-private fun Modifier.challaMessagePadding(
-    topOffset: Dp?,
-    bottomPadding: Dp,
-): Modifier =
-    topOffset?.let {
-        padding(top = it)
-    } ?: padding(bottom = bottomPadding)
+private fun Modifier.challaMessageEdgePadding(topOffset: Dp?): Modifier =
+    if (topOffset != null) {
+        padding(top = topOffset)
+    } else {
+        padding(bottom = DefaultMessageBottomOffset)
+    }

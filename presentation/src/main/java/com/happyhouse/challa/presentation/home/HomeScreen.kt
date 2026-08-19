@@ -69,7 +69,7 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNaviga
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
@@ -331,18 +331,20 @@ private fun HomeShootingCard(
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
         )
-        // 어둡게 깔아 텍스트 가독성 확보
         Box(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.5f), Color.Black.copy(alpha = 0.1f)),
+                            colors =
+                                listOf(
+                                    Color.Black.copy(alpha = 0.5f),
+                                    Color.Black.copy(alpha = 0.1f),
+                                ),
                         ),
                     ),
         )
-        // 상단 옐로우 글로우
         Box(
             modifier =
                 Modifier
@@ -588,7 +590,11 @@ private fun HomeFilmCard(
                 .size(width = FILM_CARD_WIDTH, height = FILM_CARD_HEIGHT)
                 .clip(RoundedCornerShape(8.dp))
                 .background(ChallaTheme.colors.backgroundLevel3)
-                .border(width = 1.dp, color = ChallaTheme.colors.lineNeutral, shape = RoundedCornerShape(8.dp)),
+                .border(
+                    width = 1.dp,
+                    color = ChallaTheme.colors.lineNeutral,
+                    shape = RoundedCornerShape(8.dp),
+                ),
         contentAlignment = Alignment.Center,
     ) {
         RoomAsyncImage(
@@ -660,7 +666,7 @@ private fun RoomAsyncImage(
 }
 
 /**
- * 화면 하단에 은은하게 깔리는 옐로우 글로우.
+ * 화면 하단에 은은하게 깔리는 Glow.
  *
  * 피그마의 blur(150) 처리된 ellipse를 대체한다.
  * [androidx.compose.ui.draw.blur]는 API 31 미만에서 동작하지 않으므로 radial gradient로 표현한다.
@@ -909,6 +915,65 @@ private fun HomeActionButton(
     }
 }
 
+@Preview(name = "Home - Rooms")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun HomeRoomsPreview() {
+    ChallaTheme {
+        HomeScreen(
+            state =
+                HomeState(
+                    isLoading = false,
+                    nickname = "나는야멋쟁이토마토",
+                    profileImageUrl = null,
+                    rooms = previewRooms(),
+                ),
+            snackbarHostState = remember { SnackbarHostState() },
+            onCreateRoomClick = {},
+            onInviteCodeClick = {},
+            onSettingClick = {},
+            onRoomClick = {},
+        )
+    }
+}
+
+@Preview(name = "Home - Empty")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun HomeEmptyPreview() {
+    ChallaTheme {
+        HomeScreen(
+            state =
+                HomeState(
+                    isLoading = false,
+                    nickname = "나는야멋쟁이토마토",
+                    profileImageUrl = null,
+                ),
+            snackbarHostState = remember { SnackbarHostState() },
+            onCreateRoomClick = {},
+            onInviteCodeClick = {},
+            onSettingClick = {},
+            onRoomClick = {},
+        )
+    }
+}
+
+@Preview(name = "Home - Loading")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun HomeLoadingPreview() {
+    ChallaTheme {
+        HomeScreen(
+            state = HomeState(isLoading = true),
+            snackbarHostState = remember { SnackbarHostState() },
+            onCreateRoomClick = {},
+            onInviteCodeClick = {},
+            onSettingClick = {},
+            onRoomClick = {},
+        )
+    }
+}
+
 private fun previewRooms(): ImmutableList<RoomUiModel> =
     persistentListOf(
         RoomUiModel.Shooting(
@@ -942,62 +1007,3 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             totalPhotoCount = 3,
         ),
     )
-
-@Preview(showBackground = true, name = "Home - Rooms")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun HomeRoomsPreview() {
-    ChallaTheme {
-        HomeScreen(
-            state =
-                HomeState(
-                    isLoading = false,
-                    nickname = "나는야멋쟁이토마토",
-                    profileImageUrl = null,
-                    rooms = previewRooms(),
-                ),
-            snackbarHostState = remember { SnackbarHostState() },
-            onCreateRoomClick = {},
-            onInviteCodeClick = {},
-            onSettingClick = {},
-            onRoomClick = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Home - Empty")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun HomeEmptyPreview() {
-    ChallaTheme {
-        HomeScreen(
-            state =
-                HomeState(
-                    isLoading = false,
-                    nickname = "나는야멋쟁이토마토",
-                    profileImageUrl = null,
-                ),
-            snackbarHostState = remember { SnackbarHostState() },
-            onCreateRoomClick = {},
-            onInviteCodeClick = {},
-            onSettingClick = {},
-            onRoomClick = {},
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Home - Loading")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun HomeLoadingPreview() {
-    ChallaTheme {
-        HomeScreen(
-            state = HomeState(isLoading = true),
-            snackbarHostState = remember { SnackbarHostState() },
-            onCreateRoomClick = {},
-            onInviteCodeClick = {},
-            onSettingClick = {},
-            onRoomClick = {},
-        )
-    }
-}

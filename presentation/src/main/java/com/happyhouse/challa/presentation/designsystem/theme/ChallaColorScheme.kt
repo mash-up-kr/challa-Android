@@ -85,7 +85,7 @@ private fun ChallaColorPreview() {
                     persistentListOf(
                         "Pink" to ChallaTheme.colors.primaryPink,
                         "Orange" to ChallaTheme.colors.primaryOrange,
-                        "Yellow" to ChallaTheme.colors.primary,
+                        "Yellow" to ChallaTheme.colors.primaryYellow,
                         "Sky" to ChallaTheme.colors.primarySky,
                         "Blue" to ChallaTheme.colors.primaryBlue,
                         "Purple" to ChallaTheme.colors.primaryPurple,
