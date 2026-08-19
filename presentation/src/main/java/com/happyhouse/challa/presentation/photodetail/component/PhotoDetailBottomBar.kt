@@ -17,6 +17,12 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 private val BottomBarTopPadding = 8.dp
 private val BottomBarSpacing = 16.dp
 
+/**
+ * 시스템 바 인셋은 ChallaScaffold가 이미 적용한다. 이 여백은 그 위에 더 두는 숨 쉴 틈으로,
+ * 입력창이 제스처 바에 붙어 보이지 않게 한다.
+ */
+private val BottomBarBottomPadding = 16.dp
+
 /** 반응 바는 페이지가 화면 끝까지 닿아야 해서, 좌우 여백을 바깥이 아닌 각 항목이 갖는다. */
 private val MessageInputHorizontalPadding = 20.dp
 
@@ -34,7 +40,7 @@ fun PhotoDetailBottomBar(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(top = BottomBarTopPadding),
+                .padding(top = BottomBarTopPadding, bottom = BottomBarBottomPadding),
         verticalArrangement = Arrangement.spacedBy(BottomBarSpacing),
     ) {
         PhotoReactionBar(
