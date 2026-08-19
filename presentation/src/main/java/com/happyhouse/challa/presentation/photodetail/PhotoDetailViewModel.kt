@@ -5,6 +5,7 @@ import com.happyhouse.challa.domain.model.Photo
 import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.domain.repository.ChatRepository
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -38,6 +39,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("initialPhotoId") private val initialPhotoId: Long,
     private val roomRepository: RoomRepository,
     private val photoRepository: PhotoRepository,
+    private val chatRepository: ChatRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
     ) {
@@ -259,11 +261,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         updateState { copy(messageInput = message) }
     }
 
-    /**
-     * 보낸 뒤 입력만 비우고 키보드는 유지한다.
-     * TODO: 메시지 API 스펙 확정 전까지 전송 결과를 성공으로 가정한다. (이슈 #62)
-     *   실패 경로가 생기면 MessageSendFailed SideEffect를 다시 추가할 것.
-     */
+    /** 보낸 뒤 입력만 비우고 키보드는 유지한다. 실패하면 다시 보낼 수 있게 입력을 남겨둔다. */
     private fun handleMessageSend(photo: PhotoDetailUiModel) {
         val message = currentState.messageInput.trim()
         if (message.isEmpty() || currentState.isSendingMessage) {
@@ -274,9 +272,17 @@ class PhotoDetailViewModel @AssistedInject constructor(
         updateState { copy(isSendingMessage = true) }
         viewModelScope.launch {
             try {
-                // 메시지 본문은 개인정보라 로그에 남기지 않는다.
-                Timber.d("사진 메시지 전송: photoId=${photo.id}, length=${message.length}")
-                updateState { copy(messageInput = "") }
+                chatRepository
+                    .sendPhotoMessage(roomId = roomId, photoId = photo.id, message = message)
+                    .onSuccess { updateState { copy(messageInput = "") } }
+                    .onFailure { failure ->
+                        // 메시지 본문은 개인정보라 로그에 남기지 않는다.
+                        Timber.e(
+                            failure.causeOrNull(),
+                            "사진 메시지를 보내지 못했습니다. photoId=${photo.id}, length=${message.length}",
+                        )
+                        sendEffect(PhotoDetailSideEffect.MessageSendFailed)
+                    }
             } finally {
                 updateState { copy(isSendingMessage = false) }
             }

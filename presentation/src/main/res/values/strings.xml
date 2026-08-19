@@ -116,6 +116,7 @@
     <string name="photo_detail_empty">표시할 사진이 없어요.</string>
     <string name="photo_detail_message_placeholder">이 사진에 메시지를 보내세요.</string>
     <string name="photo_detail_message_send_description">메시지 보내기</string>
+    <string name="photo_detail_message_send_failure">다시 시도해 주세요</string>
     <string name="photo_detail_reaction_fire">불</string>
     <string name="photo_detail_reaction_eyes">눈</string>
     <string name="photo_detail_reaction_medal">메달</string>

@@ -46,6 +46,7 @@ fun PhotoDetailRoute(
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
     val reactionLimitMessage = stringResource(R.string.photo_detail_reaction_limit, MAX_REACTION_COUNT)
+    val messageSendFailureMessage = stringResource(R.string.photo_detail_message_send_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     val requestSave =
@@ -111,6 +112,14 @@ fun PhotoDetailRoute(
                     PhotoDetailSideEffect.ReactionLimitExceeded ->
                         ChallaToastVisuals(
                             message = reactionLimitMessage,
+                            topOffset = ToastTopOffset,
+                        )
+
+                    PhotoDetailSideEffect.MessageSendFailed ->
+                        ChallaToastVisuals(
+                            message = messageSendFailureMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,
                         )
                 }
