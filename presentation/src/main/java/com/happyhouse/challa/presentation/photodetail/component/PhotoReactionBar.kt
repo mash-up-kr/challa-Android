@@ -7,12 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,29 +35,41 @@ private val ReactionEmojiSize = 32.dp
 private val ReactionBarSpacing = 13.dp
 private val ReactionBarHorizontalPadding = 24.dp
 
+/** 한 페이지에 노출하는 이모지 수. 스와이프 한 번에 이만큼 넘어간다. */
+private const val EMOJI_COUNT_PER_PAGE = 5
+
 /**
- * 이모지가 한 화면에 다 들어가지 않아 가로로 스크롤한다.
- * 스크롤이 화면 끝까지 이어지도록 좌우 여백은 modifier가 아닌 contentPadding으로 준다.
+ * 이모지를 [EMOJI_COUNT_PER_PAGE]개씩 끊어 좌우로 넘긴다.
+ *
+ * 자유 스크롤이 아니라 페이지 단위로 딱 떨어져야 해서 pager를 쓴다.
+ * 페이지 폭이 화면에서 좌우 여백을 뺀 만큼이어야 5개가 정확히 들어차므로,
+ * 여백은 modifier가 아닌 contentPadding으로 준다.
  */
 @Composable
 fun PhotoReactionBar(
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyRow(
+    val pages = remember { ReactionEmoji.entries.chunked(EMOJI_COUNT_PER_PAGE) }
+    val pagerState = rememberPagerState { pages.size }
+
+    HorizontalPager(
         modifier = modifier.fillMaxWidth(),
+        state = pagerState,
         contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
-        horizontalArrangement = Arrangement.spacedBy(ReactionBarSpacing),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        items(
-            items = ReactionEmoji.entries,
-            key = { emoji -> emoji.name },
-        ) { emoji ->
-            ReactionButton(
-                emoji = emoji,
-                onClick = { onEmojiClick(emoji) },
-            )
+        pageSpacing = ReactionBarSpacing,
+    ) { page ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(ReactionBarSpacing),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            pages[page].forEach { emoji ->
+                ReactionButton(
+                    emoji = emoji,
+                    onClick = { onEmojiClick(emoji) },
+                )
+            }
         }
     }
 }
