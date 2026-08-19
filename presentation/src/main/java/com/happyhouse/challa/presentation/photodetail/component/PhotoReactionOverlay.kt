@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
@@ -26,9 +27,19 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 /** 사진 폭 대비 스티커 크기. 피그마 기준 358dp 사진에 약 143dp. */
 private const val STICKER_WIDTH_RATIO = 0.4f
 
-/** 자리 안에서 흔들어줄 범위(스티커 크기 대비)와 기울기 범위 */
+/** 자리 안에서 흔들어줄 범위(스티커 크기 대비) */
 private const val SLOT_JITTER_RATIO = 0.12f
-private const val MAX_TILT_DEGREES = 15f
+
+/**
+ * 가장자리 자리를 사진 밖으로 밀어내는 최대 거리.
+ *
+ * 스티커가 사진 안에 갇히지 않고 경계에 걸쳐 붙은 것처럼 보이게 한다.
+ * 사진 카드 좌우로 남는 여백이 이만큼뿐이라, 더 밀면 화면 밖으로 나가 잘린다.
+ */
+private val StickerMaxOverhang = 16.dp
+
+/** 스티커 기울기. 좌우로 살짝 꺾거나 아예 안 꺾은 것 중 하나를 고른다. */
+private val TILT_DEGREE_OPTIONS = listOf(-10f, 0f, 10f)
 
 /** 스티커가 놓이는 자리. 배치 가능 영역 안에서의 비율로, 0이 왼쪽/위, 1이 오른쪽/아래다. */
 private data class StickerSlot(
@@ -73,7 +84,7 @@ private data class StickerPlacement(
  * 사진 위에 반응 스티커를 붙인다.
  *
  * 남긴 순서대로 자리 세트의 1 → 2 → 3번 자리를 채우고, 자리 안에서 위치와 각도를 흔든다.
- * 사진 카드가 clip돼 있어 가장자리로 삐져나온 부분은 잘린다.
+ * 가장자리 자리는 사진 밖으로 밀어내 경계에 걸쳐 붙은 것처럼 보이게 한다.
  */
 @Composable
 fun PhotoReactionOverlay(
@@ -86,6 +97,7 @@ fun PhotoReactionOverlay(
         val heightPx = constraints.maxHeight
         val stickerPx = (widthPx * STICKER_WIDTH_RATIO).roundToInt()
         val stickerSize = with(LocalDensity.current) { stickerPx.toDp() }
+        val overhangPx = with(LocalDensity.current) { StickerMaxOverhang.roundToPx() }
 
         val slotSet = remember(photoId) { StickerSlotSet.entries.random(Random(photoId)) }
 
@@ -95,13 +107,14 @@ fun PhotoReactionOverlay(
 
             key(reaction.id) {
                 val placement =
-                    remember(reaction.id, slot, widthPx, heightPx, stickerPx) {
+                    remember(reaction.id, slot, widthPx, heightPx, stickerPx, overhangPx) {
                         stickerPlacement(
                             slot = slot,
                             reactionId = reaction.id,
                             placeableWidth = (widthPx - stickerPx).coerceAtLeast(0),
                             placeableHeight = (heightPx - stickerPx).coerceAtLeast(0),
                             stickerPx = stickerPx,
+                            overhangPx = overhangPx,
                         )
                     }
 
@@ -141,19 +154,32 @@ private fun stickerPlacement(
     placeableWidth: Int,
     placeableHeight: Int,
     stickerPx: Int,
+    overhangPx: Int,
 ): StickerPlacement {
     val random = Random(reactionId)
     val jitterPx = stickerPx * SLOT_JITTER_RATIO
 
     fun jitter(): Float = (random.nextFloat() * 2f - 1f) * jitterPx
 
+    /** 0(왼쪽/위)이면 바깥으로 -, 1(오른쪽/아래)이면 +, 0.5(가운데)면 밀어내지 않는다. */
+    fun overhang(bias: Float): Float = (bias - 0.5f) * 2f * overhangPx
+
+    /** 흔들림까지 더하면 화면 밖으로 나갈 수 있어, 넘어갈 수 있는 거리를 [overhangPx]로 묶는다. */
+    fun place(
+        bias: Float,
+        length: Int,
+    ): Int =
+        (bias * length + overhang(bias) + jitter())
+            .roundToInt()
+            .coerceIn(-overhangPx, length + overhangPx)
+
     return StickerPlacement(
         offset =
             IntOffset(
-                x = (slot.horizontalBias * placeableWidth + jitter()).roundToInt(),
-                y = (slot.verticalBias * placeableHeight + jitter()).roundToInt(),
+                x = place(slot.horizontalBias, placeableWidth),
+                y = place(slot.verticalBias, placeableHeight),
             ),
-        tiltDegrees = (random.nextFloat() * 2f - 1f) * MAX_TILT_DEGREES,
+        tiltDegrees = TILT_DEGREE_OPTIONS.random(random),
     )
 }
 
