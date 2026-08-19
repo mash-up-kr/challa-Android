@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
+import com.happyhouse.challa.presentation.camera.contract.CameraOnboardingState
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
 import com.happyhouse.challa.presentation.camera.contract.CameraState
@@ -36,18 +37,55 @@ class CameraViewModel @AssistedInject constructor(
     private var nextCaptureRequestId = 0L
 
     init {
+        observeOnboardingCompletion()
         fetchData()
     }
 
     override fun onIntent(intent: CameraIntent) {
         when (intent) {
+            CameraIntent.OnboardingConfirmClick -> handleOnboardingConfirmClick()
             CameraIntent.RoomLoadRetry -> fetchShootableRooms()
+            CameraIntent.FilterListLoadRetry -> fetchCameraFilters()
             is CameraIntent.FlashClick -> handleFlashClick(intent.isAvailable)
             CameraIntent.SwitchCameraClick -> handleSwitchCameraClick()
             CameraIntent.ShutterClick -> handleShutterClick()
             CameraIntent.ZoomClick -> handleZoomClick()
             is CameraIntent.RoomClick -> handleRoomClick(intent.room)
             is CameraIntent.FilterClick -> handleFilterClick(intent.index)
+        }
+    }
+
+    private fun observeOnboardingCompletion() {
+        viewModelScope.launch {
+            cameraRepository.hasCompletedOnboarding.collect { result ->
+                when (result) {
+                    is ChallaResult.Success -> {
+                        val onboardingState =
+                            if (result.data) {
+                                CameraOnboardingState.COMPLETED
+                            } else {
+                                CameraOnboardingState.REQUIRED
+                            }
+                        updateState { copy(onboardingState = onboardingState) }
+                    }
+
+                    is ChallaResult.Failure -> {
+                        Timber.e("카메라 온보딩 완료 여부를 불러오지 못했습니다: %s", result)
+                        updateState { copy(onboardingState = CameraOnboardingState.LOAD_FAILED) }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleOnboardingConfirmClick() {
+        updateState { copy(onboardingState = CameraOnboardingState.COMPLETED) }
+
+        viewModelScope.launch {
+            val result = cameraRepository.completeOnboarding()
+            if (result is ChallaResult.Failure) {
+                Timber.e("카메라 온보딩 완료 여부를 저장하지 못했습니다: %s", result)
+            }
         }
     }
 
@@ -98,6 +136,8 @@ class CameraViewModel @AssistedInject constructor(
 
     private fun fetchCameraFilters() {
         viewModelScope.launch {
+            updateState { copy(isFilterSelectorReady = false) }
+
             when (val result = cameraRepository.getCameraFilters()) {
                 is ChallaResult.Success -> {
                     val cameraFilters =
@@ -106,6 +146,7 @@ class CameraViewModel @AssistedInject constructor(
                     updateState {
                         copy(
                             cameraFilters = cameraFilters,
+                            isFilterSelectorReady = true,
                             selectedFilterIndex =
                                 selectedFilterIndex.coerceIn(
                                     0,
@@ -116,7 +157,9 @@ class CameraViewModel @AssistedInject constructor(
                 }
 
                 is ChallaResult.Failure -> {
+                    updateState { copy(isFilterSelectorReady = true) }
                     Timber.e("카메라 필터 목록을 불러오지 못했습니다: $result")
+                    sendEffect(CameraSideEffect.FilterListLoadFailed)
                 }
             }
         }
@@ -169,7 +212,6 @@ class CameraViewModel @AssistedInject constructor(
                 requestId = nextCaptureRequestId,
                 roomId = room.id,
                 selectedFilter = currentState.selectedFilter,
-                lensFacing = currentState.lensFacing,
             )
         updateState { copy(captureRequest = captureRequest) }
     }
@@ -271,6 +313,17 @@ class CameraViewModel @AssistedInject constructor(
     private fun handleFilterClick(index: Int) {
         updateState {
             copy(selectedFilterIndex = index.coerceIn(0, cameraFilters.lastIndex))
+        }
+    }
+
+    fun onSelectedFilterLutLoadFailed(fileUrl: String) {
+        val selectedFilter = currentState.selectedFilter
+        if (selectedFilter !is CameraFilterUiModel.Remote) return
+        if (selectedFilter.fileUrl != fileUrl) return
+
+        updateState { copy(selectedFilterIndex = 0) }
+        viewModelScope.launch {
+            sendEffect(CameraSideEffect.SelectedFilterLutLoadFailed)
         }
     }
 

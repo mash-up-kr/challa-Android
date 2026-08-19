@@ -24,10 +24,16 @@
     <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
     <string name="camera_photo_capture_failed_message">사진 촬영에 실패했어요.</string>
     <string name="camera_room_load_failed_message">방 목록을 불러오지 못했어요.</string>
+    <string name="camera_filter_list_load_failed_message">필터 목록을 불러오지 못했어요.</string>
+    <string name="camera_filter_load_failed_message">필터를 적용하지 못해 원본으로 변경했어요.</string>
     <string name="camera_no_remaining_captures_message">앗! 장수가 없어서 촬영할 수 없어요.</string>
     <string name="camera_binding_failed_message">카메라를 시작하지 못했어요.</string>
     <string name="camera_retry">재시도</string>
-    <string name="camera_filter_original">원본</string>
+    <string name="camera_onboarding_capture_count_message">셔터를 누르는 순간 장수가 차감돼요.</string>
+    <string name="camera_onboarding_caution_message">신중하게 셔터를 눌러 보세요.</string>
+    <string name="camera_onboarding_next">다음</string>
+    <string name="camera_onboarding_confirm">확인</string>
+    <string name="camera_filter_original">None</string>
     <string name="camera_room_selector_description">방 선택</string>
     <string name="camera_room_sheet_title">방 선택하기</string>
     <string name="camera_room_sheet_close_description">방 선택 닫기</string>

@@ -43,6 +43,7 @@ fun ChallaSnackbar(
     @DrawableRes icon: Int? = null,
     iconTint: Color? = null,
     actionLabel: String? = null,
+    actionLabelColor: Color? = null,
     onActionClick: (() -> Unit)? = null,
     onCloseClick: (() -> Unit)? = null,
 ) {
@@ -53,6 +54,7 @@ fun ChallaSnackbar(
         icon = icon,
         iconTint = iconTint,
         actionLabel = actionLabel,
+        actionLabelColor = actionLabelColor,
         onActionClick = onActionClick,
         onCloseClick = onCloseClick,
         fillTextWidth = true,
@@ -73,6 +75,7 @@ fun ChallaToast(
         icon = icon,
         iconTint = iconTint,
         actionLabel = null,
+        actionLabelColor = null,
         onActionClick = null,
         onCloseClick = null,
         fillTextWidth = false,
@@ -87,6 +90,7 @@ private fun ChallaMessageContent(
     @DrawableRes icon: Int?,
     iconTint: Color?,
     actionLabel: String?,
+    actionLabelColor: Color?,
     onActionClick: (() -> Unit)?,
     onCloseClick: (() -> Unit)?,
     fillTextWidth: Boolean,
@@ -150,7 +154,7 @@ private fun ChallaMessageContent(
                         .heightIn(min = 32.dp)
                         .wrapContentHeight(Alignment.CenterVertically)
                         .snackbarActionClick(onActionClick),
-                color = ChallaTheme.colors.labelNormal,
+                color = actionLabelColor ?: ChallaTheme.colors.labelNormal,
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
                 style = ChallaTheme.typography.bodyXSmall.bold,
