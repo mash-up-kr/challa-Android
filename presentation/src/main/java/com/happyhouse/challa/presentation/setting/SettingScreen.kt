@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -54,84 +55,82 @@ fun SettingScreen(
         topBar = {
             SettingTopBar(onBackClick = onBackClick)
         },
+        bottomBar = {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 28.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                ChallaTextButton(
+                    text = stringResource(R.string.setting_open_source_license),
+                    onClick = onOpenSourceLicenseClick,
+                    variant = ChallaButtonVariant.TRANSPARENT,
+                    size = ChallaButtonSize.SMALL,
+                    contentColor = ChallaTheme.colors.labelAlternative,
+                )
+            }
+        },
     ) { innerPadding ->
-        Box(
+        Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(ChallaTheme.colors.backgroundSurface),
+                    .background(ChallaTheme.colors.backgroundSurface)
+                    .verticalScroll(rememberScrollState()),
         ) {
+            SettingProfile(
+                state = state,
+                onEditClick = onProfileEditClick,
+            )
+
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = 84.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                SettingProfile(
-                    state = state,
-                    onEditClick = onProfileEditClick,
-                )
-
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                SettingSection(
+                    title = stringResource(R.string.setting_app_section),
                 ) {
-                    SettingSection(
-                        title = stringResource(R.string.setting_app_section),
-                    ) {
-                        ChallaListItem(
-                            text = stringResource(R.string.setting_theme),
-                            leadingIcon = ChallaIcons.Palette,
-                            trailingText = primaryThemeTitle,
-                            onClick = onThemeClick,
-                        )
-                        ChallaListItem(
-                            text = stringResource(R.string.setting_notification),
-                            leadingIcon = ChallaIcons.Bell,
-                            onClick = onNotificationClick,
-                        )
-                    }
+                    ChallaListItem(
+                        text = stringResource(R.string.setting_theme),
+                        leadingIcon = ChallaIcons.Palette,
+                        trailingText = primaryThemeTitle,
+                        onClick = onThemeClick,
+                    )
+                    ChallaListItem(
+                        text = stringResource(R.string.setting_notification),
+                        leadingIcon = ChallaIcons.Bell,
+                        onClick = onNotificationClick,
+                    )
+                }
 
-                    SettingSection(
-                        title = stringResource(R.string.setting_account_section),
-                    ) {
-                        ChallaListItem(
-                            text = stringResource(R.string.setting_account_management),
-                            leadingIcon = ChallaIcons.Profile,
-                            onClick = onAccountClick,
-                        )
-                    }
+                SettingSection(
+                    title = stringResource(R.string.setting_account_section),
+                ) {
+                    ChallaListItem(
+                        text = stringResource(R.string.setting_account_management),
+                        leadingIcon = ChallaIcons.Profile,
+                        onClick = onAccountClick,
+                    )
+                }
 
-                    SettingSection(
-                        title = stringResource(R.string.setting_feedback_section),
-                    ) {
-                        ChallaListItem(
-                            text = stringResource(R.string.setting_support),
-                            leadingIcon = ChallaIcons.Carrot,
-                            onClick = onSupportClick,
-                        )
-                        ChallaListItem(
-                            text = stringResource(R.string.setting_send_feedback),
-                            leadingIcon = ChallaIcons.Feedback,
-                            onClick = onFeedbackClick,
-                        )
-                    }
+                SettingSection(
+                    title = stringResource(R.string.setting_feedback_section),
+                ) {
+                    ChallaListItem(
+                        text = stringResource(R.string.setting_support),
+                        leadingIcon = ChallaIcons.Carrot,
+                        onClick = onSupportClick,
+                    )
+                    ChallaListItem(
+                        text = stringResource(R.string.setting_send_feedback),
+                        leadingIcon = ChallaIcons.Feedback,
+                        onClick = onFeedbackClick,
+                    )
                 }
             }
-
-            ChallaTextButton(
-                text = stringResource(R.string.setting_open_source_license),
-                onClick = onOpenSourceLicenseClick,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 28.dp),
-                variant = ChallaButtonVariant.TRANSPARENT,
-                size = ChallaButtonSize.SMALL,
-                contentColor = ChallaTheme.colors.labelAlternative,
-            )
         }
     }
 }
