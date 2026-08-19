@@ -111,6 +111,7 @@ fun PhotoDetailPage(
         // 카드가 clip(PhotoShape)돼 있어 스티커는 사진 영역 안에서만 보인다.
         PhotoReactionOverlay(
             modifier = Modifier.fillMaxSize(),
+            photoId = photo.id,
             reactions = reactions,
         )
     }

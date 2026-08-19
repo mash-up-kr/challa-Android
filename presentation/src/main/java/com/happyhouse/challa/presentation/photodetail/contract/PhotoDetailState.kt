@@ -66,6 +66,13 @@ data class PhotoReactionUiModel(
     val emoji: ReactionEmoji,
 )
 
+/**
+ * 한 사진에 붙일 수 있는 반응 수. 스티커 자리 세트의 자리 수와 같다.
+ *
+ * TODO: 참여자 전원 합산 기준으로 두고 기획 확인 중. (이슈 #110)
+ */
+const val MAX_REACTION_COUNT = 3
+
 /** 반응 바에 노출하는 이모지 종류. 선언 순서가 곧 노출 순서이자 스와이프 페이지 순서다. */
 enum class ReactionEmoji {
     FIRE,

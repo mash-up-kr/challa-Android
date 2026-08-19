@@ -12,6 +12,7 @@ import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
+import com.happyhouse.challa.presentation.photodetail.contract.MAX_REACTION_COUNT
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
@@ -49,7 +50,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     private var nextPhotoPage = FIRST_PHOTO_PAGE
     private var hasNextPhotoPage = false
 
-    // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 좌표 seed로 쓰이므로 반응마다 고유해야 한다.
+    // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 배치 seed로 쓰이므로 반응마다 고유해야 한다.
     private var nextReactionId = 0L
 
     init {
@@ -219,8 +220,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * TODO: 반응 API 스펙 확정 전까지 로컬 state에만 쌓는다. (이슈 #62)
-     * TODO: 같은 사람이 여러 번 남길 수 있는지 / 취소 가능한지 기획 미확정. 현재는 누를 때마다 계속 추가된다.
+     * 이미 남긴 이모지를 다시 누르면 취소하고, 아니면 새로 남긴다.
+     * 같은 이모지는 한 번만 붙으므로 한 사진에 서로 다른 이모지가 최대 [MAX_REACTION_COUNT]개까지 붙는다.
+     *
+     * TODO: 반응 삭제 API가 없어 등록·취소 모두 로컬 state에만 반영한다. API가 나오면 연동할 것. (이슈 #110)
      */
     private fun handleReactionClick(
         photo: PhotoDetailUiModel,
@@ -233,9 +236,22 @@ class PhotoDetailViewModel @AssistedInject constructor(
             return
         }
 
-        val reaction = PhotoReactionUiModel(id = nextReactionId++, emoji = emoji)
-        val updated = (loaded.reactionsOf(photo.id) + reaction).toPersistentList()
-        val reactions = (loaded.reactions + (photo.id to updated)).toPersistentMap()
+        val current = loaded.reactionsOf(photo.id)
+        val left = current.firstOrNull { reaction -> reaction.emoji == emoji }
+
+        val updated =
+            when {
+                left != null -> current - left
+
+                current.size >= MAX_REACTION_COUNT -> {
+                    viewModelScope.launch { sendEffect(PhotoDetailSideEffect.ReactionLimitExceeded) }
+                    return
+                }
+
+                else -> current + PhotoReactionUiModel(id = nextReactionId++, emoji = emoji)
+            }
+
+        val reactions = (loaded.reactions + (photo.id to updated.toPersistentList())).toPersistentMap()
         updateState { copy(photoInfo = loaded.copy(reactions = reactions)) }
     }
 

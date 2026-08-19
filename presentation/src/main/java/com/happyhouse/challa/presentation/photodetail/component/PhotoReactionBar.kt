@@ -28,6 +28,8 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val ReactionButtonSize = 58.dp
@@ -47,6 +49,7 @@ private const val EMOJI_COUNT_PER_PAGE = 5
  */
 @Composable
 fun PhotoReactionBar(
+    leftEmojis: ImmutableSet<ReactionEmoji>,
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -67,6 +70,7 @@ fun PhotoReactionBar(
             pages[page].forEach { emoji ->
                 ReactionButton(
                     emoji = emoji,
+                    isLeft = emoji in leftEmojis,
                     onClick = { onEmojiClick(emoji) },
                 )
             }
@@ -74,9 +78,11 @@ fun PhotoReactionBar(
     }
 }
 
+/** @param isLeft 이 이모지를 이미 남겨둔 상태. 누르면 남기는 대신 취소된다. */
 @Composable
 private fun ReactionButton(
     emoji: ReactionEmoji,
+    isLeft: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -90,7 +96,11 @@ private fun ReactionButton(
                     role = Role.Button,
                     onClickLabel =
                         stringResource(
-                            R.string.photo_detail_reaction_add_description,
+                            if (isLeft) {
+                                R.string.photo_detail_reaction_remove_description
+                            } else {
+                                R.string.photo_detail_reaction_add_description
+                            },
                             stringResource(emoji.labelRes),
                         ),
                     onClick = onClick,
@@ -171,5 +181,18 @@ internal val ReactionEmoji.labelRes: Int
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoReactionBarPreview() {
-    PhotoReactionBar(onEmojiClick = {})
+    PhotoReactionBar(
+        leftEmojis = persistentSetOf(),
+        onEmojiClick = {},
+    )
+}
+
+@ComposePreview(showBackground = true, widthDp = 390, name = "PhotoReactionBar - 남긴 반응 있음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoReactionBarWithLeftEmojisPreview() {
+    PhotoReactionBar(
+        leftEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.MEDAL),
+        onEmojiClick = {},
+    )
 }

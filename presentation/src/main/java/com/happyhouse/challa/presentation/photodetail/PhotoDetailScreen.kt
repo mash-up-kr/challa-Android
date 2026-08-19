@@ -29,6 +29,8 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.collections.immutable.toPersistentSet
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
@@ -65,6 +67,17 @@ fun PhotoDetailScreen(
         hasMovedToInitialPhoto = true
     }
 
+    // 이미 남긴 이모지는 다시 누르면 취소되므로, 버튼이 어떤 동작인지 접근성 라벨로 알린다.
+    val leftEmojis =
+        remember(state.photoInfo, currentPhoto) {
+            val loaded = state.photoInfo as? PhotoInfo.Loaded
+            if (loaded == null || currentPhoto == null) {
+                persistentSetOf()
+            } else {
+                loaded.reactionsOf(currentPhoto.id).mapTo(mutableSetOf()) { it.emoji }.toPersistentSet()
+            }
+        }
+
     val reachedLoadMoreThreshold by remember(photos) {
         derivedStateOf { pagerState.currentPage >= photos.size - LOAD_MORE_PREFETCH_PAGE_COUNT }
     }
@@ -92,6 +105,7 @@ fun PhotoDetailScreen(
                     modifier = Modifier.imePadding(),
                     message = state.messageInput,
                     isMessageSendable = state.isMessageSendable,
+                    leftEmojis = leftEmojis,
                     onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
                     onMessageChange = onMessageChange,
                     onSendClick = { onSendClick(currentPhoto) },

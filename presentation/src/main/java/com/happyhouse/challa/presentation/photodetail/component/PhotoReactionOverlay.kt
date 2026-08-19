@@ -8,56 +8,105 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.photodetail.contract.MAX_REACTION_COUNT
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.roundToInt
-import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-// TODO: 배치 규칙(Case A/B 3자리) 적용은 후속 커밋에서. (이슈 #110)
-private val ReactionStickerSize = 130.dp
+/** 사진 폭 대비 스티커 크기. 피그마 기준 358dp 사진에 약 143dp. */
+private const val STICKER_WIDTH_RATIO = 0.4f
+
+/** 자리 안에서 흔들어줄 범위(스티커 크기 대비)와 기울기 범위 */
+private const val SLOT_JITTER_RATIO = 0.12f
+private const val MAX_TILT_DEGREES = 15f
+
+/** 스티커가 놓이는 자리. 배치 가능 영역 안에서의 비율로, 0이 왼쪽/위, 1이 오른쪽/아래다. */
+private data class StickerSlot(
+    val horizontalBias: Float,
+    val verticalBias: Float,
+)
 
 /**
- * 스티커 중심을 사진 중심에서 얼마나 떨어뜨릴지의 범위(사진 크기 대비 비율).
- * 정중앙을 피해서 배치해야 해서 최소 거리를 둔다.
+ * 자리 세트. 사진마다 A/B 중 하나를 뽑아 쓴다.
+ *
+ * 세트 안에서 좌우가 번갈아 나와 스티커가 한쪽에 몰리지 않는다.
+ * 어느 세트를 쓸지는 사진 id로 정하므로, 같은 사진은 다시 열어도 같은 세트를 쓴다.
  */
-private const val MIN_CENTER_DISTANCE = 0.3
-private const val MAX_CENTER_DISTANCE = 0.5
+private enum class StickerSlotSet(
+    val slots: List<StickerSlot>,
+) {
+    /** 좌측 상단 → 우측 중앙 → 좌측 하단 */
+    A(
+        listOf(
+            StickerSlot(horizontalBias = 0f, verticalBias = 0f),
+            StickerSlot(horizontalBias = 1f, verticalBias = 0.5f),
+            StickerSlot(horizontalBias = 0f, verticalBias = 1f),
+        ),
+    ),
 
+    /** 우측 상단 → 좌측 중앙 → 우측 하단 */
+    B(
+        listOf(
+            StickerSlot(horizontalBias = 1f, verticalBias = 0f),
+            StickerSlot(horizontalBias = 0f, verticalBias = 0.5f),
+            StickerSlot(horizontalBias = 1f, verticalBias = 1f),
+        ),
+    ),
+}
+
+private data class StickerPlacement(
+    val offset: IntOffset,
+    val tiltDegrees: Float,
+)
+
+/**
+ * 사진 위에 반응 스티커를 붙인다.
+ *
+ * 남긴 순서대로 자리 세트의 1 → 2 → 3번 자리를 채우고, 자리 안에서 위치와 각도를 흔든다.
+ * 사진 카드가 clip돼 있어 가장자리로 삐져나온 부분은 잘린다.
+ */
 @Composable
 fun PhotoReactionOverlay(
+    photoId: Long,
     reactions: ImmutableList<PhotoReactionUiModel>,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
         val widthPx = constraints.maxWidth
         val heightPx = constraints.maxHeight
-        val stickerPx = with(LocalDensity.current) { ReactionStickerSize.roundToPx() }
+        val stickerPx = (widthPx * STICKER_WIDTH_RATIO).roundToInt()
+        val stickerSize = with(LocalDensity.current) { stickerPx.toDp() }
 
-        reactions.forEach { reaction ->
-            val offset =
-                remember(reaction.id, widthPx, heightPx, stickerPx) {
-                    reactionStickerOffset(
+        val slotSet = remember(photoId) { StickerSlotSet.entries.random(Random(photoId)) }
+
+        reactions.take(MAX_REACTION_COUNT).forEachIndexed { index, reaction ->
+            val placement =
+                remember(reaction.id, slotSet, index, widthPx, heightPx, stickerPx) {
+                    stickerPlacement(
+                        slot = slotSet.slots[index],
                         reactionId = reaction.id,
-                        widthPx = widthPx,
-                        heightPx = heightPx,
+                        placeableWidth = (widthPx - stickerPx).coerceAtLeast(0),
+                        placeableHeight = (heightPx - stickerPx).coerceAtLeast(0),
                         stickerPx = stickerPx,
                     )
                 }
 
             ReactionSticker(
-                modifier = Modifier.offset { offset },
+                modifier =
+                    Modifier
+                        .size(stickerSize)
+                        .offset { placement.offset }
+                        .rotate(placement.tiltDegrees),
                 emoji = reaction.emoji,
             )
         }
@@ -71,33 +120,35 @@ private fun ReactionSticker(
     modifier: Modifier = Modifier,
 ) {
     Image(
-        modifier = modifier.size(ReactionStickerSize),
+        modifier = modifier,
         painter = painterResource(id = emoji.stickerDrawableRes),
         contentDescription = null,
     )
 }
 
 /**
- * 반응 id를 seed로 스티커 좌표를 정한다. 같은 반응은 스크롤·재진입과 무관하게 항상 같은 자리에 그려진다.
- *
- * 스티커가 사진 밖으로 나가지 않도록 배치 범위는 사진 크기에서 스티커 크기를 뺀 영역으로 잡는다.
+ * 반응 id를 seed로 자리 안에서의 위치와 각도를 정한다.
+ * 같은 반응은 스크롤·재진입과 무관하게 항상 같은 모습으로 그려진다.
  */
-private fun reactionStickerOffset(
+private fun stickerPlacement(
+    slot: StickerSlot,
     reactionId: Long,
-    widthPx: Int,
-    heightPx: Int,
+    placeableWidth: Int,
+    placeableHeight: Int,
     stickerPx: Int,
-): IntOffset {
+): StickerPlacement {
     val random = Random(reactionId)
-    val angle = random.nextDouble(0.0, 2 * PI)
-    val distance = random.nextDouble(MIN_CENTER_DISTANCE, MAX_CENTER_DISTANCE)
+    val jitterPx = stickerPx * SLOT_JITTER_RATIO
 
-    val placeableWidth = (widthPx - stickerPx).coerceAtLeast(0)
-    val placeableHeight = (heightPx - stickerPx).coerceAtLeast(0)
+    fun jitter(): Float = (random.nextFloat() * 2f - 1f) * jitterPx
 
-    return IntOffset(
-        x = (placeableWidth * (0.5 + cos(angle) * distance)).roundToInt().coerceIn(0, placeableWidth),
-        y = (placeableHeight * (0.5 + sin(angle) * distance)).roundToInt().coerceIn(0, placeableHeight),
+    return StickerPlacement(
+        offset =
+            IntOffset(
+                x = (slot.horizontalBias * placeableWidth + jitter()).roundToInt(),
+                y = (slot.verticalBias * placeableHeight + jitter()).roundToInt(),
+            ),
+        tiltDegrees = (random.nextFloat() * 2f - 1f) * MAX_TILT_DEGREES,
     )
 }
 
@@ -107,11 +158,33 @@ private fun reactionStickerOffset(
 private fun PhotoReactionOverlayPreview() {
     PhotoReactionOverlay(
         modifier = Modifier.fillMaxSize(),
+        photoId = 1L,
         reactions =
             persistentListOf(
                 PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.MEDAL),
                 PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.HEART),
                 PhotoReactionUiModel(id = 2L, emoji = ReactionEmoji.FIRE),
+            ),
+    )
+}
+
+@ComposePreview(
+    showBackground = true,
+    widthDp = 358,
+    heightDp = 477,
+    name = "PhotoReactionOverlay - 반대쪽 자리 세트",
+)
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoReactionOverlayOtherSlotSetPreview() {
+    PhotoReactionOverlay(
+        modifier = Modifier.fillMaxSize(),
+        photoId = 2L,
+        reactions =
+            persistentListOf(
+                PhotoReactionUiModel(id = 3L, emoji = ReactionEmoji.THINKING),
+                PhotoReactionUiModel(id = 4L, emoji = ReactionEmoji.SPARKLES),
+                PhotoReactionUiModel(id = 5L, emoji = ReactionEmoji.SKULL),
             ),
     )
 }
@@ -127,6 +200,7 @@ private fun PhotoReactionOverlayPreview() {
 private fun PhotoReactionOverlayEmptyPreview() {
     PhotoReactionOverlay(
         modifier = Modifier.fillMaxSize(),
+        photoId = 1L,
         reactions = persistentListOf(),
     )
 }

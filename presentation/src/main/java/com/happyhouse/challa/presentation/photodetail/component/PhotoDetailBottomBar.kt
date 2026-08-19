@@ -10,18 +10,21 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val BottomBarTopPadding = 8.dp
 private val BottomBarSpacing = 16.dp
 
-/** 반응 바는 가로 스크롤이라 화면 끝까지 닿아야 해서, 여백을 바깥이 아닌 각 항목이 갖는다. */
+/** 반응 바는 페이지가 화면 끝까지 닿아야 해서, 좌우 여백을 바깥이 아닌 각 항목이 갖는다. */
 private val MessageInputHorizontalPadding = 20.dp
 
 @Composable
 fun PhotoDetailBottomBar(
     message: String,
     isMessageSendable: Boolean,
+    leftEmojis: ImmutableSet<ReactionEmoji>,
     onEmojiClick: (ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: () -> Unit,
@@ -34,7 +37,10 @@ fun PhotoDetailBottomBar(
                 .padding(top = BottomBarTopPadding),
         verticalArrangement = Arrangement.spacedBy(BottomBarSpacing),
     ) {
-        PhotoReactionBar(onEmojiClick = onEmojiClick)
+        PhotoReactionBar(
+            leftEmojis = leftEmojis,
+            onEmojiClick = onEmojiClick,
+        )
 
         PhotoMessageInput(
             modifier = Modifier.padding(horizontal = MessageInputHorizontalPadding),
@@ -53,6 +59,7 @@ private fun PhotoDetailBottomBarPreview() {
     PhotoDetailBottomBar(
         message = "",
         isMessageSendable = false,
+        leftEmojis = persistentSetOf(),
         onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},
@@ -66,6 +73,7 @@ private fun PhotoDetailBottomBarTypingPreview() {
     PhotoDetailBottomBar(
         message = "기엽다",
         isMessageSendable = true,
+        leftEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.HEART),
         onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},

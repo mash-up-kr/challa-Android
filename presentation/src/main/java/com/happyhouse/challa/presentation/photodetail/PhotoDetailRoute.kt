@@ -16,6 +16,7 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.photodetail.contract.MAX_REACTION_COUNT
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
 import com.happyhouse.challa.presentation.photodetail.permission.rememberPhotoSavePermissionGate
@@ -44,6 +45,7 @@ fun PhotoDetailRoute(
     val loadFailureMessage = stringResource(R.string.photo_detail_load_failure)
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
+    val reactionLimitMessage = stringResource(R.string.photo_detail_reaction_limit, MAX_REACTION_COUNT)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
     val requestSave =
@@ -103,6 +105,12 @@ fun PhotoDetailRoute(
                             message = reactionFailureMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
+                            topOffset = ToastTopOffset,
+                        )
+
+                    PhotoDetailSideEffect.ReactionLimitExceeded ->
+                        ChallaToastVisuals(
+                            message = reactionLimitMessage,
                             topOffset = ToastTopOffset,
                         )
                 }

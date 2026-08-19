@@ -13,4 +13,7 @@ sealed interface PhotoDetailSideEffect : UiSideEffect {
     data object SaveFailed : PhotoDetailSideEffect
 
     data object ReactionSendFailed : PhotoDetailSideEffect
+
+    /** 한 사진에 남길 수 있는 반응 수를 넘겨 눌렀을 때 */
+    data object ReactionLimitExceeded : PhotoDetailSideEffect
 }
