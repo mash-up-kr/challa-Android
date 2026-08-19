@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -14,7 +15,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.photodetail.contract.MAX_REACTION_COUNT
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.ImmutableList
@@ -89,26 +89,31 @@ fun PhotoReactionOverlay(
 
         val slotSet = remember(photoId) { StickerSlotSet.entries.random(Random(photoId)) }
 
-        reactions.take(MAX_REACTION_COUNT).forEachIndexed { index, reaction ->
-            val placement =
-                remember(reaction.id, slotSet, index, widthPx, heightPx, stickerPx) {
-                    stickerPlacement(
-                        slot = slotSet.slots[index],
-                        reactionId = reaction.id,
-                        placeableWidth = (widthPx - stickerPx).coerceAtLeast(0),
-                        placeableHeight = (heightPx - stickerPx).coerceAtLeast(0),
-                        stickerPx = stickerPx,
-                    )
-                }
+        // 개수 상한은 ViewModel이 지킨다. 여기서는 자리 수로 한 번 더 잘라, 상한이 늘어도 크래시하지 않게 한다.
+        reactions.take(slotSet.slots.size).forEachIndexed { index, reaction ->
+            val slot = slotSet.slots[index]
 
-            ReactionSticker(
-                modifier =
-                    Modifier
-                        .size(stickerSize)
-                        .offset { placement.offset }
-                        .rotate(placement.tiltDegrees),
-                emoji = reaction.emoji,
-            )
+            key(reaction.id) {
+                val placement =
+                    remember(reaction.id, slot, widthPx, heightPx, stickerPx) {
+                        stickerPlacement(
+                            slot = slot,
+                            reactionId = reaction.id,
+                            placeableWidth = (widthPx - stickerPx).coerceAtLeast(0),
+                            placeableHeight = (heightPx - stickerPx).coerceAtLeast(0),
+                            stickerPx = stickerPx,
+                        )
+                    }
+
+                ReactionSticker(
+                    modifier =
+                        Modifier
+                            .size(stickerSize)
+                            .offset { placement.offset }
+                            .rotate(placement.tiltDegrees),
+                    emoji = reaction.emoji,
+                )
+            }
         }
     }
 }

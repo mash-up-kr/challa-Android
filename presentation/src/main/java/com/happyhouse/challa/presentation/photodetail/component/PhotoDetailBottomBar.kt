@@ -24,7 +24,7 @@ private val MessageInputHorizontalPadding = 20.dp
 fun PhotoDetailBottomBar(
     message: String,
     isMessageSendable: Boolean,
-    leftEmojis: ImmutableSet<ReactionEmoji>,
+    addedEmojis: ImmutableSet<ReactionEmoji>,
     onEmojiClick: (ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: () -> Unit,
@@ -38,7 +38,7 @@ fun PhotoDetailBottomBar(
         verticalArrangement = Arrangement.spacedBy(BottomBarSpacing),
     ) {
         PhotoReactionBar(
-            leftEmojis = leftEmojis,
+            addedEmojis = addedEmojis,
             onEmojiClick = onEmojiClick,
         )
 
@@ -59,7 +59,7 @@ private fun PhotoDetailBottomBarPreview() {
     PhotoDetailBottomBar(
         message = "",
         isMessageSendable = false,
-        leftEmojis = persistentSetOf(),
+        addedEmojis = persistentSetOf(),
         onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},
@@ -73,7 +73,7 @@ private fun PhotoDetailBottomBarTypingPreview() {
     PhotoDetailBottomBar(
         message = "기엽다",
         isMessageSendable = true,
-        leftEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.HEART),
+        addedEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.HEART),
         onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},

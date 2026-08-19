@@ -34,22 +34,34 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
-private val ReactionBarSpacing = 13.dp
+
+/** 페이지끼리의 간격. 피그마의 버튼 간격과 같은 값이라 넘길 때 리듬이 이어진다. */
+private val ReactionBarPageSpacing = 13.dp
 private val ReactionBarHorizontalPadding = 24.dp
 
-/** 한 페이지에 노출하는 이모지 수. 스와이프 한 번에 이만큼 넘어간다. */
+/**
+ * 한 페이지에 노출하는 이모지 수. 스와이프 한 번에 이만큼 넘어간다.
+ *
+ * 이모지 수가 이 값의 배수라 마지막 페이지도 꽉 찬다. 배수가 아니게 되면 마지막 페이지에서
+ * 항목이 양 끝으로 벌어지므로, 그때는 배치를 다시 정해야 한다.
+ */
 private const val EMOJI_COUNT_PER_PAGE = 5
 
 /**
  * 이모지를 [EMOJI_COUNT_PER_PAGE]개씩 끊어 좌우로 넘긴다.
  *
  * 자유 스크롤이 아니라 페이지 단위로 딱 떨어져야 해서 pager를 쓴다.
- * 페이지 폭이 화면에서 좌우 여백을 뺀 만큼이어야 5개가 정확히 들어차므로,
- * 여백은 modifier가 아닌 contentPadding으로 준다.
+ * 페이지가 화면 폭을 꽉 채워야 좌우 여백이 피그마대로 나오므로, 여백은 modifier가 아닌
+ * contentPadding으로 준다.
+ *
+ * 버튼 간격을 13dp로 고정하지 않고 [Arrangement.SpaceBetween]으로 남는 폭을 나눠 주는 이유:
+ * 피그마 기준 폭(390dp)에서는 버튼 5개와 간격 4개가 페이지 폭과 정확히 맞아떨어져 간격이 13dp로 같지만,
+ * 360dp 기기에서는 고정 간격이면 폭이 30dp 모자라 마지막 버튼이 잘린다.
+ * 나눠 주면 좁은 화면에서는 간격만 줄어들어 5개가 모두 들어온다.
  */
 @Composable
 fun PhotoReactionBar(
-    leftEmojis: ImmutableSet<ReactionEmoji>,
+    addedEmojis: ImmutableSet<ReactionEmoji>,
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -60,17 +72,17 @@ fun PhotoReactionBar(
         modifier = modifier.fillMaxWidth(),
         state = pagerState,
         contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
-        pageSpacing = ReactionBarSpacing,
+        pageSpacing = ReactionBarPageSpacing,
     ) { page ->
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(ReactionBarSpacing),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             pages[page].forEach { emoji ->
                 ReactionButton(
                     emoji = emoji,
-                    isLeft = emoji in leftEmojis,
+                    isAdded = emoji in addedEmojis,
                     onClick = { onEmojiClick(emoji) },
                 )
             }
@@ -78,11 +90,11 @@ fun PhotoReactionBar(
     }
 }
 
-/** @param isLeft 이 이모지를 이미 남겨둔 상태. 누르면 남기는 대신 취소된다. */
+/** @param isAdded 이 이모지를 이미 남겨둔 상태. 누르면 남기는 대신 취소된다. */
 @Composable
 private fun ReactionButton(
     emoji: ReactionEmoji,
-    isLeft: Boolean,
+    isAdded: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -96,7 +108,7 @@ private fun ReactionButton(
                     role = Role.Button,
                     onClickLabel =
                         stringResource(
-                            if (isLeft) {
+                            if (isAdded) {
                                 R.string.photo_detail_reaction_remove_description
                             } else {
                                 R.string.photo_detail_reaction_add_description
@@ -182,7 +194,7 @@ internal val ReactionEmoji.labelRes: Int
 @Composable
 private fun PhotoReactionBarPreview() {
     PhotoReactionBar(
-        leftEmojis = persistentSetOf(),
+        addedEmojis = persistentSetOf(),
         onEmojiClick = {},
     )
 }
@@ -190,9 +202,9 @@ private fun PhotoReactionBarPreview() {
 @ComposePreview(showBackground = true, widthDp = 390, name = "PhotoReactionBar - 남긴 반응 있음")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun PhotoReactionBarWithLeftEmojisPreview() {
+private fun PhotoReactionBarWithAddedEmojisPreview() {
     PhotoReactionBar(
-        leftEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.MEDAL),
+        addedEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.MEDAL),
         onEmojiClick = {},
     )
 }

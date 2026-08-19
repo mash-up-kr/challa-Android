@@ -68,13 +68,13 @@ fun PhotoDetailScreen(
     }
 
     // 이미 남긴 이모지는 다시 누르면 취소되므로, 버튼이 어떤 동작인지 접근성 라벨로 알린다.
-    val leftEmojis =
+    val addedEmojis =
         remember(state.photoInfo, currentPhoto) {
             val loaded = state.photoInfo as? PhotoInfo.Loaded
             if (loaded == null || currentPhoto == null) {
                 persistentSetOf()
             } else {
-                loaded.reactionsOf(currentPhoto.id).mapTo(mutableSetOf()) { it.emoji }.toPersistentSet()
+                loaded.reactionsOf(currentPhoto.id).map { reaction -> reaction.emoji }.toPersistentSet()
             }
         }
 
@@ -105,7 +105,7 @@ fun PhotoDetailScreen(
                     modifier = Modifier.imePadding(),
                     message = state.messageInput,
                     isMessageSendable = state.isMessageSendable,
-                    leftEmojis = leftEmojis,
+                    addedEmojis = addedEmojis,
                     onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
                     onMessageChange = onMessageChange,
                     onSendClick = { onSendClick(currentPhoto) },
