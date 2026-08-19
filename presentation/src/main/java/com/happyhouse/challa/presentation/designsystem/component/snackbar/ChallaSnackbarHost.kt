@@ -70,6 +70,7 @@ fun ChallaSnackbarHost(
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
                         actionLabel = visuals.actionLabel,
+                        actionLabelColor = visuals.actionLabelColor,
                         onActionClick =
                             visuals.actionLabel?.let {
                                 data::performAction

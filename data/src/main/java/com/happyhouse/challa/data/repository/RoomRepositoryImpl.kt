@@ -5,6 +5,7 @@ import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
 import com.happyhouse.challa.data.network.dto.toDomain
+import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
@@ -14,10 +15,6 @@ import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
@@ -34,14 +31,14 @@ class RoomRepositoryImpl @Inject constructor(
                 remainedPhotoCount = room.remainedPhotoCount,
                 invitationCode = room.invitationCode,
                 status = room.status.toRoomStatus(),
-                photoPrintCompletionAt = room.photoPrintCompletionAt?.toInstant(),
+                photoPrintCompletedAt = room.photoPrintCompletedAt?.parseServerInstant(),
             )
         }
 
     override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
         roomApi.getRoomUsers(roomId).mapCatching { response ->
             check(response.success) { response.message }
-            val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.room
+            val users = requireNotNull(response.data) { "방 참여자 응답 데이터가 비어 있습니다." }.users
             users.map { user ->
                 RoomUser(
                     id = user.id,
@@ -100,25 +97,6 @@ class RoomRepositoryImpl @Inject constructor(
                 }
         }
 
-    private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
-        when (this) {
-            GetRoomResponse.Status.SHOOTING -> RoomStatus.SHOOTING
-            GetRoomResponse.Status.PHOTO_PRINT_PENDING -> RoomStatus.PHOTO_PRINT_PENDING
-            GetRoomResponse.Status.PHOTO_PRINT_COMPLETED -> RoomStatus.PHOTO_PRINT_COMPLETED
-            GetRoomResponse.Status.UNKNOWN -> RoomStatus.UNKNOWN
-        }
-
-    /**
-     * 서버가 내려주는 ISO-8601 시각을 파싱한다.
-     *
-     * 오프셋이 붙어 오면 그대로 쓰고, 없으면 UTC로 본다.
-     * 둘 다 아닌 값은 서버가 약속과 다른 응답을 준 것이므로 예외를 그대로 띄워 조회 실패로 만든다.
-     * 시각을 아예 안 내려준 경우(null)와 형식이 깨진 경우를 구분하기 위함이다.
-     */
-    private fun String.toInstant(): Instant =
-        runCatching { OffsetDateTime.parse(this).toInstant() }
-            .getOrElse { LocalDateTime.parse(this).toInstant(ZoneOffset.UTC) }
-
     override suspend fun getRoomList(statuses: List<RoomStatus>): ChallaResult<List<Room>> =
         roomApi
             .getRooms(statuses.filterNot { it == RoomStatus.UNKNOWN }.map { it.name })
@@ -127,4 +105,12 @@ class RoomRepositoryImpl @Inject constructor(
                 val data = requireNotNull(response.data) { "방 목록 응답 데이터가 비어 있습니다." }
                 data.rooms.map { it.toDomain() }
             }
+
+    private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
+        when (this) {
+            GetRoomResponse.Status.SHOOTING -> RoomStatus.SHOOTING
+            GetRoomResponse.Status.PHOTO_PRINT_PENDING -> RoomStatus.PHOTO_PRINT_PENDING
+            GetRoomResponse.Status.PHOTO_PRINT_COMPLETED -> RoomStatus.PHOTO_PRINT_COMPLETED
+            GetRoomResponse.Status.UNKNOWN -> RoomStatus.UNKNOWN
+        }
 }

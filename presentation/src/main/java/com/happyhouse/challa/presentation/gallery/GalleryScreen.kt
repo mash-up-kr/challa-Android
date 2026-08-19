@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,14 +20,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.gallery.component.GalleryBackgroundGlow
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
 import com.happyhouse.challa.presentation.gallery.component.GalleryCountdownBar
+import com.happyhouse.challa.presentation.gallery.component.GalleryProfileMenu
 import com.happyhouse.challa.presentation.gallery.component.GalleryShootBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
@@ -42,6 +46,7 @@ fun GalleryScreen(
     snackbarHostState: SnackbarHostState,
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
+    onInviteCodeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.background(ChallaTheme.colors.backgroundSurface)) {
@@ -52,6 +57,7 @@ fun GalleryScreen(
             snackbarHostState = snackbarHostState,
             onIntent = onIntent,
             onBackClick = onBackClick,
+            onInviteCodeClick = onInviteCodeClick,
         )
     }
 }
@@ -62,9 +68,12 @@ private fun GalleryScaffold(
     snackbarHostState: SnackbarHostState,
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
+    onInviteCodeClick: (String) -> Unit,
 ) {
-    Scaffold(
+    ChallaScaffold(
+        // 배경과 글로우는 화면 루트에서 그린다.
         containerColor = Color.Transparent,
+        // 그리드가 시스템 바 밑까지 이어지도록 content에는 인셋을 주지 않는다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             GalleryTopBar(
@@ -139,6 +148,38 @@ private fun GalleryScaffold(
                 }
             }
 
+            // 참여자를 못 받으면 프로필 바가 없어 메뉴를 열고 닫을 자리도 없다.
+            val showsProfileMenu =
+                state.members.isNotEmpty() &&
+                    when (state.photoInfo) {
+                        is PhotoInfo.Film, is PhotoInfo.Printed -> true
+                        PhotoInfo.Loading, PhotoInfo.Error -> false
+                    }
+
+            if (showsProfileMenu) {
+                if (state.inviteMenu is GalleryState.InviteMenu.Opened) {
+                    // 하단 바보다 위에 깔아야 어디를 누르든 닫기가 먼저 먹는다.
+                    Box(
+                        modifier =
+                            Modifier
+                                .matchParentSize()
+                                .noRippleClickOnce(
+                                    onClickLabel = stringResource(R.string.gallery_invite_menu_close_label),
+                                    onClick = { onIntent(GalleryIntent.InviteMenuDismiss) },
+                                ),
+                    )
+                }
+
+                GalleryProfileMenu(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    members = state.members,
+                    invitationCode = state.invitationCode,
+                    inviteMenu = state.inviteMenu,
+                    onProfileBarClick = { onIntent(GalleryIntent.ProfileBarClick) },
+                    onInviteCodeClick = onInviteCodeClick,
+                )
+            }
+
             // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
             ChallaSnackbarHost(hostState = snackbarHostState)
         }
@@ -146,14 +187,14 @@ private fun GalleryScaffold(
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 촬영 중")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenShootingPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()))
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 인화 대기")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenWaitingPreview() {
     GalleryScreenPreviewTemplate(
@@ -166,37 +207,53 @@ private fun GalleryScreenWaitingPreview() {
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 인화 완료")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenPrintedPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Loading")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenLoadingPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Loading)
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Error")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenErrorPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Error)
 }
 
+@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 초대 메뉴 열림")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
-private fun GalleryScreenPreviewTemplate(photoInfo: PhotoInfo) {
+private fun GalleryScreenInviteMenuPreview() {
+    GalleryScreenPreviewTemplate(
+        photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()),
+        inviteMenu = GalleryState.InviteMenu.Opened(showsTooltip = true),
+    )
+}
+
+@Composable
+private fun GalleryScreenPreviewTemplate(
+    photoInfo: PhotoInfo,
+    inviteMenu: GalleryState.InviteMenu = GalleryState.InviteMenu.Closed,
+) {
     GalleryScreen(
         state =
             GalleryState(
                 roomName = "친구들과 강릉 여행",
+                invitationCode = "1928121",
                 members = previewGalleryMembers(),
+                inviteMenu = inviteMenu,
                 photoInfo = photoInfo,
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
         onBackClick = {},
+        onInviteCodeClick = {},
     )
 }

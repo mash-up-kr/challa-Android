@@ -13,22 +13,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -57,12 +52,18 @@ private val BarPadding = 2.dp
  *
  * @param contentDescription 아바타가 하나씩 읽히면 소음이 되므로 바 전체를 대신 읽어줄 문구.
  *  아바타가 하나도 없으면 아예 그리지 않으므로 읽어줄 문구가 없는 경우가 없어 필수로 받는다.
+ * @param isExpanded 바에 딸린 메뉴가 열려 있는지. 열려 있으면 배경색이 반전된다.
+ * @param onClickLabel 누르면 무엇이 일어나는지 읽어줄 문구
+ * @param onClick null이면 누를 수 없는 바로 그린다.
  */
 @Composable
 fun ChallaProfileBar(
     profileImageUrls: ImmutableList<String?>,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    isExpanded: Boolean = false,
+    onClickLabel: String? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     if (profileImageUrls.isEmpty()) return
 
@@ -70,7 +71,7 @@ fun ChallaProfileBar(
     val overflowCount = profileImageUrls.size - visibleUrls.size
 
     val barColor =
-        if (overflowCount > 0) {
+        if (isExpanded) {
             ChallaTheme.colors.staticBlack
         } else {
             ChallaTheme.colors.staticWhite
@@ -84,16 +85,28 @@ fun ChallaProfileBar(
                     this.contentDescription = contentDescription
                 }.clip(CircleShape)
                 .background(barColor)
-                .padding(BarPadding),
+                .then(
+                    if (onClick == null) {
+                        Modifier
+                    } else {
+                        Modifier.noRippleClickOnce(
+                            role = Role.Button,
+                            onClickLabel = onClickLabel,
+                            onClick = onClick,
+                        )
+                    },
+                ).padding(BarPadding),
         horizontalArrangement = Arrangement.spacedBy(MemberAvatarPitch - MemberAvatarSize),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Row는 나중에 놓인 자식이 위에 그려지므로, 왼쪽이 오른쪽을 덮는 디자인에 맞춰 z축을 뒤집는다.
         visibleUrls.forEachIndexed { index, profileImageUrl ->
-            MemberAvatar(
-                modifier = Modifier.zIndex((visibleUrls.size - index).toFloat()),
+            ChallaProfileImage(
+                modifier =
+                    Modifier
+                        .zIndex((visibleUrls.size - index).toFloat())
+                        .memberCircle(barColor),
                 profileImageUrl = profileImageUrl,
-                ringColor = barColor,
             )
         }
 
@@ -106,28 +119,6 @@ fun ChallaProfileBar(
             )
         }
     }
-}
-
-/** [profileImageUrl] 이 null 이면 Coil 이 이미지를 만들지 못해 기본 프로필 아이콘이 그려진다. */
-@Composable
-private fun MemberAvatar(
-    profileImageUrl: String?,
-    ringColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    AsyncImage(
-        modifier = modifier.memberCircle(ringColor),
-        model =
-            ImageRequest
-                .Builder(LocalContext.current)
-                .data(profileImageUrl)
-                .crossfade(true)
-                .build(),
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        placeholder = painterResource(ChallaIcons.Profile),
-        error = painterResource(ChallaIcons.Profile),
-    )
 }
 
 @Composable
@@ -212,6 +203,30 @@ private fun ChallaProfileBarOverflowPreview() {
     ChallaProfileBar(
         profileImageUrls = previewProfileImageUrls(count = 13),
         contentDescription = "참여자 13명",
+    )
+}
+
+@ComposePreview(showBackground = true, name = "ProfileBar - 메뉴 열림")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun ChallaProfileBarExpandedPreview() {
+    ChallaProfileBar(
+        profileImageUrls = previewProfileImageUrls(count = 6),
+        contentDescription = "참여자 6명",
+        isExpanded = true,
+        onClick = {},
+    )
+}
+
+@ComposePreview(showBackground = true, name = "ProfileBar - 메뉴 열림(9명 초과)")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun ChallaProfileBarExpandedOverflowPreview() {
+    ChallaProfileBar(
+        profileImageUrls = previewProfileImageUrls(count = 13),
+        contentDescription = "참여자 13명",
+        isExpanded = true,
+        onClick = {},
     )
 }
 

@@ -24,10 +24,16 @@
     <string name="camera_flash_not_available_message">현재 카메라는 플래시를 지원하지 않아요.</string>
     <string name="camera_photo_capture_failed_message">사진 촬영에 실패했어요.</string>
     <string name="camera_room_load_failed_message">방 목록을 불러오지 못했어요.</string>
+    <string name="camera_filter_list_load_failed_message">필터 목록을 불러오지 못했어요.</string>
+    <string name="camera_filter_load_failed_message">필터를 적용하지 못해 원본으로 변경했어요.</string>
     <string name="camera_no_remaining_captures_message">앗! 장수가 없어서 촬영할 수 없어요.</string>
     <string name="camera_binding_failed_message">카메라를 시작하지 못했어요.</string>
     <string name="camera_retry">재시도</string>
-    <string name="camera_filter_original">원본</string>
+    <string name="camera_onboarding_capture_count_message">셔터를 누르는 순간 장수가 차감돼요.</string>
+    <string name="camera_onboarding_caution_message">신중하게 셔터를 눌러 보세요.</string>
+    <string name="camera_onboarding_next">다음</string>
+    <string name="camera_onboarding_confirm">확인</string>
+    <string name="camera_filter_original">None</string>
     <string name="camera_room_selector_description">방 선택</string>
     <string name="camera_room_sheet_title">방 선택하기</string>
     <string name="camera_room_sheet_close_description">방 선택 닫기</string>
@@ -49,7 +55,16 @@
     <string name="gallery_photo_content_description">%1$d번째 사진</string>
     <string name="gallery_open_photo">사진 열기</string>
     <string name="gallery_error_message">사진을 불러오지 못했어요.</string>
+    <string name="gallery_load_more_failure">사진을 더 불러오지 못했어요.</string>
+    <string name="gallery_members_load_failure">참여자 목록을 불러오지 못했어요.</string>
     <string name="gallery_retry">다시 시도</string>
+    <string name="gallery_invite_code_label">초대 코드</string>
+    <string name="gallery_invite_code_copy_label">초대 코드 복사</string>
+    <string name="gallery_invite_code_copy_success">초대 코드를 복사 했어요</string>
+    <string name="gallery_invite_code_copy_failure">초대 코드를 복사하지 못했어요.</string>
+    <string name="gallery_invite_tooltip">초대 코드로 친구를 초대해보세요</string>
+    <string name="gallery_invite_menu_open_label">참여자 목록 열기</string>
+    <string name="gallery_invite_menu_close_label">참여자 목록 닫기</string>
 
     <string name="app_name_kr">찰나</string>
     <string name="app_name_en">Challa</string>
@@ -96,6 +111,7 @@
     <string name="photo_detail_save_success">사진을 저장했어요.</string>
     <string name="photo_detail_save_failure">사진 저장에 실패했어요.</string>
     <string name="photo_detail_load_failure">사진을 불러오지 못했어요.</string>
+    <string name="photo_detail_load_more_failure">사진을 더 불러오지 못했어요.</string>
     <string name="photo_detail_retry">다시 시도</string>
     <string name="photo_detail_empty">표시할 사진이 없어요.</string>
     <string name="photo_detail_message_placeholder">이 사진에 메시지를 보내세요.</string>

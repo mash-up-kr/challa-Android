@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -37,6 +36,7 @@ import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -51,6 +51,8 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 internal val PhotoCardHeight = 477.dp
 
 private val PhotoShape = RoundedCornerShape(44.5.dp)
+
+private val ProfileImageSize = 22.dp
 
 private val PhotoDimBrush =
     Brush.verticalGradient(
@@ -151,17 +153,7 @@ private fun PhotographerInfo(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // TODO: 프로필 이미지 API 연동 전까지 쓰는 placeholder
-            Icon(
-                modifier =
-                    Modifier
-                        .size(22.dp)
-                        .clip(CircleShape)
-                        .background(ChallaTheme.colors.backgroundLevel2),
-                painter = painterResource(id = ChallaIcons.Profile),
-                contentDescription = null,
-                tint = ChallaTheme.colors.lineNeutral,
-            )
+            PhotographerAvatar(profileImageUrl = photo.photographerProfileImageUrl)
 
             Text(
                 modifier = Modifier.padding(vertical = 2.dp),
@@ -179,11 +171,47 @@ private fun PhotographerInfo(
     }
 }
 
+/** 촬영자 프로필 사진 */
+@Composable
+private fun PhotographerAvatar(
+    profileImageUrl: String?,
+    modifier: Modifier = Modifier,
+) {
+    ChallaProfileImage(
+        modifier = modifier.size(ProfileImageSize),
+        profileImageUrl = profileImageUrl,
+        backgroundColor = ChallaTheme.colors.backgroundLevel2,
+        fallbackIconTint = ChallaTheme.colors.lineNeutral,
+    )
+}
+
 @ComposePreview(showBackground = true, name = "PhotoDetailPage - 이미지 로드 실패")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoImageLoadFailurePreview() {
     PhotoImageLoadFailure()
+}
+
+@ComposePreview(showBackground = true, name = "PhotoDetailPage - 프로필 사진 없음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoDetailPageWithoutProfileImagePreview() {
+    PhotoDetailPage(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(PhotoCardHeight),
+        photo =
+            PhotoDetailUiModel(
+                id = 1L,
+                imageUrl = "",
+                photographer = "나는야멋쟁이토마토",
+                photographerProfileImageUrl = null,
+                capturedDate = "2026. 7. 16. 14:34",
+            ),
+        reactions = persistentListOf(),
+    )
 }
 
 @ComposePreview(showBackground = true)
@@ -201,6 +229,7 @@ private fun PhotoDetailPagePreview() {
                 id = 1L,
                 imageUrl = "",
                 photographer = "나는야멋쟁이토마토",
+                photographerProfileImageUrl = "https://challa.example.com/profile.png",
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions =
