@@ -66,15 +66,16 @@ data class PhotoReactionUiModel(
     val emoji: ReactionEmoji,
 )
 
-/**
- * 반응 바에 노출하는 이모지 종류. 선언 순서가 곧 노출 순서다.
- *
- * TODO: 이모지 셋 2차 수정·추가 예정 (이슈 #62)
- */
+/** 반응 바에 노출하는 이모지 종류. 선언 순서가 곧 노출 순서이자 스와이프 페이지 순서다. */
 enum class ReactionEmoji {
+    FIRE,
+    EYES,
     MEDAL,
+    QUESTION,
+    THINKING,
     HEART,
+    THUMBS_UP,
+    SPARKLES,
     POOP,
-    CLAP,
     SKULL,
 }

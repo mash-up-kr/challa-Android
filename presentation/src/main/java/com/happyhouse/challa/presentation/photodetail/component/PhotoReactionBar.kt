@@ -6,9 +6,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,21 +28,30 @@ import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-// TODO: 피그마 수치 확인 전까지 쓰는 임시 값. 디자인 확정되면 맞출 것. (이슈 #62)
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
+private val ReactionBarSpacing = 13.dp
+private val ReactionBarHorizontalPadding = 24.dp
 
+/**
+ * 이모지가 한 화면에 다 들어가지 않아 가로로 스크롤한다.
+ * 스크롤이 화면 끝까지 이어지도록 좌우 여백은 modifier가 아닌 contentPadding으로 준다.
+ */
 @Composable
 fun PhotoReactionBar(
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    LazyRow(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(ReactionBarSpacing),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ReactionEmoji.entries.forEach { emoji ->
+        items(
+            items = ReactionEmoji.entries,
+            key = { emoji -> emoji.name },
+        ) { emoji ->
             ReactionButton(
                 emoji = emoji,
                 onClick = { onEmojiClick(emoji) },
@@ -63,7 +74,11 @@ private fun ReactionButton(
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .clickOnce(
                     role = Role.Button,
-                    onClickLabel = stringResource(emoji.contentDescriptionRes),
+                    onClickLabel =
+                        stringResource(
+                            R.string.photo_detail_reaction_add_description,
+                            stringResource(emoji.labelRes),
+                        ),
                     onClick = onClick,
                 ),
         contentAlignment = Alignment.Center,
@@ -88,25 +103,53 @@ internal fun ReactionEmojiImage(
     )
 }
 
+/** 하단 반응 바에 쓰는 테두리 없는 이모지 */
 internal val ReactionEmoji.drawableRes: Int
     @DrawableRes
     get() =
         when (this) {
+            ReactionEmoji.FIRE -> R.drawable.img_reaction_fire
+            ReactionEmoji.EYES -> R.drawable.img_reaction_eyes
             ReactionEmoji.MEDAL -> R.drawable.img_reaction_medal
+            ReactionEmoji.QUESTION -> R.drawable.img_reaction_question
+            ReactionEmoji.THINKING -> R.drawable.img_reaction_thinking
             ReactionEmoji.HEART -> R.drawable.img_reaction_heart
+            ReactionEmoji.THUMBS_UP -> R.drawable.img_reaction_thumbs_up
+            ReactionEmoji.SPARKLES -> R.drawable.img_reaction_sparkles
             ReactionEmoji.POOP -> R.drawable.img_reaction_poop
-            ReactionEmoji.CLAP -> R.drawable.img_reaction_clap
             ReactionEmoji.SKULL -> R.drawable.img_reaction_skull
         }
 
-internal val ReactionEmoji.contentDescriptionRes: Int
+/** 사진 위에 붙는 스티커용. 흰 테두리가 이미지에 포함돼 있어 별도 배경을 그리지 않는다. */
+internal val ReactionEmoji.stickerDrawableRes: Int
+    @DrawableRes
+    get() =
+        when (this) {
+            ReactionEmoji.FIRE -> R.drawable.img_reaction_sticker_fire
+            ReactionEmoji.EYES -> R.drawable.img_reaction_sticker_eyes
+            ReactionEmoji.MEDAL -> R.drawable.img_reaction_sticker_medal
+            ReactionEmoji.QUESTION -> R.drawable.img_reaction_sticker_question
+            ReactionEmoji.THINKING -> R.drawable.img_reaction_sticker_thinking
+            ReactionEmoji.HEART -> R.drawable.img_reaction_sticker_heart
+            ReactionEmoji.THUMBS_UP -> R.drawable.img_reaction_sticker_thumbs_up
+            ReactionEmoji.SPARKLES -> R.drawable.img_reaction_sticker_sparkles
+            ReactionEmoji.POOP -> R.drawable.img_reaction_sticker_poop
+            ReactionEmoji.SKULL -> R.drawable.img_reaction_sticker_skull
+        }
+
+internal val ReactionEmoji.labelRes: Int
     @StringRes
     get() =
         when (this) {
+            ReactionEmoji.FIRE -> R.string.photo_detail_reaction_fire
+            ReactionEmoji.EYES -> R.string.photo_detail_reaction_eyes
             ReactionEmoji.MEDAL -> R.string.photo_detail_reaction_medal
+            ReactionEmoji.QUESTION -> R.string.photo_detail_reaction_question
+            ReactionEmoji.THINKING -> R.string.photo_detail_reaction_thinking
             ReactionEmoji.HEART -> R.string.photo_detail_reaction_heart
+            ReactionEmoji.THUMBS_UP -> R.string.photo_detail_reaction_thumbs_up
+            ReactionEmoji.SPARKLES -> R.string.photo_detail_reaction_sparkles
             ReactionEmoji.POOP -> R.string.photo_detail_reaction_poop
-            ReactionEmoji.CLAP -> R.string.photo_detail_reaction_clap
             ReactionEmoji.SKULL -> R.string.photo_detail_reaction_skull
         }
 

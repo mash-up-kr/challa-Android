@@ -1,23 +1,19 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.ImmutableList
@@ -29,9 +25,8 @@ import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-// TODO: 피그마 수치 확인 전까지 쓰는 임시 값. 디자인 확정되면 맞출 것. (이슈 #62)
-private val ReactionStickerSize = 64.dp
-private val ReactionStickerEmojiSize = 44.dp
+// TODO: 배치 규칙(Case A/B 3자리) 적용은 후속 커밋에서. (이슈 #110)
+private val ReactionStickerSize = 130.dp
 
 /**
  * 스티커 중심을 사진 중심에서 얼마나 떨어뜨릴지의 범위(사진 크기 대비 비율).
@@ -69,24 +64,17 @@ fun PhotoReactionOverlay(
     }
 }
 
+/** 스티커 에셋에 흰 테두리가 포함돼 있어 배경을 따로 그리지 않는다. */
 @Composable
 private fun ReactionSticker(
     emoji: ReactionEmoji,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier =
-            modifier
-                .size(ReactionStickerSize)
-                .clip(CircleShape)
-                .background(ChallaTheme.colors.staticWhite),
-        contentAlignment = Alignment.Center,
-    ) {
-        ReactionEmojiImage(
-            modifier = Modifier.size(ReactionStickerEmojiSize),
-            emoji = emoji,
-        )
-    }
+    Image(
+        modifier = modifier.size(ReactionStickerSize),
+        painter = painterResource(id = emoji.stickerDrawableRes),
+        contentDescription = null,
+    )
 }
 
 /**
@@ -123,9 +111,7 @@ private fun PhotoReactionOverlayPreview() {
             persistentListOf(
                 PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.MEDAL),
                 PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(id = 2L, emoji = ReactionEmoji.POOP),
-                PhotoReactionUiModel(id = 3L, emoji = ReactionEmoji.CLAP),
-                PhotoReactionUiModel(id = 4L, emoji = ReactionEmoji.SKULL),
+                PhotoReactionUiModel(id = 2L, emoji = ReactionEmoji.FIRE),
             ),
     )
 }

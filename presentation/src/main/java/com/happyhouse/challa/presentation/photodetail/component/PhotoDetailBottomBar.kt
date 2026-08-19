@@ -12,11 +12,11 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-// TODO: 피그마 수치 확인 전까지 쓰는 임시 여백. 디자인 확정되면 맞출 것. (이슈 #62)
-private val BottomBarHorizontalPadding = 16.dp
 private val BottomBarTopPadding = 8.dp
-private val BottomBarBottomPadding = 16.dp
-private val BottomBarSpacing = 12.dp
+private val BottomBarSpacing = 16.dp
+
+/** 반응 바는 가로 스크롤이라 화면 끝까지 닿아야 해서, 여백을 바깥이 아닌 각 항목이 갖는다. */
+private val MessageInputHorizontalPadding = 20.dp
 
 @Composable
 fun PhotoDetailBottomBar(
@@ -31,17 +31,13 @@ fun PhotoDetailBottomBar(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(
-                    start = BottomBarHorizontalPadding,
-                    end = BottomBarHorizontalPadding,
-                    top = BottomBarTopPadding,
-                    bottom = BottomBarBottomPadding,
-                ),
+                .padding(top = BottomBarTopPadding),
         verticalArrangement = Arrangement.spacedBy(BottomBarSpacing),
     ) {
         PhotoReactionBar(onEmojiClick = onEmojiClick)
 
         PhotoMessageInput(
+            modifier = Modifier.padding(horizontal = MessageInputHorizontalPadding),
             message = message,
             isSendable = isMessageSendable,
             onMessageChange = onMessageChange,

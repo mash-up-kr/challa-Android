@@ -235,7 +235,7 @@ private fun PhotoDetailPagePreview() {
         reactions =
             persistentListOf(
                 PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.CLAP),
+                PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.FIRE),
             ),
     )
 }
