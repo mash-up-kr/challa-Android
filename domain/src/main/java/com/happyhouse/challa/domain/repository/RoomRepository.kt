@@ -11,6 +11,12 @@ import com.happyhouse.challa.domain.result.ChallaResult
 import kotlinx.coroutines.flow.Flow
 
 interface RoomRepository {
+    /**
+     * [roomIds]에 새 사용자가 참여할 때마다 이벤트를 전달한다.
+     *
+     * 반환하는 [Flow]는 cold stream이다. 수집이 시작되면 WebSocket 연결과 방별 구독을 시작하고,
+     * 수집이 취소되면 연결을 정리한다. 구독할 방 목록을 변경하려면 새 [roomIds]로 다시 수집한다.
+     */
     fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedEvent>
 
     suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail>

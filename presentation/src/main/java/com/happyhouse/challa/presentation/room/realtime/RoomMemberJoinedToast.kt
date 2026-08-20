@@ -28,6 +28,7 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
+/** 방 참여 이벤트의 메시지와 참여자 프로필 이미지를 [SnackbarHostState]에 전달하는 값 객체. */
 internal data class RoomMemberJoinedToastVisuals(
     override val message: String,
     val userProfileImageUrl: String?,
@@ -37,6 +38,12 @@ internal data class RoomMemberJoinedToastVisuals(
     override val duration: SnackbarDuration = SnackbarDuration.Short
 }
 
+/**
+ * 모든 navigation destination 위에 방 참여 토스트를 표시하는 전용 host.
+ *
+ * 공통 `ChallaSnackbarHost`와 달리 원격 프로필 이미지를 leading content로 표시해야 하므로
+ * [RoomMemberJoinedToastVisuals]만 처리한다.
+ */
 @Composable
 internal fun RoomMemberJoinedToastHost(
     hostState: SnackbarHostState,

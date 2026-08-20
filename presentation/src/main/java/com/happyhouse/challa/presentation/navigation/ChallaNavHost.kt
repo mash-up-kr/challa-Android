@@ -63,7 +63,7 @@ fun ChallaNavHost(
 
     LaunchedEffect(currentRoute) {
         when (currentRoute) {
-            is ChallaRoute.RoomScoped -> roomRealtimeViewModel.observeRoom(currentRoute.roomId)
+            is ChallaRoute.RoomScoped -> roomRealtimeViewModel.addObservedRoom(currentRoute.roomId)
             ChallaRoute.Login,
             ChallaRoute.SettingProfile,
             -> roomRealtimeViewModel.stopObserving()
@@ -176,7 +176,7 @@ fun ChallaNavHost(
                             onNavigateToRoom = { roomId ->
                                 navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
                             },
-                            onRoomIdsLoaded = roomRealtimeViewModel::observeRooms,
+                            onRoomIdsLoaded = roomRealtimeViewModel::replaceObservedRooms,
                         )
                     }
                     entry<ChallaRoute.Setting> {

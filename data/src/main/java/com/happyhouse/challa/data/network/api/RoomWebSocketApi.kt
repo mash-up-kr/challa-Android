@@ -26,6 +26,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.min
 
+/**
+ * STOMP 기반 방 참여 이벤트를 WebSocket으로 수신한다.
+ *
+ * 하나의 WebSocket 연결을 열고 [observeMemberJoined]에 전달된 각 방 ID의 destination을 구독한다.
+ * 반환하는 [Flow]는 cold stream이므로 수집을 시작할 때 연결되고, 수집이 취소되면
+ * [awaitClose]에서 WebSocket을 정상 종료한다.
+ *
+ * 일시적인 [IOException]은 최대 10초 간격으로 재연결한다. STOMP `ERROR`, 실패 응답,
+ * 재시도할 수 없는 handshake 응답은 영구 오류로 분류해 로그를 남기고 stream을 종료한다.
+ */
 @Singleton
 class RoomWebSocketApi
     @Inject
@@ -33,6 +43,12 @@ class RoomWebSocketApi
         private val okHttpClient: OkHttpClient,
         private val json: Json,
     ) {
+        /**
+         * [roomIds]에서 발생하는 참여 이벤트를 수신한다.
+         *
+         * 구독 중 방 목록을 변경하려면 기존 수집을 취소하고 새 [roomIds]로 다시 수집해야 한다.
+         * 여러 방은 각각 STOMP `SUBSCRIBE` frame을 보내지만 WebSocket 연결은 하나를 공유한다.
+         */
         internal fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedResponse.Room> =
             openMemberJoinedStream(roomIds)
                 .retryWhen { cause, attempt ->
@@ -213,6 +229,7 @@ class RoomWebSocketApi
                 code == HTTP_TOO_MANY_REQUESTS ||
                 code in HTTP_SERVER_ERROR_RANGE
 
+        /** 동일한 조건으로 다시 연결해도 해결되지 않아 자동 재시도하지 않는 WebSocket 오류. */
         private class PermanentWebSocketException(
             message: String,
             cause: Throwable? = null,
