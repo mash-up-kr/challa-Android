@@ -42,13 +42,18 @@ class HomeViewModel
                 roomRepository
                     .getRoomList(ALL_ROOM_STATUSES)
                     .onSuccess { rooms ->
+                        val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
                         updateState {
                             copy(
                                 isLoading = false,
-                                rooms = rooms.mapNotNull { it.toUiModel() }.toImmutableList(),
-                                hasLoadedRooms = true,
+                                rooms = roomUiModels,
                             )
                         }
+                        sendEffect(
+                            HomeSideEffect.RoomsLoaded(
+                                roomIds = roomUiModels.mapTo(mutableSetOf()) { it.id },
+                            ),
+                        )
                     }.onFailure {
                         updateState { copy(isLoading = false) }
                         sendEffect(HomeSideEffect.RoomsLoadFailed)

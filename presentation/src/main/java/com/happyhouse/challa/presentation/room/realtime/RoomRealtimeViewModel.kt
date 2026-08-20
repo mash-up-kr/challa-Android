@@ -23,6 +23,21 @@ class RoomRealtimeViewModel
 
         private var observedRoomIds: Set<Long> = emptySet()
         private var observeJob: Job? = null
+        private var isForeground = false
+
+        fun startObserving() {
+            if (isForeground) return
+
+            isForeground = true
+            restartObservation()
+        }
+
+        fun pauseObserving() {
+            if (!isForeground) return
+
+            isForeground = false
+            cancelObservation()
+        }
 
         fun observeRoom(roomId: Long) {
             observeRooms(observedRoomIds + roomId)
@@ -30,23 +45,30 @@ class RoomRealtimeViewModel
 
         fun observeRooms(roomIds: Set<Long>) {
             val distinctRoomIds = roomIds.toSet()
-            if (observedRoomIds == distinctRoomIds && observeJob?.isActive == true) return
+            if (observedRoomIds == distinctRoomIds && (!isForeground || observeJob?.isActive == true)) return
 
-            observeJob?.cancel()
             observedRoomIds = distinctRoomIds
+            restartObservation()
+        }
+
+        private fun restartObservation() {
+            cancelObservation()
+            if (!isForeground || observedRoomIds.isEmpty()) return
+
+            val subscribedRoomIds = observedRoomIds
             observeJob =
-                distinctRoomIds
-                    .takeIf { it.isNotEmpty() }
-                    ?.let { subscribedRoomIds ->
-                        viewModelScope.launch {
-                            roomRepository.observeMemberJoined(subscribedRoomIds).collect(_events::send)
-                        }
-                    }
+                viewModelScope.launch {
+                    roomRepository.observeMemberJoined(subscribedRoomIds).collect(_events::send)
+                }
+        }
+
+        private fun cancelObservation() {
+            observeJob?.cancel()
+            observeJob = null
         }
 
         fun stopObserving() {
             observedRoomIds = emptySet()
-            observeJob?.cancel()
-            observeJob = null
+            cancelObservation()
         }
     }

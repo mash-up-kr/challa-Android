@@ -112,15 +112,10 @@ fun HomeRoute(
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
 
-    LaunchedEffect(state.hasLoadedRooms, state.rooms) {
-        if (state.hasLoadedRooms) {
-            onRoomIdsLoaded(state.rooms.mapTo(mutableSetOf()) { it.id })
-        }
-    }
-
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
+                is HomeSideEffect.RoomsLoaded -> onRoomIdsLoaded(effect.roomIds)
                 HomeSideEffect.RoomsLoadFailed ->
                     snackbarHostState.showSnackbar(
                         ChallaToastVisuals(

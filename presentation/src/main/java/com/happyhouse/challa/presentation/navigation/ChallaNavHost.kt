@@ -13,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -51,6 +52,14 @@ fun ChallaNavHost(
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
     val roomMemberJoinedSuffix = stringResource(R.string.room_member_joined_suffix)
     val currentRoute = navigator.currentRoute
+
+    LifecycleStartEffect(roomRealtimeViewModel) {
+        roomRealtimeViewModel.startObserving()
+
+        onStopOrDispose {
+            roomRealtimeViewModel.pauseObserving()
+        }
+    }
 
     LaunchedEffect(currentRoute) {
         when (currentRoute) {
