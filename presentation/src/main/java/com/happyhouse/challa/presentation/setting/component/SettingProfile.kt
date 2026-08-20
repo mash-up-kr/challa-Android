@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.setting.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,7 +45,9 @@ fun SettingProfile(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val placeholder = painterResource(R.drawable.img_setting_profile_placeholder)
-        if (state.profileImageUrl == null) {
+        if (!state.isProfileLoaded && state.profileImageUrl == null) {
+            Spacer(modifier = Modifier.size(68.dp))
+        } else if (state.profileImageUrl == null) {
             Image(
                 painter = placeholder,
                 contentDescription = null,
@@ -60,7 +63,6 @@ fun SettingProfile(
                         .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                placeholder = placeholder,
                 error = placeholder,
                 modifier =
                     Modifier

@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.login
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.repository.AuthRepository
+import com.happyhouse.challa.domain.repository.UserRepository
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
@@ -15,6 +16,7 @@ class LoginViewModel
     @Inject
     constructor(
         private val authRepository: AuthRepository,
+        private val userRepository: UserRepository,
     ) : BaseViewModel<LoginState, LoginIntent, LoginSideEffect>(
             initialState = LoginState(isLoading = false),
         ) {
@@ -32,7 +34,12 @@ class LoginViewModel
                     val idToken = acquireKakaoIdToken()
                     authRepository
                         .loginWithKakao(idToken)
-                        .onSuccess { sendEffect(LoginSideEffect.LoginSuccess(it.isNewUser)) }
+                        .onSuccess { tokens ->
+                            if (!tokens.isNewUser) {
+                                userRepository.getMyProfile()
+                            }
+                            sendEffect(LoginSideEffect.LoginSuccess(tokens.isNewUser))
+                        }
                         .onFailure { sendEffect(LoginSideEffect.LoginFailed) }
                 } catch (e: CancellationException) {
                     throw e

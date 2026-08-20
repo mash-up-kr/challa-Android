@@ -2,6 +2,7 @@ package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.local.ThemeDataStore
 import com.happyhouse.challa.data.local.TokenDataStore
+import com.happyhouse.challa.data.local.UserProfileCache
 import com.happyhouse.challa.data.network.api.AuthApi
 import com.happyhouse.challa.data.network.dto.LogoutRequest
 import com.happyhouse.challa.data.network.dto.request.LoginRequest
@@ -26,6 +27,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
     private val tokenDataStore: TokenDataStore,
     private val themeDataStore: ThemeDataStore,
+    private val userProfileCache: UserProfileCache,
     private val notificationRepository: NotificationRepository,
 ) : AuthRepository {
     override suspend fun loginWithKakao(idToken: String): ChallaResult<AuthTokens> =
@@ -47,6 +49,7 @@ class AuthRepositoryImpl @Inject constructor(
                     isNewUser = auth.isNew,
                 )
             }.onSuccess { tokens ->
+                userProfileCache.clear()
                 tokenDataStore.saveTokens(tokens.accessToken, tokens.refreshToken)
                 when (notificationRepository.registerSavedPushToken()) {
                     is ChallaResult.Success -> Unit
@@ -77,6 +80,7 @@ class AuthRepositoryImpl @Inject constructor(
                 }.onSuccess {
                     themeDataStore.clearPrimaryTheme()
                     tokenDataStore.clear()
+                    userProfileCache.clear()
                 }
         } catch (throwable: Throwable) {
             if (throwable is CancellationException) throw throwable

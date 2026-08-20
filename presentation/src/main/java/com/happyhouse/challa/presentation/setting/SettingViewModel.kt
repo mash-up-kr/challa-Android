@@ -11,6 +11,7 @@ import com.happyhouse.challa.presentation.setting.contract.SettingState
 import com.happyhouse.challa.presentation.setting.theme.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,16 +22,41 @@ class SettingViewModel
         private val themeRepository: ThemeRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<SettingState, SettingIntent, SettingSideEffect>(
-            initialState = SettingState(),
+            initialState =
+                userRepository.profile.value?.let { profile ->
+                    SettingState(
+                        nickname = profile.nickname.orEmpty(),
+                        profileImageUrl = profile.profileImageUrl,
+                        isProfileLoaded = true,
+                    )
+                } ?: SettingState(),
         ) {
         private var profileReadJob: Job? = null
         private var themeReadJob: Job? = null
 
+        init {
+            observeProfile()
+        }
+
         override fun onIntent(intent: SettingIntent) {
             when (intent) {
                 SettingIntent.FetchData -> fetchData()
-                SettingIntent.ProfileReadRetry -> fetchMyProfile()
+                SettingIntent.ProfileReadRetry -> fetchMyProfile(forceRefresh = true)
                 SettingIntent.ThemeReadRetry -> themeRepository.retryPrimaryThemeRead()
+            }
+        }
+
+        private fun observeProfile() {
+            viewModelScope.launch {
+                userRepository.profile.filterNotNull().collect { profile ->
+                    updateState {
+                        copy(
+                            nickname = profile.nickname.orEmpty(),
+                            profileImageUrl = profile.profileImageUrl,
+                            isProfileLoaded = true,
+                        )
+                    }
+                }
             }
         }
 
@@ -39,22 +65,18 @@ class SettingViewModel
             fetchPrimaryTheme()
         }
 
-        private fun fetchMyProfile() {
+        private fun fetchMyProfile(forceRefresh: Boolean = false) {
+            if (!forceRefresh && userRepository.profile.value != null) return
             if (profileReadJob?.isActive == true) return
 
             profileReadJob =
                 viewModelScope.launch {
-                    updateState { copy(isProfileLoaded = false) }
+                    if (userRepository.profile.value == null) {
+                        updateState { copy(isProfileLoaded = false) }
+                    }
 
                     when (val result = userRepository.getMyProfile()) {
-                        is ChallaResult.Success ->
-                            updateState {
-                                copy(
-                                    nickname = result.data.nickname.orEmpty(),
-                                    profileImageUrl = result.data.profileImageUrl,
-                                    isProfileLoaded = true,
-                                )
-                            }
+                        is ChallaResult.Success -> Unit
 
                         is ChallaResult.Failure -> {
                             sendEffect(SettingSideEffect.ProfileReadFailed)
