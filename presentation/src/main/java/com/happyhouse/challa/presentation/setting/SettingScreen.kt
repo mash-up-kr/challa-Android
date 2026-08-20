@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -38,14 +37,12 @@ fun SettingScreen(
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState? = null,
 ) {
     val primaryThemeTitle = state.primaryTheme?.let { stringResource(it.titleRes) }
 
     ChallaScaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = ChallaTheme.colors.backgroundSurface,
-        snackbarHostState = snackbarHostState,
         topBar = {
             SettingTopBar(onBackClick = onBackClick)
         },

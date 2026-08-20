@@ -85,6 +85,5 @@ fun SettingRoute(
         onAccountClick = onAccountClick,
         onSupportClick = onSupportClick,
         onFeedbackClick = onFeedbackClick,
-        snackbarHostState = snackbarHostState,
     )
 }

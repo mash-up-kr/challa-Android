@@ -32,7 +32,13 @@ class AccountViewModel @Inject constructor(
     private fun fetchMyProfile() {
         viewModelScope.launch {
             when (val result = userRepository.getMyProfile()) {
-                is ChallaResult.Success -> updateState { copy(nickname = result.data.nickname.orEmpty()) }
+                is ChallaResult.Success ->
+                    updateState {
+                        copy(
+                            nickname = result.data.nickname.orEmpty(),
+                            profileImageUrl = result.data.profileImageUrl,
+                        )
+                    }
                 is ChallaResult.Failure -> sendEffect(AccountSideEffect.ProfileReadFailed)
             }
         }
