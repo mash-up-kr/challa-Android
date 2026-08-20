@@ -9,7 +9,6 @@ import com.happyhouse.challa.presentation.setting.account.contract.AccountIntent
 import com.happyhouse.challa.presentation.setting.account.contract.AccountSideEffect
 import com.happyhouse.challa.presentation.setting.account.contract.AccountState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,11 +32,11 @@ class AccountViewModel @Inject constructor(
 
     private fun observeProfile() {
         viewModelScope.launch {
-            userRepository.profile.filterNotNull().collect { profile ->
+            userRepository.profile.collect { profile ->
                 updateState {
                     copy(
-                        nickname = profile.nickname.orEmpty(),
-                        profileImageUrl = profile.profileImageUrl,
+                        nickname = profile?.nickname.orEmpty(),
+                        profileImageUrl = profile?.profileImageUrl,
                     )
                 }
             }

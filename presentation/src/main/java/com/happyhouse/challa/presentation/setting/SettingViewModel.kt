@@ -11,7 +11,6 @@ import com.happyhouse.challa.presentation.setting.contract.SettingState
 import com.happyhouse.challa.presentation.setting.theme.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -48,12 +47,12 @@ class SettingViewModel
 
         private fun observeProfile() {
             viewModelScope.launch {
-                userRepository.profile.filterNotNull().collect { profile ->
+                userRepository.profile.collect { profile ->
                     updateState {
                         copy(
-                            nickname = profile.nickname.orEmpty(),
-                            profileImageUrl = profile.profileImageUrl,
-                            isProfileLoaded = true,
+                            nickname = profile?.nickname.orEmpty(),
+                            profileImageUrl = profile?.profileImageUrl,
+                            isProfileLoaded = profile != null,
                         )
                     }
                 }

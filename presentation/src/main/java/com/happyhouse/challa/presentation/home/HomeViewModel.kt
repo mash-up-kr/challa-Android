@@ -13,7 +13,6 @@ import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,11 +42,11 @@ class HomeViewModel
 
         private fun observeProfile() {
             viewModelScope.launch {
-                userRepository.profile.filterNotNull().collect { profile ->
+                userRepository.profile.collect { profile ->
                     updateState {
                         copy(
-                            nickname = profile.nickname.orEmpty(),
-                            profileImageUrl = profile.profileImageUrl,
+                            nickname = profile?.nickname.orEmpty(),
+                            profileImageUrl = profile?.profileImageUrl,
                         )
                     }
                 }
