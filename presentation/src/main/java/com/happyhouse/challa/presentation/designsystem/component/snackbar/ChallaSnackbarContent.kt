@@ -1,5 +1,8 @@
 package com.happyhouse.challa.presentation.designsystem.component.snackbar
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 sealed interface ChallaSnackbarContent {
     val heading: String?
     val description: String?

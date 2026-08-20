@@ -8,6 +8,7 @@ import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
+import com.happyhouse.challa.domain.repository.RoomVisitRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.domain.result.onFailure
@@ -38,6 +39,7 @@ class GalleryViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
     private val roomRepository: RoomRepository,
     private val photoRepository: PhotoRepository,
+    private val roomVisitRepository: RoomVisitRepository,
 ) : BaseViewModel<GalleryState, GalleryIntent, GallerySideEffect>(
         initialState = GalleryState(roomId = roomId),
     ) {
@@ -64,6 +66,9 @@ class GalleryViewModel @AssistedInject constructor(
     /** 완료 시각이 지났는데도 상태가 인화 대기일 때 다시 확인한 횟수 */
     private var printStatusRecheckCount = 0
 
+    /** 인화 상태 재조회로 방 정보를 다시 받아도 초대 메뉴가 또 열리지 않게 한다. */
+    private var hasHandledFirstVisit = false
+
     init {
         onIntent(GalleryIntent.PhotosLoad)
     }
@@ -73,6 +78,8 @@ class GalleryViewModel @AssistedInject constructor(
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
             GalleryIntent.PhotosLoadMore -> handlePhotosLoadMore()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
+            GalleryIntent.ProfileBarClick -> handleProfileBarClick()
+            GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
         }
@@ -124,11 +131,13 @@ class GalleryViewModel @AssistedInject constructor(
                 updateState {
                     copy(
                         roomName = room.title,
+                        invitationCode = room.invitationCode,
                         photoInfo = room.toPhotoInfo(loadedPhotos, remainingSeconds, hasNextPhotoPage),
                     )
                 }
 
                 startCountdownIfNeeded(room, remainingSeconds)
+                openInviteMenuIfFirstVisit()
             }
     }
 
@@ -200,6 +209,8 @@ class GalleryViewModel @AssistedInject constructor(
                     .onSuccess { users ->
                         hasNotifiedMembersFailure = false
                         updateState { copy(members = users.toGalleryMembers()) }
+                        // 참여자가 방 정보보다 늦게 도착했으면 여기서 첫 진입 안내를 연다.
+                        openInviteMenuIfFirstVisit()
                     }.onFailure { failure ->
                         Timber.w(failure.causeOrNull(), "방 참여자를 불러오지 못했습니다. roomId=$roomId")
                         // 이미 그린 프로필 바는 지우지 않는다. 인화 상태 재확인으로 조회가 반복되므로 알림은 한 번만 띄운다.
@@ -209,6 +220,49 @@ class GalleryViewModel @AssistedInject constructor(
                         sendEffect(GallerySideEffect.MembersLoadFailed)
                     }
             }
+    }
+
+    /**
+     * 방에 처음 들어온 사람에게 초대 메뉴를 열어 초대 코드를 바로 보여준다.
+     *
+     * 방 정보와 참여자가 모두 있어야 메뉴를 그리므로, 둘 다 도착한 뒤에 기록한다.
+     * 그래야 메뉴를 보여주지 못한 진입이 첫 진입을 소진하지 않는다.
+     */
+    private suspend fun openInviteMenuIfFirstVisit() {
+        if (hasHandledFirstVisit) return
+        if (loadedRoom == null || currentState.members.isEmpty()) return
+
+        hasHandledFirstVisit = true
+
+        roomVisitRepository
+            .markVisited(roomId)
+            .onSuccess { isFirstVisit ->
+                if (!isFirstVisit) return@onSuccess
+
+                updateState {
+                    copy(inviteMenu = GalleryState.InviteMenu.Opened(showsTooltip = true))
+                }
+            }.onFailure { failure ->
+                Timber.w(failure.causeOrNull(), "방 첫 진입 여부를 확인하지 못했습니다. roomId=$roomId")
+            }
+    }
+
+    private fun handleProfileBarClick() {
+        updateState {
+            copy(
+                inviteMenu =
+                    when (inviteMenu) {
+                        is GalleryState.InviteMenu.Opened -> GalleryState.InviteMenu.Closed
+                        // 직접 연 메뉴에는 툴팁을 붙이지 않는다.
+                        GalleryState.InviteMenu.Closed ->
+                            GalleryState.InviteMenu.Opened(showsTooltip = false)
+                    },
+            )
+        }
+    }
+
+    private fun handleInviteMenuDismiss() {
+        updateState { copy(inviteMenu = GalleryState.InviteMenu.Closed) }
     }
 
     private fun handlePhotoClick(photoId: Long) {
@@ -349,6 +403,7 @@ private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiMode
     map { user ->
         GalleryMemberUiModel(
             id = user.id,
+            nickname = user.nickname,
             profileImageUrl = user.profileImageUrl,
         )
     }.toPersistentList()

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -37,6 +36,7 @@ import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -171,43 +171,18 @@ private fun PhotographerInfo(
     }
 }
 
-/** 촬영자 프로필 사진. 설정하지 않았거나 불러오지 못하면 기본 프로필 아이콘을 그린다. */
+/** 촬영자 프로필 사진 */
 @Composable
 private fun PhotographerAvatar(
     profileImageUrl: String?,
     modifier: Modifier = Modifier,
 ) {
-    var isLoadFailed by remember(profileImageUrl) { mutableStateOf(false) }
-
-    Box(
-        modifier =
-            modifier
-                .size(ProfileImageSize)
-                .clip(CircleShape)
-                .background(ChallaTheme.colors.backgroundLevel2),
-    ) {
-        if (profileImageUrl == null || isLoadFailed) {
-            Icon(
-                modifier = Modifier.fillMaxSize(),
-                painter = painterResource(id = ChallaIcons.Profile),
-                contentDescription = null,
-                tint = ChallaTheme.colors.lineNeutral,
-            )
-        } else {
-            AsyncImage(
-                modifier = Modifier.fillMaxSize(),
-                model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(profileImageUrl)
-                        .crossfade(true)
-                        .build(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
-            )
-        }
-    }
+    ChallaProfileImage(
+        modifier = modifier.size(ProfileImageSize),
+        profileImageUrl = profileImageUrl,
+        backgroundColor = ChallaTheme.colors.backgroundLevel2,
+        fallbackIconTint = ChallaTheme.colors.lineNeutral,
+    )
 }
 
 @ComposePreview(showBackground = true, name = "PhotoDetailPage - 이미지 로드 실패")

@@ -5,6 +5,10 @@ import com.happyhouse.challa.presentation.base.UiSideEffect
 sealed interface CameraSideEffect : UiSideEffect {
     data object RoomLoadFailed : CameraSideEffect
 
+    data object FilterListLoadFailed : CameraSideEffect
+
+    data object SelectedFilterLutLoadFailed : CameraSideEffect
+
     data object PhotoCaptureFailed : CameraSideEffect
 
     data object FlashNotAvailable : CameraSideEffect

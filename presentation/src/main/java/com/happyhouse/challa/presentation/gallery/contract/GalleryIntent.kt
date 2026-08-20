@@ -13,6 +13,12 @@ sealed interface GalleryIntent : UiIntent {
         val photoId: Long,
     ) : GalleryIntent
 
+    /** 초대 메뉴를 열고 닫는 토글 */
+    data object ProfileBarClick : GalleryIntent
+
+    /** 메뉴 바깥을 눌렀을 때 */
+    data object InviteMenuDismiss : GalleryIntent
+
     data object PrintCountdownClick : GalleryIntent
 
     data object ShootClick : GalleryIntent

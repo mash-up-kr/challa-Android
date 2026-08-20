@@ -18,6 +18,7 @@ import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelect
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlayState
@@ -38,17 +39,19 @@ internal fun CameraContent(
     modifier: Modifier = Modifier,
     state: CameraState,
     permissionState: CameraPermissionState,
-    cameraBindingRetryKey: Int,
+    isOnboardingVisible: Boolean,
     onRequestPermissionClick: () -> Unit,
-    onCameraBindingFailed: (CameraBindingFailure) -> Unit,
+    onCameraBindingFailed: () -> Unit,
     onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
     onPhotoCaptureFailed: (requestId: Long) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
+    onSelectedFilterLutLoadFailed: (fileUrl: String) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
 ) {
     val captureRequest = state.captureRequest
     val selectedRoom = state.selectedRoom
+    val isRoomLoaded = state.roomLoadState == CameraRoomLoadState.LOADED && selectedRoom != null
     val remainingCount = selectedRoom?.remainingCount ?: 0
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
@@ -57,8 +60,16 @@ internal fun CameraContent(
     val readyState = cameraSessionState.bindingState as? CameraBindingState.Ready
     val isCameraIdle = !state.isCapturePending && !cameraSessionState.isCapturing
     val canControlCamera = readyState?.lensFacing == state.lensFacing && isCameraIdle
+    val isSelectedFilterReady =
+        state.selectedFilter == CameraFilterUiModel.Original ||
+            cameraSessionState.previewFilter == state.selectedFilter
+    val failedSelectedFilter =
+        (state.selectedFilter as? CameraFilterUiModel.Remote)?.takeIf { filter ->
+            filter.fileUrl in cameraSessionState.failedFilterUrls
+        }
     val canCapture =
         canControlCamera &&
+            isSelectedFilterReady &&
             state.roomLoadState == CameraRoomLoadState.LOADED &&
             selectedRoom?.remainingCaptureStatus?.isCaptureAvailable == true
     val canSwitchCamera =
@@ -73,17 +84,26 @@ internal fun CameraContent(
         }
     }
 
+    LaunchedEffect(failedSelectedFilter?.fileUrl) {
+        failedSelectedFilter?.let { filter ->
+            onSelectedFilterLutLoadFailed(filter.fileUrl)
+        }
+    }
+
     CameraContentLayout(
         modifier = modifier,
         roomName = selectedRoom?.name.orEmpty(),
         remainingCount = remainingCount,
         totalCount = selectedRoom?.totalCount ?: 0,
+        isRoomLoaded = isRoomLoaded,
+        isFilterSelectorReady = state.isFilterSelectorReady,
         filters = state.cameraFilters,
         selectedFilterIndex = state.selectedFilterIndex,
         isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,
         isCameraSwitchEnabled = canSwitchCamera,
         shutterEnabled = canCapture,
         isShutterEffectVisible = isShutterEffectVisible,
+        isOnboardingVisible = isOnboardingVisible,
         zoomLevel = state.zoomLevel,
         onFlashClick = { onIntent(CameraIntent.FlashClick(readyState?.hasFlashUnit == true)) },
         onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
@@ -110,13 +130,12 @@ internal fun CameraContent(
                     filters = state.cameraFilters,
                     selectedFilter = state.selectedFilter,
                     captureRequestId = captureRequest?.requestId,
-                    bindingRetryKey = cameraBindingRetryKey,
                     getCameraFilterFile = getCameraFilterFile,
                     onStateChanged = { cameraSessionState = it },
                     onEvent = { event ->
                         when (event) {
-                            is CameraSessionEvent.BindingFailed -> {
-                                onCameraBindingFailed(event.reason)
+                            CameraSessionEvent.BindingFailed -> {
+                                onCameraBindingFailed()
                             }
 
                             is CameraSessionEvent.CaptureStarted -> {
@@ -131,7 +150,7 @@ internal fun CameraContent(
                                         onPhotoCaptured(event.requestId, event.result.imageBytes)
                                     }
 
-                                    is CameraCaptureResult.Failed -> {
+                                    CameraCaptureResult.Failed -> {
                                         onPhotoCaptureFailed(event.requestId)
                                     }
 
