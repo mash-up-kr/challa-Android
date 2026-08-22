@@ -47,6 +47,7 @@ fun GalleryScreen(
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
+    onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.background(ChallaTheme.colors.backgroundSurface)) {
@@ -58,6 +59,7 @@ fun GalleryScreen(
             onIntent = onIntent,
             onBackClick = onBackClick,
             onInviteCodeClick = onInviteCodeClick,
+            onSettingClick = onSettingClick,
         )
     }
 }
@@ -69,6 +71,7 @@ private fun GalleryScaffold(
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
+    onSettingClick: () -> Unit,
 ) {
     ChallaScaffold(
         // 배경과 글로우는 화면 루트에서 그린다.
@@ -79,6 +82,7 @@ private fun GalleryScaffold(
             GalleryTopBar(
                 title = state.roomName,
                 onBackClick = onBackClick,
+                onSettingClick = onSettingClick,
             )
         },
     ) { innerPadding ->
@@ -255,5 +259,6 @@ private fun GalleryScreenPreviewTemplate(
         onIntent = {},
         onBackClick = {},
         onInviteCodeClick = {},
+        onSettingClick = {},
     )
 }

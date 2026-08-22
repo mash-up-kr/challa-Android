@@ -28,6 +28,7 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
+import com.happyhouse.challa.presentation.roomsetting.RoomSettingScreen
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
@@ -98,6 +99,21 @@ fun ChallaNavHost(
                         onShootClick = {
                             navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
                         },
+                        onSettingClick = { roomName ->
+                            navigator.navigate(
+                                ChallaRoute.RoomSetting(roomId = route.roomId, roomName = roomName),
+                            )
+                        },
+                    )
+                }
+                entry<ChallaRoute.RoomSetting> { route ->
+                    RoomSettingScreen(
+                        roomName = route.roomName,
+                        onBackClick = { navigator.goBack() },
+                        // TODO: 배포를 위해 임시로 추가. 제거 예정
+                        onRoomNameClick = { showFeatureNotReadyToast() },
+                        // TODO: 배포를 위해 임시로 추가. 제거 예정
+                        onCoverImageClick = { showFeatureNotReadyToast() },
                     )
                 }
                 entry<ChallaRoute.PhotoDetail> { route ->

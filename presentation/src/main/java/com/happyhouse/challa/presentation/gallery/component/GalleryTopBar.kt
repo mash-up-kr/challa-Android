@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun GalleryTopBar(
     title: String,
     onBackClick: () -> Unit,
+    onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // 상태바 인셋은 ChallaScaffold의 topBar 슬롯이 적용한다.
@@ -37,6 +38,15 @@ fun GalleryTopBar(
                 size = ChallaButtonSize.MEDIUM,
             )
         },
+        trailingIcon = {
+            ChallaIconButton(
+                icon = ChallaIcons.Setting,
+                onClick = onSettingClick,
+                contentDescription = stringResource(R.string.gallery_setting_description),
+                variant = ChallaButtonVariant.TRANSPARENT,
+                size = ChallaButtonSize.MEDIUM,
+            )
+        },
     )
 }
 
@@ -47,5 +57,6 @@ private fun GalleryTopBarPreview() {
     GalleryTopBar(
         title = "친구들과 강릉 여행",
         onBackClick = {},
+        onSettingClick = {},
     )
 }
