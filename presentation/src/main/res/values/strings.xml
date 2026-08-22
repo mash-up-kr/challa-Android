@@ -70,6 +70,11 @@
     <string name="app_name_en">Challa</string>
     <string name="login_brand" translatable="false">challa</string>
     <string name="login_kakao">카카오로 시작하기</string>
+    <string name="login_onboarding_shared_camera">우리만의\n공유 필름 카메라</string>
+    <string name="login_onboarding_record_together">함께 기록하는\n찰나의 순간</string>
+    <string name="login_onboarding_shoot_together">함께 찍고,\n함께 기다려요</string>
+    <string name="login_onboarding_develop_in_three_hours">3시간 기다리면\n인화 완료!</string>
+    <string name="login_onboarding_react_and_comment">이모지와 댓글로\n자유롭게 소통해요</string>
 
     <string name="home_title" translatable="false">home</string>
     <string name="home_add_description">방 만들기</string>
