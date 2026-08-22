@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,6 +21,7 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNaviga
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
+import com.happyhouse.challa.presentation.roomsetting.component.EditRoomNameBottomSheet
 import com.happyhouse.challa.presentation.roomsetting.component.RoomSettingCard
 import com.happyhouse.challa.presentation.roomsetting.component.RoomSettingListItem
 
@@ -24,10 +29,13 @@ import com.happyhouse.challa.presentation.roomsetting.component.RoomSettingListI
 fun RoomSettingScreen(
     roomName: String,
     onBackClick: () -> Unit,
-    onRoomNameClick: () -> Unit,
     onCoverImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // TODO: 방 이름 수정 API가 없어 변경한 이름을 이 화면에서만 반영한다. API 연동 시 제거 예정.
+    var currentRoomName by rememberSaveable(roomName) { mutableStateOf(roomName) }
+    var isEditRoomNameSheetVisible by rememberSaveable { mutableStateOf(false) }
+
     ChallaScaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -56,8 +64,8 @@ fun RoomSettingScreen(
                 RoomSettingListItem(
                     text = stringResource(R.string.room_setting_room_name),
                     leadingIcon = ChallaIcons.Edit,
-                    trailingText = roomName,
-                    onClick = onRoomNameClick,
+                    trailingText = currentRoomName,
+                    onClick = { isEditRoomNameSheetVisible = true },
                 )
                 RoomSettingListItem(
                     text = stringResource(R.string.room_setting_cover_image),
@@ -66,6 +74,17 @@ fun RoomSettingScreen(
                 )
             }
         }
+    }
+
+    if (isEditRoomNameSheetVisible) {
+        EditRoomNameBottomSheet(
+            roomName = currentRoomName,
+            onDismiss = { isEditRoomNameSheetVisible = false },
+            onConfirm = { newRoomName ->
+                currentRoomName = newRoomName
+                isEditRoomNameSheetVisible = false
+            },
+        )
     }
 }
 
@@ -76,7 +95,6 @@ private fun RoomSettingScreenPreview() {
     RoomSettingScreen(
         roomName = "친구들과 강릉 여행",
         onBackClick = {},
-        onRoomNameClick = {},
         onCoverImageClick = {},
     )
 }

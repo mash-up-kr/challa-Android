@@ -111,8 +111,6 @@ fun ChallaNavHost(
                         roomName = route.roomName,
                         onBackClick = { navigator.goBack() },
                         // TODO: 배포를 위해 임시로 추가. 제거 예정
-                        onRoomNameClick = { showFeatureNotReadyToast() },
-                        // TODO: 배포를 위해 임시로 추가. 제거 예정
                         onCoverImageClick = { showFeatureNotReadyToast() },
                     )
                 }
