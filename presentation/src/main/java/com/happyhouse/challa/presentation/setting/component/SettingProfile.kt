@@ -94,16 +94,43 @@ fun SettingProfile(
     }
 }
 
-@Preview
+@Preview(name = "Loaded")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun SettingProfilePreview() {
-    SettingProfile(
+    SettingProfilePreviewContent(
         profile =
             ProfileState.Loaded(
                 nickname = "나는야멋쟁이토마토",
                 profileImageUrl = "https://example.com/profile.jpg",
             ),
+    )
+}
+
+@Preview(name = "No profile image")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun SettingProfileWithoutImagePreview() {
+    SettingProfilePreviewContent(
+        profile =
+            ProfileState.Loaded(
+                nickname = "나는야멋쟁이토마토",
+                profileImageUrl = null,
+            ),
+    )
+}
+
+@Preview(name = "Error")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun SettingProfileErrorPreview() {
+    SettingProfilePreviewContent(profile = ProfileState.Error)
+}
+
+@Composable
+private fun SettingProfilePreviewContent(profile: ProfileState) {
+    SettingProfile(
+        profile = profile,
         onEditClick = {},
     )
 }

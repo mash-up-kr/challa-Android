@@ -131,11 +131,11 @@ fun SettingScreen(
     }
 }
 
-@Preview
+@Preview(name = "Loaded")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun SettingScreenPreview() {
-    SettingScreen(
+    SettingScreenPreviewContent(
         state =
             SettingState(
                 profile =
@@ -145,6 +145,20 @@ private fun SettingScreenPreview() {
                     ),
                 primaryTheme = ThemeUiModel.LEMONADE,
             ),
+    )
+}
+
+@Preview(name = "Loading")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun SettingScreenLoadingPreview() {
+    SettingScreenPreviewContent(state = SettingState(profile = ProfileState.Loading))
+}
+
+@Composable
+private fun SettingScreenPreviewContent(state: SettingState) {
+    SettingScreen(
+        state = state,
         onBackClick = {},
         onProfileEditClick = {},
         onThemeClick = {},
