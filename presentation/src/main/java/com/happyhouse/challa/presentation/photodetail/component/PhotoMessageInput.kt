@@ -88,7 +88,7 @@ private fun PhotoMessageInputContent(
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .border(
                     width = InputBorderWidth,
-                    color = if (isFocused) ChallaTheme.colors.primaryYellow else Color.Transparent,
+                    color = if (isFocused) ChallaTheme.colors.primary else Color.Transparent,
                     shape = InputShape,
                 ).padding(InputPadding),
         singleLine = true,
@@ -96,7 +96,7 @@ private fun PhotoMessageInputContent(
             ChallaTheme.typography.bodyMedium.medium.copy(
                 color = ChallaTheme.colors.labelNormal,
             ),
-        cursorBrush = SolidColor(ChallaTheme.colors.primaryYellow),
+        cursorBrush = SolidColor(ChallaTheme.colors.primary),
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Row(

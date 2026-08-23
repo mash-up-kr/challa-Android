@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaListItem
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
@@ -30,7 +34,6 @@ import com.happyhouse.challa.presentation.setting.component.SettingTopBar
 import com.happyhouse.challa.presentation.setting.contract.SettingState
 import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
 import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
-import com.happyhouse.challa.presentation.setting.theme.titleRes
 
 @Composable
 fun SettingScreen(
@@ -42,6 +45,7 @@ fun SettingScreen(
     onAccountClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
+    onOpenSourceLicenseClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val primaryThemeTitle = state.primaryTheme?.let { stringResource(it.titleRes) }
@@ -51,6 +55,23 @@ fun SettingScreen(
         containerColor = ChallaTheme.colors.backgroundSurface,
         topBar = {
             SettingTopBar(onBackClick = onBackClick)
+        },
+        bottomBar = {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 28.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                ChallaTextButton(
+                    text = stringResource(R.string.setting_open_source_license),
+                    onClick = onOpenSourceLicenseClick,
+                    variant = ChallaButtonVariant.TRANSPARENT,
+                    size = ChallaButtonSize.SMALL,
+                    contentColor = ChallaTheme.colors.labelAlternative,
+                )
+            }
         },
     ) { innerPadding ->
         when (val profile = state.profile) {
@@ -224,5 +245,6 @@ private fun SettingScreenPreviewContent(state: SettingState) {
         onAccountClick = {},
         onSupportClick = {},
         onFeedbackClick = {},
+        onOpenSourceLicenseClick = {},
     )
 }

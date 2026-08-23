@@ -331,18 +331,20 @@ private fun HomeShootingCard(
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
         )
-        // 어둡게 깔아 텍스트 가독성 확보
         Box(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.5f), Color.Black.copy(alpha = 0.1f)),
+                            colors =
+                                listOf(
+                                    Color.Black.copy(alpha = 0.5f),
+                                    Color.Black.copy(alpha = 0.1f),
+                                ),
                         ),
                     ),
         )
-        // 상단 옐로우 글로우
         Box(
             modifier =
                 Modifier
@@ -351,7 +353,7 @@ private fun HomeShootingCard(
                         Brush.verticalGradient(
                             colorStops =
                                 arrayOf(
-                                    0f to ChallaTheme.colors.primaryYellow.copy(alpha = 0.2f),
+                                    0f to ChallaTheme.colors.primary.copy(alpha = 0.2f),
                                     0.76f to Color.Transparent,
                                 ),
                         ),
@@ -388,7 +390,7 @@ private fun HomeShootingCard(
                 modifier =
                     Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(ChallaTheme.colors.primaryYellow)
+                        .background(ChallaTheme.colors.primary)
                         .padding(horizontal = 11.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -503,9 +505,9 @@ private fun HomePrintStateChip(
 
         PrintState.COMPLETED -> {
             label = stringResource(id = R.string.home_print_completed)
-            containerColor = ChallaTheme.colors.primaryYellow.copy(alpha = 0.08f)
-            borderColor = ChallaTheme.colors.primaryYellow.copy(alpha = 0.2f)
-            textColor = ChallaTheme.colors.primaryYellow
+            containerColor = ChallaTheme.colors.primary.copy(alpha = 0.08f)
+            borderColor = ChallaTheme.colors.primary.copy(alpha = 0.2f)
+            textColor = ChallaTheme.colors.primary
         }
     }
 
@@ -588,7 +590,11 @@ private fun HomeFilmCard(
                 .size(width = FILM_CARD_WIDTH, height = FILM_CARD_HEIGHT)
                 .clip(RoundedCornerShape(8.dp))
                 .background(ChallaTheme.colors.backgroundLevel3)
-                .border(width = 1.dp, color = ChallaTheme.colors.lineNeutral, shape = RoundedCornerShape(8.dp)),
+                .border(
+                    width = 1.dp,
+                    color = ChallaTheme.colors.lineNeutral,
+                    shape = RoundedCornerShape(8.dp),
+                ),
         contentAlignment = Alignment.Center,
     ) {
         RoomAsyncImage(
@@ -660,14 +666,14 @@ private fun RoomAsyncImage(
 }
 
 /**
- * 화면 하단에 은은하게 깔리는 옐로우 글로우.
+ * 화면 하단에 은은하게 깔리는 Glow.
  *
  * 피그마의 blur(150) 처리된 ellipse를 대체한다.
  * [androidx.compose.ui.draw.blur]는 API 31 미만에서 동작하지 않으므로 radial gradient로 표현한다.
  */
 @Composable
 private fun Modifier.homeGlow(): Modifier {
-    val glowColor = ChallaTheme.colors.primaryYellow
+    val glowColor = ChallaTheme.colors.primary
     return drawBehind {
         val center = Offset(x = size.width / 2f, y = size.height * 0.92f)
         val radius = size.width * 0.95f
@@ -805,7 +811,7 @@ private fun HomeEmptyMessage(
     ) {
         Text(
             text = nickname,
-            color = ChallaTheme.colors.primaryYellow,
+            color = ChallaTheme.colors.primary,
             textAlign = TextAlign.Center,
             style = ChallaTheme.typography.headingSmall.bold,
         )
@@ -873,7 +879,7 @@ private fun HomeActionButtons(
     ) {
         HomeActionButton(
             text = stringResource(id = R.string.home_create_room),
-            containerColor = ChallaTheme.colors.primaryYellow,
+            containerColor = ChallaTheme.colors.primary,
             onClick = onCreateRoomClick,
         )
         HomeActionButton(
@@ -908,40 +914,6 @@ private fun HomeActionButton(
         )
     }
 }
-
-private fun previewRooms(): ImmutableList<RoomUiModel> =
-    persistentListOf(
-        RoomUiModel.Shooting(
-            id = 1L,
-            name = "친구들과 강릉 여행",
-            participantCount = 1,
-            takenCount = 24,
-            coverImageUrl = null,
-        ),
-        RoomUiModel.Shooting(
-            id = 2L,
-            name = "제주도 우정여행",
-            participantCount = 4,
-            takenCount = 12,
-            coverImageUrl = null,
-        ),
-        RoomUiModel.Completed(
-            id = 3L,
-            name = "친구들과 강릉 여행",
-            participantCount = 11,
-            printState = PrintState.WAITING,
-            photoImageUrls = persistentListOf("", "", "", ""),
-            totalPhotoCount = 24,
-        ),
-        RoomUiModel.Completed(
-            id = 4L,
-            name = "인화 완료 된 방이에요",
-            participantCount = 7,
-            printState = PrintState.COMPLETED,
-            photoImageUrls = persistentListOf("", "", ""),
-            totalPhotoCount = 3,
-        ),
-    )
 
 @Preview(name = "Home - Rooms")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
@@ -1001,3 +973,37 @@ private fun HomeLoadingPreview() {
         )
     }
 }
+
+private fun previewRooms(): ImmutableList<RoomUiModel> =
+    persistentListOf(
+        RoomUiModel.Shooting(
+            id = 1L,
+            name = "친구들과 강릉 여행",
+            participantCount = 1,
+            takenCount = 24,
+            coverImageUrl = null,
+        ),
+        RoomUiModel.Shooting(
+            id = 2L,
+            name = "제주도 우정여행",
+            participantCount = 4,
+            takenCount = 12,
+            coverImageUrl = null,
+        ),
+        RoomUiModel.Completed(
+            id = 3L,
+            name = "친구들과 강릉 여행",
+            participantCount = 11,
+            printState = PrintState.WAITING,
+            photoImageUrls = persistentListOf("", "", "", ""),
+            totalPhotoCount = 24,
+        ),
+        RoomUiModel.Completed(
+            id = 4L,
+            name = "인화 완료 된 방이에요",
+            participantCount = 7,
+            printState = PrintState.COMPLETED,
+            photoImageUrls = persistentListOf("", "", ""),
+            totalPhotoCount = 3,
+        ),
+    )

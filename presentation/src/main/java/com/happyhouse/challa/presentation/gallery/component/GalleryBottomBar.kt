@@ -114,7 +114,7 @@ private fun GalleryShootButton(
     Row(
         modifier =
             modifier.bottomBarButton(
-                backgroundColor = ChallaTheme.colors.primaryYellow,
+                backgroundColor = ChallaTheme.colors.primary,
                 onClick = onClick,
             ),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),

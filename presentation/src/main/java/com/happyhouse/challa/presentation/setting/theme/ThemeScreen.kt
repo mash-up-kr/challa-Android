@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.setting.theme
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -177,18 +176,6 @@ private fun ThemeUiModel.color(): Color =
         ThemeUiModel.BLUEBERRY -> ChallaTheme.colors.primaryBlue
         ThemeUiModel.ACAI_BOWL -> ChallaTheme.colors.primaryPurple
     }
-
-@get:StringRes
-val ThemeUiModel.titleRes: Int
-    get() =
-        when (this) {
-            ThemeUiModel.LEMONADE -> R.string.theme_lemonade
-            ThemeUiModel.RASPBERRY -> R.string.theme_raspberry
-            ThemeUiModel.ORANGE -> R.string.theme_orange
-            ThemeUiModel.CIDER -> R.string.theme_cider
-            ThemeUiModel.BLUEBERRY -> R.string.theme_blueberry
-            ThemeUiModel.ACAI_BOWL -> R.string.theme_acai_bowl
-        }
 
 @Composable
 private fun ThemeBackgroundGlow(
