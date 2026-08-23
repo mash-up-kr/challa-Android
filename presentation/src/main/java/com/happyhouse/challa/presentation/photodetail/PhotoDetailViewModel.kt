@@ -112,7 +112,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                     .onSuccess { reactions -> applyReactions(photo.id, reactions) }
                     .onFailure { failure ->
                         Timber.e(failure.causeOrNull(), "반응 목록을 불러오지 못했습니다. photoId=${photo.id}")
-                        sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
+                        sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
                     }
             }.also { job ->
                 // 사진을 넘길수록 끝난 Job이 쌓이지 않게 지운다.
@@ -349,7 +349,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 reloadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 취소하지 못했습니다. photoId=${photo.id}, chatId=$chatId")
-                sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
+                sendEffect(PhotoDetailSideEffect.ReactionCancelFailed)
             }
     }
 
@@ -364,7 +364,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .onSuccess { reactions -> applyReactions(photoId, reactions) }
             .onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응 목록을 다시 불러오지 못했습니다. photoId=$photoId")
-                sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
+                sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
             }
     }
 
