@@ -42,6 +42,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -65,6 +66,7 @@ fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
     reactions: ImmutableList<PhotoReactionUiModel>,
     modifier: Modifier = Modifier,
+    burst: ReactionBurstUiModel? = null,
 ) {
     // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다.
     var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(false) }
@@ -116,6 +118,12 @@ fun PhotoDetailPage(
             modifier = Modifier.fillMaxSize(),
             photoId = photo.id,
             reactions = reactions,
+        )
+
+        // 남기는 순간의 연출. 다른 사진의 연출이 넘어오지 않게 이 사진 것만 재생한다.
+        PhotoReactionBurst(
+            modifier = Modifier.fillMaxSize(),
+            burst = burst?.takeIf { it.photoId == photo.id },
         )
     }
 }

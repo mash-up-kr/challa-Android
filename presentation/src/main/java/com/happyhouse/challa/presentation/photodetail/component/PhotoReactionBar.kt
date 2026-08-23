@@ -4,6 +4,9 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,10 +17,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -34,6 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
+
+/** 누르고 있는 동안만 보이는 테두리 */
+private val ReactionPressedRingWidth = 2.dp
 
 /** 페이지끼리의 간격. 피그마의 버튼 간격과 같은 값이라 넘길 때 리듬이 이어진다. */
 private val ReactionBarPageSpacing = 13.dp
@@ -98,13 +106,23 @@ private fun ReactionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
     Box(
         modifier =
             modifier
                 .size(ReactionButtonSize)
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.backgroundLevel2)
-                .clickOnce(
+                .border(
+                    width = if (isPressed) ReactionPressedRingWidth else 0.dp,
+                    color = if (isPressed) ChallaTheme.colors.primaryYellow else Color.Transparent,
+                    shape = CircleShape,
+                ).clickOnce(
+                    interactionSource = interactionSource,
+                    // 링으로 이미 눌린 걸 보여주므로 물결 효과는 쓰지 않는다.
+                    indication = null,
                     role = Role.Button,
                     onClickLabel =
                         stringResource(

@@ -36,6 +36,7 @@ data class PhotoDetailState(
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
             val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
+            val burst: ReactionBurstUiModel? = null,
         ) : PhotoInfo {
             fun reactionsOf(photoId: Long): ImmutableList<PhotoReactionUiModel> = reactions[photoId] ?: persistentListOf()
         }
@@ -63,6 +64,19 @@ data class PhotoDetailUiModel(
 @Immutable
 data class PhotoReactionUiModel(
     val id: Long,
+    val emoji: ReactionEmoji,
+)
+
+/**
+ * 반응을 남기는 순간 재생할 연출.
+ *
+ * @param id 연출을 다시 트리거하는 키. 같은 이모지를 또 남겨도 값이 달라야 다시 재생된다.
+ * @param photoId 어느 사진 위에서 터뜨릴지
+ */
+@Immutable
+data class ReactionBurstUiModel(
+    val id: Long,
+    val photoId: Long,
     val emoji: ReactionEmoji,
 )
 

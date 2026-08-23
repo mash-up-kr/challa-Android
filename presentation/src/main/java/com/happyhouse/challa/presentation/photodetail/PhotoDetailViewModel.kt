@@ -20,6 +20,7 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import com.happyhouse.challa.presentation.photodetail.util.toPhotoDetailUiModels
 import dagger.assisted.Assisted
@@ -54,6 +55,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
     // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 배치 seed로 쓰이므로 반응마다 고유해야 한다.
     private var nextReactionId = 0L
+
+    /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
+    private var nextBurstId = 0L
 
     init {
         onIntent(PhotoDetailIntent.PhotosLoad)
@@ -254,7 +258,15 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
 
         val reactions = (loaded.reactions + (photo.id to updated.toPersistentList())).toPersistentMap()
-        updateState { copy(photoInfo = loaded.copy(reactions = reactions)) }
+        // 취소할 때는 연출을 재생하지 않는다. 새로 남길 때만 id를 새로 발급해 다시 터뜨린다.
+        val burst =
+            if (left == null) {
+                ReactionBurstUiModel(id = nextBurstId++, photoId = photo.id, emoji = emoji)
+            } else {
+                loaded.burst
+            }
+
+        updateState { copy(photoInfo = loaded.copy(reactions = reactions, burst = burst)) }
     }
 
     private fun handleMessageChange(message: String) {

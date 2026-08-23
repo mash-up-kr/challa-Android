@@ -59,6 +59,7 @@ fun PhotoDetailPager(
                 modifier = Modifier.fillMaxSize(),
                 photo = photo,
                 reactions = loaded.reactionsOf(photo.id),
+                burst = loaded.burst,
             )
         }
 
