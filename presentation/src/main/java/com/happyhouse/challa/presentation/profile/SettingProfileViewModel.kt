@@ -85,16 +85,16 @@ class SettingProfileViewModel @AssistedInject constructor(
 
             userRepository
                 .updateProfile(
-                    nickname = currentState.nickname.trim(),
+                    nickname = currentState.nickname,
                     profileImageUrl = profileImageUrl,
-                ).onSuccess { profile ->
+                ).onSuccess {
                     if (currentState.mode == ProfileSettingMode.EDIT) {
                         updateState { copy(isSubmitting = false) }
                         sendEffect(SettingProfileSideEffect.ProfileUpdated)
                     } else {
                         updateState { copy(isSubmitting = false, isCompleted = true) }
                         delay(PROFILE_COMPLETED_NAVIGATE_DELAY_MS)
-                        sendEffect(SettingProfileSideEffect.ProfileCreated(profile.nickname))
+                        sendEffect(SettingProfileSideEffect.ProfileCreated(currentState.nickname))
                     }
                 }.onFailure {
                     handleSaveFailure()

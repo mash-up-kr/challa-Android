@@ -38,6 +38,13 @@ fun SettingProfile(
     modifier: Modifier = Modifier,
 ) {
     val loadedProfile = profile as? ProfileState.Loaded
+    val nickname =
+        when (profile) {
+            is ProfileState.Loaded -> profile.nickname
+            ProfileState.Loading,
+            ProfileState.Error,
+            -> ""
+        }
 
     Row(
         modifier =
@@ -74,7 +81,7 @@ fun SettingProfile(
         }
 
         Text(
-            text = loadedProfile?.nickname.orEmpty(),
+            text = nickname,
             modifier =
                 Modifier
                     .weight(1f)
@@ -83,14 +90,17 @@ fun SettingProfile(
             style = ChallaTheme.typography.bodyMedium.bold,
         )
 
-        ChallaIconButton(
-            icon = ChallaIcons.Edit,
-            onClick = onEditClick,
-            contentDescription = stringResource(R.string.setting_profile_edit_description),
-            enabled = loadedProfile != null,
-            variant = ChallaButtonVariant.TRANSPARENT,
-            size = ChallaButtonSize.LARGE,
-        )
+        if (loadedProfile != null) {
+            ChallaIconButton(
+                icon = ChallaIcons.Edit,
+                onClick = onEditClick,
+                contentDescription = stringResource(R.string.setting_profile_edit_description),
+                variant = ChallaButtonVariant.TRANSPARENT,
+                size = ChallaButtonSize.LARGE,
+            )
+        } else {
+            Spacer(modifier = Modifier.size(54.dp))
+        }
     }
 }
 

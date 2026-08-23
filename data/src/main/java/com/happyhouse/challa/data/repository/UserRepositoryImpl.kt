@@ -73,9 +73,10 @@ class UserRepositoryImpl
                 ).mapCatching { response ->
                     check(response.success) { response.message }
                     val user = requireNotNull(response.data) { "프로필 응답 데이터가 비어 있습니다." }.user
+                    val updatedNickname = requireNotNull(user.nickname) { "수정된 프로필 닉네임이 비어 있습니다." }
                     UserProfile(
                         id = user.id,
-                        nickname = user.nickname,
+                        nickname = updatedNickname,
                         profileImageUrl = user.profileImageUrl,
                     )
                 }.onSuccess { profile ->

@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.setting
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.model.UserProfile
 import com.happyhouse.challa.domain.repository.ThemeRepository
 import com.happyhouse.challa.domain.repository.UserRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -24,13 +25,7 @@ class SettingViewModel
     ) : BaseViewModel<SettingState, SettingIntent, SettingSideEffect>(
             initialState =
                 userRepository.profile.value?.let { profile ->
-                    SettingState(
-                        profile =
-                            ProfileState.Loaded(
-                                nickname = profile.nickname,
-                                profileImageUrl = profile.profileImageUrl,
-                            ),
-                    )
+                    SettingState(profile = profile.toProfileState())
                 } ?: SettingState(),
         ) {
         private var profileReadJob: Job? = null
@@ -53,12 +48,7 @@ class SettingViewModel
                 userRepository.profile.collect { profile ->
                     updateState {
                         val profileState =
-                            profile?.let {
-                                ProfileState.Loaded(
-                                    nickname = it.nickname,
-                                    profileImageUrl = it.profileImageUrl,
-                                )
-                            } ?: if (this.profile is ProfileState.Loaded) {
+                            profile?.toProfileState() ?: if (this.profile is ProfileState.Loaded) {
                                 ProfileState.Loading
                             } else {
                                 this.profile
@@ -83,16 +73,13 @@ class SettingViewModel
                     updateState { copy(profile = ProfileState.Loading) }
 
                     when (val result = userRepository.getMyProfile()) {
-                        is ChallaResult.Success ->
-                            updateState {
-                                copy(
-                                    profile =
-                                        ProfileState.Loaded(
-                                            nickname = result.data.nickname,
-                                            profileImageUrl = result.data.profileImageUrl,
-                                        ),
-                                )
+                        is ChallaResult.Success -> {
+                            val profileState = result.data.toProfileState()
+                            updateState { copy(profile = profileState) }
+                            if (profileState is ProfileState.Error) {
+                                sendEffect(SettingSideEffect.ProfileReadFailed)
                             }
+                        }
 
                         is ChallaResult.Failure -> {
                             updateState { copy(profile = ProfileState.Error) }
@@ -123,3 +110,12 @@ class SettingViewModel
                 }
         }
     }
+
+private fun UserProfile.toProfileState(): ProfileState =
+    nickname
+        ?.let { nickname ->
+            ProfileState.Loaded(
+                nickname = nickname,
+                profileImageUrl = profileImageUrl,
+            )
+        } ?: ProfileState.Error

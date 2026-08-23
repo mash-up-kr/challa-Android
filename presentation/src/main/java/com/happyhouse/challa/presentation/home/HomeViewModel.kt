@@ -35,9 +35,10 @@ class HomeViewModel
         private fun loadProfile() {
             viewModelScope.launch {
                 userRepository.getMyProfile().onSuccess { profile ->
+                    val nickname = profile.nickname ?: return@onSuccess
                     updateState {
                         copy(
-                            nickname = profile.nickname,
+                            nickname = nickname,
                             profileImageUrl = profile.profileImageUrl,
                         )
                     }

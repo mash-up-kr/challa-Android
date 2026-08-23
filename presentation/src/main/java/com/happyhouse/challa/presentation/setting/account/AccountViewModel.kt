@@ -19,10 +19,12 @@ class AccountViewModel @Inject constructor(
 ) : BaseViewModel<AccountState, AccountIntent, AccountSideEffect>(
         initialState =
             userRepository.profile.value?.let { profile ->
-                AccountState(
-                    nickname = profile.nickname,
-                    profileImageUrl = profile.profileImageUrl,
-                )
+                profile.nickname?.let { nickname ->
+                    AccountState(
+                        nickname = nickname,
+                        profileImageUrl = profile.profileImageUrl,
+                    )
+                }
             } ?: AccountState(),
     ) {
     init {
@@ -34,10 +36,16 @@ class AccountViewModel @Inject constructor(
         viewModelScope.launch {
             userRepository.profile.collect { profile ->
                 updateState {
-                    copy(
-                        nickname = profile?.nickname.orEmpty(),
-                        profileImageUrl = profile?.profileImageUrl,
-                    )
+                    when (profile) {
+                        null -> copy(nickname = "", profileImageUrl = null)
+                        else -> {
+                            val nickname = profile.nickname ?: return@updateState this
+                            copy(
+                                nickname = nickname,
+                                profileImageUrl = profile.profileImageUrl,
+                            )
+                        }
+                    }
                 }
             }
         }

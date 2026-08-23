@@ -9,7 +9,7 @@ data class UserProfileResponse(
     @Serializable
     data class User(
         val id: Long,
-        val nickname: String,
+        val nickname: String? = null,
         val profileImageUrl: String? = null,
     )
 }
