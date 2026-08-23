@@ -47,13 +47,7 @@ class SettingViewModel
             viewModelScope.launch {
                 userRepository.profile.collect { profile ->
                     updateState {
-                        val profileState =
-                            profile?.toProfileState() ?: if (this.profile is ProfileState.Loaded) {
-                                ProfileState.Loading
-                            } else {
-                                this.profile
-                            }
-                        copy(profile = profileState)
+                        copy(profile = profile?.toProfileState() ?: ProfileState.Loading)
                     }
                 }
             }

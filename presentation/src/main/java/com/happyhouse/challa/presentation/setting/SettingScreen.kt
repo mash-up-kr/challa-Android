@@ -155,6 +155,19 @@ private fun SettingScreenLoadingPreview() {
     SettingScreenPreviewContent(state = SettingState(profile = ProfileState.Loading))
 }
 
+@Preview(name = "Error")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun SettingScreenErrorPreview() {
+    SettingScreenPreviewContent(
+        state =
+            SettingState(
+                profile = ProfileState.Error,
+                primaryTheme = ThemeUiModel.LEMONADE,
+            ),
+    )
+}
+
 @Composable
 private fun SettingScreenPreviewContent(state: SettingState) {
     SettingScreen(
