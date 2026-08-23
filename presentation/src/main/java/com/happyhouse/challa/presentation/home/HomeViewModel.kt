@@ -13,6 +13,7 @@ import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,16 +27,17 @@ class HomeViewModel
             initialState = HomeState(isLoading = true),
         ) {
         init {
-            loadProfile()
+            observeProfile()
+            fetchProfileIfNeeded()
             loadHome()
         }
 
         override fun onIntent(intent: HomeIntent) = Unit
 
-        private fun loadProfile() {
+        private fun observeProfile() {
             viewModelScope.launch {
-                userRepository.getMyProfile().onSuccess { profile ->
-                    val nickname = profile.nickname ?: return@onSuccess
+                userRepository.profile.filterNotNull().collect { profile ->
+                    val nickname = profile.nickname ?: return@collect
                     updateState {
                         copy(
                             nickname = nickname,
@@ -43,6 +45,14 @@ class HomeViewModel
                         )
                     }
                 }
+            }
+        }
+
+        private fun fetchProfileIfNeeded() {
+            if (userRepository.profile.value != null) return
+
+            viewModelScope.launch {
+                userRepository.getMyProfile()
             }
         }
 
