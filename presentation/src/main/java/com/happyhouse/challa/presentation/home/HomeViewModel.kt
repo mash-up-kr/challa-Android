@@ -23,41 +23,25 @@ class HomeViewModel
         private val roomRepository: RoomRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(
-            initialState =
-                userRepository.profile.value.let { profile ->
-                    HomeState(
-                        isLoading = true,
-                        nickname = profile?.nickname.orEmpty(),
-                        profileImageUrl = profile?.profileImageUrl,
-                    )
-                },
+            initialState = HomeState(isLoading = true),
         ) {
         init {
-            observeProfile()
-            loadProfileIfNeeded()
+            loadProfile()
             loadHome()
         }
 
         override fun onIntent(intent: HomeIntent) = Unit
 
-        private fun observeProfile() {
+        private fun loadProfile() {
             viewModelScope.launch {
-                userRepository.profile.collect { profile ->
+                userRepository.getMyProfile().onSuccess { profile ->
                     updateState {
                         copy(
-                            nickname = profile?.nickname.orEmpty(),
-                            profileImageUrl = profile?.profileImageUrl,
+                            nickname = profile.nickname,
+                            profileImageUrl = profile.profileImageUrl,
                         )
                     }
                 }
-            }
-        }
-
-        private fun loadProfileIfNeeded() {
-            if (userRepository.profile.value != null) return
-
-            viewModelScope.launch {
-                userRepository.getMyProfile()
             }
         }
 
