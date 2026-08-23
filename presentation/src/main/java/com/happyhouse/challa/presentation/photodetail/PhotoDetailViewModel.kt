@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.model.PhotoReaction
 import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.domain.model.toStickerReactions
 import com.happyhouse.challa.domain.repository.ChatRepository
 import com.happyhouse.challa.domain.repository.PhotoRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
@@ -23,6 +24,7 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.REACTION_BURST_DURATION_MILLIS
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
 import com.happyhouse.challa.presentation.photodetail.util.toPhotoDetailUiModels
 import dagger.assisted.Assisted
@@ -34,6 +36,7 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -74,6 +77,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
     /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
     private var nextBurstId = 0L
+
+    /** 다 재생한 연출을 지우는 작업 */
+    private var burstClearJob: Job? = null
 
     init {
         onIntent(PhotoDetailIntent.PhotosLoad)
@@ -309,16 +315,35 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 연출은 이모지를 고른 그 순간에만 재생한다.
+     *
+     * 다 재생하면 상태에서 지운다. 남겨두면 사진을 넘겼다 돌아왔을 때 다시 그려지면서 또 터진다.
+     */
     private fun emitBurst(
         photoId: Long,
         emoji: ReactionEmoji,
     ) {
+        val burst = ReactionBurstUiModel(id = nextBurstId++, photoId = photoId, emoji = emoji)
+        updateBurst(burst)
+
+        burstClearJob?.cancel()
+        burstClearJob =
+            viewModelScope.launch {
+                delay(REACTION_BURST_DURATION_MILLIS)
+                updateBurst(null)
+            }
+    }
+
+    private fun updateBurst(burst: ReactionBurstUiModel?) {
         updateState {
-            val loaded = photoInfo as? PhotoInfo.Loaded ?: return@updateState this
-            copy(
-                photoInfo =
-                    loaded.copy(burst = ReactionBurstUiModel(id = nextBurstId++, photoId = photoId, emoji = emoji)),
-            )
+            val loaded =
+                photoInfo as? PhotoInfo.Loaded
+                    ?: run {
+                        Timber.w("사진 목록이 열려 있지 않아 반응 연출을 반영하지 않습니다: $photoInfo")
+                        return@updateState this
+                    }
+            copy(photoInfo = loaded.copy(burst = burst))
         }
     }
 
@@ -375,8 +400,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     ) {
         val stickers =
             reactions
-                .distinctBy { reaction -> reaction.userId }
-                .take(MAX_STICKER_USER_COUNT)
+                .toStickerReactions(limit = MAX_STICKER_USER_COUNT)
                 .map { reaction -> PhotoReactionUiModel(chatId = reaction.chatId, emoji = reaction.emoji) }
                 .toPersistentList()
 

@@ -76,6 +76,9 @@ data class PhotoReactionUiModel(
     val emoji: ReactionEmoji,
 )
 
+/** 연출이 끝나면 상태에서 지운다. 남겨두면 사진을 다시 열 때 또 재생된다. */
+const val REACTION_BURST_DURATION_MILLIS = 1100L
+
 /**
  * 반응을 남기는 순간 재생할 연출.
  *

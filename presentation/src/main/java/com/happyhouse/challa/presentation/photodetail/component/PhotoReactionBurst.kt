@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.photodetail.contract.REACTION_BURST_DURATION_MILLIS
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
 import kotlin.math.PI
 import kotlin.math.cos
@@ -32,8 +33,6 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /** 한 번 남길 때 쏟아지는 이모지 개수 */
 private const val BURST_PARTICLE_COUNT = 18
-
-private const val BURST_DURATION_MILLIS = 1100
 
 /** 파티클 크기(사진 폭 대비). 자리에 남는 스티커보다 훨씬 작다. */
 private const val BURST_PARTICLE_WIDTH_RATIO = 0.12f
@@ -84,7 +83,7 @@ fun PhotoReactionBurst(
             progress.snapTo(0f)
             progress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = BURST_DURATION_MILLIS, easing = LinearEasing),
+                animationSpec = tween(durationMillis = REACTION_BURST_DURATION_MILLIS.toInt(), easing = LinearEasing),
             )
         }
 
