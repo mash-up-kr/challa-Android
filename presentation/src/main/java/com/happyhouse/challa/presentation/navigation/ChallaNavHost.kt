@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.navigation
 
-import android.content.Intent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
@@ -9,9 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -20,7 +17,6 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.CameraRoute
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
-import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
@@ -30,12 +26,10 @@ import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
+import com.happyhouse.challa.presentation.setting.license.OpenSourceLicenseRoute
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 import kotlinx.coroutines.launch
-
-// TODO: 배포를 위해 임시로 추가. 삭제 예정
-private const val REPORT_FORM_URL = "https://forms.gle/FNhiTp6wt5Qxt3De8"
 
 @Composable
 fun ChallaNavHost(
@@ -46,27 +40,6 @@ fun ChallaNavHost(
     val coroutineScope = rememberCoroutineScope()
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
-
-    // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
-    val featureNotReadyMessage = stringResource(R.string.setting_feature_not_ready)
-
-    // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
-    fun showFeatureNotReadyToast() {
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar(
-                ChallaToastVisuals(message = featureNotReadyMessage),
-            )
-        }
-    }
-
-    // TODO: 배포를 위해 임시로 추가. 삭제 예정
-    val context = LocalContext.current
-
-    // TODO: 배포를 위해 임시로 추가. 삭제 예정
-    fun openReportForm() {
-        val intent = Intent(Intent.ACTION_VIEW, REPORT_FORM_URL.toUri())
-        context.startActivity(intent)
-    }
 
     NavDisplay(
         backStack = navigator.backStack,
@@ -177,12 +150,11 @@ fun ChallaNavHost(
                         onAccountClick = {
                             navigator.navigate(ChallaRoute.Account)
                         },
-                        // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
-                        onSupportClick = { showFeatureNotReadyToast() },
-                        // TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준
-                        onFeedbackClick = { showFeatureNotReadyToast() },
-                        // TODO: 배포를 위해 임시로 추가. 삭제 예정
-                        onReportClick = { openReportForm() },
+                        onSupportClick = {},
+                        onFeedbackClick = {},
+                        onOpenSourceLicenseClick = {
+                            navigator.navigate(ChallaRoute.OpenSourceLicense)
+                        },
                     )
                 }
                 entry<ChallaRoute.ThemeSetting> {
@@ -215,6 +187,12 @@ fun ChallaNavHost(
                         onWithdrawSuccess = {
                             navigator.clearAndNavigate(ChallaRoute.Login)
                         },
+                    )
+                }
+                entry<ChallaRoute.OpenSourceLicense> {
+                    OpenSourceLicenseRoute(
+                        snackbarHostState = snackbarHostState,
+                        onBackClick = { navigator.goBack() },
                     )
                 }
             },

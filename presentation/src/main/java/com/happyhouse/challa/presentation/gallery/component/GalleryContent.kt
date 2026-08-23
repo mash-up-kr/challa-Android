@@ -143,7 +143,7 @@ private fun GalleryMessage(
         TextButton(onClick = onAction) {
             Text(
                 text = actionLabel,
-                color = ChallaTheme.colors.primaryYellow,
+                color = ChallaTheme.colors.primary,
                 style = ChallaTheme.typography.bodyMedium.bold,
             )
         }

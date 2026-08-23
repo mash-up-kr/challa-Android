@@ -2,13 +2,16 @@ package com.happyhouse.challa.presentation.setting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -16,6 +19,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaListItem
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
@@ -25,7 +31,6 @@ import com.happyhouse.challa.presentation.setting.component.SettingSection
 import com.happyhouse.challa.presentation.setting.component.SettingTopBar
 import com.happyhouse.challa.presentation.setting.contract.SettingState
 import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
-import com.happyhouse.challa.presentation.setting.theme.titleRes
 
 @Composable
 fun SettingScreen(
@@ -37,8 +42,7 @@ fun SettingScreen(
     onAccountClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
-    // TODO: 배포를 위해 임시로 추가. 삭제 예정
-    onReportClick: () -> Unit,
+    onOpenSourceLicenseClick: () -> Unit,
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState? = null,
 ) {
@@ -50,6 +54,23 @@ fun SettingScreen(
         snackbarHostState = snackbarHostState,
         topBar = {
             SettingTopBar(onBackClick = onBackClick)
+        },
+        bottomBar = {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 28.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                ChallaTextButton(
+                    text = stringResource(R.string.setting_open_source_license),
+                    onClick = onOpenSourceLicenseClick,
+                    variant = ChallaButtonVariant.TRANSPARENT,
+                    size = ChallaButtonSize.SMALL,
+                    contentColor = ChallaTheme.colors.labelAlternative,
+                )
+            }
         },
     ) { innerPadding ->
         Column(
@@ -108,12 +129,6 @@ fun SettingScreen(
                         leadingIcon = ChallaIcons.Feedback,
                         onClick = onFeedbackClick,
                     )
-                    // TODO: 배포를 위해 임시로 추가. 삭제 예정
-                    ChallaListItem(
-                        text = stringResource(R.string.setting_report),
-                        leadingIcon = ChallaIcons.Error,
-                        onClick = onReportClick,
-                    )
                 }
             }
         }
@@ -139,6 +154,6 @@ private fun SettingScreenPreview() {
         onAccountClick = {},
         onSupportClick = {},
         onFeedbackClick = {},
-        onReportClick = {},
+        onOpenSourceLicenseClick = {},
     )
 }

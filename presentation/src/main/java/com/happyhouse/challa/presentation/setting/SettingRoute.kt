@@ -29,8 +29,7 @@ fun SettingRoute(
     onAccountClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
-    // TODO: 배포를 위해 임시로 추가. 삭제 예정
-    onReportClick: () -> Unit,
+    onOpenSourceLicenseClick: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -87,7 +86,7 @@ fun SettingRoute(
         onAccountClick = onAccountClick,
         onSupportClick = onSupportClick,
         onFeedbackClick = onFeedbackClick,
-        onReportClick = onReportClick,
+        onOpenSourceLicenseClick = onOpenSourceLicenseClick,
         snackbarHostState = snackbarHostState,
     )
 }

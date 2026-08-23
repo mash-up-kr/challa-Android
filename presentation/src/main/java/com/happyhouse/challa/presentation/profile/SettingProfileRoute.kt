@@ -343,7 +343,7 @@ private fun headlineText(
 ): AnnotatedString =
     if (isCompleted) {
         buildAnnotatedString {
-            withStyle(SpanStyle(color = ChallaTheme.colors.primaryYellow)) {
+            withStyle(SpanStyle(color = ChallaTheme.colors.primary)) {
                 append(nickname)
             }
             append(stringResource(id = R.string.create_profile_completed_greeting))
