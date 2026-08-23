@@ -2,6 +2,9 @@ package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.ChatApi
 import com.happyhouse.challa.data.network.dto.request.CreateChatRequest
+import com.happyhouse.challa.data.network.dto.response.toPhotoReactions
+import com.happyhouse.challa.domain.model.PhotoReaction
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.domain.repository.ChatRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -10,23 +13,63 @@ import javax.inject.Inject
 class ChatRepositoryImpl @Inject constructor(
     private val chatApi: ChatApi,
 ) : ChatRepository {
+    override suspend fun getPhotoReactions(photoId: Long): ChallaResult<List<PhotoReaction>> =
+        chatApi
+            .getPhotoDetail(photoId)
+            .mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "사진 상세 응답 데이터가 비어 있습니다." }
+                data.toPhotoReactions()
+            }
+
+    override suspend fun sendPhotoReaction(
+        roomId: Long,
+        photoId: Long,
+        emoji: ReactionEmoji,
+    ): ChallaResult<Long> =
+        postReaction(
+            roomId = roomId,
+            photoId = photoId,
+            type = CreateChatRequest.ChatType.EMOJI,
+            // 서버에는 이모지 이름을 그대로 저장한다.
+            content = emoji.name,
+        ).mapCatching { response -> response.chat.chatId }
+
+    override suspend fun deletePhotoReaction(chatId: Long): ChallaResult<Unit> =
+        chatApi
+            .deleteChatForReaction(chatId)
+            .mapCatching { response -> check(response.success) { response.message } }
+
     override suspend fun sendPhotoMessage(
         roomId: Long,
         photoId: Long,
         message: String,
     ): ChallaResult<Unit> =
-        chatApi
-            .postChatForReaction(
-                CreateChatRequest(
-                    chat =
-                        CreateChatRequest.Chat(
-                            roomId = roomId,
-                            photoId = photoId,
-                            type = CreateChatRequest.ChatType.COMMENT,
-                            content = message,
-                        ),
-                ),
-            ).mapCatching { response ->
-                check(response.success) { response.message }
-            }
+        postReaction(
+            roomId = roomId,
+            photoId = photoId,
+            type = CreateChatRequest.ChatType.COMMENT,
+            content = message,
+        ).mapCatching { }
+
+    private suspend fun postReaction(
+        roomId: Long,
+        photoId: Long,
+        type: CreateChatRequest.ChatType,
+        content: String,
+    ) = chatApi
+        .postChatForReaction(
+            CreateChatRequest(
+                chat =
+                    CreateChatRequest.Chat(
+                        roomId = roomId,
+                        photoId = photoId,
+                        type = type,
+                        content = content,
+                    ),
+            ),
+        ).mapCatching { response ->
+            check(response.success) { response.message }
+            requireNotNull(response.data) { "반응 등록 응답 데이터가 비어 있습니다." }
+        }
 }

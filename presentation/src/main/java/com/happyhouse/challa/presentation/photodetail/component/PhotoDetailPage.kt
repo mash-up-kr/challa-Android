@@ -35,6 +35,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
@@ -43,7 +44,6 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
-import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -246,8 +246,8 @@ private fun PhotoDetailPagePreview() {
             ),
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.FIRE),
+                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.HEART),
+                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.FIRE),
             ),
     )
 }

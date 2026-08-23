@@ -16,7 +16,6 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.photodetail.contract.MAX_REACTION_COUNT
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
 import com.happyhouse.challa.presentation.photodetail.permission.rememberPhotoSavePermissionGate
@@ -45,7 +44,6 @@ fun PhotoDetailRoute(
     val loadFailureMessage = stringResource(R.string.photo_detail_load_failure)
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
-    val reactionLimitMessage = stringResource(R.string.photo_detail_reaction_limit, MAX_REACTION_COUNT)
     val messageSendFailureMessage = stringResource(R.string.photo_detail_message_send_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
@@ -109,12 +107,6 @@ fun PhotoDetailRoute(
                             topOffset = ToastTopOffset,
                         )
 
-                    PhotoDetailSideEffect.ReactionLimitExceeded ->
-                        ChallaToastVisuals(
-                            message = reactionLimitMessage,
-                            topOffset = ToastTopOffset,
-                        )
-
                     PhotoDetailSideEffect.MessageSendFailed ->
                         ChallaToastVisuals(
                             message = messageSendFailureMessage,
@@ -133,6 +125,7 @@ fun PhotoDetailRoute(
         snackbarHostState = snackbarHostState,
         onRetryClick = { viewModel.onIntent(PhotoDetailIntent.PhotosLoad) },
         onLoadMore = { viewModel.onIntent(PhotoDetailIntent.PhotosLoadMore) },
+        onReactionsLoad = { photo -> viewModel.onIntent(PhotoDetailIntent.ReactionsLoad(photo)) },
         onSaveClick = requestSave,
         onEmojiClick = { photo, emoji -> viewModel.onIntent(PhotoDetailIntent.ReactionClick(photo, emoji)) },
         onMessageChange = { message -> viewModel.onIntent(PhotoDetailIntent.MessageChange(message)) },

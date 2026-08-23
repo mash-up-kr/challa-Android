@@ -2,11 +2,14 @@ package com.happyhouse.challa.presentation.photodetail.contract
 
 import android.os.Parcelable
 import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.base.UiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.parcelize.Parcelize
 
 @Immutable
@@ -36,9 +39,13 @@ data class PhotoDetailState(
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
             val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
+            /** 사진별로 내가 남겨둔 이모지. 반응 바에 표시하고, 다시 누르면 취소한다. */
+            val myEmojis: ImmutableMap<Long, ImmutableSet<ReactionEmoji>> = persistentMapOf(),
             val burst: ReactionBurstUiModel? = null,
         ) : PhotoInfo {
             fun reactionsOf(photoId: Long): ImmutableList<PhotoReactionUiModel> = reactions[photoId] ?: persistentListOf()
+
+            fun myEmojisOf(photoId: Long): ImmutableSet<ReactionEmoji> = myEmojis[photoId] ?: persistentSetOf()
         }
     }
 }
@@ -59,11 +66,13 @@ data class PhotoDetailUiModel(
 ) : Parcelable
 
 /**
- * @param id 사진 위 노출 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려져야 한다.
+ * 사진 위에 붙는 스티커 하나.
+ *
+ * @param chatId 취소에 쓰고, 배치 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려진다.
  */
 @Immutable
 data class PhotoReactionUiModel(
-    val id: Long,
+    val chatId: Long,
     val emoji: ReactionEmoji,
 )
 
@@ -81,25 +90,11 @@ data class ReactionBurstUiModel(
 )
 
 /**
- * 한 사진에 붙일 수 있는 반응 수.
+ * 사진 한 장에 스티커로 보여주는 사람 수.
+ *
+ * 인당 반응 개수에는 제한이 없고, 사람마다 **가장 먼저 남긴 반응 하나**만 스티커가 된다.
+ * 먼저 남긴 순으로 이 수만큼만 붙고 나머지는 채팅 기록에만 쌓인다.
  *
  * 이 값을 늘리려면 스티커를 놓을 자리(`StickerSlotSet`)도 함께 늘려야 한다.
- * 자리가 모자라면 넘치는 반응은 화면에 그려지지 않는다.
- *
- * TODO: 참여자 전원 합산 기준으로 두고 기획 확인 중. (이슈 #110)
  */
-const val MAX_REACTION_COUNT = 3
-
-/** 반응 바에 노출하는 이모지 종류. 선언 순서가 곧 노출 순서이자 스와이프 페이지 순서다. */
-enum class ReactionEmoji {
-    FIRE,
-    EYES,
-    MEDAL,
-    QUESTION,
-    THINKING,
-    HEART,
-    THUMBS_UP,
-    SPARKLES,
-    POOP,
-    SKULL,
-}
+const val MAX_STICKER_USER_COUNT = 3

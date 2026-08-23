@@ -15,9 +15,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
-import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.math.roundToInt
@@ -110,12 +110,12 @@ fun PhotoReactionOverlay(
         reactions.take(slotSet.slots.size).forEachIndexed { index, reaction ->
             val slot = slotSet.slots[index]
 
-            key(reaction.id) {
+            key(reaction.chatId) {
                 val placement =
-                    remember(reaction.id, slot, widthPx, heightPx, stickerPx, overhangPx) {
+                    remember(reaction.chatId, slot, widthPx, heightPx, stickerPx, overhangPx) {
                         stickerPlacement(
                             slot = slot,
-                            reactionId = reaction.id,
+                            reactionId = reaction.chatId,
                             placeableWidth = (widthPx - stickerPx).coerceAtLeast(0),
                             placeableHeight = (heightPx - stickerPx).coerceAtLeast(0),
                             stickerPx = stickerPx,
@@ -197,9 +197,9 @@ private fun PhotoReactionOverlayPreview() {
         photoId = 1L,
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.MEDAL),
-                PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(id = 2L, emoji = ReactionEmoji.FIRE),
+                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.MEDAL),
+                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.HEART),
+                PhotoReactionUiModel(chatId = 2L, emoji = ReactionEmoji.FIRE),
             ),
     )
 }
@@ -218,9 +218,9 @@ private fun PhotoReactionOverlayOtherSlotSetPreview() {
         photoId = 2L,
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(id = 3L, emoji = ReactionEmoji.THINKING),
-                PhotoReactionUiModel(id = 4L, emoji = ReactionEmoji.SPARKLES),
-                PhotoReactionUiModel(id = 5L, emoji = ReactionEmoji.SKULL),
+                PhotoReactionUiModel(chatId = 3L, emoji = ReactionEmoji.THINKING),
+                PhotoReactionUiModel(chatId = 4L, emoji = ReactionEmoji.SPARKLES),
+                PhotoReactionUiModel(chatId = 5L, emoji = ReactionEmoji.SKULL),
             ),
     )
 }

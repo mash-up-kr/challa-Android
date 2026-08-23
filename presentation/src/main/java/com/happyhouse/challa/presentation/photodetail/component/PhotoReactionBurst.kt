@@ -20,9 +20,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
-import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
