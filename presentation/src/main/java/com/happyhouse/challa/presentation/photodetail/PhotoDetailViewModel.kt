@@ -63,6 +63,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 내 반응을 가려내는 기준. 서버 응답에 "내 것" 표시가 없어 userId로 비교한다. */
     private var myUserId: Long? = null
 
+    /** 이번 화면에서 내가 남긴 chatId. 프로필 조회가 실패했을 때의 대비책이다. */
+    private val myChatIds = mutableSetOf<Long>()
+
     /** 처리 중인 (사진, 이모지). 연타로 중복 요청이 나가지 않게 막는다. */
     private val reactingPhotoEmojis = mutableSetOf<Pair<Long, ReactionEmoji>>()
 
@@ -106,11 +109,14 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
                 chatRepository
                     .getPhotoReactions(photo.id)
-                    .onSuccess { reactions -> applyReactions(photo.id, reactions, burstEmoji = null) }
+                    .onSuccess { reactions -> applyReactions(photo.id, reactions) }
                     .onFailure { failure ->
                         Timber.e(failure.causeOrNull(), "반응 목록을 불러오지 못했습니다. photoId=${photo.id}")
                         sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
                     }
+            }.also { job ->
+                // 사진을 넘길수록 끝난 Job이 쌓이지 않게 지운다.
+                job.invokeOnCompletion { reactionJobs.remove(photo.id) }
             }
     }
 
@@ -287,6 +293,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
         val myChatId = myReactionChatIds[photo.id to emoji]
 
+        // 연출은 서버 왕복을 기다리지 않고 누르는 즉시 재생한다. 실패하면 토스트로 따로 알린다.
+        if (myChatId == null) emitBurst(photoId = photo.id, emoji = emoji)
+
         viewModelScope.launch {
             try {
                 if (myChatId != null) {
@@ -300,13 +309,29 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
+    private fun emitBurst(
+        photoId: Long,
+        emoji: ReactionEmoji,
+    ) {
+        updateState {
+            val loaded = photoInfo as? PhotoInfo.Loaded ?: return@updateState this
+            copy(
+                photoInfo =
+                    loaded.copy(burst = ReactionBurstUiModel(id = nextBurstId++, photoId = photoId, emoji = emoji)),
+            )
+        }
+    }
+
     private suspend fun addReaction(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
     ) {
         chatRepository
             .sendPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
-            .onSuccess { reloadReactions(photo.id, burstEmoji = emoji) }.onFailure { failure ->
+            .onSuccess { chatId ->
+                myChatIds += chatId
+                reloadReactions(photo.id)
+            }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
             }
@@ -319,7 +344,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
     ) {
         chatRepository
             .deletePhotoReaction(chatId)
-            .onSuccess { reloadReactions(photo.id, burstEmoji = null) }.onFailure { failure ->
+            .onSuccess {
+                myChatIds -= chatId
+                reloadReactions(photo.id)
+            }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 취소하지 못했습니다. photoId=${photo.id}, chatId=$chatId")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
             }
@@ -329,16 +357,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
      * 반응을 남기거나 취소한 뒤, 그 사진의 반응을 서버에서 다시 받아 반영한다.
      *
      * 내가 누른 사이 다른 사람이 남긴 것도 함께 들어와, 스티커 주인 순서가 서버 기준과 어긋나지 않는다.
-     *
-     * @param burstEmoji 새로 남긴 경우에만 값이 있다. 취소할 때는 연출을 재생하지 않는다.
      */
-    private suspend fun reloadReactions(
-        photoId: Long,
-        burstEmoji: ReactionEmoji?,
-    ) {
+    private suspend fun reloadReactions(photoId: Long) {
         chatRepository
             .getPhotoReactions(photoId)
-            .onSuccess { reactions -> applyReactions(photoId, reactions, burstEmoji) }
+            .onSuccess { reactions -> applyReactions(photoId, reactions) }
             .onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응 목록을 다시 불러오지 못했습니다. photoId=$photoId")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
@@ -349,7 +372,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
     private fun applyReactions(
         photoId: Long,
         reactions: List<PhotoReaction>,
-        burstEmoji: ReactionEmoji?,
     ) {
         val stickers =
             reactions
@@ -358,7 +380,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 .map { reaction -> PhotoReactionUiModel(chatId = reaction.chatId, emoji = reaction.emoji) }
                 .toPersistentList()
 
-        val myReactions = reactions.filter { reaction -> reaction.userId == myUserId }
+        // 프로필 조회가 실패해도 이번 화면에서 남긴 건 알아볼 수 있어야, 같은 이모지가 중복으로 쌓이지 않는다.
+        val myReactions = reactions.filter { it.userId == myUserId || it.chatId in myChatIds }
         val myEmojis = myReactions.mapTo(mutableSetOf()) { reaction -> reaction.emoji }.toPersistentSet()
 
         // 취소할 때 chatId가 필요하다. 같은 이모지를 여러 번 남겼다면 가장 먼저 남긴 것을 지운다.
@@ -380,10 +403,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
                     loaded.copy(
                         reactions = (loaded.reactions + (photoId to stickers)).toPersistentMap(),
                         myEmojis = (loaded.myEmojis + (photoId to myEmojis)).toPersistentMap(),
-                        burst =
-                            burstEmoji
-                                ?.let { emoji -> ReactionBurstUiModel(id = nextBurstId++, photoId = photoId, emoji = emoji) }
-                                ?: loaded.burst,
                     ),
             )
         }
