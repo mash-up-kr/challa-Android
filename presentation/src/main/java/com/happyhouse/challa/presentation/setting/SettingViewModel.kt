@@ -8,6 +8,7 @@ import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
 import com.happyhouse.challa.presentation.setting.contract.SettingSideEffect
 import com.happyhouse.challa.presentation.setting.contract.SettingState
+import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
 import com.happyhouse.challa.presentation.setting.theme.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -24,9 +25,11 @@ class SettingViewModel
             initialState =
                 userRepository.profile.value?.let { profile ->
                     SettingState(
-                        nickname = profile.nickname.orEmpty(),
-                        profileImageUrl = profile.profileImageUrl,
-                        isProfileLoaded = true,
+                        profile =
+                            ProfileState.Loaded(
+                                nickname = profile.nickname,
+                                profileImageUrl = profile.profileImageUrl,
+                            ),
                     )
                 } ?: SettingState(),
         ) {
@@ -49,11 +52,18 @@ class SettingViewModel
             viewModelScope.launch {
                 userRepository.profile.collect { profile ->
                     updateState {
-                        copy(
-                            nickname = profile?.nickname.orEmpty(),
-                            profileImageUrl = profile?.profileImageUrl,
-                            isProfileLoaded = profile != null,
-                        )
+                        val profileState =
+                            profile?.let {
+                                ProfileState.Loaded(
+                                    nickname = it.nickname,
+                                    profileImageUrl = it.profileImageUrl,
+                                )
+                            } ?: if (this.profile is ProfileState.Loaded) {
+                                ProfileState.Loading
+                            } else {
+                                this.profile
+                            }
+                        copy(profile = profileState)
                     }
                 }
             }
@@ -70,14 +80,22 @@ class SettingViewModel
 
             profileReadJob =
                 viewModelScope.launch {
-                    if (userRepository.profile.value == null) {
-                        updateState { copy(isProfileLoaded = false) }
-                    }
+                    updateState { copy(profile = ProfileState.Loading) }
 
                     when (val result = userRepository.getMyProfile()) {
-                        is ChallaResult.Success -> Unit
+                        is ChallaResult.Success ->
+                            updateState {
+                                copy(
+                                    profile =
+                                        ProfileState.Loaded(
+                                            nickname = result.data.nickname,
+                                            profileImageUrl = result.data.profileImageUrl,
+                                        ),
+                                )
+                            }
 
                         is ChallaResult.Failure -> {
+                            updateState { copy(profile = ProfileState.Error) }
                             sendEffect(SettingSideEffect.ProfileReadFailed)
                         }
                     }
@@ -97,7 +115,9 @@ class SettingViewModel
                             is ChallaResult.Success ->
                                 updateState { copy(primaryTheme = result.data.toUiModel()) }
 
-                            is ChallaResult.Failure -> sendEffect(SettingSideEffect.ThemeReadFailed)
+                            is ChallaResult.Failure -> {
+                                sendEffect(SettingSideEffect.ThemeReadFailed)
+                            }
                         }
                     }
                 }

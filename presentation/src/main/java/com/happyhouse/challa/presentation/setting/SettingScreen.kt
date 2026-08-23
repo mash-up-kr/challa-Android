@@ -2,12 +2,16 @@ package com.happyhouse.challa.presentation.setting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,6 +27,7 @@ import com.happyhouse.challa.presentation.setting.component.SettingProfile
 import com.happyhouse.challa.presentation.setting.component.SettingSection
 import com.happyhouse.challa.presentation.setting.component.SettingTopBar
 import com.happyhouse.challa.presentation.setting.contract.SettingState
+import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
 import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 import com.happyhouse.challa.presentation.setting.theme.titleRes
 
@@ -47,6 +52,23 @@ fun SettingScreen(
             SettingTopBar(onBackClick = onBackClick)
         },
     ) { innerPadding ->
+        if (state.profile is ProfileState.Loading) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
+                    color = ChallaTheme.colors.labelNormal,
+                    strokeWidth = 2.dp,
+                )
+            }
+            return@ChallaScaffold
+        }
+
         Column(
             modifier =
                 Modifier
@@ -56,7 +78,7 @@ fun SettingScreen(
                     .verticalScroll(rememberScrollState()),
         ) {
             SettingProfile(
-                state = state,
+                profile = state.profile,
                 onEditClick = onProfileEditClick,
             )
 
@@ -116,9 +138,11 @@ private fun SettingScreenPreview() {
     SettingScreen(
         state =
             SettingState(
-                nickname = "나는야멋쟁이토마토",
-                profileImageUrl = "https://example.com/profile.jpg",
-                isProfileLoaded = true,
+                profile =
+                    ProfileState.Loaded(
+                        nickname = "나는야멋쟁이토마토",
+                        profileImageUrl = "https://example.com/profile.jpg",
+                    ),
                 primaryTheme = ThemeUiModel.LEMONADE,
             ),
         onBackClick = {},

@@ -17,6 +17,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
 import com.happyhouse.challa.presentation.setting.contract.SettingSideEffect
+import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -78,7 +79,10 @@ fun SettingRoute(
         state = state,
         onBackClick = onBackClick,
         onProfileEditClick = {
-            onProfileEditClick(state.nickname, state.profileImageUrl)
+            val profile = state.profile
+            if (profile is ProfileState.Loaded) {
+                onProfileEditClick(profile.nickname, profile.profileImageUrl)
+            }
         },
         onThemeClick = onThemeClick,
         onNotificationClick = onNotificationClick,

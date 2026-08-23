@@ -69,7 +69,7 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNaviga
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
@@ -943,8 +943,8 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
         ),
     )
 
-@Preview(showBackground = true, name = "Home - Rooms")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Preview(name = "Home - Rooms")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun HomeRoomsPreview() {
     ChallaTheme {
@@ -965,8 +965,8 @@ private fun HomeRoomsPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Home - Empty")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Preview(name = "Home - Empty")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun HomeEmptyPreview() {
     ChallaTheme {
@@ -986,8 +986,8 @@ private fun HomeEmptyPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Home - Loading")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Preview(name = "Home - Loading")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun HomeLoadingPreview() {
     ChallaTheme {

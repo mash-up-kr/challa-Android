@@ -20,7 +20,7 @@ class AccountViewModel @Inject constructor(
         initialState =
             userRepository.profile.value?.let { profile ->
                 AccountState(
-                    nickname = profile.nickname.orEmpty(),
+                    nickname = profile.nickname,
                     profileImageUrl = profile.profileImageUrl,
                 )
             } ?: AccountState(),
@@ -55,7 +55,7 @@ class AccountViewModel @Inject constructor(
         if (!forceRefresh && userRepository.profile.value != null) return
 
         viewModelScope.launch {
-            when (val result = userRepository.getMyProfile()) {
+            when (userRepository.getMyProfile()) {
                 is ChallaResult.Success -> Unit
                 is ChallaResult.Failure -> sendEffect(AccountSideEffect.ProfileReadFailed)
             }

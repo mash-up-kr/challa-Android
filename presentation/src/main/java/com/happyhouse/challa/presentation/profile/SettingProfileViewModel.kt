@@ -94,7 +94,7 @@ class SettingProfileViewModel @AssistedInject constructor(
                     } else {
                         updateState { copy(isSubmitting = false, isCompleted = true) }
                         delay(PROFILE_COMPLETED_NAVIGATE_DELAY_MS)
-                        sendEffect(SettingProfileSideEffect.ProfileCreated(profile.nickname.orEmpty()))
+                        sendEffect(SettingProfileSideEffect.ProfileCreated(profile.nickname))
                     }
                 }.onFailure {
                     handleSaveFailure()
