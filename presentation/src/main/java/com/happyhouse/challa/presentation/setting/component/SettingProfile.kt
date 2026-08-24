@@ -2,7 +2,6 @@ package com.happyhouse.challa.presentation.setting.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,19 +32,10 @@ import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileS
 
 @Composable
 fun SettingProfile(
-    profile: ProfileState,
+    profile: ProfileState.Loaded,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val loadedProfile = profile as? ProfileState.Loaded
-    val nickname =
-        when (profile) {
-            is ProfileState.Loaded -> profile.nickname
-            ProfileState.Loading,
-            ProfileState.Error,
-            -> ""
-        }
-
     Row(
         modifier =
             modifier
@@ -54,9 +44,7 @@ fun SettingProfile(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val placeholder = painterResource(R.drawable.img_setting_profile_placeholder)
-        if (loadedProfile == null) {
-            Spacer(modifier = Modifier.size(68.dp))
-        } else if (loadedProfile.profileImageUrl == null) {
+        if (profile.profileImageUrl == null) {
             Image(
                 painter = placeholder,
                 contentDescription = null,
@@ -67,7 +55,7 @@ fun SettingProfile(
                 model =
                     ImageRequest
                         .Builder(LocalContext.current)
-                        .data(loadedProfile.profileImageUrl)
+                        .data(profile.profileImageUrl)
                         .crossfade(true)
                         .build(),
                 contentDescription = null,
@@ -81,7 +69,7 @@ fun SettingProfile(
         }
 
         Text(
-            text = nickname,
+            text = profile.nickname,
             modifier =
                 Modifier
                     .weight(1f)
@@ -90,17 +78,13 @@ fun SettingProfile(
             style = ChallaTheme.typography.bodyMedium.bold,
         )
 
-        if (loadedProfile != null) {
-            ChallaIconButton(
-                icon = ChallaIcons.Edit,
-                onClick = onEditClick,
-                contentDescription = stringResource(R.string.setting_profile_edit_description),
-                variant = ChallaButtonVariant.TRANSPARENT,
-                size = ChallaButtonSize.LARGE,
-            )
-        } else {
-            Spacer(modifier = Modifier.size(54.dp))
-        }
+        ChallaIconButton(
+            icon = ChallaIcons.Edit,
+            onClick = onEditClick,
+            contentDescription = stringResource(R.string.setting_profile_edit_description),
+            variant = ChallaButtonVariant.TRANSPARENT,
+            size = ChallaButtonSize.LARGE,
+        )
     }
 }
 
@@ -130,15 +114,8 @@ private fun SettingProfileWithoutImagePreview() {
     )
 }
 
-@Preview(name = "Error")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun SettingProfileErrorPreview() {
-    SettingProfilePreviewContent(profile = ProfileState.Error)
-}
-
-@Composable
-private fun SettingProfilePreviewContent(profile: ProfileState) {
+private fun SettingProfilePreviewContent(profile: ProfileState.Loaded) {
     SettingProfile(
         profile = profile,
         onEditClick = {},
