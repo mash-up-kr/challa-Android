@@ -13,6 +13,7 @@ import com.happyhouse.challa.domain.result.ChallaResult
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -39,6 +40,12 @@ interface RoomApi {
 
     @GET("api/v1/rooms/shootable")
     suspend fun getShootableRooms(): ChallaResult<BaseResponse<ShootableRoomResponse>>
+
+    /** 인화 완료를 확인했다고 서버에 알린다. 이후 방 목록의 `photoPrintCompletionCheckedAt`에 값이 들어간다. */
+    @PUT("api/v1/rooms/{roomId}/photo-print-completion/check")
+    suspend fun checkPhotoPrintCompletion(
+        @Path("roomId") roomId: Long,
+    ): ChallaResult<BaseResponse<Unit>>
 
     @POST("api/v1/rooms/join")
     suspend fun joinRoom(
