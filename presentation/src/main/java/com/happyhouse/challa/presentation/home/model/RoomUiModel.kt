@@ -22,7 +22,12 @@ sealed interface RoomUiModel {
         val coverImageUrl: String?,
     ) : RoomUiModel
 
-    /** 촬영 완료 — 인화 상태와 필름 미리보기 표기 */
+    /**
+     * 촬영 완료 — 인화 상태와 필름 미리보기 표기
+     *
+     * @param hasUncheckedPrint 인화가 끝났는데 아직 확인하지 않았는지.
+     *   방 상세 응답에는 확인 여부가 없어, 방 목록을 가진 홈이 판단해 갤러리로 넘겨준다.
+     */
     @Immutable
     data class Completed(
         override val id: Long,
@@ -31,6 +36,7 @@ sealed interface RoomUiModel {
         val printState: PrintState,
         val photoImageUrls: ImmutableList<String>,
         val totalPhotoCount: Int,
+        val hasUncheckedPrint: Boolean = false,
     ) : RoomUiModel
 }
 
@@ -56,6 +62,9 @@ fun Room.toUiModel(): RoomUiModel? =
                 printState = status.toPrintState(),
                 photoImageUrls = thumbnailImageUrls.toImmutableList(),
                 totalPhotoCount = totalPhotoCount,
+                hasUncheckedPrint =
+                    status == RoomStatus.PHOTO_PRINT_COMPLETED &&
+                        photoPrintCompletionCheckedAt == null,
             )
 
         RoomStatus.UNKNOWN -> null

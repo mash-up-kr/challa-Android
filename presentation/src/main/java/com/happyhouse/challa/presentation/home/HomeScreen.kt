@@ -100,7 +100,7 @@ private const val FILM_PREVIEW_MAX = 3
 @Composable
 fun HomeRoute(
     onNavigateToSetting: () -> Unit,
-    onNavigateToRoom: (roomId: Long) -> Unit,
+    onNavigateToRoom: (roomId: Long, playsPrintAnimation: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -132,7 +132,13 @@ fun HomeRoute(
         onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
-        onRoomClick = onNavigateToRoom,
+        onRoomClick = { room ->
+            // 인화가 끝났는데 아직 확인하지 않은 방으로 들어갈 때만 갤러리가 연출을 재생한다.
+            onNavigateToRoom(
+                room.id,
+                room is RoomUiModel.Completed && room.hasUncheckedPrint,
+            )
+        },
         modifier = modifier,
     )
 
@@ -141,8 +147,8 @@ fun HomeRoute(
             onDismiss = { showCreateRoomSheet = false },
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
-                // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다.
-                onNavigateToRoom(roomId)
+                // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다. 갓 만든 방은 인화 전이라 연출이 없다.
+                onNavigateToRoom(roomId, false)
             },
         )
     }
@@ -152,7 +158,7 @@ fun HomeRoute(
             onDismiss = { showEnterRoomSheet = false },
             onRoomEntered = { roomId ->
                 showEnterRoomSheet = false
-                onNavigateToRoom(roomId)
+                onNavigateToRoom(roomId, false)
             },
         )
     }
@@ -165,7 +171,7 @@ private fun HomeScreen(
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -243,7 +249,7 @@ private fun HomeScreen(
 private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -278,7 +284,7 @@ private fun HomeRoomsContent(
 @Composable
 private fun HomeShootingSection(
     rooms: ImmutableList<RoomUiModel.Shooting>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -305,7 +311,7 @@ private fun HomeShootingSection(
             rooms.forEach { room ->
                 HomeShootingCard(
                     room = room,
-                    onClick = { onRoomClick(room.id) },
+                    onClick = { onRoomClick(room) },
                 )
             }
         }
@@ -414,7 +420,7 @@ private fun HomeShootingCard(
 @Composable
 private fun HomeCompletedSection(
     rooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -434,7 +440,7 @@ private fun HomeCompletedSection(
             rooms.forEach { room ->
                 HomeCompletedRoom(
                     room = room,
-                    onClick = { onRoomClick(room.id) },
+                    onClick = { onRoomClick(room) },
                 )
             }
         }

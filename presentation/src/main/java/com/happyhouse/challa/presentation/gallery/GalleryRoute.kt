@@ -40,13 +40,14 @@ private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 @Composable
 fun GalleryRoute(
     roomId: Long,
+    playsPrintAnimation: Boolean,
     onBackClick: () -> Unit,
     onPhotoClick: (Long) -> Unit,
     onShootClick: () -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
-                factory.create(roomId)
+                factory.create(roomId, playsPrintAnimation)
             },
         ),
 ) {
