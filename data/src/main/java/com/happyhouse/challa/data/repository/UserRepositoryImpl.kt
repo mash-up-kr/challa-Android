@@ -26,6 +26,12 @@ class UserRepositoryImpl
     ) : UserRepository {
         override val profile: StateFlow<UserProfile?> = userProfileCache.profile
 
+        override suspend fun prefetchMyProfile() {
+            if (profile.value != null) return
+
+            getMyProfile()
+        }
+
         override suspend fun withdraw(): ChallaResult<Unit> =
             try {
                 userApi

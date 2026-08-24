@@ -28,7 +28,7 @@ class HomeViewModel
         ) {
         init {
             observeProfile()
-            fetchProfileIfNeeded()
+            prefetchProfile()
             loadHome()
         }
 
@@ -48,11 +48,9 @@ class HomeViewModel
             }
         }
 
-        private fun fetchProfileIfNeeded() {
-            if (userRepository.profile.value != null) return
-
+        private fun prefetchProfile() {
             viewModelScope.launch {
-                userRepository.getMyProfile()
+                userRepository.prefetchMyProfile()
             }
         }
 
