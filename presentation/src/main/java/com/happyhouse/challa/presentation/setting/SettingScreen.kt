@@ -75,28 +75,12 @@ fun SettingScreen(
         },
     ) { innerPadding ->
         when (val profile = state.profile) {
-            ProfileState.Loading -> {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
-                        color = ChallaTheme.colors.labelNormal,
-                        strokeWidth = 2.dp,
-                    )
-                }
-            }
+            ProfileState.Loading -> SettingLoadingContent(innerPadding = innerPadding)
 
             ProfileState.Error -> {
-                SettingContent(
-                    profile = null,
+                ProfileErrorSettingContent(
                     primaryThemeTitle = primaryThemeTitle,
                     innerPadding = innerPadding,
-                    onProfileEditClick = onProfileEditClick,
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
@@ -106,7 +90,7 @@ fun SettingScreen(
             }
 
             is ProfileState.Loaded -> {
-                SettingContent(
+                ProfileLoadedSettingContent(
                     profile = profile,
                     primaryThemeTitle = primaryThemeTitle,
                     innerPadding = innerPadding,
@@ -123,8 +107,47 @@ fun SettingScreen(
 }
 
 @Composable
-private fun SettingContent(
-    profile: ProfileState.Loaded?,
+private fun SettingLoadingContent(innerPadding: PaddingValues) {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(28.dp),
+            color = ChallaTheme.colors.labelNormal,
+            strokeWidth = 2.dp,
+        )
+    }
+}
+
+@Composable
+private fun ProfileErrorSettingContent(
+    primaryThemeTitle: String?,
+    innerPadding: PaddingValues,
+    onThemeClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onAccountClick: () -> Unit,
+    onSupportClick: () -> Unit,
+    onFeedbackClick: () -> Unit,
+) {
+    SettingContentLayout(innerPadding = innerPadding) {
+        SettingMenuSections(
+            primaryThemeTitle = primaryThemeTitle,
+            onThemeClick = onThemeClick,
+            onNotificationClick = onNotificationClick,
+            onAccountClick = onAccountClick,
+            onSupportClick = onSupportClick,
+            onFeedbackClick = onFeedbackClick,
+        )
+    }
+}
+
+@Composable
+private fun ProfileLoadedSettingContent(
+    profile: ProfileState.Loaded,
     primaryThemeTitle: String?,
     innerPadding: PaddingValues,
     onProfileEditClick: () -> Unit,
@@ -134,6 +157,28 @@ private fun SettingContent(
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
+    SettingContentLayout(innerPadding = innerPadding) {
+        SettingProfile(
+            profile = profile,
+            onEditClick = onProfileEditClick,
+        )
+
+        SettingMenuSections(
+            primaryThemeTitle = primaryThemeTitle,
+            onThemeClick = onThemeClick,
+            onNotificationClick = onNotificationClick,
+            onAccountClick = onAccountClick,
+            onSupportClick = onSupportClick,
+            onFeedbackClick = onFeedbackClick,
+        )
+    }
+}
+
+@Composable
+private fun SettingContentLayout(
+    innerPadding: PaddingValues,
+    content: @Composable () -> Unit,
+) {
     Column(
         modifier =
             Modifier
@@ -142,57 +187,62 @@ private fun SettingContent(
                 .background(ChallaTheme.colors.backgroundSurface)
                 .verticalScroll(rememberScrollState()),
     ) {
-        profile?.let {
-            SettingProfile(
-                profile = it,
-                onEditClick = onProfileEditClick,
+        content()
+    }
+}
+
+@Composable
+private fun SettingMenuSections(
+    primaryThemeTitle: String?,
+    onThemeClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onAccountClick: () -> Unit,
+    onSupportClick: () -> Unit,
+    onFeedbackClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        SettingSection(
+            title = stringResource(R.string.setting_app_section),
+        ) {
+            ChallaListItem(
+                text = stringResource(R.string.setting_theme),
+                leadingIcon = ChallaIcons.Palette,
+                trailingText = primaryThemeTitle,
+                onClick = onThemeClick,
+            )
+            ChallaListItem(
+                text = stringResource(R.string.setting_notification),
+                leadingIcon = ChallaIcons.Bell,
+                onClick = onNotificationClick,
             )
         }
 
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        SettingSection(
+            title = stringResource(R.string.setting_account_section),
         ) {
-            SettingSection(
-                title = stringResource(R.string.setting_app_section),
-            ) {
-                ChallaListItem(
-                    text = stringResource(R.string.setting_theme),
-                    leadingIcon = ChallaIcons.Palette,
-                    trailingText = primaryThemeTitle,
-                    onClick = onThemeClick,
-                )
-                ChallaListItem(
-                    text = stringResource(R.string.setting_notification),
-                    leadingIcon = ChallaIcons.Bell,
-                    onClick = onNotificationClick,
-                )
-            }
+            ChallaListItem(
+                text = stringResource(R.string.setting_account_management),
+                leadingIcon = ChallaIcons.Profile,
+                onClick = onAccountClick,
+            )
+        }
 
-            SettingSection(
-                title = stringResource(R.string.setting_account_section),
-            ) {
-                ChallaListItem(
-                    text = stringResource(R.string.setting_account_management),
-                    leadingIcon = ChallaIcons.Profile,
-                    onClick = onAccountClick,
-                )
-            }
-
-            SettingSection(
-                title = stringResource(R.string.setting_feedback_section),
-            ) {
-                ChallaListItem(
-                    text = stringResource(R.string.setting_support),
-                    leadingIcon = ChallaIcons.Carrot,
-                    onClick = onSupportClick,
-                )
-                ChallaListItem(
-                    text = stringResource(R.string.setting_send_feedback),
-                    leadingIcon = ChallaIcons.Feedback,
-                    onClick = onFeedbackClick,
-                )
-            }
+        SettingSection(
+            title = stringResource(R.string.setting_feedback_section),
+        ) {
+            ChallaListItem(
+                text = stringResource(R.string.setting_support),
+                leadingIcon = ChallaIcons.Carrot,
+                onClick = onSupportClick,
+            )
+            ChallaListItem(
+                text = stringResource(R.string.setting_send_feedback),
+                leadingIcon = ChallaIcons.Feedback,
+                onClick = onFeedbackClick,
+            )
         }
     }
 }
