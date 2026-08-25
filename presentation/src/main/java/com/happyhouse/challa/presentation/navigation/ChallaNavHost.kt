@@ -21,6 +21,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.CameraRoute
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
@@ -35,6 +36,7 @@ import com.happyhouse.challa.presentation.room.realtime.RoomRealtimeViewModel
 import com.happyhouse.challa.presentation.room.realtime.toDisplayMessage
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
+import com.happyhouse.challa.presentation.setting.license.OpenSourceLicenseRoute
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 import kotlinx.coroutines.launch
@@ -86,7 +88,7 @@ fun ChallaNavHost(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier) {
         NavDisplay(
             backStack = navigator.backStack,
             modifier = Modifier.fillMaxSize(),
@@ -131,7 +133,6 @@ fun ChallaNavHost(
                     }
                     entry<ChallaRoute.Login> {
                         LoginRoute(
-                            snackbarHostState = snackbarHostState,
                             onLoginSuccess = { isNewUser ->
                                 // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
                                 navigator.replace(
@@ -202,6 +203,9 @@ fun ChallaNavHost(
                             },
                             onSupportClick = {},
                             onFeedbackClick = {},
+                            onOpenSourceLicenseClick = {
+                                navigator.navigate(ChallaRoute.OpenSourceLicense)
+                            },
                         )
                     }
                     entry<ChallaRoute.ThemeSetting> {
@@ -236,7 +240,18 @@ fun ChallaNavHost(
                             },
                         )
                     }
+                    entry<ChallaRoute.OpenSourceLicense> {
+                        OpenSourceLicenseRoute(
+                            snackbarHostState = snackbarHostState,
+                            onBackClick = { navigator.goBack() },
+                        )
+                    }
                 },
+        )
+
+        ChallaSnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.fillMaxSize(),
         )
 
         RoomMemberJoinedToastHost(

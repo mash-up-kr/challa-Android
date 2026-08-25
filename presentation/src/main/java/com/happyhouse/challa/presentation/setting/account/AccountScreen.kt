@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.setting.account
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +26,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
@@ -41,6 +41,7 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 @Composable
 fun AccountScreen(
     nickname: String,
+    profileImageUrl: String?,
     isProcessing: Boolean,
     onBackClick: () -> Unit,
     onLogoutClick: () -> Unit,
@@ -80,6 +81,7 @@ fun AccountScreen(
             ) {
                 AccountProfile(
                     nickname = nickname,
+                    profileImageUrl = profileImageUrl,
                 )
 
                 LogoutCard(
@@ -100,6 +102,7 @@ fun AccountScreen(
 @Composable
 private fun AccountProfile(
     nickname: String,
+    profileImageUrl: String?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -107,9 +110,8 @@ private fun AccountProfile(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Image(
-            painter = painterResource(R.drawable.img_setting_profile_placeholder),
-            contentDescription = null,
+        ChallaProfileImage(
+            profileImageUrl = profileImageUrl,
             modifier = Modifier.size(68.dp),
         )
 
@@ -192,6 +194,7 @@ private fun WithdrawButton(
 private fun AccountScreenPreview() {
     AccountScreen(
         nickname = "나는야멋쟁이토마토",
+        profileImageUrl = null,
         isProcessing = false,
         onBackClick = {},
         onLogoutClick = {},

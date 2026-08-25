@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +50,6 @@ private val KakaoYellow = Color(0xFFFEE500)
 
 @Composable
 fun LoginRoute(
-    snackbarHostState: SnackbarHostState,
     onLoginSuccess: (isNewUser: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
@@ -74,7 +72,6 @@ fun LoginRoute(
 
     LoginScreen(
         state = state,
-        snackbarHostState = snackbarHostState,
         // 카카오 SDK 호출은 Activity 가 필요하므로 여기서 클로저로 감싸 ViewModel 에 넘긴다.
         onLoginClick = { viewModel.onIntent(LoginIntent.LoginClick { KakaoLoginClient.login(activity) }) },
         modifier = modifier,
@@ -93,12 +90,10 @@ private fun LoginScreen(
     state: LoginState,
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState? = null,
 ) {
     ChallaScaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = ChallaTheme.colors.backgroundSurface,
-        snackbarHostState = snackbarHostState,
         bottomBar = {
             KakaoLoginButton(
                 isLoading = state.isLoading,

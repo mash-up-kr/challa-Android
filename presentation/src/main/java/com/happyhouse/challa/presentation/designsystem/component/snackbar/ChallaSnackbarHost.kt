@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
+private val DefaultMessageBottomOffset = 10.dp
+
 @Composable
 fun ChallaSnackbarHost(
     hostState: SnackbarHostState,
@@ -45,7 +47,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         leadingContent =
                             visuals.icon?.let { icon ->
@@ -72,7 +74,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -91,14 +93,19 @@ fun ChallaSnackbarHost(
                 else ->
                     Snackbar(
                         snackbarData = data,
-                        modifier = Modifier.align(Alignment.BottomCenter),
+                        modifier =
+                            Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = DefaultMessageBottomOffset),
                     )
             }
         }
     }
 }
 
-private fun Modifier.challaMessageTopOffset(topOffset: Dp?): Modifier =
-    topOffset?.let {
-        padding(top = it)
-    } ?: this
+private fun Modifier.challaMessageEdgePadding(topOffset: Dp?): Modifier =
+    if (topOffset != null) {
+        padding(top = topOffset)
+    } else {
+        padding(bottom = DefaultMessageBottomOffset)
+    }

@@ -16,23 +16,55 @@ import javax.inject.Inject
 class AccountViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-) : BaseViewModel<AccountState, AccountIntent, AccountSideEffect>(initialState = AccountState()) {
+) : BaseViewModel<AccountState, AccountIntent, AccountSideEffect>(
+        initialState =
+            userRepository.profile.value?.let { profile ->
+                profile.nickname?.let { nickname ->
+                    AccountState(
+                        nickname = nickname,
+                        profileImageUrl = profile.profileImageUrl,
+                    )
+                }
+            } ?: AccountState(),
+    ) {
     init {
+        observeProfile()
         fetchMyProfile()
+    }
+
+    private fun observeProfile() {
+        viewModelScope.launch {
+            userRepository.profile.collect { profile ->
+                updateState {
+                    when (profile) {
+                        null -> copy(nickname = "", profileImageUrl = null)
+                        else -> {
+                            val nickname = profile.nickname ?: return@updateState this
+                            copy(
+                                nickname = nickname,
+                                profileImageUrl = profile.profileImageUrl,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onIntent(intent: AccountIntent) {
         when (intent) {
-            AccountIntent.ProfileReadRetry -> fetchMyProfile()
+            AccountIntent.ProfileReadRetry -> fetchMyProfile(forceRefresh = true)
             AccountIntent.LogoutClick -> handleLogoutClick()
             AccountIntent.WithdrawalConfirmClick -> handleWithdrawalConfirmClick()
         }
     }
 
-    private fun fetchMyProfile() {
+    private fun fetchMyProfile(forceRefresh: Boolean = false) {
+        if (!forceRefresh && userRepository.profile.value != null) return
+
         viewModelScope.launch {
-            when (val result = userRepository.getMyProfile()) {
-                is ChallaResult.Success -> updateState { copy(nickname = result.data.nickname.orEmpty()) }
+            when (userRepository.getMyProfile()) {
+                is ChallaResult.Success -> Unit
                 is ChallaResult.Failure -> sendEffect(AccountSideEffect.ProfileReadFailed)
             }
         }

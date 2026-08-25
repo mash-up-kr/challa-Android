@@ -52,4 +52,13 @@ sealed interface ChallaRoute : NavKey {
 
     @Serializable
     data object Account : ChallaRoute
+
+    @Serializable
+    data object OpenSourceLicense : ChallaRoute
+
+    @Serializable
+    data class ShareInvite(
+        val roomId: String,
+        val roomName: String,
+    ) : ChallaRoute
 }
