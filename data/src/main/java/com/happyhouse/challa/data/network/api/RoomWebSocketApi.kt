@@ -21,6 +21,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,9 +41,15 @@ import kotlin.math.min
 class RoomWebSocketApi
     @Inject
     constructor(
-        private val okHttpClient: OkHttpClient,
+        okHttpClient: OkHttpClient,
         private val json: Json,
     ) {
+        private val webSocketClient =
+            okHttpClient
+                .newBuilder()
+                .pingInterval(WEB_SOCKET_PING_INTERVAL_SECONDS, TimeUnit.SECONDS)
+                .build()
+
         /**
          * [roomIds]에서 발생하는 참여 이벤트를 수신한다.
          *
@@ -89,7 +96,7 @@ class RoomWebSocketApi
                             webSocket: WebSocket,
                             response: Response,
                         ) {
-                            if (!webSocket.send(stompConnectFrame())) {
+                            if (!webSocket.send(stompConnectFrame(host = request.url.host))) {
                                 close(IOException("STOMP CONNECT frame을 전송하지 못했습니다."))
                             }
                         }
@@ -211,7 +218,7 @@ class RoomWebSocketApi
                         }
                     }
 
-                val webSocket = okHttpClient.newWebSocket(request, listener)
+                val webSocket = webSocketClient.newWebSocket(request, listener)
                 awaitClose {
                     disposed.set(true)
                     webSocket.close(NORMAL_CLOSURE_CODE, NORMAL_CLOSURE_REASON)
@@ -248,6 +255,7 @@ class RoomWebSocketApi
             const val NORMAL_CLOSURE_REASON = "Room subscription disposed"
             const val INITIAL_RETRY_DELAY_MS = 1_000L
             const val MAX_RETRY_DELAY_MS = 10_000L
+            const val WEB_SOCKET_PING_INTERVAL_SECONDS = 30L
             const val WEB_SOCKET_LOG_TAG = "RoomWebSocket"
             const val HTTP_REQUEST_TIMEOUT = 408
             const val HTTP_TOO_MANY_REQUESTS = 429

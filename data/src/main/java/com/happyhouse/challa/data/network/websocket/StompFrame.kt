@@ -37,11 +37,12 @@ private fun String.toStompFrameOrNull(): StompFrame? {
     return StompFrame(command = command, headers = headers, body = body)
 }
 
-/** STOMP 1.2 세션을 시작하는 `CONNECT` frame을 만든다. */
-internal fun stompConnectFrame(): String =
+/** [host]를 virtual host로 지정해 STOMP 1.2 세션을 시작하는 `CONNECT` frame을 만든다. */
+internal fun stompConnectFrame(host: String): String =
     buildString {
         appendLine("CONNECT")
         appendLine("accept-version:1.2")
+        appendLine("host:$host")
         appendLine("heart-beat:0,0")
         appendLine()
         append(STOMP_FRAME_TERMINATOR)
