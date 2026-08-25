@@ -41,7 +41,6 @@ private const val LOAD_MORE_PREFETCH_PAGE_COUNT = 3
 fun PhotoDetailScreen(
     state: PhotoDetailState,
     snackbarHostState: SnackbarHostState,
-    onRetryClick: () -> Unit,
     onLoadMore: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
@@ -109,7 +108,6 @@ fun PhotoDetailScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 pagerState = pagerState,
-                onRetryClick = onRetryClick,
             )
 
             // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
@@ -132,61 +130,6 @@ private fun PhotoDetailScreenPreview() {
                 photoInfo = PhotoInfo.Loaded(previewPhotoDetailPhotos(count = 24)),
             ),
         snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
-        onLoadMore = {},
-        onSaveClick = {},
-        onEmojiClick = { _, _ -> },
-        onMessageChange = {},
-        onSendClick = {},
-        onBackClick = {},
-    )
-}
-
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 844,
-    name = "PhotoDetailScreen - Loading",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoDetailScreenLoadingPreview() {
-    PhotoDetailScreen(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            PhotoDetailState(
-                roomName = "해피하우스 강릉 여행",
-                photoInfo = PhotoInfo.Loading,
-            ),
-        snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
-        onLoadMore = {},
-        onSaveClick = {},
-        onEmojiClick = { _, _ -> },
-        onMessageChange = {},
-        onSendClick = {},
-        onBackClick = {},
-    )
-}
-
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 844,
-    name = "PhotoDetailScreen - Error",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoDetailScreenErrorPreview() {
-    PhotoDetailScreen(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            PhotoDetailState(
-                roomName = "해피하우스 강릉 여행",
-                photoInfo = PhotoInfo.Error,
-            ),
-        snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
         onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
@@ -213,7 +156,6 @@ private fun PhotoDetailScreenEmptyPreview() {
                 photoInfo = PhotoInfo.Empty,
             ),
         snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
         onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },

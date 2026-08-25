@@ -20,6 +20,8 @@ import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import com.happyhouse.challa.presentation.gallery.util.toPhotoInfo
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
+import com.happyhouse.challa.presentation.navigation.toPhotoArgs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -285,7 +287,18 @@ class GalleryViewModel @AssistedInject constructor(
 
     private fun handlePhotoClick(photoId: Long) {
         viewModelScope.launch {
-            sendEffect(GallerySideEffect.NavigateToPhotoDetail(photoId))
+            sendEffect(
+                GallerySideEffect.NavigateToPhotoDetail(
+                    photoId = photoId,
+                    args =
+                        PhotoDetailArgs(
+                            roomTitle = currentState.roomName,
+                            photos = loadedPhotos.toPhotoArgs(),
+                            nextPhotoPage = nextPhotoPage,
+                            hasNextPhotoPage = hasNextPhotoPage,
+                        ),
+                ),
+            )
         }
     }
 
