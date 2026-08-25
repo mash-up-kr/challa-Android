@@ -184,7 +184,7 @@ private fun initialPhotoDetailState(
     return PhotoDetailState(
         roomId = roomId,
         initialPhotoId = initialPhotoId,
-        roomName = args.roomTitle,
+        roomName = args.roomName,
         photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
     )
 }

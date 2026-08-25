@@ -59,26 +59,3 @@ sealed interface ChallaRoute : NavKey {
         val roomName: String,
     ) : ChallaRoute
 }
-
-/**
- * 갤러리가 이미 받아둔 사진과 페이징 위치.
- *
- * 상세가 같은 목록을 다시 조회하지 않도록 그대로 넘기고, 끝까지 넘겨 갤러리가 받아둔 범위를 벗어나면
- * [nextPhotoPage] 부터 이어 받는다.
- */
-@Serializable
-data class PhotoDetailArgs(
-    val roomTitle: String,
-    val photos: List<PhotoArg>,
-    val nextPhotoPage: Int,
-    val hasNextPhotoPage: Boolean,
-) {
-    @Serializable
-    data class PhotoArg(
-        val id: Long,
-        val imageUrl: String,
-        val photographerNickname: String,
-        val photographerProfileImageUrl: String?,
-        val createdAtEpochMillis: Long,
-    )
-}

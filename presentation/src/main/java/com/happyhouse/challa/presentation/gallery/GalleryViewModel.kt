@@ -294,7 +294,7 @@ class GalleryViewModel @AssistedInject constructor(
                     photoId = photoId,
                     args =
                         PhotoDetailArgs(
-                            roomTitle = currentState.roomName,
+                            roomName = currentState.roomName,
                             photos = loadedPhotos.toPhotoArgs(),
                             nextPhotoPage = nextPhotoPage,
                             hasNextPhotoPage = hasNextPhotoPage,
