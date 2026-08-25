@@ -104,7 +104,6 @@ fun ChallaNavHost(
                     }
                     entry<ChallaRoute.Login> {
                         LoginRoute(
-                            snackbarHostState = snackbarHostState,
                             onLoginSuccess = { isNewUser ->
                                 // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
                                 navigator.replace(
