@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,11 +112,17 @@ fun HomeRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
+    val currentOnRoomIdsLoaded by rememberUpdatedState(onRoomIdsLoaded)
+
+    LaunchedEffect(state.hasLoadedRooms, state.rooms) {
+        if (state.hasLoadedRooms) {
+            currentOnRoomIdsLoaded(state.rooms.mapTo(mutableSetOf()) { it.id })
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is HomeSideEffect.RoomsLoaded -> onRoomIdsLoaded(effect.roomIds)
                 HomeSideEffect.RoomsLoadFailed ->
                     snackbarHostState.showSnackbar(
                         ChallaToastVisuals(

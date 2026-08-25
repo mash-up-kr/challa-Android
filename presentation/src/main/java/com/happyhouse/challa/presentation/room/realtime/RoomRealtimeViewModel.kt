@@ -33,6 +33,7 @@ class RoomRealtimeViewModel
         val events: SharedFlow<RoomMemberJoinedEvent> = _events.asSharedFlow()
 
         private var observedRoomIds: Set<Long> = emptySet()
+        private var roomListSnapshot: Set<Long>? = null
         private var observeJob: Job? = null
         private var isForeground = false
 
@@ -54,19 +55,24 @@ class RoomRealtimeViewModel
 
         /** [roomId]를 현재 구독 대상에 추가하고 연결을 갱신한다. */
         fun addObservedRoom(roomId: Long) {
-            replaceObservedRooms(observedRoomIds + roomId)
+            val updatedRoomIds = observedRoomIds + roomId
+            if (observedRoomIds == updatedRoomIds && (!isForeground || observeJob?.isActive == true)) return
+
+            observedRoomIds = updatedRoomIds
+            restartObservation()
         }
 
         /**
          * 현재 구독 대상을 [roomIds] 전체로 교체하고 연결을 갱신한다.
          *
-         * 기존 대상에 방 하나만 추가하려면 [addObservedRoom]을 사용한다. 같은 목록을 이미 활성 구독 중이면
-         * 불필요한 재연결을 하지 않으며, foreground가 아닐 때는 목록만 보존한다.
+         * 기존 대상에 방 하나만 추가하려면 [addObservedRoom]을 사용한다. Home 화면 재구성으로 같은 목록이
+         * 다시 전달되면 이후 추가된 방을 제거하지 않도록 무시하며, 새 목록일 때만 전체 대상을 교체한다.
          */
         fun replaceObservedRooms(roomIds: Set<Long>) {
             val distinctRoomIds = roomIds.toSet()
-            if (observedRoomIds == distinctRoomIds && (!isForeground || observeJob?.isActive == true)) return
+            if (roomListSnapshot == distinctRoomIds) return
 
+            roomListSnapshot = distinctRoomIds
             observedRoomIds = distinctRoomIds
             restartObservation()
         }
@@ -90,6 +96,7 @@ class RoomRealtimeViewModel
         /** 사용자 세션 종료 시 구독 대상과 현재 연결을 모두 제거한다. */
         fun stopObserving() {
             observedRoomIds = emptySet()
+            roomListSnapshot = null
             cancelObservation()
         }
     }

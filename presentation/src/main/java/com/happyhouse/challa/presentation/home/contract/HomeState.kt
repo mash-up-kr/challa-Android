@@ -10,6 +10,7 @@ import kotlinx.collections.immutable.toImmutableList
 @Immutable
 data class HomeState(
     val isLoading: Boolean = false,
+    val hasLoadedRooms: Boolean = false,
     val nickname: String = "",
     val profileImageUrl: String? = null,
     val rooms: ImmutableList<RoomUiModel> = persistentListOf(),

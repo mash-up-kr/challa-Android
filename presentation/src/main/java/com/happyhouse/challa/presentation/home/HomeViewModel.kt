@@ -64,14 +64,10 @@ class HomeViewModel
                         updateState {
                             copy(
                                 isLoading = false,
+                                hasLoadedRooms = true,
                                 rooms = roomUiModels,
                             )
                         }
-                        sendEffect(
-                            HomeSideEffect.RoomsLoaded(
-                                roomIds = roomUiModels.mapTo(mutableSetOf()) { it.id },
-                            ),
-                        )
                     }.onFailure {
                         updateState { copy(isLoading = false) }
                         sendEffect(HomeSideEffect.RoomsLoadFailed)
