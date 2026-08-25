@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room.realtime
+package com.happyhouse.challa.presentation.room
 
 import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 

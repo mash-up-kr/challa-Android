@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.room.realtime
+package com.happyhouse.challa.presentation.room
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
