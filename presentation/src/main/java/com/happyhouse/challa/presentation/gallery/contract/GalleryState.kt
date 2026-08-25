@@ -54,9 +54,8 @@ data class GalleryState(
         /**
          * 인화 완료 - 사진이 공개됐다.
          *
-         * @param playsPrintAnimation 필름을 당겨 뽑는 인화 연출을 재생해야 하는지.
-         *   연출을 끝까지 본 뒤에는 false가 되어 그리드만 남는다.
-         *   연출의 진행 단계(당김 대기 / 내려오는 중 / 사진 등장)는 화면 안에서만 쓰이므로 여기 두지 않는다.
+         * @param playsPrintAnimation 인화 연출을 재생해야 하는지. 끝까지 보면 false가 되어 그리드만 남는다.
+         *   진행 단계(당김 대기 / 내려오는 중 / 사진 등장)는 화면 안에서만 쓰이므로 여기 두지 않는다.
          */
         data class Printed(
             val photos: ImmutableList<GalleryPhotoUiModel>,

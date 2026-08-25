@@ -23,10 +23,6 @@ sealed interface GalleryIntent : UiIntent {
 
     data object ShootClick : GalleryIntent
 
-    /**
-     * 인화 연출을 끝까지 봤을 때. 사진이 마지막까지 다 나타난 시점이다.
-     *
-     * 연출 진행은 화면이 들고 있고, 서버에 확인을 기록해야 하는 이 시점만 ViewModel로 올린다.
-     */
+    /** 인화 연출을 끝까지 봤을 때. 연출 진행은 화면이 들고 있고 이 시점만 올린다. */
     data object PrintAnimationComplete : GalleryIntent
 }

@@ -109,7 +109,7 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    // 첫 진입은 ViewModel이 init에서 이미 받아둔다. 다른 화면에 다녀온 뒤부터 갱신한다.
+    // 첫 진입은 ViewModel이 init에서 이미 받아둔다.
     var hasResumed by rememberSaveable { mutableStateOf(false) }
     var showCreateRoomSheet by remember { mutableStateOf(false) }
     var showEnterRoomSheet by remember { mutableStateOf(false) }
@@ -144,7 +144,6 @@ fun HomeRoute(
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
         onRoomClick = { room ->
-            // 인화가 끝났는데 아직 확인하지 않은 방으로 들어갈 때만 갤러리가 연출을 재생한다.
             onNavigateToRoom(
                 room.id,
                 room is RoomUiModel.Completed && room.hasUncheckedPrint,
@@ -158,7 +157,7 @@ fun HomeRoute(
             onDismiss = { showCreateRoomSheet = false },
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
-                // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다. 갓 만든 방은 인화 전이라 연출이 없다.
+                // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다.
                 onNavigateToRoom(roomId, false)
             },
         )

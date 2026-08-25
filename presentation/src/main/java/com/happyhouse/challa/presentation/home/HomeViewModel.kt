@@ -33,14 +33,11 @@ class HomeViewModel
             }
         }
 
-        /** 이미 방 목록이 떠 있으므로 로딩 화면을 거치지 않는다. 거치면 돌아올 때마다 화면이 깜빡인다. */
         private fun handleRoomsRefresh() {
             loadHome(showLoading = false)
         }
 
-        /**
-         * @param showLoading 최초 진입에서만 true.
-         */
+        /** @param showLoading 최초 진입에서만 true. 재조회에서 로딩을 거치면 화면이 깜빡인다. */
         private fun loadHome(showLoading: Boolean = true) {
             viewModelScope.launch {
                 if (showLoading) {

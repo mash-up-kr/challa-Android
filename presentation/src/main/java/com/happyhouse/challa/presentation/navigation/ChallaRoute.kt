@@ -17,10 +17,7 @@ sealed interface ChallaRoute : NavKey {
         val photoId: Long,
     ) : ChallaRoute
 
-    /**
-     * @param playsPrintAnimation 인화 완료를 아직 확인하지 않은 방으로 들어갈 때 true.
-     *   방 상세 응답에는 확인 여부가 없어 방 목록을 가진 홈이 판단해 넘긴다.
-     */
+    /** @param playsPrintAnimation 방 상세 응답에는 확인 여부가 없어 방 목록을 가진 홈이 판단해 넘긴다. */
     @Serializable
     data class Gallery(
         val roomId: Long,
