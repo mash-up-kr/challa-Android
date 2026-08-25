@@ -51,9 +51,12 @@ fun PhotoDetailPager(
             state = pagerState,
             contentPadding = PaddingValues(horizontal = PhotoHorizontalPadding),
             pageSpacing = PhotoPageSpacing,
-            key = { page -> photos[page].id },
+            // 페이지 수는 화면이, key는 이 목록이 들고 있어 이어 받는 순간 한 프레임 어긋날 수 있다.
+            // 사진 id는 서버가 내려주는 양수라 없는 자리는 음수로 구분한다.
+            key = { page -> photos.getOrNull(page)?.id ?: -(page.toLong() + 1) },
         ) { page ->
-            val photo = photos[page]
+            // 위와 같은 이유로 비어 있는 한 프레임이 생긴다. 다음 프레임에 목록이 맞춰지며 그려진다.
+            val photo = photos.getOrNull(page) ?: return@HorizontalPager
 
             PhotoDetailPage(
                 modifier = Modifier.fillMaxSize(),
