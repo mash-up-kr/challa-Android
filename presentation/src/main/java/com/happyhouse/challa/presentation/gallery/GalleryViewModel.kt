@@ -148,7 +148,10 @@ class GalleryViewModel @AssistedInject constructor(
 
     /** 스크롤에서 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
     private fun handlePhotosLoadMore() {
-        if (!hasNextPhotoPage) return
+        if (!hasNextPhotoPage) {
+            hasPendingLoadMore = false
+            return
+        }
 
         // 그리드가 한 화면에 다 들어가면 스크롤이 없어, 여기서 버린 요청은 다시 올라오지 않는다.
         if (appendJob?.isActive == true || loadJob?.isActive == true) {
