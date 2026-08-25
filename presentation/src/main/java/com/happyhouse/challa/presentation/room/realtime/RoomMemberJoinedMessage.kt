@@ -2,18 +2,9 @@ package com.happyhouse.challa.presentation.room.realtime
 
 import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 
-/** 닉네임·주사격 조사 영역과 방 제목 영역을 나눈 토스트 표시 모델. */
-internal data class RoomMemberJoinedMessage(
-    val leadingText: String,
-    val roomTitle: String,
-)
-
 /** 닉네임 길이와 한글 받침 여부를 반영해 방 참여 토스트 문구를 만든다. */
-internal fun RoomMemberJoinedEvent.toDisplayMessage(): RoomMemberJoinedMessage =
-    RoomMemberJoinedMessage(
-        leadingText = "${nickname.toDisplayNickname()}${nickname.subjectParticle()} ",
-        roomTitle = roomTitle,
-    )
+internal fun RoomMemberJoinedEvent.toDisplayMessage(suffix: String): String =
+    "${nickname.toDisplayNickname()}${nickname.subjectParticle()} $roomTitle$suffix"
 
 private fun String.toDisplayNickname(): String {
     val codePointCount = codePointCount(0, length)

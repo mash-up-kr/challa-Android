@@ -76,11 +76,10 @@ fun ChallaNavHost(
 
     LaunchedEffect(roomRealtimeViewModel) {
         roomRealtimeViewModel.events.collect { event ->
-            val message = event.toDisplayMessage()
             launch {
                 roomMemberJoinedHostState.showSnackbar(
                     RoomMemberJoinedToastVisuals(
-                        message = message.leadingText + message.roomTitle + roomMemberJoinedSuffix,
+                        message = event.toDisplayMessage(suffix = roomMemberJoinedSuffix),
                         userProfileImageUrl = event.userProfileImageUrl,
                     ),
                 )
