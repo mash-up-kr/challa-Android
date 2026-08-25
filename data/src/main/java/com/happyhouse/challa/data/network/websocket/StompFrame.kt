@@ -43,7 +43,7 @@ internal fun stompConnectFrame(host: String): String =
         appendLine("CONNECT")
         appendLine("accept-version:1.2")
         appendLine("host:$host")
-        appendLine("heart-beat:0,0")
+        appendLine("heart-beat:10000,10000")
         appendLine()
         append(STOMP_FRAME_TERMINATOR)
     }
