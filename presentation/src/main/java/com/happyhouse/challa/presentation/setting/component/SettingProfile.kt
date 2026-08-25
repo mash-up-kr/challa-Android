@@ -28,11 +28,11 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIc
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.setting.contract.SettingState
+import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
 
 @Composable
 fun SettingProfile(
-    state: SettingState,
+    profile: ProfileState.Loaded,
     onEditClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -44,7 +44,7 @@ fun SettingProfile(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val placeholder = painterResource(R.drawable.img_setting_profile_placeholder)
-        if (state.profileImageUrl == null) {
+        if (profile.profileImageUrl == null) {
             Image(
                 painter = placeholder,
                 contentDescription = null,
@@ -55,12 +55,11 @@ fun SettingProfile(
                 model =
                     ImageRequest
                         .Builder(LocalContext.current)
-                        .data(state.profileImageUrl)
+                        .data(profile.profileImageUrl)
                         .crossfade(true)
                         .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                placeholder = placeholder,
                 error = placeholder,
                 modifier =
                     Modifier
@@ -70,7 +69,7 @@ fun SettingProfile(
         }
 
         Text(
-            text = state.nickname,
+            text = profile.nickname,
             modifier =
                 Modifier
                     .weight(1f)
@@ -83,24 +82,42 @@ fun SettingProfile(
             icon = ChallaIcons.Edit,
             onClick = onEditClick,
             contentDescription = stringResource(R.string.setting_profile_edit_description),
-            enabled = state.isProfileLoaded,
             variant = ChallaButtonVariant.TRANSPARENT,
             size = ChallaButtonSize.LARGE,
         )
     }
 }
 
-@Preview
+@Preview(name = "Loaded")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun SettingProfilePreview() {
-    SettingProfile(
-        state =
-            SettingState(
+    SettingProfilePreviewContent(
+        profile =
+            ProfileState.Loaded(
                 nickname = "나는야멋쟁이토마토",
                 profileImageUrl = "https://example.com/profile.jpg",
-                isProfileLoaded = true,
             ),
+    )
+}
+
+@Preview(name = "No profile image")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun SettingProfileWithoutImagePreview() {
+    SettingProfilePreviewContent(
+        profile =
+            ProfileState.Loaded(
+                nickname = "나는야멋쟁이토마토",
+                profileImageUrl = null,
+            ),
+    )
+}
+
+@Composable
+private fun SettingProfilePreviewContent(profile: ProfileState.Loaded) {
+    SettingProfile(
+        profile = profile,
         onEditClick = {},
     )
 }
