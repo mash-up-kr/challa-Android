@@ -34,7 +34,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted private val args: PhotoDetailArgs,
     private val photoRepository: PhotoRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
-        initialState = initialPhotoDetailState(roomId, initialPhotoId, args),
+        initialState = initialPhotoDetailState(initialPhotoId, args),
     ) {
     private var appendJob: Job? = null
 
@@ -175,14 +175,12 @@ class PhotoDetailViewModel @AssistedInject constructor(
 }
 
 private fun initialPhotoDetailState(
-    roomId: Long,
     initialPhotoId: Long,
     args: PhotoDetailArgs,
 ): PhotoDetailState {
     val photos = args.photos.toPhotos().toPhotoDetailUiModels()
 
     return PhotoDetailState(
-        roomId = roomId,
         initialPhotoId = initialPhotoId,
         roomName = args.roomName,
         photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),

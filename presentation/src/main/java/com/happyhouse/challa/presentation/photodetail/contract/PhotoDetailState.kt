@@ -11,7 +11,6 @@ import kotlinx.parcelize.Parcelize
 
 @Immutable
 data class PhotoDetailState(
-    val roomId: Long = 0L,
     val initialPhotoId: Long = 0L,
     val roomName: String = "",
     val photoInfo: PhotoInfo = PhotoInfo.Empty,
