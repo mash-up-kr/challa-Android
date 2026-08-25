@@ -27,11 +27,25 @@ class HomeViewModel
             loadHome()
         }
 
-        override fun onIntent(intent: HomeIntent) = Unit
+        override fun onIntent(intent: HomeIntent) {
+            when (intent) {
+                HomeIntent.RoomsRefresh -> handleRoomsRefresh()
+            }
+        }
 
-        private fun loadHome() {
+        /** 이미 방 목록이 떠 있으므로 로딩 화면을 거치지 않는다. 거치면 돌아올 때마다 화면이 깜빡인다. */
+        private fun handleRoomsRefresh() {
+            loadHome(showLoading = false)
+        }
+
+        /**
+         * @param showLoading 최초 진입에서만 true.
+         */
+        private fun loadHome(showLoading: Boolean = true) {
             viewModelScope.launch {
-                updateState { copy(isLoading = true) }
+                if (showLoading) {
+                    updateState { copy(isLoading = true) }
+                }
                 // TODO JH: API 연동 시 실제 유저 정보로 대체
                 updateState {
                     copy(

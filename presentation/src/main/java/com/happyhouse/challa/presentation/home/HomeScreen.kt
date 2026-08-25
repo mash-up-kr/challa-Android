@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -72,6 +75,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeIntent
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
@@ -105,11 +109,18 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // 첫 진입은 ViewModel이 init에서 이미 받아둔다. 다른 화면에 다녀온 뒤부터 갱신한다.
+    var hasResumed by rememberSaveable { mutableStateOf(false) }
     var showCreateRoomSheet by remember { mutableStateOf(false) }
     var showEnterRoomSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (hasResumed) viewModel.onIntent(HomeIntent.RoomsRefresh)
+        hasResumed = true
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
