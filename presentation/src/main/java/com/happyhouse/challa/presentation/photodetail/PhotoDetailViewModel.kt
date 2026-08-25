@@ -38,7 +38,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
     ) {
     private var appendJob: Job? = null
 
-    /** 갤러리에서 넘겨받은 사진에서 시작해, 끝까지 넘기면 그 뒤를 이어 받는다. */
     private val loadedPhotos = args.photos.toPhotos().toMutableList()
     private val loadedPhotoIds = loadedPhotos.mapTo(mutableSetOf()) { photo -> photo.id }
     private var nextPhotoPage = args.nextPhotoPage
@@ -57,7 +56,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /** 갤러리가 받아둔 범위를 넘겨 그 뒤가 필요할 때. 받아둔 사진 뒤에만 덧붙인다. */
     private fun handlePhotosLoadMore() {
         if (!hasNextPhotoPage) return
         if (appendJob?.isActive == true) return

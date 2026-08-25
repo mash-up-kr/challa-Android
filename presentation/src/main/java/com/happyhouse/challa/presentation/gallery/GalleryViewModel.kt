@@ -56,7 +56,6 @@ class GalleryViewModel @AssistedInject constructor(
     private var nextPhotoPage = FIRST_PHOTO_PAGE
     private var hasNextPhotoPage = false
 
-    /** 진행 중인 조회에 막혀 미뤄둔 다음 페이지 요청 */
     private var hasPendingLoadMore = false
 
     /** 이어 받은 사진으로 본문을 다시 만들 때 쓴다. */

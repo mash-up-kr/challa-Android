@@ -4,7 +4,6 @@ import com.happyhouse.challa.presentation.base.UiSideEffect
 import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 
 sealed interface GallerySideEffect : UiSideEffect {
-    /** 받아둔 사진을 함께 넘겨, 상세가 같은 목록을 다시 조회하지 않게 한다. */
     data class NavigateToPhotoDetail(
         val photoId: Long,
         val args: PhotoDetailArgs,
