@@ -199,7 +199,13 @@ private fun GalleryContentWaitingPreview() {
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentPrintedPreview() {
-    GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
+    GalleryContentPreviewTemplate(
+        photoInfo =
+            PhotoInfo.Printed(
+                photos = previewGalleryPhotos(),
+                playsPrintAnimation = false,
+            ),
+    )
 }
 
 @ComposePreview(showBackground = true, name = "Gallery - Loading")

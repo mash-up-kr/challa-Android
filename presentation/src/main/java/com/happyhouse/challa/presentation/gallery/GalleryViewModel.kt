@@ -71,11 +71,8 @@ class GalleryViewModel @AssistedInject constructor(
     /** 인화 상태 재조회로 방 정보를 다시 받아도 초대 메뉴가 또 열리지 않게 한다. */
     private var hasHandledFirstVisit = false
 
-    /** 인화 연출을 재생하는 중인지. 다음 페이지를 이어 받아 본문을 다시 만들어도 연출이 끊기지 않게 한다. */
-    private var isPrintAnimationPlaying = false
-
-    /** 연출을 이미 끝까지 봤는지. 한 번 본 뒤에는 이 화면에 머무는 동안 다시 재생하지 않는다. */
-    private var hasPlayedPrintAnimation = false
+    /** 인화 연출을 어디까지 진행했는지. 재생 중과 재생 완료가 동시에 성립할 수 없어 한 값으로 묶는다. */
+    private var printAnimationPhase = PrintAnimationPhase.NOT_PLAYED
 
     init {
         onIntent(GalleryIntent.PhotosLoad)
@@ -186,7 +183,7 @@ class GalleryViewModel @AssistedInject constructor(
                                         remainingSeconds = remainingSecondsUntilPrintComplete(),
                                         hasNextPhotoPage = hasNextPhotoPage,
                                         // 재생 중이면 이어 받은 사진을 붙여도 연출을 그대로 둔다.
-                                        playsPrintAnimation = isPrintAnimationPlaying,
+                                        playsPrintAnimation = printAnimationPhase == PrintAnimationPhase.PLAYING,
                                     ),
                             )
                         }
@@ -311,13 +308,17 @@ class GalleryViewModel @AssistedInject constructor(
         previousPhotoInfo: PhotoInfo,
     ): Boolean {
         if (room.status != RoomStatus.PHOTO_PRINT_COMPLETED) return false
-        if (hasPlayedPrintAnimation) return false
-        if (isPrintAnimationPlaying) return true
+
+        when (printAnimationPhase) {
+            PrintAnimationPhase.PLAYED -> return false
+            PrintAnimationPhase.PLAYING -> return true
+            PrintAnimationPhase.NOT_PLAYED -> Unit
+        }
 
         val completedWhileWatching = previousPhotoInfo is PhotoInfo.Film
         if (!playsPrintAnimation && !completedWhileWatching) return false
 
-        isPrintAnimationPlaying = true
+        printAnimationPhase = PrintAnimationPhase.PLAYING
         return true
     }
 
@@ -328,23 +329,19 @@ class GalleryViewModel @AssistedInject constructor(
      * 사용자에게 알리지 않고 로그만 남긴다.
      */
     private fun handlePrintAnimationComplete() {
-        if (!isPrintAnimationPlaying) {
+        if (printAnimationPhase != PrintAnimationPhase.PLAYING) {
             Timber.w("재생 중인 인화 연출이 없는데 완료 신호가 올라와 무시합니다. roomId=$roomId")
             return
         }
 
-        isPrintAnimationPlaying = false
-        hasPlayedPrintAnimation = true
-
-        updateState {
-            val printed =
-                photoInfo as? PhotoInfo.Printed
-                    ?: run {
-                        Timber.w("인화 완료 상태가 아니라 연출 종료를 반영하지 못했습니다: $photoInfo")
-                        return@updateState this
-                    }
-            copy(photoInfo = printed.copy(playsPrintAnimation = false))
+        val printed = currentState.photoInfo as? PhotoInfo.Printed
+        if (printed == null) {
+            Timber.w("인화 완료 상태가 아니라 연출 종료를 반영하지 못했습니다: ${currentState.photoInfo}")
+            return
         }
+
+        printAnimationPhase = PrintAnimationPhase.PLAYED
+        updateState { copy(photoInfo = printed.copy(playsPrintAnimation = false)) }
 
         viewModelScope.launch {
             roomRepository
@@ -478,6 +475,18 @@ class GalleryViewModel @AssistedInject constructor(
 
         private const val MAX_PRINT_STATUS_RECHECK_COUNT = 5
     }
+}
+
+/** 인화 연출의 진행 이력. 방마다 한 번만 재생하기 위해 ViewModel이 들고 있는다. */
+private enum class PrintAnimationPhase {
+    /** 아직 재생하지 않았다. 조건이 맞으면 재생을 시작한다. */
+    NOT_PLAYED,
+
+    /** 재생 중이다. 사진을 이어 받아 본문을 다시 만들어도 연출을 그대로 둔다. */
+    PLAYING,
+
+    /** 끝까지 재생했다. 이 화면에 머무는 동안 다시 재생하지 않는다. */
+    PLAYED,
 }
 
 private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiModel> =

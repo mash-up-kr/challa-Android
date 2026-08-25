@@ -17,5 +17,5 @@ data class Room(
     val remainedPhotoCount: Int,
     val thumbnailImageUrls: List<String>,
     val photoPrintCompletedAt: String? = null,
-    val photoPrintCompletionCheckedAt: Instant? = null,
+    val photoPrintCompletionCheckedAt: Instant?,
 )

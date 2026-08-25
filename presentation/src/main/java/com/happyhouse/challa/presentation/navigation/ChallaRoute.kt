@@ -24,7 +24,7 @@ sealed interface ChallaRoute : NavKey {
     @Serializable
     data class Gallery(
         val roomId: Long,
-        val playsPrintAnimation: Boolean = false,
+        val playsPrintAnimation: Boolean,
     ) : ChallaRoute
 
     @Serializable

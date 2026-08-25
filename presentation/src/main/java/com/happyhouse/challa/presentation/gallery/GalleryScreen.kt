@@ -210,7 +210,13 @@ private fun GalleryScreenWaitingPreview() {
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenPrintedPreview() {
-    GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
+    GalleryScreenPreviewTemplate(
+        photoInfo =
+            PhotoInfo.Printed(
+                photos = previewGalleryPhotos(),
+                playsPrintAnimation = false,
+            ),
+    )
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Loading")

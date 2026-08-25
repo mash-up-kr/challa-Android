@@ -1003,6 +1003,7 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             printState = PrintState.WAITING,
             photoImageUrls = persistentListOf("", "", "", ""),
             totalPhotoCount = 24,
+            hasUncheckedPrint = false,
         ),
         RoomUiModel.Completed(
             id = 4L,
@@ -1011,5 +1012,6 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             printState = PrintState.COMPLETED,
             photoImageUrls = persistentListOf("", "", ""),
             totalPhotoCount = 3,
+            hasUncheckedPrint = true,
         ),
     )

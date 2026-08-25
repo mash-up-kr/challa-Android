@@ -60,7 +60,7 @@ data class GalleryState(
          */
         data class Printed(
             val photos: ImmutableList<GalleryPhotoUiModel>,
-            val playsPrintAnimation: Boolean = false,
+            val playsPrintAnimation: Boolean,
         ) : PhotoInfo
     }
 }
