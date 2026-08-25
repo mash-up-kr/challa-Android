@@ -21,6 +21,16 @@ interface RoomRepository {
     ): ChallaResult<CreatedRoom>
 
     /**
+     * 방 이름을 바꾼다.
+     *
+     * @param title 새 방 이름.
+     */
+    suspend fun updateRoomTitle(
+        roomId: Long,
+        title: String,
+    ): ChallaResult<Unit>
+
+    /**
      * 입장 코드로 방에 참여한다. 성공 시 참여한 방의 식별자를 반환한다.
      *
      * @param code 방 입장 코드.
