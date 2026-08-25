@@ -27,6 +27,9 @@ import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 /** 캐럿을 감싸는 터치 영역. 실제 클릭은 행 전체가 받으므로 크기만 맞춘다. */
 private val CaretBoxSize = 32.dp
 
+/** 선행 라벨과 후행 텍스트가 모두 길 때 둘이 붙지 않도록 두는 최소 간격. */
+private val TrailingMinGap = 10.dp
+
 /**
  * 방 설정 카드 안의 리스트 한 줄.
  *
@@ -51,8 +54,8 @@ fun RoomSettingListItem(
                 .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // 아이콘과 라벨은 가중치 없이 먼저 너비를 확보한다.
         Row(
-            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -65,7 +68,6 @@ fun RoomSettingListItem(
 
             Text(
                 text = text,
-                modifier = Modifier.weight(1f, fill = false),
                 color = ChallaTheme.colors.labelSubtle,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -73,13 +75,19 @@ fun RoomSettingListItem(
             )
         }
 
+        // 남은 너비만 차지하므로 후행 텍스트가 길면 여기서 줄임표가 생긴다.
         Row(
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(start = TrailingMinGap),
+            horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             trailingText?.let { trailing ->
                 Text(
                     text = trailing,
+                    modifier = Modifier.weight(1f, fill = false),
                     color = ChallaTheme.colors.labelNormal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -111,6 +119,12 @@ private fun RoomSettingListItemPreview() {
             text = "방 이름",
             leadingIcon = ChallaIcons.Edit,
             trailingText = "친구들과 강릉 여행",
+            onClick = {},
+        )
+        RoomSettingListItem(
+            text = "방 이름",
+            leadingIcon = ChallaIcons.Edit,
+            trailingText = "친구들과 강릉 여행 그리고 속초까지 다녀오는 2박 3일",
             onClick = {},
         )
         RoomSettingListItem(
