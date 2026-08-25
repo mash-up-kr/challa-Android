@@ -6,9 +6,9 @@ import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.domain.repository.RoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,10 +27,10 @@ class RoomRealtimeViewModel
     constructor(
         private val roomRepository: RoomRepository,
     ) : ViewModel() {
-        private val _events = Channel<RoomMemberJoinedEvent>(capacity = Channel.BUFFERED)
+        private val _events = MutableSharedFlow<RoomMemberJoinedEvent>()
 
-        /** 전역 토스트가 한 번씩 소비할 방 참여 이벤트 stream. */
-        val events: Flow<RoomMemberJoinedEvent> = _events.receiveAsFlow()
+        /** 전역 토스트와 현재 방 화면이 함께 수신할 방 참여 이벤트 stream. */
+        val events: SharedFlow<RoomMemberJoinedEvent> = _events.asSharedFlow()
 
         private var observedRoomIds: Set<Long> = emptySet()
         private var observeJob: Job? = null
@@ -78,7 +78,7 @@ class RoomRealtimeViewModel
             val subscribedRoomIds = observedRoomIds
             observeJob =
                 viewModelScope.launch {
-                    roomRepository.observeMemberJoined(subscribedRoomIds).collect(_events::send)
+                    roomRepository.observeMemberJoined(subscribedRoomIds).collect(_events::emit)
                 }
         }
 

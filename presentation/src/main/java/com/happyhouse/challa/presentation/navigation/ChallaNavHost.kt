@@ -110,6 +110,7 @@ fun ChallaNavHost(
                     entry<ChallaRoute.Gallery> { route ->
                         GalleryRoute(
                             roomId = route.roomId,
+                            memberJoinedEvents = roomRealtimeViewModel.events,
                             onBackClick = { navigator.goBack() },
                             onPhotoClick = { photoId ->
                                 navigator.navigate(
