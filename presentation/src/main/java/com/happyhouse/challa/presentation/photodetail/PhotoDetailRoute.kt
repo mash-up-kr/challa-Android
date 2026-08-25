@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.photodetail
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -44,6 +47,7 @@ fun PhotoDetailRoute(
     val saveSuccessMessage = stringResource(R.string.photo_detail_save_success)
     val saveFailureMessage = stringResource(R.string.photo_detail_save_failure)
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
+    val retryLabel = stringResource(R.string.photo_detail_retry)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
@@ -69,11 +73,12 @@ fun PhotoDetailRoute(
             val visuals =
                 when (effect) {
                     PhotoDetailSideEffect.PhotosLoadMoreFailed ->
-                        ChallaToastVisuals(
-                            message = loadMoreFailureMessage,
+                        ChallaSnackbarVisuals(
+                            content = ChallaSnackbarContent.HeadingOnly(heading = loadMoreFailureMessage),
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,
+                            actionLabel = retryLabel,
                         )
 
                     PhotoDetailSideEffect.SaveSucceeded ->
@@ -99,7 +104,14 @@ fun PhotoDetailRoute(
                             topOffset = ToastTopOffset,
                         )
                 }
-            launch { snackbarHostState.showSnackbar(visuals) }
+            launch {
+                val result = snackbarHostState.showSnackbar(visuals)
+                if (result == SnackbarResult.ActionPerformed &&
+                    effect == PhotoDetailSideEffect.PhotosLoadMoreFailed
+                ) {
+                    viewModel.onIntent(PhotoDetailIntent.PhotosLoadMore)
+                }
+            }
         }
     }
 
