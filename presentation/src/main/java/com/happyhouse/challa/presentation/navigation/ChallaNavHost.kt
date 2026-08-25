@@ -30,9 +30,9 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
+import com.happyhouse.challa.presentation.room.RoomMemberJoinedObserverViewModel
 import com.happyhouse.challa.presentation.room.RoomMemberJoinedToastHost
 import com.happyhouse.challa.presentation.room.RoomMemberJoinedToastVisuals
-import com.happyhouse.challa.presentation.room.RoomMemberJoinedViewModel
 import com.happyhouse.challa.presentation.room.toDisplayMessage
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
@@ -46,7 +46,7 @@ fun ChallaNavHost(
     navigator: ChallaNavigator,
     modifier: Modifier = Modifier,
 ) {
-    val roomMemberJoinedViewModel: RoomMemberJoinedViewModel = hiltViewModel()
+    val memberJoinedObserverViewModel: RoomMemberJoinedObserverViewModel = hiltViewModel()
     val snackbarHostState = remember { SnackbarHostState() }
     val roomMemberJoinedHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -55,27 +55,27 @@ fun ChallaNavHost(
     val roomMemberJoinedSuffix = stringResource(R.string.room_member_joined_suffix)
     val currentRoute = navigator.currentRoute
 
-    LifecycleStartEffect(roomMemberJoinedViewModel) {
-        roomMemberJoinedViewModel.startObserving()
+    LifecycleStartEffect(memberJoinedObserverViewModel) {
+        memberJoinedObserverViewModel.startObserving()
 
         onStopOrDispose {
-            roomMemberJoinedViewModel.pauseObserving()
+            memberJoinedObserverViewModel.pauseObserving()
         }
     }
 
     LaunchedEffect(currentRoute) {
         when (currentRoute) {
-            is ChallaRoute.RoomScoped -> roomMemberJoinedViewModel.addObservedRoom(currentRoute.roomId)
+            is ChallaRoute.RoomScoped -> memberJoinedObserverViewModel.addObservedRoom(currentRoute.roomId)
             ChallaRoute.Login,
             ChallaRoute.SettingProfile,
-            -> roomMemberJoinedViewModel.stopObserving()
+            -> memberJoinedObserverViewModel.stopObserving()
 
             else -> Unit
         }
     }
 
-    LaunchedEffect(roomMemberJoinedViewModel) {
-        roomMemberJoinedViewModel.events.collect { event ->
+    LaunchedEffect(memberJoinedObserverViewModel) {
+        memberJoinedObserverViewModel.events.collect { event ->
             launch {
                 roomMemberJoinedHostState.showSnackbar(
                     RoomMemberJoinedToastVisuals(
@@ -109,7 +109,7 @@ fun ChallaNavHost(
                     entry<ChallaRoute.Gallery> { route ->
                         GalleryRoute(
                             roomId = route.roomId,
-                            memberJoinedEvents = roomMemberJoinedViewModel.events,
+                            memberJoinedEvents = memberJoinedObserverViewModel.events,
                             onBackClick = { navigator.goBack() },
                             onPhotoClick = { photoId ->
                                 navigator.navigate(
@@ -177,7 +177,7 @@ fun ChallaNavHost(
                             onNavigateToRoom = { roomId ->
                                 navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
                             },
-                            onRoomIdsLoaded = roomMemberJoinedViewModel::replaceObservedRooms,
+                            onRoomIdsLoaded = memberJoinedObserverViewModel::replaceObservedRooms,
                         )
                     }
                     entry<ChallaRoute.Setting> {

@@ -22,7 +22,7 @@ import javax.inject.Inject
  * 로그아웃처럼 사용자 세션이 끝날 때는 [stopObserving]으로 방 ID까지 제거한다.
  */
 @HiltViewModel
-class RoomMemberJoinedViewModel
+class RoomMemberJoinedObserverViewModel
     @Inject
     constructor(
         private val roomRepository: RoomRepository,
