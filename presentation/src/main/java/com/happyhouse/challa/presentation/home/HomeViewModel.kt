@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.home
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.onFailure
@@ -10,8 +11,10 @@ import com.happyhouse.challa.presentation.home.contract.HomeIntent
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.toUiModel
+import com.happyhouse.challa.presentation.home.model.withName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,9 +28,32 @@ class HomeViewModel
         ) {
         init {
             loadHome()
+            observeRoomEvents()
         }
 
         override fun onIntent(intent: HomeIntent) = Unit
+
+        /**
+         * 방 설정에서 이름을 바꾸면 목록의 해당 방 이름만 갈아끼운다.
+         *
+         * 홈으로 돌아올 때 목록을 다시 받지 않으므로, 이 구독이 없으면 이전 이름이 그대로 남는다.
+         * 목록에 없는 방(예: 다른 화면에서 바뀐 방)이면 아무것도 바뀌지 않는다.
+         */
+        private fun observeRoomEvents() {
+            viewModelScope.launch {
+                roomRepository.roomEventFlow.filterIsInstance<RoomEvent.TitleUpdate>().collect { event ->
+                    updateState {
+                        copy(
+                            rooms =
+                                rooms
+                                    .map { room ->
+                                        if (room.id == event.roomId) room.withName(event.title) else room
+                                    }.toImmutableList(),
+                        )
+                    }
+                }
+            }
+        }
 
         private fun loadHome() {
             viewModelScope.launch {

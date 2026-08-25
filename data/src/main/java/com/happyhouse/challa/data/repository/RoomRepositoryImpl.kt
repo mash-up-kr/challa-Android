@@ -7,6 +7,7 @@ import com.happyhouse.challa.data.network.dto.request.UpdateRoomTitleRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
 import com.happyhouse.challa.data.network.dto.toDomain
 import com.happyhouse.challa.data.network.parseServerInstant
+import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
@@ -16,11 +17,22 @@ import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
+import com.happyhouse.challa.domain.result.onSuccess
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
     private val roomApi: RoomApi,
 ) : RoomRepository {
+    /**
+     * 구독자가 값을 받아가기 전에 다음 이벤트가 올라와도 요청이 멈추지 않도록 한 칸을 둔다.
+     * 지난 이벤트를 다시 줄 이유는 없으므로 replay는 두지 않는다.
+     */
+    private val _roomEventFlow = MutableSharedFlow<RoomEvent>(extraBufferCapacity = 1)
+    override val roomEventFlow: Flow<RoomEvent> = _roomEventFlow.asSharedFlow()
+
     override suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail> =
         roomApi.getRoom(roomId).mapCatching { response ->
             check(response.success) { response.message }
@@ -84,6 +96,9 @@ class RoomRepositoryImpl @Inject constructor(
                     ),
             ).mapCatching { response ->
                 check(response.success) { response.message }
+            }.onSuccess {
+                // 저장에 성공한 이름만 알린다. 실패한 이름이 다른 화면에 남으면 서버와 어긋난다.
+                _roomEventFlow.emit(RoomEvent.TitleUpdate(roomId = roomId, title = title))
             }
 
     override suspend fun enterRoom(code: String): ChallaResult<CreatedRoom> =

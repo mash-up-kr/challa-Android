@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.gallery
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.Photo
 import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
@@ -29,6 +30,8 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
@@ -71,6 +74,25 @@ class GalleryViewModel @AssistedInject constructor(
 
     init {
         onIntent(GalleryIntent.PhotosLoad)
+        observeRoomEvents()
+    }
+
+    /**
+     * 방 설정에서 이름을 바꾸고 돌아오면 바뀐 이름을 그대로 쓴다.
+     *
+     * 설정 화면에서 돌아올 때 갤러리를 다시 조회하지 않으므로, 이 구독이 없으면 이전 이름이 남는다.
+     * 받아둔 방 정보도 함께 고쳐, 다음 재조회 전까지 이름이 두 벌로 갈리지 않게 한다.
+     */
+    private fun observeRoomEvents() {
+        viewModelScope.launch {
+            roomRepository.roomEventFlow
+                .filterIsInstance<RoomEvent.TitleUpdate>()
+                .filter { it.roomId == roomId }
+                .collect { event ->
+                    loadedRoom = loadedRoom?.copy(title = event.title)
+                    updateState { copy(roomName = event.title) }
+                }
+        }
     }
 
     override fun onIntent(intent: GalleryIntent) {

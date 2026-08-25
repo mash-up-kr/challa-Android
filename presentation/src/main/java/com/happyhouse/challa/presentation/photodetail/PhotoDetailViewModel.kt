@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.Photo
 import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.model.RoomDetail
@@ -28,6 +29,8 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -54,6 +57,17 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
     init {
         onIntent(PhotoDetailIntent.PhotosLoad)
+        observeRoomEvents()
+    }
+
+    /** 사진 상세가 열려 있는 동안 방 이름이 바뀌면 제목만 갈아끼운다. 사진을 다시 받을 이유는 없다. */
+    private fun observeRoomEvents() {
+        viewModelScope.launch {
+            roomRepository.roomEventFlow
+                .filterIsInstance<RoomEvent.TitleUpdate>()
+                .filter { it.roomId == roomId }
+                .collect { event -> updateState { copy(roomName = event.title) } }
+        }
     }
 
     override fun onIntent(intent: PhotoDetailIntent) {
