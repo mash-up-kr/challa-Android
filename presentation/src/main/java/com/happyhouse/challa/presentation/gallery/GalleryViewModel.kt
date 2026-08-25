@@ -136,6 +136,7 @@ class GalleryViewModel @AssistedInject constructor(
 
                 // 인화 대기 화면을 보던 중 완료로 넘어온 것인지 판단해야 하므로, 본문을 바꾸기 전에 읽는다.
                 val playsAnimation = resolvePrintAnimation(room, currentState.photoInfo)
+                if (playsAnimation) loadRemainingPhotoPages()
 
                 updateState {
                     copy(
@@ -291,6 +292,42 @@ class GalleryViewModel @AssistedInject constructor(
     private fun handleShootClick() {
         viewModelScope.launch {
             sendEffect(GallerySideEffect.NavigateToCamera)
+        }
+    }
+
+    /**
+     * 남은 사진 페이지를 모두 받아 [loadedPhotos]에 채운다.
+     *
+     * 인화 연출은 1번부터 마지막 사진까지 순서대로 보여주는데, 연출이 끝날 때까지 그리드 스크롤이
+     * 잠겨 [handlePhotosLoadMore]가 올라오지 않는다. 방이 24칸을 넘으면([PHOTO_PAGE_SIZE]는 20)
+     * 첫 페이지만으로는 뒷 사진이 비므로 연출을 시작하기 전에 여기서 미리 받아둔다.
+     *
+     * 중간에 실패하면 받아둔 만큼만 연출한다. 화면을 막고 재시도를 시키기에는
+     * 이미 사진이 공개된 뒤라 얻는 것보다 잃는 것이 크다.
+     */
+    private suspend fun loadRemainingPhotoPages() {
+        var requestCount = 0
+
+        while (hasNextPhotoPage && requestCount < MAX_PRINT_ANIMATION_EXTRA_PAGE_COUNT) {
+            val requestedPage = nextPhotoPage
+            val result = photoRepository.getPhotos(roomId, requestedPage)
+            requestCount++
+
+            if (result !is ChallaResult.Success) {
+                Timber.w(
+                    result.causeOrNull(),
+                    "연출에 쓸 사진 페이지를 받지 못해 받아둔 ${loadedPhotos.size}장으로 진행합니다. " +
+                        "roomId=$roomId, page=$requestedPage",
+                )
+                return
+            }
+
+            appendPhotoPage(result.data)
+        }
+
+        // 서버가 hasNext를 계속 true로 내려주는 경우를 대비한 상한이다. 걸렸다면 스펙과 다른 것이다.
+        if (hasNextPhotoPage) {
+            Timber.w("연출 전 사진을 다 받지 못하고 상한에서 멈췄습니다. roomId=$roomId, 받은 수=${loadedPhotos.size}")
         }
     }
 
@@ -474,6 +511,13 @@ class GalleryViewModel @AssistedInject constructor(
         private const val PRINT_STATUS_RECHECK_MS = 5_000L
 
         private const val MAX_PRINT_STATUS_RECHECK_COUNT = 5
+
+        /**
+         * 연출 전에 첫 페이지에 이어 더 받아올 수 있는 페이지 수의 상한.
+         *
+         * 방은 최대 72칸이라 20장씩 4페이지면 충분하고, 여유를 둬도 이 정도면 끝난다.
+         */
+        private const val MAX_PRINT_ANIMATION_EXTRA_PAGE_COUNT = 5
     }
 }
 
