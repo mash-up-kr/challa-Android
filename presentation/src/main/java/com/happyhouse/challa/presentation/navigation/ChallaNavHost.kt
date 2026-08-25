@@ -28,7 +28,7 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
-import com.happyhouse.challa.presentation.roomsetting.RoomSettingScreen
+import com.happyhouse.challa.presentation.roomsetting.RoomSettingRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
 import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
@@ -107,7 +107,8 @@ fun ChallaNavHost(
                     )
                 }
                 entry<ChallaRoute.RoomSetting> { route ->
-                    RoomSettingScreen(
+                    RoomSettingRoute(
+                        roomId = route.roomId,
                         roomName = route.roomName,
                         onBackClick = { navigator.goBack() },
                         // TODO: 배포를 위해 임시로 추가. 제거 예정

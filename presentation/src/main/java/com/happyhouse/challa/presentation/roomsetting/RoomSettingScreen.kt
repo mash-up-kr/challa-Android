@@ -4,11 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,20 +22,21 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPrevi
 import com.happyhouse.challa.presentation.roomsetting.component.EditRoomNameBottomSheet
 import com.happyhouse.challa.presentation.roomsetting.component.RoomSettingCard
 import com.happyhouse.challa.presentation.roomsetting.component.RoomSettingListItem
+import com.happyhouse.challa.presentation.roomsetting.contract.RoomSettingIntent
+import com.happyhouse.challa.presentation.roomsetting.contract.RoomSettingState
 
 @Composable
 fun RoomSettingScreen(
-    roomName: String,
+    state: RoomSettingState,
+    snackbarHostState: SnackbarHostState,
+    onIntent: (RoomSettingIntent) -> Unit,
     onBackClick: () -> Unit,
     onCoverImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // TODO: 방 이름 수정 API가 없어 변경한 이름을 이 화면에서만 반영한다. API 연동 시 제거 예정.
-    var currentRoomName by rememberSaveable(roomName) { mutableStateOf(roomName) }
-    var isEditRoomNameSheetVisible by rememberSaveable { mutableStateOf(false) }
-
     ChallaScaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHostState = snackbarHostState,
         topBar = {
             ChallaTopNavigation(
                 title = stringResource(R.string.room_setting_title),
@@ -64,8 +63,8 @@ fun RoomSettingScreen(
                 RoomSettingListItem(
                     text = stringResource(R.string.room_setting_room_name),
                     leadingIcon = ChallaIcons.Edit,
-                    trailingText = currentRoomName,
-                    onClick = { isEditRoomNameSheetVisible = true },
+                    trailingText = state.roomName,
+                    onClick = { onIntent(RoomSettingIntent.RoomNameClick) },
                 )
                 RoomSettingListItem(
                     text = stringResource(R.string.room_setting_cover_image),
@@ -76,14 +75,12 @@ fun RoomSettingScreen(
         }
     }
 
-    if (isEditRoomNameSheetVisible) {
+    if (state.isEditRoomNameSheetVisible) {
         EditRoomNameBottomSheet(
-            roomName = currentRoomName,
-            onDismiss = { isEditRoomNameSheetVisible = false },
-            onConfirm = { newRoomName ->
-                currentRoomName = newRoomName
-                isEditRoomNameSheetVisible = false
-            },
+            roomName = state.roomName,
+            isSubmitting = state.isSubmitting,
+            onDismiss = { onIntent(RoomSettingIntent.EditRoomNameSheetDismiss) },
+            onConfirm = { newRoomName -> onIntent(RoomSettingIntent.RoomNameSubmit(newRoomName)) },
         )
     }
 }
@@ -93,7 +90,9 @@ fun RoomSettingScreen(
 @Composable
 private fun RoomSettingScreenPreview() {
     RoomSettingScreen(
-        roomName = "친구들과 강릉 여행",
+        state = RoomSettingState(roomName = "친구들과 강릉 여행"),
+        snackbarHostState = remember { SnackbarHostState() },
+        onIntent = {},
         onBackClick = {},
         onCoverImageClick = {},
     )
