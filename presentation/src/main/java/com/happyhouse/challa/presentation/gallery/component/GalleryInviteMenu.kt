@@ -118,7 +118,7 @@ private fun InviteCode(
             Text(
                 text = invitationCode,
                 modifier = Modifier.weight(weight = 1f, fill = false),
-                color = ChallaTheme.colors.primaryYellow,
+                color = ChallaTheme.colors.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,

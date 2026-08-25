@@ -82,6 +82,11 @@
     <string name="app_name_en">Challa</string>
     <string name="login_brand" translatable="false">challa</string>
     <string name="login_kakao">카카오로 시작하기</string>
+    <string name="login_onboarding_shared_camera">우리만의\n공유 필름 카메라</string>
+    <string name="login_onboarding_record_together">함께 기록하는\n찰나의 순간</string>
+    <string name="login_onboarding_shoot_together">함께 찍고,\n함께 기다려요</string>
+    <string name="login_onboarding_develop_in_three_hours">3시간 기다리면\n인화 완료!</string>
+    <string name="login_onboarding_react_and_comment">이모지와 댓글로\n자유롭게 소통해요</string>
 
     <string name="home_title" translatable="false">home</string>
     <string name="home_add_description">방 만들기</string>
@@ -178,10 +183,15 @@
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
-    <!-- TODO: 배포를 위해 임시로 추가. 삭제 예정 -->
-    <string name="setting_report">신고, 차단하기</string>
-    <!-- TODO: 배포를 위해 임시로 추가. 제거 예정 for 범준 -->
-    <string name="setting_feature_not_ready">준비중인 기능입니다.</string>
+    <string name="setting_open_source_license">오픈 소스 라이선스</string>
+
+    <!-- openSourceLicenseScreen -->
+    <string name="open_source_license_title">오픈 소스 라이선스</string>
+    <string name="open_source_license_back_description">설정으로 돌아가기</string>
+    <string name="open_source_license_film_luts_name" translatable="false">Film-Luts</string>
+    <string name="open_source_license_film_luts_notice" translatable="false">Copyright © 2024 Yahia\nLicensed under the MIT License</string>
+    <string name="open_source_license_film_luts_url" translatable="false">https://github.com/YahiaAngelo/Film-Luts/blob/main/LICENSE</string>
+    <string name="open_source_license_link_open_failure">라이선스 링크를 열 수 없어요.</string>
 
     <!-- notificationScreen -->
     <string name="notification_title">알림</string>
@@ -189,30 +199,30 @@
     <string name="notification_system_disabled">휴대폰의 앱 알림이 꺼져있어요.</string>
     <string name="notification_service_title">서비스 알림</string>
     <string name="notification_service_description">인화 대기, 인화 완료 등</string>
-    <string name="notification_save_failure">알림 설정을 저장하지 못했어요.</string>
+    <string name="notification_save_failure">알림 설정을 저장하지 못했어요</string>
 
     <!-- accountScreen -->
     <string name="account_title">계정 관리</string>
     <string name="account_back_description">설정으로 돌아가기</string>
     <string name="account_logout">로그아웃</string>
-    <string name="account_logout_success">로그아웃되었습니다</string>
-    <string name="account_logout_failure">로그아웃에 실패했어요.</string>
+    <string name="account_logout_success">정상적으로 로그아웃 됐어요</string>
+    <string name="account_logout_failure">로그아웃에 실패했어요</string>
     <string name="account_withdraw">탈퇴하기</string>
-    <string name="account_withdraw_warning_title">모든 기록이 사라져요</string>
-    <string name="account_withdraw_warning_description">탈퇴 시 참여 중이던 방에서 자동으로 나가져요</string>
-    <string name="account_withdraw_confirm">그래도 탈퇴하기</string>
+    <string name="account_withdraw_warning_title">탈퇴 전 꼭 확인해 주세요</string>
+    <string name="account_withdraw_warning_description">닉네임이 \'탈퇴한 사용자\'로 변경되며,\n내가 찍은 사진은 사라지지 않아요.</string>
+    <string name="account_withdraw_confirm">확인하고 탈퇴하기</string>
     <string name="account_withdraw_close">닫기</string>
     <string name="account_withdraw_completed_title">회원 탈퇴가\n정상적으로 완료 됐어요</string>
     <string name="account_withdraw_completed_confirm">확인</string>
-    <string name="account_withdraw_failure">회원 탈퇴에 실패했어요.</string>
+    <string name="account_withdraw_failure">회원 탈퇴에 실패했어요</string>
 
-    <string name="setting_profile_read_failure">프로필을 불러오지 못했어요.</string>
+    <string name="setting_profile_read_failure">프로필을 불러오지 못했어요</string>
 
     <!-- themeScreen -->
     <string name="theme_title">테마</string>
     <string name="theme_back_description">설정으로 돌아가기</string>
-    <string name="theme_read_failure">테마를 불러오지 못했어요.</string>
-    <string name="theme_save_failure">테마를 저장하지 못했어요.</string>
+    <string name="theme_read_failure">테마를 불러오지 못했어요</string>
+    <string name="theme_save_failure">테마를 저장하지 못했어요</string>
     <string name="theme_retry">다시 시도</string>
     <string name="theme_lemonade">레몬에이드</string>
     <string name="theme_raspberry">라즈베리</string>

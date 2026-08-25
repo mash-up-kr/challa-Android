@@ -6,8 +6,18 @@ import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 
 @Immutable
 data class SettingState(
-    val nickname: String = "",
-    val profileImageUrl: String? = null,
-    val isProfileLoaded: Boolean = false,
+    val profile: ProfileState = ProfileState.Loading,
     val primaryTheme: ThemeUiModel? = null,
-) : UiState
+) : UiState {
+    @Immutable
+    sealed interface ProfileState {
+        data object Loading : ProfileState
+
+        data object Error : ProfileState
+
+        data class Loaded(
+            val nickname: String,
+            val profileImageUrl: String?,
+        ) : ProfileState
+    }
+}

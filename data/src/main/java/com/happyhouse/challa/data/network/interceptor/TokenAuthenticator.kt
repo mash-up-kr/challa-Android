@@ -1,6 +1,7 @@
 package com.happyhouse.challa.data.network.interceptor
 
 import com.happyhouse.challa.data.local.TokenDataStore
+import com.happyhouse.challa.data.local.UserProfileCache
 import com.happyhouse.challa.data.network.api.AuthApi
 import com.happyhouse.challa.data.network.dto.request.RefreshRequest
 import com.happyhouse.challa.data.network.qualifier.RefreshClient
@@ -14,16 +15,18 @@ import okhttp3.Route
 import javax.inject.Inject
 
 /**
- * 401(Unauthorized) 응답을 받으면 저장된 리프레시 토큰으로 새 토큰을 발급받아 원래 요청을 재시도한다.
+ * 401(Unauthorized) 응답을 받으면 저장된 refresh token으로 토큰을 재발급하고 원래 요청을 재시도한다.
  *
- * 재발급 호출은 인증 인터셉터·본 Authenticator 를 거치지 않는 [RefreshClient] 전용 [AuthApi] 로 보내
- * 무한 루프와 데드락을 피한다. 재발급까지 실패하면 저장된 토큰을 지우고 재시도를 포기한다(null 반환 → 401 그대로 전달).
+ * 재발급 요청은 인증 인터셉터와 본 Authenticator를 거치지 않는 [RefreshClient] 전용 [AuthApi]로 전송해
+ * 무한 루프와 데드락을 방지한다. 토큰을 갱신할 수 없거나 갱신된 토큰도 거부되면 인증 정보와
+ * 사용자 프로필 캐시를 초기화하고 재시도를 중단한다.
  */
 class TokenAuthenticator
     @Inject
     constructor(
         private val tokenDataStore: TokenDataStore,
-        @RefreshClient private val refreshApi: AuthApi,
+        private val userProfileCache: UserProfileCache,
+        @param:RefreshClient private val refreshApi: AuthApi,
     ) : Authenticator {
         @Synchronized
         override fun authenticate(
@@ -31,7 +34,10 @@ class TokenAuthenticator
             response: Response,
         ): Request? {
             // 새 토큰으로도 계속 401 이면(서버가 재발급 토큰을 거부) 무한 재시도를 막는다.
-            if (responseCount(response) >= MAX_ATTEMPTS) return null
+            if (responseCount(response) >= MAX_ATTEMPTS) {
+                clearSession()
+                return null
+            }
 
             val failedToken = response.request.header(AUTHORIZATION)?.removePrefix(BEARER_PREFIX)
 
@@ -42,21 +48,32 @@ class TokenAuthenticator
             }
 
             val refreshToken = runBlocking { tokenDataStore.refreshToken.first() }
-            if (refreshToken.isNullOrBlank()) return null
+            if (refreshToken.isNullOrBlank()) {
+                clearSession()
+                return null
+            }
 
             val newTokens =
-                when (val result = runBlocking { refreshApi.refresh(RefreshRequest(RefreshRequest.Auth(refreshToken))) }) {
+                when (
+                    val result =
+                        runBlocking { refreshApi.refresh(RefreshRequest(RefreshRequest.Auth(refreshToken))) }
+                ) {
                     is ChallaResult.Success -> result.data.data?.takeIf { result.data.success }?.auth
                     is ChallaResult.Failure -> null
                 }
 
             if (newTokens == null) {
-                runBlocking { tokenDataStore.clear() }
+                clearSession()
                 return null
             }
 
             runBlocking { tokenDataStore.saveTokens(newTokens.accessToken, newTokens.refreshToken) }
             return response.request.withBearer(newTokens.accessToken)
+        }
+
+        private fun clearSession() {
+            runBlocking { tokenDataStore.clear() }
+            userProfileCache.clear()
         }
 
         private fun Request.withBearer(accessToken: String): Request =

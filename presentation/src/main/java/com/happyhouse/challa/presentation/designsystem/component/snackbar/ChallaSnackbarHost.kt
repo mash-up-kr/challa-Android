@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+private val DefaultMessageBottomOffset = 10.dp
+
 @Composable
 fun ChallaSnackbarHost(
     hostState: SnackbarHostState,
@@ -40,7 +42,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -58,7 +60,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -77,14 +79,19 @@ fun ChallaSnackbarHost(
                 else ->
                     Snackbar(
                         snackbarData = data,
-                        modifier = Modifier.align(Alignment.BottomCenter),
+                        modifier =
+                            Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = DefaultMessageBottomOffset),
                     )
             }
         }
     }
 }
 
-private fun Modifier.challaMessageTopOffset(topOffset: Dp?): Modifier =
-    topOffset?.let {
-        padding(top = it)
-    } ?: this
+private fun Modifier.challaMessageEdgePadding(topOffset: Dp?): Modifier =
+    if (topOffset != null) {
+        padding(top = topOffset)
+    } else {
+        padding(bottom = DefaultMessageBottomOffset)
+    }

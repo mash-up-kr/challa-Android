@@ -4,10 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,24 +14,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -42,16 +37,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
+import com.happyhouse.challa.presentation.login.component.LoginOnboardingIndicator
+import com.happyhouse.challa.presentation.login.component.LoginOnboardingPager
+import com.happyhouse.challa.presentation.login.model.LoginOnboardingPage
 
 // 카카오 브랜드 컬러. 카카오 로그인 버튼 외에는 쓰지 않으므로 이 화면에만 둔다.
 private val KakaoYellow = Color(0xFFFEE500)
 
+private val IndicatorTopPadding = 26.dp
+
 @Composable
 fun LoginRoute(
-    snackbarHostState: SnackbarHostState,
     onLoginSuccess: (isNewUser: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
@@ -74,7 +73,6 @@ fun LoginRoute(
 
     LoginScreen(
         state = state,
-        snackbarHostState = snackbarHostState,
         // 카카오 SDK 호출은 Activity 가 필요하므로 여기서 클로저로 감싸 ViewModel 에 넘긴다.
         onLoginClick = { viewModel.onIntent(LoginIntent.LoginClick { KakaoLoginClient.login(activity) }) },
         modifier = modifier,
@@ -93,12 +91,12 @@ private fun LoginScreen(
     state: LoginState,
     onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
-    snackbarHostState: SnackbarHostState? = null,
 ) {
+    val pagerState = rememberPagerState { LoginOnboardingPage.entries.size }
+
     ChallaScaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = ChallaTheme.colors.backgroundSurface,
-        snackbarHostState = snackbarHostState,
         bottomBar = {
             KakaoLoginButton(
                 isLoading = state.isLoading,
@@ -107,49 +105,27 @@ private fun LoginScreen(
                     Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .padding(top = 8.dp, bottom = 8.dp),
+                        .padding(top = 8.dp),
             )
         },
     ) { innerPadding ->
-        Box(
+        Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            BrandingContent(
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        // 디자인상 브랜딩 영역은 투명도 10%로 표현된다.
-                        .alpha(0.1f),
+            LoginOnboardingPager(
+                pagerState = pagerState,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(IndicatorTopPadding))
+            LoginOnboardingIndicator(
+                pageCount = pagerState.pageCount,
+                currentPage = pagerState.currentPage,
             )
         }
-    }
-}
-
-@Composable
-private fun BrandingContent(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(id = R.string.login_brand),
-            color = ChallaTheme.colors.staticWhite,
-            style = ChallaTheme.typography.headingXLarge.bold,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Image(
-            painter = painterResource(id = R.drawable.img_login_logo),
-            contentDescription = null,
-            modifier =
-                Modifier
-                    .size(300.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop,
-        )
     }
 }
 
@@ -192,13 +168,11 @@ private fun KakaoLoginButton(
 }
 
 @Preview(showBackground = true, name = "Login")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun LoginScreenPreview() {
-    ChallaTheme {
-        LoginScreen(
-            state = LoginState(isLoading = false),
-            onLoginClick = {},
-        )
-    }
+    LoginScreen(
+        state = LoginState(isLoading = false),
+        onLoginClick = {},
+    )
 }

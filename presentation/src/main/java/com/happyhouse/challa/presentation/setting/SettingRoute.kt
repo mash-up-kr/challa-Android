@@ -17,6 +17,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
 import com.happyhouse.challa.presentation.setting.contract.SettingSideEffect
+import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -29,8 +30,7 @@ fun SettingRoute(
     onAccountClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
-    // TODO: 배포를 위해 임시로 추가. 삭제 예정
-    onReportClick: () -> Unit,
+    onOpenSourceLicenseClick: () -> Unit,
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -80,14 +80,16 @@ fun SettingRoute(
         state = state,
         onBackClick = onBackClick,
         onProfileEditClick = {
-            onProfileEditClick(state.nickname, state.profileImageUrl)
+            val profile = state.profile
+            if (profile is ProfileState.Loaded) {
+                onProfileEditClick(profile.nickname, profile.profileImageUrl)
+            }
         },
         onThemeClick = onThemeClick,
         onNotificationClick = onNotificationClick,
         onAccountClick = onAccountClick,
         onSupportClick = onSupportClick,
         onFeedbackClick = onFeedbackClick,
-        onReportClick = onReportClick,
-        snackbarHostState = snackbarHostState,
+        onOpenSourceLicenseClick = onOpenSourceLicenseClick,
     )
 }

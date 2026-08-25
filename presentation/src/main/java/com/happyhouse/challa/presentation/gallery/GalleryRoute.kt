@@ -7,8 +7,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
@@ -16,11 +18,14 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -48,6 +53,7 @@ fun GalleryRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val shouldRefreshAfterCamera = rememberSaveable { mutableStateOf(false) }
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
     val printWaitingMessage = stringResource(R.string.gallery_print_waiting_message)
@@ -57,11 +63,21 @@ fun GalleryRoute(
     val inviteCodeCopyFailureMessage = stringResource(R.string.gallery_invite_code_copy_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (shouldRefreshAfterCamera.value) {
+            shouldRefreshAfterCamera.value = false
+            viewModel.onIntent(GalleryIntent.PhotosLoad)
+        }
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId)
-                GallerySideEffect.NavigateToCamera -> onShootClick()
+                GallerySideEffect.NavigateToCamera -> {
+                    shouldRefreshAfterCamera.value = true
+                    onShootClick()
+                }
                 GallerySideEffect.PrintNotCompleted -> {
                     // showSnackbar는 스낵바가 사라질 때까지 suspend 하므로,
                     // 그대로 두면 후속 SideEffect 수집이 막힌다.
