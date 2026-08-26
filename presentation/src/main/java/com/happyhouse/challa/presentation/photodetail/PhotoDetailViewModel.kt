@@ -30,11 +30,10 @@ import timber.log.Timber
 @HiltViewModel(assistedFactory = PhotoDetailViewModel.Factory::class)
 class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
-    @Assisted("initialPhotoId") initialPhotoId: Long,
     @Assisted private val args: PhotoDetailArgs,
     private val photoRepository: PhotoRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
-        initialState = initialPhotoDetailState(initialPhotoId, args),
+        initialState = initialPhotoDetailState(args),
     ) {
     private var appendJob: Job? = null
 
@@ -168,20 +167,16 @@ class PhotoDetailViewModel @AssistedInject constructor(
     interface Factory {
         fun create(
             @Assisted("roomId") roomId: Long,
-            @Assisted("initialPhotoId") initialPhotoId: Long,
             args: PhotoDetailArgs,
         ): PhotoDetailViewModel
     }
 }
 
-private fun initialPhotoDetailState(
-    initialPhotoId: Long,
-    args: PhotoDetailArgs,
-): PhotoDetailState {
+private fun initialPhotoDetailState(args: PhotoDetailArgs): PhotoDetailState {
     val photos = args.photos.toPhotos().toPhotoDetailUiModels()
 
     return PhotoDetailState(
-        initialPhotoId = initialPhotoId,
+        initialPhotoId = args.initialPhotoId,
         roomName = args.roomName,
         photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
     )

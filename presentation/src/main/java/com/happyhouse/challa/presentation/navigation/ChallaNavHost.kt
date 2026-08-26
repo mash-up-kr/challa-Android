@@ -67,11 +67,10 @@ fun ChallaNavHost(
                         GalleryRoute(
                             roomId = route.roomId,
                             onBackClick = { navigator.goBack() },
-                            onPhotoClick = { photoId, args ->
+                            onPhotoClick = { args ->
                                 navigator.navigate(
                                     ChallaRoute.PhotoDetail(
                                         roomId = route.roomId,
-                                        photoId = photoId,
                                         args = args,
                                     ),
                                 )
@@ -84,7 +83,6 @@ fun ChallaNavHost(
                     entry<ChallaRoute.PhotoDetail> { route ->
                         PhotoDetailRoute(
                             roomId = route.roomId,
-                            photoId = route.photoId,
                             args = route.args,
                             onBackClick = { navigator.goBack() },
                         )

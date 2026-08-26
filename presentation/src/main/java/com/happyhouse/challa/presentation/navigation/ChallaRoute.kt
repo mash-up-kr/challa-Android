@@ -14,7 +14,6 @@ sealed interface ChallaRoute : NavKey {
     @Serializable
     data class PhotoDetail(
         val roomId: Long,
-        val photoId: Long,
         val args: PhotoDetailArgs,
     ) : ChallaRoute
 

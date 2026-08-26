@@ -12,6 +12,7 @@ import java.time.Instant
  */
 @Serializable
 data class PhotoDetailArgs(
+    val initialPhotoId: Long,
     val roomName: String,
     val photos: List<PhotoArg>,
     val nextPhotoPage: Int,

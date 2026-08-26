@@ -42,7 +42,7 @@ private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 fun GalleryRoute(
     roomId: Long,
     onBackClick: () -> Unit,
-    onPhotoClick: (photoId: Long, args: PhotoDetailArgs) -> Unit,
+    onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
@@ -73,7 +73,7 @@ fun GalleryRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId, effect.args)
+                is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.args)
                 GallerySideEffect.NavigateToCamera -> {
                     shouldRefreshAfterCamera.value = true
                     onShootClick()

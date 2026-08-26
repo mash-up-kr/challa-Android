@@ -5,7 +5,6 @@ import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 
 sealed interface GallerySideEffect : UiSideEffect {
     data class NavigateToPhotoDetail(
-        val photoId: Long,
         val args: PhotoDetailArgs,
     ) : GallerySideEffect
 

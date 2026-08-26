@@ -292,9 +292,9 @@ class GalleryViewModel @AssistedInject constructor(
         viewModelScope.launch {
             sendEffect(
                 GallerySideEffect.NavigateToPhotoDetail(
-                    photoId = photoId,
                     args =
                         PhotoDetailArgs(
+                            initialPhotoId = photoId,
                             roomName = currentState.roomName,
                             photos = loadedPhotos.toPhotoArgs(),
                             nextPhotoPage = nextPhotoPage,

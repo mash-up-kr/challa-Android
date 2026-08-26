@@ -31,13 +31,12 @@ private val ToastTopOffset = 8.dp
 @Composable
 fun PhotoDetailRoute(
     roomId: Long,
-    photoId: Long,
     args: PhotoDetailArgs,
     onBackClick: () -> Unit,
     viewModel: PhotoDetailViewModel =
         hiltViewModel<PhotoDetailViewModel, PhotoDetailViewModel.Factory>(
             creationCallback = { factory ->
-                factory.create(roomId = roomId, initialPhotoId = photoId, args = args)
+                factory.create(roomId = roomId, args = args)
             },
         ),
 ) {
