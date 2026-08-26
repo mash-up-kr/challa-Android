@@ -12,7 +12,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -35,7 +34,7 @@ import kotlin.math.min
  * [awaitClose]에서 WebSocket을 정상 종료한다.
  *
  * 일시적인 [IOException]은 최대 10초 간격으로 재연결한다. STOMP `ERROR`, 실패 응답,
- * 재시도할 수 없는 handshake 응답은 영구 오류로 분류해 로그를 남기고 stream을 종료한다.
+ * 재시도할 수 없는 handshake 응답은 영구 오류로 분류해 로그를 남기고 수집자에게 예외를 전달한다.
  */
 @Singleton
 class RoomWebSocketApi
@@ -55,6 +54,7 @@ class RoomWebSocketApi
          *
          * 구독 중 방 목록을 변경하려면 기존 수집을 취소하고 새 [roomIds]로 다시 수집해야 한다.
          * 여러 방은 각각 STOMP `SUBSCRIBE` frame을 보내지만 WebSocket 연결은 하나를 공유한다.
+         * 일시적인 연결 오류는 자동으로 재시도하며, 동일 조건으로 해결할 수 없는 오류는 수집자에게 전달한다.
          */
         internal fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedResponse.Room> =
             openMemberJoinedStream(roomIds)
@@ -73,9 +73,6 @@ class RoomWebSocketApi
                         .w("방 참여 WebSocket 연결이 끊겨 재연결합니다. roomIds=$roomIds, delay=${retryDelay}ms, cause=$cause")
                     delay(retryDelay)
                     true
-                }
-                .catch { cause ->
-                    if (cause !is PermanentWebSocketException) throw cause
                 }
 
         private fun openMemberJoinedStream(roomIds: Set<Long>): Flow<RoomMemberJoinedResponse.Room> =

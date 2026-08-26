@@ -16,6 +16,7 @@ interface RoomRepository {
      *
      * 반환하는 [Flow]는 cold stream이다. 수집이 시작되면 WebSocket 연결과 방별 구독을 시작하고,
      * 수집이 취소되면 연결을 정리한다. 구독할 방 목록을 변경하려면 새 [roomIds]로 다시 수집한다.
+     * 자동으로 복구할 수 없는 연결 오류가 발생하면 수집자에게 예외를 전달한다.
      */
     fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedEvent>
 
