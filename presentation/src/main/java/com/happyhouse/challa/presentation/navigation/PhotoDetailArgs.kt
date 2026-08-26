@@ -9,10 +9,12 @@ import java.time.Instant
  *
  * 상세가 같은 목록을 다시 조회하지 않도록 그대로 넘기고, 끝까지 넘겨 갤러리가 받아둔 범위를 벗어나면
  * [nextPhotoPage] 부터 이어 받는다.
+ *
+ * @param initialPhotoIndex 처음 펼칠 사진의 [photos] 위치. id로 두면 목록 안의 값과 겹쳐 id는 여기서 꺼내 쓴다.
  */
 @Serializable
 data class PhotoDetailArgs(
-    val initialPhotoId: Long,
+    val initialPhotoIndex: Int,
     val roomName: String,
     val photos: List<PhotoArg>,
     val nextPhotoPage: Int,

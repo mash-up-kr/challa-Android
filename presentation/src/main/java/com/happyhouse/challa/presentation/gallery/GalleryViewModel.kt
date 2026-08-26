@@ -290,12 +290,18 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     private fun handlePhotoClick(photoId: Long) {
+        // 목록을 다시 받는 사이에 눌리면 없는 사진일 수 있다. 화면은 열어주고 첫 사진부터 그린다.
+        val initialPhotoIndex = loadedPhotos.indexOfFirst { photo -> photo.id == photoId }
+        if (initialPhotoIndex < 0) {
+            Timber.w("누른 사진이 받아둔 목록에 없어 첫 사진부터 그립니다. roomId=$roomId, photoId=$photoId")
+        }
+
         viewModelScope.launch {
             sendEffect(
                 GallerySideEffect.NavigateToPhotoDetail(
                     args =
                         PhotoDetailArgs(
-                            initialPhotoId = photoId,
+                            initialPhotoIndex = initialPhotoIndex.coerceAtLeast(0),
                             roomName = currentState.roomName,
                             photos = loadedPhotos.toPhotoArgs(),
                             nextPhotoPage = nextPhotoPage,

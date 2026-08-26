@@ -71,7 +71,7 @@ private fun PhotoDetailContentLoadedPreview() {
         state =
             PhotoDetailState(
                 roomName = "해피하우스 강릉 여행",
-                initialPhotoId = 0L,
+                initialPhotoIndex = 0,
                 photoInfo = PhotoInfo.Loaded(photos),
             ),
         pagerState = rememberPagerState { photos.size },

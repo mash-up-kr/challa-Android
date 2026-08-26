@@ -176,7 +176,7 @@ private fun initialPhotoDetailState(args: PhotoDetailArgs): PhotoDetailState {
     val photos = args.photos.toPhotos().toPhotoDetailUiModels()
 
     return PhotoDetailState(
-        initialPhotoId = args.initialPhotoId,
+        initialPhotoIndex = args.initialPhotoIndex,
         roomName = args.roomName,
         photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
     )
