@@ -29,6 +29,7 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.persistentListOf
+import timber.log.Timber
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
@@ -59,7 +60,11 @@ fun PhotoDetailScreen(
         if (hasMovedToInitialPhoto || photos.isEmpty()) return@LaunchedEffect
 
         val initialIndex = photos.indexOfFirst { photo -> photo.id == state.initialPhotoId }
-        if (initialIndex >= 0) pagerState.scrollToPage(initialIndex)
+        if (initialIndex >= 0) {
+            pagerState.scrollToPage(initialIndex)
+        } else {
+            Timber.w("진입한 사진이 넘겨받은 목록에 없어 첫 사진부터 그립니다. photoId=${state.initialPhotoId}")
+        }
 
         hasMovedToInitialPhoto = true
     }

@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
@@ -78,6 +79,7 @@ fun PhotoDetailRoute(
                             iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,
                             actionLabel = retryLabel,
+                            duration = SnackbarDuration.Long,
                         )
 
                     PhotoDetailSideEffect.SaveSucceeded ->

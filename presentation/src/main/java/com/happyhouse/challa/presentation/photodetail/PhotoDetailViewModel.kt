@@ -30,7 +30,7 @@ import timber.log.Timber
 @HiltViewModel(assistedFactory = PhotoDetailViewModel.Factory::class)
 class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
-    @Assisted private val args: PhotoDetailArgs,
+    @Assisted args: PhotoDetailArgs,
     private val photoRepository: PhotoRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = initialPhotoDetailState(args),

@@ -203,6 +203,7 @@ class GalleryViewModel @AssistedInject constructor(
         if (cause == null && hasPendingLoadMore) handlePhotosLoadMore()
     }
 
+    /** 보류된 요청은 지우지 않는다. 다시 받은 첫 페이지 뒤를 이어 받아야 해서 완료 콜백까지 살아 있어야 한다. */
     private fun resetPhotoPaging() {
         loadedPhotos.clear()
         loadedPhotoIds.clear()
