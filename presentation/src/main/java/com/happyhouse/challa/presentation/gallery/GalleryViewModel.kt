@@ -120,6 +120,8 @@ class GalleryViewModel @AssistedInject constructor(
                     )
                     // 본문이 에러면 프로필 바도 그리지 않으므로 참여자 조회를 끝까지 기다릴 이유가 없다.
                     membersJob?.cancel()
+                    // 에러 화면을 그린 뒤 보류 요청이 이어지면 낡은 목록이 에러 화면을 덮는다.
+                    hasPendingLoadMore = false
                     updateState { copy(photoInfo = PhotoInfo.Error) }
                     return@launch
                 }
@@ -206,7 +208,6 @@ class GalleryViewModel @AssistedInject constructor(
         loadedPhotoIds.clear()
         nextPhotoPage = FIRST_PHOTO_PAGE
         hasNextPhotoPage = false
-        hasPendingLoadMore = false
     }
 
     /** 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 그리드의 key가 겹쳐 깨진다. */
