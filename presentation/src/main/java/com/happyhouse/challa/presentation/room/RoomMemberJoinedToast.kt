@@ -20,12 +20,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToast
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
 /** 방 참여 이벤트의 메시지와 참여자 프로필 이미지를 [SnackbarHostState]에 전달하는 값 객체. */
@@ -105,6 +108,16 @@ private fun RoomMemberJoinedToast(
                         .background(ChallaTheme.colors.backgroundLevel3),
             )
         },
+    )
+}
+
+@Preview(name = "Room member joined")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun RoomMemberJoinedToastPreview() {
+    RoomMemberJoinedToast(
+        message = "Challa님이 가족여행 방에 참여했어요",
+        userProfileImageUrl = null,
     )
 }
 
