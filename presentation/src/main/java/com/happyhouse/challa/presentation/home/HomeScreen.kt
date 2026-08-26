@@ -73,6 +73,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
@@ -114,8 +115,8 @@ fun HomeRoute(
     val destructiveTint = ChallaTheme.colors.statusDestructive
     val currentOnRoomIdsLoaded by rememberUpdatedState(onRoomIdsLoaded)
 
-    LaunchedEffect(state.hasLoadedRooms, state.rooms) {
-        if (state.hasLoadedRooms) {
+    LaunchedEffect(state.roomLoadState, state.rooms) {
+        if (state.roomLoadState == HomeRoomLoadState.LOADED) {
             currentOnRoomIdsLoaded(state.rooms.mapTo(mutableSetOf()) { it.id })
         }
     }
@@ -198,7 +199,7 @@ private fun HomeScreen(
             )
 
             when {
-                state.isLoading ->
+                state.roomLoadState == HomeRoomLoadState.LOADING ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,
@@ -932,7 +933,7 @@ private fun HomeRoomsPreview() {
         HomeScreen(
             state =
                 HomeState(
-                    isLoading = false,
+                    roomLoadState = HomeRoomLoadState.LOADED,
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                     rooms = previewRooms(),
@@ -954,7 +955,7 @@ private fun HomeEmptyPreview() {
         HomeScreen(
             state =
                 HomeState(
-                    isLoading = false,
+                    roomLoadState = HomeRoomLoadState.LOADED,
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                 ),
@@ -973,7 +974,7 @@ private fun HomeEmptyPreview() {
 private fun HomeLoadingPreview() {
     ChallaTheme {
         HomeScreen(
-            state = HomeState(isLoading = true),
+            state = HomeState(),
             snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},
