@@ -50,7 +50,7 @@ fun GalleryTopBar(
         trailingIcon = {
             Box(
                 modifier =
-                    modifier
+                    Modifier
                         .size(40.dp)
                         .noRippleClickOnce(role = Role.Button, onClick = onSettingClick),
                 contentAlignment = Alignment.Center,
