@@ -11,9 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,7 +39,6 @@ private const val LOAD_MORE_PREFETCH_PAGE_COUNT = 3
 fun PhotoDetailScreen(
     state: PhotoDetailState,
     snackbarHostState: SnackbarHostState,
-    onRetryClick: () -> Unit,
     onLoadMore: () -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
@@ -51,19 +48,12 @@ fun PhotoDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val photos = (state.photoInfo as? PhotoInfo.Loaded)?.photos ?: persistentListOf()
-    val pagerState = rememberPagerState(pageCount = { photos.size })
+    val pagerState =
+        rememberPagerState(
+            initialPage = state.initialPhotoIndex.coerceIn(0, (photos.size - 1).coerceAtLeast(0)),
+            pageCount = { photos.size },
+        )
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
-
-    // 사진이 처음 도착했을 때만 진입한 사진으로 옮긴다. 다음 페이지를 이어 받아도 보던 자리를 지켜야 한다.
-    var hasMovedToInitialPhoto by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(photos, state.initialPhotoId) {
-        if (hasMovedToInitialPhoto || photos.isEmpty()) return@LaunchedEffect
-
-        val initialIndex = photos.indexOfFirst { photo -> photo.id == state.initialPhotoId }
-        if (initialIndex >= 0) pagerState.scrollToPage(initialIndex)
-
-        hasMovedToInitialPhoto = true
-    }
 
     val reachedLoadMoreThreshold by remember(photos) {
         derivedStateOf { pagerState.currentPage >= photos.size - LOAD_MORE_PREFETCH_PAGE_COUNT }
@@ -109,7 +99,6 @@ fun PhotoDetailScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 pagerState = pagerState,
-                onRetryClick = onRetryClick,
             )
 
             // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
@@ -128,65 +117,10 @@ private fun PhotoDetailScreenPreview() {
         state =
             PhotoDetailState(
                 roomName = "해피하우스 강릉 여행",
-                initialPhotoId = 0L,
+                initialPhotoIndex = 0,
                 photoInfo = PhotoInfo.Loaded(previewPhotoDetailPhotos(count = 24)),
             ),
         snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
-        onLoadMore = {},
-        onSaveClick = {},
-        onEmojiClick = { _, _ -> },
-        onMessageChange = {},
-        onSendClick = {},
-        onBackClick = {},
-    )
-}
-
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 844,
-    name = "PhotoDetailScreen - Loading",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoDetailScreenLoadingPreview() {
-    PhotoDetailScreen(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            PhotoDetailState(
-                roomName = "해피하우스 강릉 여행",
-                photoInfo = PhotoInfo.Loading,
-            ),
-        snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
-        onLoadMore = {},
-        onSaveClick = {},
-        onEmojiClick = { _, _ -> },
-        onMessageChange = {},
-        onSendClick = {},
-        onBackClick = {},
-    )
-}
-
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 844,
-    name = "PhotoDetailScreen - Error",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoDetailScreenErrorPreview() {
-    PhotoDetailScreen(
-        modifier = Modifier.fillMaxSize(),
-        state =
-            PhotoDetailState(
-                roomName = "해피하우스 강릉 여행",
-                photoInfo = PhotoInfo.Error,
-            ),
-        snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
         onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
@@ -213,7 +147,6 @@ private fun PhotoDetailScreenEmptyPreview() {
                 photoInfo = PhotoInfo.Empty,
             ),
         snackbarHostState = remember { SnackbarHostState() },
-        onRetryClick = {},
         onLoadMore = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },

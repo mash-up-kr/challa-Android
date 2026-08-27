@@ -3,8 +3,6 @@ package com.happyhouse.challa.presentation.photodetail.contract
 import com.happyhouse.challa.presentation.base.UiIntent
 
 sealed interface PhotoDetailIntent : UiIntent {
-    data object PhotosLoad : PhotoDetailIntent
-
     /** 마지막 사진이 가까워져 다음 사진 페이지가 필요할 때 */
     data object PhotosLoadMore : PhotoDetailIntent
 
