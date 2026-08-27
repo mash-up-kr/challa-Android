@@ -6,12 +6,11 @@ import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
+import com.happyhouse.challa.presentation.model.ROOM_NAME_MAX_LENGTH
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-internal const val ROOM_NAME_MAX_LENGTH = 20
 
 @HiltViewModel
 class CreateRoomViewModel

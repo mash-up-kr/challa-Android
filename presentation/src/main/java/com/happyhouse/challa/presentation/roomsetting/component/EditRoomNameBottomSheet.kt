@@ -33,6 +33,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.model.ROOM_NAME_MAX_LENGTH
 import kotlinx.coroutines.launch
 
 /**
@@ -100,7 +101,7 @@ fun EditRoomNameBottomSheet(
         EditRoomNameSheetBody(
             name = name,
             isSubmitting = isSubmitting,
-            onNameChange = { name = it },
+            onNameChange = { name = it.take(ROOM_NAME_MAX_LENGTH) },
             onSubmit = {
                 val newRoomName = name.trim()
                 // 바뀐 게 없으면 저장할 것도 없으니 그냥 닫는다.
