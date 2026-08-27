@@ -11,10 +11,9 @@ import kotlinx.parcelize.Parcelize
 
 @Immutable
 data class PhotoDetailState(
-    val roomId: Long = 0L,
-    val initialPhotoId: Long = 0L,
+    val initialPhotoIndex: Int = 0,
     val roomName: String = "",
-    val photoInfo: PhotoInfo = PhotoInfo.Loading,
+    val photoInfo: PhotoInfo = PhotoInfo.Empty,
     val isSaving: Boolean = false,
     val messageInput: String = "",
     val isSendingMessage: Boolean = false,
@@ -23,10 +22,6 @@ data class PhotoDetailState(
 
     @Immutable
     sealed interface PhotoInfo {
-        data object Loading : PhotoInfo
-
-        data object Error : PhotoInfo
-
         data object Empty : PhotoInfo
 
         /**

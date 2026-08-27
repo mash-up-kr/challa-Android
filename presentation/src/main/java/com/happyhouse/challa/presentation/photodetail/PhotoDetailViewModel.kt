@@ -1,17 +1,14 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.lifecycle.viewModelScope
-import com.happyhouse.challa.domain.model.Photo
 import com.happyhouse.challa.domain.model.PhotoPage
-import com.happyhouse.challa.domain.model.RoomDetail
-import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.repository.PhotoRepository
-import com.happyhouse.challa.domain.repository.RoomRepository
-import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
+import com.happyhouse.challa.presentation.navigation.toPhotos
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
@@ -27,38 +24,29 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @HiltViewModel(assistedFactory = PhotoDetailViewModel.Factory::class)
 class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
-    @Assisted("initialPhotoId") private val initialPhotoId: Long,
-    private val roomRepository: RoomRepository,
+    @Assisted args: PhotoDetailArgs,
     private val photoRepository: PhotoRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
-        initialState = PhotoDetailState(roomId = roomId, initialPhotoId = initialPhotoId),
+        initialState = initialPhotoDetailState(args),
     ) {
-    private var loadJob: Job? = null
     private var appendJob: Job? = null
 
-    /** 지금까지 받아둔 사진 */
-    private val loadedPhotos = mutableListOf<Photo>()
-    private val loadedPhotoIds = mutableSetOf<Long>()
-    private var nextPhotoPage = FIRST_PHOTO_PAGE
-    private var hasNextPhotoPage = false
+    private val loadedPhotos = args.photos.toPhotos().toMutableList()
+    private val loadedPhotoIds = loadedPhotos.mapTo(mutableSetOf()) { photo -> photo.id }
+    private var nextPhotoPage = args.nextPhotoPage
+    private var hasNextPhotoPage = args.hasNextPhotoPage
 
     // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 좌표 seed로 쓰이므로 반응마다 고유해야 한다.
     private var nextReactionId = 0L
 
-    init {
-        onIntent(PhotoDetailIntent.PhotosLoad)
-    }
-
     override fun onIntent(intent: PhotoDetailIntent) {
         when (intent) {
-            PhotoDetailIntent.PhotosLoad -> handlePhotosLoad()
             PhotoDetailIntent.PhotosLoadMore -> handlePhotosLoadMore()
             is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.photo)
             is PhotoDetailIntent.ReactionClick -> handleReactionClick(intent.photo, intent.emoji)
@@ -67,70 +55,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handlePhotosLoad() {
-        // 재시도를 연타하면 조회가 겹쳐 나중에 끝난 응답이 이긴다.
-        loadJob?.cancel()
-        // 이전 목록에 이어 붙이려던 페이지가 뒤늦게 도착해 섞이지 않게 한다.
-        appendJob?.cancel()
-        resetPhotoPaging()
-
-        loadJob =
-            viewModelScope.launch {
-                updateState { copy(photoInfo = PhotoInfo.Loading) }
-
-                val roomDeferred = async { roomRepository.getRoom(roomId) }
-                val photosResult = loadPagesUntilInitialPhoto()
-                val roomResult = roomDeferred.await()
-
-                photosResult
-                    .onSuccess {
-                        val room = roomResult.roomOrNull()
-                        val photos = loadedPhotos.toPhotoDetailUiModels()
-
-                        // 사진과 제목을 함께 반영해, 제목이 사진보다 늦게 나타나지 않게 한다.
-                        updateState {
-                            copy(
-                                roomName = room?.title ?: roomName,
-                                photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
-                            )
-                        }
-                    }.onFailure { failure ->
-                        Timber.e(failure.causeOrNull(), "사진을 불러오지 못했습니다. roomId=$roomId")
-                        updateState { copy(photoInfo = PhotoInfo.Error) }
-                        sendEffect(PhotoDetailSideEffect.PhotosLoadFailed)
-                    }
-            }
-    }
-
-    /**
-     * 진입한 사진이 나올 때까지 첫 페이지부터 이어 받는다.
-     *
-     * 갤러리에서 뒤쪽 사진을 눌러 들어오면 그 사진이 첫 페이지에 없어 페이저를 그 자리에서 열 수 없다.
-     * 서버가 [PhotoPage.hasNext] 를 계속 true로 내려주면 끝나지 않으므로, 상한에 걸리면 받은 만큼이라도 그린다.
-     */
-    private suspend fun loadPagesUntilInitialPhoto(): ChallaResult<Unit> {
-        repeat(MAX_INITIAL_PHOTO_PAGE_COUNT) {
-            val pageResult = photoRepository.getPhotos(roomId, nextPhotoPage)
-
-            when (pageResult) {
-                is ChallaResult.Success -> appendPhotoPage(pageResult.data)
-                is ChallaResult.Failure -> return pageResult
-            }
-
-            if (initialPhotoId in loadedPhotoIds || !hasNextPhotoPage) return ChallaResult.Success(Unit)
-        }
-
-        Timber.w(
-            "진입한 사진을 ${MAX_INITIAL_PHOTO_PAGE_COUNT}페이지까지 찾지 못해 이어 받기를 멈춥니다. " +
-                "roomId=$roomId, photoId=$initialPhotoId",
-        )
-        return ChallaResult.Success(Unit)
-    }
-
-    /** 넘기는 중에 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
     private fun handlePhotosLoadMore() {
         if (!hasNextPhotoPage) return
-        if (appendJob?.isActive == true || loadJob?.isActive == true) return
+        if (appendJob?.isActive == true) return
 
         val requestedPage = nextPhotoPage
         appendJob =
@@ -161,42 +88,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    private fun resetPhotoPaging() {
-        loadedPhotos.clear()
-        loadedPhotoIds.clear()
-        nextPhotoPage = FIRST_PHOTO_PAGE
-        hasNextPhotoPage = false
-    }
-
     /** 페이지를 받는 사이에 사진이 늘면 같은 사진이 두 페이지에 걸쳐 오고, 페이저의 key가 겹쳐 깨진다. */
     private fun appendPhotoPage(photoPage: PhotoPage) {
         loadedPhotos += photoPage.photos.filter { photo -> loadedPhotoIds.add(photo.id) }
         hasNextPhotoPage = photoPage.hasNext
         nextPhotoPage++
-    }
-
-    /**
-     * 방 이름은 사진 옆의 부가 정보라, 조회에 실패해도 사진은 그대로 그리고 이미 떠 있는 제목을 유지한다.
-     *
-     * 상세는 인화가 끝난 방에서만 열리는 것을 전제로 원본을 그린다. 전제가 깨지면 미공개 사진이
-     * 원본으로 노출되므로, 진입 경로가 늘었을 때 알아차릴 수 있게 로그를 남긴다.
-     * TODO: 인화 전 방에서도 상세를 열 수 있게 되면 블러 여부를 기획과 맞춰 화면에 반영할 것.
-     */
-    private fun ChallaResult<RoomDetail>.roomOrNull(): RoomDetail? {
-        val room =
-            when (this) {
-                is ChallaResult.Success -> data
-                is ChallaResult.Failure -> {
-                    Timber.w(causeOrNull(), "방 정보를 불러오지 못했습니다. roomId=$roomId")
-                    return null
-                }
-            }
-
-        if (room.status != RoomStatus.PHOTO_PRINT_COMPLETED) {
-            Timber.w("인화가 끝나지 않은 방의 사진을 상세에서 원본으로 그리고 있습니다. roomId=$roomId, status=${room.status}")
-        }
-
-        return room
     }
 
     private fun handlePhotoSave(photo: PhotoDetailUiModel) {
@@ -271,14 +167,17 @@ class PhotoDetailViewModel @AssistedInject constructor(
     interface Factory {
         fun create(
             @Assisted("roomId") roomId: Long,
-            @Assisted("initialPhotoId") initialPhotoId: Long,
+            args: PhotoDetailArgs,
         ): PhotoDetailViewModel
     }
+}
 
-    companion object {
-        private const val FIRST_PHOTO_PAGE = 0
+private fun initialPhotoDetailState(args: PhotoDetailArgs): PhotoDetailState {
+    val photos = args.photos.toPhotos().toPhotoDetailUiModels()
 
-        /** 진입한 사진을 찾느라 이어 받을 페이지 상한 */
-        private const val MAX_INITIAL_PHOTO_PAGE_COUNT = 10
-    }
+    return PhotoDetailState(
+        initialPhotoIndex = args.initialPhotoIndex,
+        roomName = args.roomName,
+        photoInfo = if (photos.isEmpty()) PhotoInfo.Empty else PhotoInfo.Loaded(photos),
+    )
 }

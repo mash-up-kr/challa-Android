@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
+import timber.log.Timber
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val PhotoHorizontalPadding = 16.dp
@@ -51,9 +52,15 @@ fun PhotoDetailPager(
             state = pagerState,
             contentPadding = PaddingValues(horizontal = PhotoHorizontalPadding),
             pageSpacing = PhotoPageSpacing,
-            key = { page -> photos[page].id },
+            // 페이지 수는 화면이, key는 이 목록이 들고 있어 이어 받는 순간 한 프레임 어긋날 수 있다.
+            // 아직 안 받은 자리는 사진 id와 겹치지 않게 음수로 채운다.
+            key = { page -> photos.getOrNull(page)?.id ?: -(page.toLong() + 1) },
         ) { page ->
-            val photo = photos[page]
+            val photo =
+                photos.getOrNull(page) ?: run {
+                    Timber.d("아직 받지 못한 자리라 이 프레임은 비워둡니다. page=$page, size=${photos.size}")
+                    return@HorizontalPager
+                }
 
             PhotoDetailPage(
                 modifier = Modifier.fillMaxSize(),

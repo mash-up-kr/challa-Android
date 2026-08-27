@@ -1,7 +1,9 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,9 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailIntent
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailSideEffect
 import com.happyhouse.challa.presentation.photodetail.permission.rememberPhotoSavePermissionGate
@@ -27,12 +32,12 @@ private val ToastTopOffset = 8.dp
 @Composable
 fun PhotoDetailRoute(
     roomId: Long,
-    photoId: Long,
+    args: PhotoDetailArgs,
     onBackClick: () -> Unit,
     viewModel: PhotoDetailViewModel =
         hiltViewModel<PhotoDetailViewModel, PhotoDetailViewModel.Factory>(
             creationCallback = { factory ->
-                factory.create(roomId = roomId, initialPhotoId = photoId)
+                factory.create(roomId = roomId, args = args)
             },
         ),
 ) {
@@ -41,8 +46,8 @@ fun PhotoDetailRoute(
     val coroutineScope = rememberCoroutineScope()
     val saveSuccessMessage = stringResource(R.string.photo_detail_save_success)
     val saveFailureMessage = stringResource(R.string.photo_detail_save_failure)
-    val loadFailureMessage = stringResource(R.string.photo_detail_load_failure)
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
+    val retryLabel = stringResource(R.string.photo_detail_retry)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
@@ -67,20 +72,14 @@ fun PhotoDetailRoute(
         viewModel.uiEffect.collect { effect ->
             val visuals =
                 when (effect) {
-                    PhotoDetailSideEffect.PhotosLoadFailed ->
-                        ChallaToastVisuals(
-                            message = loadFailureMessage,
-                            icon = ChallaIcons.Error,
-                            iconTint = destructiveIconTint,
-                            topOffset = ToastTopOffset,
-                        )
-
                     PhotoDetailSideEffect.PhotosLoadMoreFailed ->
-                        ChallaToastVisuals(
-                            message = loadMoreFailureMessage,
+                        ChallaSnackbarVisuals(
+                            content = ChallaSnackbarContent.HeadingOnly(heading = loadMoreFailureMessage),
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,
+                            actionLabel = retryLabel,
+                            duration = SnackbarDuration.Long,
                         )
 
                     PhotoDetailSideEffect.SaveSucceeded ->
@@ -106,7 +105,14 @@ fun PhotoDetailRoute(
                             topOffset = ToastTopOffset,
                         )
                 }
-            launch { snackbarHostState.showSnackbar(visuals) }
+            launch {
+                val result = snackbarHostState.showSnackbar(visuals)
+                if (result == SnackbarResult.ActionPerformed &&
+                    effect == PhotoDetailSideEffect.PhotosLoadMoreFailed
+                ) {
+                    viewModel.onIntent(PhotoDetailIntent.PhotosLoadMore)
+                }
+            }
         }
     }
 
@@ -114,7 +120,6 @@ fun PhotoDetailRoute(
         modifier = Modifier.fillMaxSize(),
         state = state,
         snackbarHostState = snackbarHostState,
-        onRetryClick = { viewModel.onIntent(PhotoDetailIntent.PhotosLoad) },
         onLoadMore = { viewModel.onIntent(PhotoDetailIntent.PhotosLoadMore) },
         onSaveClick = requestSave,
         onEmojiClick = { photo, emoji -> viewModel.onIntent(PhotoDetailIntent.ReactionClick(photo, emoji)) },

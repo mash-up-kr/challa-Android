@@ -28,6 +28,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
@@ -44,7 +45,7 @@ fun GalleryRoute(
     roomId: Long,
     memberJoinedEvents: Flow<RoomMemberJoinedEvent>,
     onBackClick: () -> Unit,
-    onPhotoClick: (Long) -> Unit,
+    onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
@@ -83,7 +84,7 @@ fun GalleryRoute(
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId)
+                is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.args)
                 GallerySideEffect.NavigateToCamera -> {
                     shouldRefreshAfterCamera.value = true
                     onShootClick()
