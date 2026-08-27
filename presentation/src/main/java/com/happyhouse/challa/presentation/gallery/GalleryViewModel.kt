@@ -20,6 +20,8 @@ import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import com.happyhouse.challa.presentation.gallery.util.toPhotoInfo
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
+import com.happyhouse.challa.presentation.navigation.toPhotoArgs
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -53,6 +55,8 @@ class GalleryViewModel @AssistedInject constructor(
     private val loadedPhotoIds = mutableSetOf<Long>()
     private var nextPhotoPage = FIRST_PHOTO_PAGE
     private var hasNextPhotoPage = false
+
+    private var hasPendingLoadMore = false
 
     /** 이어 받은 사진으로 본문을 다시 만들 때 쓴다. */
     private var loadedRoom: RoomDetail? = null
@@ -116,6 +120,8 @@ class GalleryViewModel @AssistedInject constructor(
                     )
                     // 본문이 에러면 프로필 바도 그리지 않으므로 참여자 조회를 끝까지 기다릴 이유가 없다.
                     membersJob?.cancel()
+                    // 에러 화면을 그린 뒤 보류 요청이 이어지면 낡은 목록이 에러 화면을 덮는다.
+                    hasPendingLoadMore = false
                     updateState { copy(photoInfo = PhotoInfo.Error) }
                     return@launch
                 }
@@ -139,12 +145,22 @@ class GalleryViewModel @AssistedInject constructor(
                 startCountdownIfNeeded(room, remainingSeconds)
                 openInviteMenuIfFirstVisit()
             }
+        loadJob?.invokeOnCompletion(::loadPendingPageIfNeeded)
     }
 
     /** 스크롤에서 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
     private fun handlePhotosLoadMore() {
-        if (!hasNextPhotoPage) return
-        if (appendJob?.isActive == true || loadJob?.isActive == true) return
+        if (!hasNextPhotoPage) {
+            hasPendingLoadMore = false
+            return
+        }
+
+        // 그리드가 한 화면에 다 들어가면 스크롤이 없어, 여기서 버린 요청은 다시 올라오지 않는다.
+        if (appendJob?.isActive == true || loadJob?.isActive == true) {
+            hasPendingLoadMore = true
+            return
+        }
+        hasPendingLoadMore = false
 
         val room = loadedRoom
         if (room == null) {
@@ -175,11 +191,19 @@ class GalleryViewModel @AssistedInject constructor(
                             failure.causeOrNull(),
                             "다음 사진 페이지를 불러오지 못했습니다. roomId=$roomId, page=$requestedPage",
                         )
+                        // 실패한 페이지를 곧바로 다시 요청하면 실패가 이어지는 동안 요청이 반복된다.
+                        hasPendingLoadMore = false
                         sendEffect(GallerySideEffect.PhotosLoadMoreFailed)
                     }
             }
+        appendJob?.invokeOnCompletion(::loadPendingPageIfNeeded)
     }
 
+    private fun loadPendingPageIfNeeded(cause: Throwable?) {
+        if (cause == null && hasPendingLoadMore) handlePhotosLoadMore()
+    }
+
+    /** 보류된 요청은 지우지 않는다. 다시 받은 첫 페이지 뒤를 이어 받아야 해서 완료 콜백까지 살아 있어야 한다. */
     private fun resetPhotoPaging() {
         loadedPhotos.clear()
         loadedPhotoIds.clear()
@@ -266,8 +290,25 @@ class GalleryViewModel @AssistedInject constructor(
     }
 
     private fun handlePhotoClick(photoId: Long) {
+        // 목록을 다시 받는 사이에 눌리면 없는 사진일 수 있다. 화면은 열어주고 첫 사진부터 그린다.
+        val initialPhotoIndex = loadedPhotos.indexOfFirst { photo -> photo.id == photoId }
+        if (initialPhotoIndex < 0) {
+            Timber.w("누른 사진이 받아둔 목록에 없어 첫 사진부터 그립니다. roomId=$roomId, photoId=$photoId")
+        }
+
         viewModelScope.launch {
-            sendEffect(GallerySideEffect.NavigateToPhotoDetail(photoId))
+            sendEffect(
+                GallerySideEffect.NavigateToPhotoDetail(
+                    args =
+                        PhotoDetailArgs(
+                            initialPhotoIndex = initialPhotoIndex.coerceAtLeast(0),
+                            roomName = currentState.roomName,
+                            photos = loadedPhotos.toPhotoArgs(),
+                            nextPhotoPage = nextPhotoPage,
+                            hasNextPhotoPage = hasNextPhotoPage,
+                        ),
+                ),
+            )
         }
     }
 
