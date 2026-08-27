@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.repository.PhotoRepository
+import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
@@ -35,6 +36,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
     @Assisted args: PhotoDetailArgs,
     private val photoRepository: PhotoRepository,
+    private val roomRepository: RoomRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = initialPhotoDetailState(args),
     ) {
