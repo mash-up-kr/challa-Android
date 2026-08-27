@@ -78,6 +78,8 @@ class RoomWebSocketApi
         private fun openMemberJoinedStream(roomIds: Set<Long>): Flow<RoomMemberJoinedResponse.Room> =
             callbackFlow {
                 val disposed = AtomicBoolean(false)
+                // TODO: 현재 RECEIPT는 구독 확인 로그에만 사용한다. 추후 제한 시간 내 모든 RECEIPT가 수신되지 않으면
+                //  구독 실패로 처리하고 재연결하도록 개선한다.
                 val roomIdByReceiptId = roomIds.associateBy(::stompSubscriptionReceiptId)
                 val confirmedRoomIds = mutableSetOf<Long>()
                 val request =
@@ -144,7 +146,14 @@ class RoomWebSocketApi
                             reason: String,
                         ) {
                             if (!disposed.get()) {
-                                close(IOException("WebSocket 연결이 종료되었습니다. code=$code, reason=$reason"))
+                                val message = "WebSocket 연결이 종료되었습니다. code=$code, reason=$reason"
+                                val failure =
+                                    if (code.isPermanentWebSocketClosure()) {
+                                        PermanentWebSocketException(message)
+                                    } else {
+                                        IOException(message)
+                                    }
+                                close(failure)
                             }
                         }
 
@@ -233,6 +242,8 @@ class RoomWebSocketApi
                 code == HTTP_TOO_MANY_REQUESTS ||
                 code in HTTP_SERVER_ERROR_RANGE
 
+        private fun Int.isPermanentWebSocketClosure(): Boolean = this in PERMANENT_WEB_SOCKET_CLOSURE_CODES
+
         /** 동일한 조건으로 다시 연결해도 해결되지 않아 자동 재시도하지 않는 WebSocket 오류. */
         private class PermanentWebSocketException(
             message: String,
@@ -257,5 +268,14 @@ class RoomWebSocketApi
             const val HTTP_REQUEST_TIMEOUT = 408
             const val HTTP_TOO_MANY_REQUESTS = 429
             val HTTP_SERVER_ERROR_RANGE = 500..599
+            val PERMANENT_WEB_SOCKET_CLOSURE_CODES =
+                setOf(
+                    1002, // 프로토콜 오류
+                    1003, // 지원하지 않는 데이터
+                    1007, // 유효하지 않은 페이로드
+                    1008, // 정책 위반
+                    1009, // 허용 크기를 초과한 메시지
+                    1010, // 필수 확장 협상 실패
+                )
         }
     }
