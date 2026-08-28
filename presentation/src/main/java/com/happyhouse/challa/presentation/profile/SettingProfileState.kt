@@ -10,6 +10,8 @@ data class SettingProfileState(
     val profileImageUri: String? = null,
     val isSubmitting: Boolean = false,
     val isCompleted: Boolean = false,
+    /** 완료 화면을 다 보여주고 홈과 같은 모습으로 바뀌는 중인지 */
+    val isEnteringHome: Boolean = false,
     val isNicknameLengthExceeded: Boolean = false,
 ) : UiState {
     val canSubmit: Boolean

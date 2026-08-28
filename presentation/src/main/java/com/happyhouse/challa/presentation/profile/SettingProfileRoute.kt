@@ -3,17 +3,24 @@ package com.happyhouse.challa.presentation.profile
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
@@ -28,10 +35,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.ColorPainter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -44,13 +49,11 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaBottomSheet
 import com.happyhouse.challa.presentation.designsystem.component.ChallaInputBox
 import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
@@ -58,6 +61,8 @@ import com.happyhouse.challa.presentation.designsystem.component.button.ChallaBu
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
+import com.happyhouse.challa.presentation.designsystem.foundation.layout.LayoutTokens
+import com.happyhouse.challa.presentation.designsystem.foundation.motion.MotionTokens
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
@@ -293,18 +298,35 @@ private fun SettingProfileScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = headlineText(nickname = state.nickname, isCompleted = state.isCompleted),
-                    color = ChallaTheme.colors.labelNormal,
-                    style = ChallaTheme.typography.headingSmall.bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
-                )
+                // 홈으로 넘어갈 때 인사말이 홈 문구로 크로스페이드된다.
+                Crossfade(
+                    targetState = state.isEnteringHome,
+                    animationSpec = enterHomeSpec(),
+                    label = "SettingProfileHeadline",
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 24.dp),
+                ) { isEnteringHome ->
+                    Text(
+                        text =
+                            headlineText(
+                                nickname = state.nickname,
+                                isCompleted = state.isCompleted,
+                                isEnteringHome = isEnteringHome,
+                            ),
+                        color = ChallaTheme.colors.labelNormal,
+                        style = ChallaTheme.typography.headingSmall.bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
 
                 ProfileCard(
                     nickname = state.nickname,
                     profileImageUri = state.profileImageUri,
                     isCompleted = state.isCompleted,
+                    isEnteringHome = state.isEnteringHome,
                     isSubmitting = state.isSubmitting,
                     isNicknameLengthExceeded = state.isNicknameLengthExceeded,
                     onNicknameChange = { onIntent(SettingProfileIntent.NicknameChanged(it)) },
@@ -313,7 +335,15 @@ private fun SettingProfileScreen(
                 )
             }
 
-            if (!state.isCompleted) {
+            // 완료된 뒤에도 버튼 자리를 비워 둬야 위쪽 컨텐츠가 같은 높이에 머무른다.
+            // canSubmit 이 완료 상태에서 false 라 투명한 버튼이 눌리지도 않는다.
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(LayoutTokens.ContentBottomReserve),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
                 ChallaTextButton(
                     text =
                         stringResource(
@@ -328,8 +358,10 @@ private fun SettingProfileScreen(
                     modifier =
                         Modifier
                             .fillMaxWidth()
+                            .alpha(if (state.isCompleted) 0f else 1f)
                             .padding(horizontal = 16.dp)
-                            .padding(top = 16.dp, bottom = 12.dp),
+                            // 홈 화면 버튼과 같은 아래 여백을 둬야 두 화면의 버튼이 같은 높이에 놓인다.
+                            .padding(bottom = 8.dp),
                 )
             }
         }
@@ -340,37 +372,63 @@ private fun SettingProfileScreen(
 private fun headlineText(
     nickname: String,
     isCompleted: Boolean,
+    isEnteringHome: Boolean,
 ): AnnotatedString =
-    if (isCompleted) {
-        buildAnnotatedString {
-            withStyle(SpanStyle(color = ChallaTheme.colors.primary)) {
-                append(nickname)
+    when {
+        // 홈과 같은 문구로 끝나야 이동한 뒤에도 화면이 이어져 보인다.
+        isEnteringHome ->
+            buildAnnotatedString {
+                withStyle(SpanStyle(color = ChallaTheme.colors.primary)) {
+                    append(nickname)
+                }
+                append("\n")
+                append(stringResource(id = R.string.home_empty_subtitle))
             }
-            append(stringResource(id = R.string.create_profile_completed_greeting))
-        }
-    } else {
-        AnnotatedString(stringResource(id = R.string.create_profile_headline))
+
+        isCompleted ->
+            buildAnnotatedString {
+                withStyle(SpanStyle(color = ChallaTheme.colors.primary)) {
+                    append(nickname)
+                }
+                append(stringResource(id = R.string.create_profile_completed_greeting))
+            }
+
+        else -> AnnotatedString(stringResource(id = R.string.create_profile_headline))
     }
+
+/** 완료 화면이 홈과 같은 모습으로 바뀌는 동안 쓰는 공통 애니메이션 스펙 */
+private fun <T> enterHomeSpec() =
+    tween<T>(
+        durationMillis = PROFILE_ENTER_HOME_DURATION_MS,
+        easing = MotionTokens.EaseOut,
+    )
 
 @Composable
 private fun ProfileCard(
     nickname: String,
     profileImageUri: String?,
     isCompleted: Boolean,
+    isEnteringHome: Boolean,
     isSubmitting: Boolean,
     isNicknameLengthExceeded: Boolean,
     onNicknameChange: (String) -> Unit,
     onEditImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 홈에는 카드 배경이 없으므로 넘어가는 동안 배경만 서서히 지운다.
+    val backgroundAlpha by animateFloatAsState(
+        targetValue = if (isEnteringHome) 0f else 1f,
+        animationSpec = enterHomeSpec(),
+        label = "ProfileCardBackground",
+    )
+
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(ChallaTheme.colors.backgroundLevel1)
+                .background(ChallaTheme.colors.backgroundLevel1.copy(alpha = backgroundAlpha))
                 .padding(horizontal = 24.dp, vertical = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         ProfileImagePicker(
@@ -379,13 +437,23 @@ private fun ProfileCard(
             onClick = onEditImageClick,
         )
 
-        ChallaInputBox(
-            value = nickname,
-            onValueChange = onNicknameChange,
-            placeholder = stringResource(id = R.string.create_profile_nickname_placeholder),
-            enabled = !isCompleted && !isSubmitting,
-            isError = isNicknameLengthExceeded,
-        )
+        // 입력창이 위쪽 간격과 함께 접히면서 카드가 줄고, 가운데 정렬 덕분에 내용 전체가 홈 위치로 내려간다.
+        AnimatedVisibility(
+            visible = !isEnteringHome,
+            exit = shrinkVertically(animationSpec = enterHomeSpec()) + fadeOut(animationSpec = enterHomeSpec()),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(20.dp))
+
+                ChallaInputBox(
+                    value = nickname,
+                    onValueChange = onNicknameChange,
+                    placeholder = stringResource(id = R.string.create_profile_nickname_placeholder),
+                    enabled = !isCompleted && !isSubmitting,
+                    isError = isNicknameLengthExceeded,
+                )
+            }
+        }
     }
 }
 
@@ -399,14 +467,15 @@ private fun ProfileImagePicker(
     Box(
         modifier =
             modifier
-                .size(80.dp)
+                .size(LayoutTokens.ProfileImageSize)
                 .then(
                     if (isEditable) Modifier.noRippleClickOnce(onClick = onClick) else Modifier,
                 ),
     ) {
-        ProfileImage(
-            profileImageUri = profileImageUri,
+        ChallaProfileImage(
+            profileImageUrl = profileImageUri,
             modifier = Modifier.fillMaxSize(),
+            fallbackIcon = R.drawable.ic_profile_setting,
         )
 
         if (isEditable) {
@@ -418,42 +487,6 @@ private fun ProfileImagePicker(
                     Modifier
                         .align(Alignment.BottomEnd)
                         .size(32.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProfileImage(
-    profileImageUri: String?,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .clip(CircleShape)
-                .background(ChallaTheme.colors.backgroundLevel3),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (profileImageUri == null) {
-            Image(
-                painter = painterResource(R.drawable.ic_profile_setting),
-                contentDescription = stringResource(id = R.string.create_profile_image_description),
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(profileImageUri)
-                        .crossfade(true)
-                        .build(),
-                contentDescription = stringResource(id = R.string.create_profile_image_description),
-                contentScale = ContentScale.Crop,
-                placeholder = ColorPainter(ChallaTheme.colors.backgroundLevel3),
-                error = ColorPainter(ChallaTheme.colors.backgroundLevel3),
-                modifier = Modifier.fillMaxSize(),
             )
         }
     }
