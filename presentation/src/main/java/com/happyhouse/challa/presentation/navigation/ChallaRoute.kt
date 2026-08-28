@@ -23,6 +23,11 @@ sealed interface ChallaRoute : NavKey {
     ) : ChallaRoute
 
     @Serializable
+    data class Chat(
+        val roomName: String,
+    ) : ChallaRoute
+
+    @Serializable
     data object Login : ChallaRoute
 
     @Serializable
