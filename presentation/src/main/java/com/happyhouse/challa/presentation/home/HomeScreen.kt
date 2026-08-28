@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,9 +49,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -64,10 +65,12 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
+import com.happyhouse.challa.presentation.designsystem.foundation.layout.LayoutTokens
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -201,24 +204,30 @@ private fun HomeScreen(
                         )
                     }
 
-                state.isEmpty -> {
+                state.isEmpty ->
                     Box(
                         modifier =
                             Modifier
                                 .weight(1f)
                                 .fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
                     ) {
+                        // 프로필 설정 화면과 같은 높이를 비워 둬야 넘어올 때 프로필 이미지가 제자리에 온다.
+                        // 두 번째 버튼은 시안대로 이 영역 위로 겹친다.
                         HomeEmptyMessage(
                             nickname = state.nickname,
                             profileImageUrl = state.profileImageUrl,
+                            modifier =
+                                Modifier
+                                    .align(Alignment.Center)
+                                    .padding(bottom = LayoutTokens.ContentBottomReserve),
+                        )
+
+                        HomeActionButtons(
+                            onCreateRoomClick = onCreateRoomClick,
+                            onInviteCodeClick = onInviteCodeClick,
+                            modifier = Modifier.align(Alignment.BottomCenter),
                         )
                     }
-                    HomeActionButtons(
-                        onCreateRoomClick = onCreateRoomClick,
-                        onInviteCodeClick = onInviteCodeClick,
-                    )
-                }
 
                 else ->
                     HomeRoomsContent(
@@ -799,6 +808,12 @@ private fun HomeTopBarAction(
     }
 }
 
+/**
+ * 방이 하나도 없을 때의 홈 본문.
+ *
+ * 프로필 설정 화면에서 넘어오며 이어지는 화면이라, 그쪽 완료 상태와 같은 여백 구조를 쓴다.
+ * 문구 영역은 상하 24dp, 프로필 이미지 영역은 상하 28dp.
+ */
 @Composable
 private fun HomeEmptyMessage(
     nickname: String,
@@ -806,59 +821,39 @@ private fun HomeEmptyMessage(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(horizontal = 32.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = nickname,
-            color = ChallaTheme.colors.primary,
-            textAlign = TextAlign.Center,
-            style = ChallaTheme.typography.headingSmall.bold,
-        )
-        Text(
-            text = stringResource(id = R.string.home_empty_subtitle),
+            text =
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = ChallaTheme.colors.primary)) {
+                        append(nickname)
+                    }
+                    append("\n")
+                    append(stringResource(id = R.string.home_empty_subtitle))
+                },
             color = ChallaTheme.colors.labelNormal,
             textAlign = TextAlign.Center,
             style = ChallaTheme.typography.headingSmall.bold,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
         )
-        Spacer(modifier = Modifier.height(24.dp))
-        HomeProfileImage(profileImageUrl = profileImageUrl)
-    }
-}
 
-@Composable
-private fun HomeProfileImage(
-    profileImageUrl: String?,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier =
-            modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(ChallaTheme.colors.backgroundLevel3),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (profileImageUrl == null) {
-            Icon(
-                painter = painterResource(id = ChallaIcons.Profile),
-                contentDescription = stringResource(id = R.string.home_profile_description),
-                modifier = Modifier.size(80.dp),
-                tint = ChallaTheme.colors.labelNeutral,
-            )
-        } else {
-            AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(profileImageUrl)
-                        .crossfade(true)
-                        .build(),
-                contentDescription = stringResource(id = R.string.home_profile_description),
-                contentScale = ContentScale.Crop,
-                placeholder = ColorPainter(ChallaTheme.colors.backgroundLevel3),
-                error = ColorPainter(ChallaTheme.colors.backgroundLevel3),
-                modifier = Modifier.fillMaxSize(),
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+                    .padding(vertical = 28.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            ChallaProfileImage(
+                profileImageUrl = profileImageUrl,
+                modifier = Modifier.size(LayoutTokens.ProfileImageSize),
+                fallbackIcon = R.drawable.ic_profile_setting,
             )
         }
     }
