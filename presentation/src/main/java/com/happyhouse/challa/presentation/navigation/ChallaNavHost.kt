@@ -79,6 +79,9 @@ fun ChallaNavHost(
                             onShootClick = {
                                 navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
                             },
+                            onChatClick = { roomName ->
+                                navigator.navigate(ChallaRoute.Chat(roomName = roomName))
+                            },
                         )
                     }
                     entry<ChallaRoute.Chat> { route ->

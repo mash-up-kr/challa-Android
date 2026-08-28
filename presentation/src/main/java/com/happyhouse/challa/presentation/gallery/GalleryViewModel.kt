@@ -86,6 +86,7 @@ class GalleryViewModel @AssistedInject constructor(
             GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
+            GalleryIntent.ChatClick -> handleChatClick()
         }
     }
 
@@ -315,6 +316,12 @@ class GalleryViewModel @AssistedInject constructor(
     private fun handleShootClick() {
         viewModelScope.launch {
             sendEffect(GallerySideEffect.NavigateToCamera)
+        }
+    }
+
+    private fun handleChatClick() {
+        viewModelScope.launch {
+            sendEffect(GallerySideEffect.NavigateToChat(roomName = currentState.roomName))
         }
     }
 

@@ -44,6 +44,7 @@ fun GalleryRoute(
     onBackClick: () -> Unit,
     onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
+    onChatClick: (roomName: String) -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
@@ -74,6 +75,7 @@ fun GalleryRoute(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.args)
+                is GallerySideEffect.NavigateToChat -> onChatClick(effect.roomName)
                 GallerySideEffect.NavigateToCamera -> {
                     shouldRefreshAfterCamera.value = true
                     onShootClick()
