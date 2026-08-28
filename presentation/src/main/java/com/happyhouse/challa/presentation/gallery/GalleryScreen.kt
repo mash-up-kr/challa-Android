@@ -28,8 +28,8 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
-import com.happyhouse.challa.presentation.gallery.component.GalleryBackgroundGlow
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
 import com.happyhouse.challa.presentation.gallery.component.GalleryCountdownBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryProfileMenu
@@ -49,9 +49,12 @@ fun GalleryScreen(
     onInviteCodeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.background(ChallaTheme.colors.backgroundSurface)) {
-        GalleryBackgroundGlow(modifier = Modifier.align(Alignment.BottomCenter))
-
+    Box(
+        modifier =
+            modifier
+                .background(ChallaTheme.colors.backgroundSurface)
+                .challaBackgroundGlow(),
+    ) {
         GalleryScaffold(
             state = state,
             snackbarHostState = snackbarHostState,

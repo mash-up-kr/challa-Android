@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.setting.theme
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,9 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,8 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -43,6 +38,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.setting.theme.model.ThemeUiModel
 
@@ -75,16 +71,9 @@ fun ThemeScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(ChallaTheme.colors.backgroundSurface),
+                    .background(ChallaTheme.colors.backgroundSurface)
+                    .challaBackgroundGlow(),
         ) {
-            ThemeBackgroundGlow(
-                color = selectedTheme.color(),
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .offset(y = 560.dp),
-            )
-
             Column(
                 modifier =
                     Modifier
@@ -176,20 +165,6 @@ private fun ThemeUiModel.color(): Color =
         ThemeUiModel.BLUEBERRY -> ChallaTheme.colors.primaryBlue
         ThemeUiModel.ACAI_BOWL -> ChallaTheme.colors.primaryPurple
     }
-
-@Composable
-private fun ThemeBackgroundGlow(
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Image(
-        painter = painterResource(R.drawable.img_theme_background_glow),
-        contentDescription = null,
-        modifier = modifier.requiredSize(width = 1584.dp, height = 1373.dp),
-        contentScale = ContentScale.FillBounds,
-        colorFilter = ColorFilter.tint(color),
-    )
-}
 
 @Preview
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
