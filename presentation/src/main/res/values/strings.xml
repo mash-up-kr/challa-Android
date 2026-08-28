@@ -70,7 +70,6 @@
     <string name="chat_back_description">뒤로가기</string>
     <string name="chat_message_placeholder">메시지를 보내 보세요.</string>
     <string name="chat_first_message_tooltip">첫 번째 메시지를 보내보세요!</string>
-    <string name="chat_temporary_room_name">해피하우스 강릉 여행</string>
 
     <string name="app_name_kr">찰나</string>
     <string name="app_name_en">Challa</string>

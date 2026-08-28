@@ -17,6 +17,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.CameraRoute
+import com.happyhouse.challa.presentation.chatting.ChatRoute
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
@@ -78,6 +79,12 @@ fun ChallaNavHost(
                             onShootClick = {
                                 navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
                             },
+                        )
+                    }
+                    entry<ChallaRoute.Chat> { route ->
+                        ChatRoute(
+                            roomName = route.roomName,
+                            onBackClick = { navigator.goBack() },
                         )
                     }
                     entry<ChallaRoute.PhotoDetail> { route ->

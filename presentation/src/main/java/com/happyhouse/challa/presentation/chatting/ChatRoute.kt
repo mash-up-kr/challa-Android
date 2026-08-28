@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.happyhouse.challa.presentation.chatting.contract.ChatIntent
+import com.happyhouse.challa.presentation.chatting.contract.ChatState
 
 @Composable
 fun ChatRoute(
@@ -16,9 +18,16 @@ fun ChatRoute(
     var message by rememberSaveable { mutableStateOf("") }
 
     ChatScreen(
-        roomName = roomName,
-        message = message,
-        onMessageChange = { message = it },
+        state =
+            ChatState(
+                roomName = roomName,
+                message = message,
+            ),
+        onIntent = { intent ->
+            when (intent) {
+                is ChatIntent.MessageChange -> message = intent.message
+            }
+        },
         onBackClick = onBackClick,
         modifier = modifier,
     )
