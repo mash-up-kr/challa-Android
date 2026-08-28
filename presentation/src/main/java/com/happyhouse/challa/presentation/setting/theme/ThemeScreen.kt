@@ -50,8 +50,12 @@ fun ThemeScreen(
     modifier: Modifier = Modifier,
 ) {
     ChallaScaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = ChallaTheme.colors.backgroundSurface,
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(ChallaTheme.colors.backgroundSurface)
+                .challaBackgroundGlow(),
+        containerColor = Color.Transparent,
         topBar = {
             ChallaTopNavigation(
                 title = stringResource(R.string.theme_title),
@@ -70,9 +74,7 @@ fun ThemeScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(ChallaTheme.colors.backgroundSurface)
-                    .challaBackgroundGlow(),
+                    .padding(innerPadding),
         ) {
             Column(
                 modifier =
