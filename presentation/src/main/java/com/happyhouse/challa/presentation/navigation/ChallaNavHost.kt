@@ -3,6 +3,8 @@ package com.happyhouse.challa.presentation.navigation
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,6 +18,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.CameraRoute
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
@@ -41,160 +44,169 @@ fun ChallaNavHost(
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
 
-    NavDisplay(
-        backStack = navigator.backStack,
-        modifier = modifier,
-        entryDecorators =
-            listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-        transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
-        popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
-        predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
-        entryProvider =
-            entryProvider {
-                entry<ChallaRoute.Camera> { route ->
-                    CameraRoute(
-                        roomId = route.roomId,
-                    )
-                }
-                entry<ChallaRoute.Gallery> { route ->
-                    GalleryRoute(
-                        roomId = route.roomId,
-                        onBackClick = { navigator.goBack() },
-                        onPhotoClick = { photoId ->
-                            navigator.navigate(
-                                ChallaRoute.PhotoDetail(roomId = route.roomId, photoId = photoId),
-                            )
-                        },
-                        onShootClick = {
-                            navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
-                        },
-                    )
-                }
-                entry<ChallaRoute.PhotoDetail> { route ->
-                    PhotoDetailRoute(
-                        roomId = route.roomId,
-                        photoId = route.photoId,
-                        onBackClick = { navigator.goBack() },
-                    )
-                }
-                entry<ChallaRoute.Login> {
-                    LoginRoute(
-                        snackbarHostState = snackbarHostState,
-                        onLoginSuccess = { isNewUser ->
-                            // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
-                            navigator.replace(
-                                if (isNewUser) ChallaRoute.SettingProfile else ChallaRoute.Home,
-                            )
-                        },
-                    )
-                }
-                entry<ChallaRoute.SettingProfile> {
-                    SettingProfileRoute(
-                        onProfileCreated = {
-                            navigator.replace(ChallaRoute.Home)
-                        },
-                    )
-                }
-                entry<ChallaRoute.EditProfile> { route ->
-                    EditProfileRoute(
-                        initialNickname = route.nickname,
-                        initialProfileImageUrl = route.profileImageUrl,
-                        onBackClick = { navigator.goBack() },
-                        onProfileUpdated = {
-                            navigator.goBack()
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    ChallaSnackbarVisuals(
-                                        content =
-                                            ChallaSnackbarContent.HeadingOnly(
-                                                heading = profileUpdateSuccessMessage,
-                                            ),
-                                        icon = ChallaIcons.Check,
+    Box(modifier = modifier) {
+        NavDisplay(
+            backStack = navigator.backStack,
+            modifier = Modifier.fillMaxSize(),
+            entryDecorators =
+                listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
+            transitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
+            popTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
+            predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
+            entryProvider =
+                entryProvider {
+                    entry<ChallaRoute.Camera> { route ->
+                        CameraRoute(
+                            roomId = route.roomId,
+                        )
+                    }
+                    entry<ChallaRoute.Gallery> { route ->
+                        GalleryRoute(
+                            roomId = route.roomId,
+                            onBackClick = { navigator.goBack() },
+                            onPhotoClick = { args ->
+                                navigator.navigate(
+                                    ChallaRoute.PhotoDetail(
+                                        roomId = route.roomId,
+                                        args = args,
                                     ),
                                 )
-                            }
-                        },
-                    )
-                }
-                entry<ChallaRoute.Home> {
-                    HomeRoute(
-                        onNavigateToSetting = {
-                            navigator.navigate(ChallaRoute.Setting)
-                        },
-                        onNavigateToRoom = { roomId ->
-                            navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
-                        },
-                    )
-                }
-                entry<ChallaRoute.Setting> {
-                    SettingRoute(
-                        snackbarHostState = snackbarHostState,
-                        onBackClick = { navigator.goBack() },
-                        onProfileEditClick = { nickname, profileImageUrl ->
-                            navigator.navigate(
-                                ChallaRoute.EditProfile(
-                                    nickname = nickname,
-                                    profileImageUrl = profileImageUrl,
-                                ),
-                            )
-                        },
-                        onThemeClick = {
-                            navigator.navigate(ChallaRoute.ThemeSetting)
-                        },
-                        onNotificationClick = {
-                            navigator.navigate(ChallaRoute.Notification)
-                        },
-                        onAccountClick = {
-                            navigator.navigate(ChallaRoute.Account)
-                        },
-                        onSupportClick = {},
-                        onFeedbackClick = {},
-                        onOpenSourceLicenseClick = {
-                            navigator.navigate(ChallaRoute.OpenSourceLicense)
-                        },
-                    )
-                }
-                entry<ChallaRoute.ThemeSetting> {
-                    ThemeRoute(
-                        onBackClick = { navigator.goBack() },
-                    )
-                }
-                entry<ChallaRoute.Notification> {
-                    NotificationRoute(
-                        onBackClick = { navigator.goBack() },
-                    )
-                }
-                entry<ChallaRoute.Account> {
-                    AccountRoute(
-                        onBackClick = { navigator.goBack() },
-                        onLogoutSuccess = {
-                            navigator.clearAndNavigate(ChallaRoute.Login)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    ChallaSnackbarVisuals(
-                                        content =
-                                            ChallaSnackbarContent.HeadingOnly(
-                                                heading = logoutSuccessMessage,
-                                            ),
-                                        icon = ChallaIcons.Check,
+                            },
+                            onShootClick = {
+                                navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.PhotoDetail> { route ->
+                        PhotoDetailRoute(
+                            roomId = route.roomId,
+                            args = route.args,
+                            onBackClick = { navigator.goBack() },
+                        )
+                    }
+                    entry<ChallaRoute.Login> {
+                        LoginRoute(
+                            onLoginSuccess = { isNewUser ->
+                                // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
+                                navigator.replace(
+                                    if (isNewUser) ChallaRoute.SettingProfile else ChallaRoute.Home,
+                                )
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.SettingProfile> {
+                        SettingProfileRoute(
+                            onProfileCreated = {
+                                navigator.replace(ChallaRoute.Home)
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.EditProfile> { route ->
+                        EditProfileRoute(
+                            initialNickname = route.nickname,
+                            initialProfileImageUrl = route.profileImageUrl,
+                            onBackClick = { navigator.goBack() },
+                            onProfileUpdated = {
+                                navigator.goBack()
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        ChallaSnackbarVisuals(
+                                            content =
+                                                ChallaSnackbarContent.HeadingOnly(
+                                                    heading = profileUpdateSuccessMessage,
+                                                ),
+                                            icon = ChallaIcons.Check,
+                                        ),
+                                    )
+                                }
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.Home> {
+                        HomeRoute(
+                            onNavigateToSetting = {
+                                navigator.navigate(ChallaRoute.Setting)
+                            },
+                            onNavigateToRoom = { roomId ->
+                                navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.Setting> {
+                        SettingRoute(
+                            snackbarHostState = snackbarHostState,
+                            onBackClick = { navigator.goBack() },
+                            onProfileEditClick = { nickname, profileImageUrl ->
+                                navigator.navigate(
+                                    ChallaRoute.EditProfile(
+                                        nickname = nickname,
+                                        profileImageUrl = profileImageUrl,
                                     ),
                                 )
-                            }
-                        },
-                        onWithdrawSuccess = {
-                            navigator.clearAndNavigate(ChallaRoute.Login)
-                        },
-                    )
-                }
-                entry<ChallaRoute.OpenSourceLicense> {
-                    OpenSourceLicenseRoute(
-                        snackbarHostState = snackbarHostState,
-                        onBackClick = { navigator.goBack() },
-                    )
-                }
-            },
-    )
+                            },
+                            onThemeClick = {
+                                navigator.navigate(ChallaRoute.ThemeSetting)
+                            },
+                            onNotificationClick = {
+                                navigator.navigate(ChallaRoute.Notification)
+                            },
+                            onAccountClick = {
+                                navigator.navigate(ChallaRoute.Account)
+                            },
+                            onSupportClick = {},
+                            onFeedbackClick = {},
+                            onOpenSourceLicenseClick = {
+                                navigator.navigate(ChallaRoute.OpenSourceLicense)
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.ThemeSetting> {
+                        ThemeRoute(
+                            onBackClick = { navigator.goBack() },
+                        )
+                    }
+                    entry<ChallaRoute.Notification> {
+                        NotificationRoute(
+                            onBackClick = { navigator.goBack() },
+                        )
+                    }
+                    entry<ChallaRoute.Account> {
+                        AccountRoute(
+                            onBackClick = { navigator.goBack() },
+                            onLogoutSuccess = {
+                                navigator.clearAndNavigate(ChallaRoute.Login)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        ChallaSnackbarVisuals(
+                                            content =
+                                                ChallaSnackbarContent.HeadingOnly(
+                                                    heading = logoutSuccessMessage,
+                                                ),
+                                            icon = ChallaIcons.Check,
+                                        ),
+                                    )
+                                }
+                            },
+                            onWithdrawSuccess = {
+                                navigator.clearAndNavigate(ChallaRoute.Login)
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.OpenSourceLicense> {
+                        OpenSourceLicenseRoute(
+                            snackbarHostState = snackbarHostState,
+                            onBackClick = { navigator.goBack() },
+                        )
+                    }
+                },
+        )
+
+        ChallaSnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 }

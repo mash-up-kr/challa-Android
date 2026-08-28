@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,9 +13,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
@@ -28,28 +24,10 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun PhotoDetailContent(
     state: PhotoDetailState,
     pagerState: PagerState,
-    onRetryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         when (val photoInfo = state.photoInfo) {
-            PhotoInfo.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = ChallaTheme.colors.primary,
-                )
-            }
-
-            PhotoInfo.Error -> {
-                ChallaTextButton(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = stringResource(R.string.photo_detail_retry),
-                    onClick = onRetryClick,
-                    variant = ChallaButtonVariant.NEUTRAL,
-                    size = ChallaButtonSize.MEDIUM,
-                )
-            }
-
             PhotoInfo.Empty -> {
                 PhotoDetailMessage(
                     modifier = Modifier.align(Alignment.Center),
@@ -93,35 +71,10 @@ private fun PhotoDetailContentLoadedPreview() {
         state =
             PhotoDetailState(
                 roomName = "해피하우스 강릉 여행",
-                initialPhotoId = 0L,
+                initialPhotoIndex = 0,
                 photoInfo = PhotoInfo.Loaded(photos),
             ),
         pagerState = rememberPagerState { photos.size },
-        onRetryClick = {},
-    )
-}
-
-@ComposePreview(showBackground = true, heightDp = 730, name = "PhotoDetail - Loading")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoDetailContentLoadingPreview() {
-    PhotoDetailContent(
-        modifier = Modifier.fillMaxSize(),
-        state = PhotoDetailState(photoInfo = PhotoInfo.Loading),
-        pagerState = rememberPagerState { 0 },
-        onRetryClick = {},
-    )
-}
-
-@ComposePreview(showBackground = true, heightDp = 730, name = "PhotoDetail - Error")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoDetailContentErrorPreview() {
-    PhotoDetailContent(
-        modifier = Modifier.fillMaxSize(),
-        state = PhotoDetailState(photoInfo = PhotoInfo.Error),
-        pagerState = rememberPagerState { 0 },
-        onRetryClick = {},
     )
 }
 
@@ -133,6 +86,5 @@ private fun PhotoDetailContentEmptyPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Empty),
         pagerState = rememberPagerState { 0 },
-        onRetryClick = {},
     )
 }
