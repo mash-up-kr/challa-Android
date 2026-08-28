@@ -1,6 +1,9 @@
 package com.happyhouse.challa.presentation.home
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -34,9 +37,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
@@ -71,6 +76,7 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNaviga
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.foundation.layout.LayoutTokens
+import com.happyhouse.challa.presentation.designsystem.foundation.motion.MotionTokens
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -83,6 +89,7 @@ import com.happyhouse.challa.presentation.home.model.PrintState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.delay
 
 private val SHOOTING_CARD_WIDTH = 200.dp
 private val SHOOTING_CARD_HEIGHT = 266.dp
@@ -100,8 +107,23 @@ private fun filmCardRotation(index: Int): Float = FILM_CARD_ROTATIONS[index % FI
 /** 필름 스택에 미리보기로 노출하는 사진(더보기 카드 제외) 최대 개수 */
 private const val FILM_PREVIEW_MAX = 3
 
+/** 프로필 설정에서 넘어온 직후, 하단 버튼이 등장하기까지 기다리는 시간 */
+private const val ACTION_BUTTONS_ENTER_DELAY_MS = 200L
+
+private const val ACTION_BUTTONS_ENTER_DURATION_MS = 500
+
+/** 하단 버튼이 등장을 시작하는 위치. 여기서 제자리까지 올라온다. */
+private val ACTION_BUTTONS_ENTER_OFFSET = 50.dp
+
+private fun <T> actionButtonsEnterSpec() =
+    tween<T>(
+        durationMillis = ACTION_BUTTONS_ENTER_DURATION_MS,
+        easing = MotionTokens.EaseOut,
+    )
+
 @Composable
 fun HomeRoute(
+    fromProfileSetup: Boolean,
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -113,6 +135,13 @@ fun HomeRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
+
+    // fromProfileSetup은 라우트 인자라 이 홈 엔트리가 살아있는 동안 계속 true로 남는다.
+    // 스피너 억제는 프로필 설정에서 넘어온 첫 로드에만 필요하므로, 로드가 끝나면 여기서 한 번 소비한다.
+    var suppressLoading by rememberSaveable { mutableStateOf(fromProfileSetup) }
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) suppressLoading = false
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -132,6 +161,8 @@ fun HomeRoute(
     HomeScreen(
         state = state,
         snackbarHostState = snackbarHostState,
+        suppressLoading = suppressLoading,
+        fromProfileSetup = fromProfileSetup,
         onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
@@ -165,6 +196,8 @@ fun HomeRoute(
 private fun HomeScreen(
     state: HomeState,
     snackbarHostState: SnackbarHostState,
+    suppressLoading: Boolean,
+    fromProfileSetup: Boolean,
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
@@ -192,7 +225,9 @@ private fun HomeScreen(
             )
 
             when {
-                state.isLoading ->
+                // 프로필 설정에서 막 넘어왔다면 방이 없는 게 확실하다.
+                // 목록을 불러오는 동안 스피너로 갈아끼우면 이어서 보이던 화면이 끊기므로 빈 상태를 그대로 둔다.
+                state.isLoading && !suppressLoading ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,
@@ -223,6 +258,7 @@ private fun HomeScreen(
                         )
 
                         HomeActionButtons(
+                            fromProfileSetup = fromProfileSetup,
                             onCreateRoomClick = onCreateRoomClick,
                             onInviteCodeClick = onInviteCodeClick,
                             modifier = Modifier.align(Alignment.BottomCenter),
@@ -861,14 +897,38 @@ private fun HomeEmptyMessage(
 
 @Composable
 private fun HomeActionButtons(
+    fromProfileSetup: Boolean,
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 프로필 설정에서 막 넘어온 경우에만 등장 애니메이션을 재생하고, 그 외에는 처음부터 제자리에 둔다.
+    // 화면 회전이나 프로세스 복원으로 재생 여부를 잃으면 애니메이션이 다시 돌므로 저장해 둔다.
+    var isEntered by rememberSaveable { mutableStateOf(!fromProfileSetup) }
+    LaunchedEffect(fromProfileSetup) {
+        if (fromProfileSetup) {
+            delay(ACTION_BUTTONS_ENTER_DELAY_MS)
+            isEntered = true
+        }
+    }
+
+    val enterAlpha by animateFloatAsState(
+        targetValue = if (isEntered) 1f else 0f,
+        animationSpec = actionButtonsEnterSpec(),
+        label = "HomeActionButtonsAlpha",
+    )
+    val enterOffset by animateDpAsState(
+        targetValue = if (isEntered) 0.dp else ACTION_BUTTONS_ENTER_OFFSET,
+        animationSpec = actionButtonsEnterSpec(),
+        label = "HomeActionButtonsOffset",
+    )
+
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
+                .offset(y = enterOffset)
+                .alpha(enterAlpha)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -924,6 +984,8 @@ private fun HomeRoomsPreview() {
                     rooms = previewRooms(),
                 ),
             snackbarHostState = remember { SnackbarHostState() },
+            suppressLoading = false,
+            fromProfileSetup = false,
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
@@ -945,6 +1007,8 @@ private fun HomeEmptyPreview() {
                     profileImageUrl = null,
                 ),
             snackbarHostState = remember { SnackbarHostState() },
+            suppressLoading = false,
+            fromProfileSetup = false,
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},
@@ -961,6 +1025,8 @@ private fun HomeLoadingPreview() {
         HomeScreen(
             state = HomeState(isLoading = true),
             snackbarHostState = remember { SnackbarHostState() },
+            suppressLoading = false,
+            fromProfileSetup = false,
             onCreateRoomClick = {},
             onInviteCodeClick = {},
             onSettingClick = {},

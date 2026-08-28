@@ -35,7 +35,10 @@ sealed interface ChallaRoute : NavKey {
     ) : ChallaRoute
 
     @Serializable
-    data object Home : ChallaRoute
+    data class Home(
+        /** 프로필 설정을 막 마치고 들어왔는지. 홈 진입 애니메이션 재생 여부를 가른다. */
+        val fromProfileSetup: Boolean = false,
+    ) : ChallaRoute
 
     @Serializable
     data object Setting : ChallaRoute
