@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.designsystem.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -31,7 +31,6 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
  *
  * 기본 아이콘을 깔고 그 위에 사진을 덮으므로, 사진이 없거나 로딩·실패해도 기본 아이콘이 보인다.
  *
- * @param fallbackIcon 사진이 없을 때 깔아 둘 기본 아이콘.
  * @param fallbackIconTint null이면 아이콘 원본 색을 쓴다.
  */
 @Composable
@@ -39,7 +38,6 @@ fun ChallaProfileImage(
     profileImageUrl: String?,
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.Transparent,
-    @DrawableRes fallbackIcon: Int = ChallaIcons.Profile,
     fallbackIconTint: Color? = null,
 ) {
     Box(
@@ -50,7 +48,7 @@ fun ChallaProfileImage(
     ) {
         Icon(
             modifier = Modifier.fillMaxSize(),
-            painter = painterResource(fallbackIcon),
+            painter = painterResource(R.drawable.img_setting_profile_placeholder),
             contentDescription = null,
             tint = fallbackIconTint ?: Color.Unspecified,
         )

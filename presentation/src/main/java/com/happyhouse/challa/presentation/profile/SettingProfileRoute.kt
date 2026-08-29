@@ -475,7 +475,6 @@ private fun ProfileImagePicker(
         ChallaProfileImage(
             profileImageUrl = profileImageUri,
             modifier = Modifier.fillMaxSize(),
-            fallbackIcon = R.drawable.ic_profile_setting,
         )
 
         if (isEditable) {

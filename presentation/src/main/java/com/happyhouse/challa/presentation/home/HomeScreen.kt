@@ -899,7 +899,6 @@ private fun HomeEmptyMessage(
             ChallaProfileImage(
                 profileImageUrl = profileImageUrl,
                 modifier = Modifier.size(LayoutTokens.ProfileImageSize),
-                fallbackIcon = R.drawable.ic_profile_setting,
             )
         }
     }
