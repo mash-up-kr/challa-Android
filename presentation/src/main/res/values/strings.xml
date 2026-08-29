@@ -72,6 +72,18 @@
     <string name="chat_back_description">뒤로가기</string>
     <string name="chat_message_placeholder">메시지를 보내 보세요.</string>
     <string name="chat_first_message_tooltip">첫 번째 메시지를 보내보세요!</string>
+    <string name="gallery_setting_description">방 설정</string>
+
+    <!-- roomSettingScreen -->
+    <string name="room_setting_title">방 설정</string>
+    <string name="room_setting_back_description">뒤로가기</string>
+    <string name="room_setting_room_name">방 이름</string>
+    <string name="room_setting_cover_image">커버 이미지</string>
+    <string name="edit_room_name_title">방 이름</string>
+    <string name="edit_room_name_close_description">닫기</string>
+    <string name="edit_room_name_placeholder">방 이름 입력</string>
+    <string name="edit_room_name_submit">변경</string>
+    <string name="room_setting_room_name_update_failure">방 이름을 변경하지 못했어요.</string>
 
     <string name="room_member_joined_suffix">에 참여했어요.</string>
 
