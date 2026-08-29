@@ -1,6 +1,7 @@
 package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.RoomApi
+import com.happyhouse.challa.data.network.api.RoomWebSocketApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
@@ -9,17 +10,31 @@ import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
+import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
     private val roomApi: RoomApi,
+    private val roomWebSocketApi: RoomWebSocketApi,
 ) : RoomRepository {
+    override fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedEvent> =
+        roomWebSocketApi.observeMemberJoined(roomIds).map { room ->
+            RoomMemberJoinedEvent(
+                roomId = room.id,
+                roomTitle = room.title,
+                nickname = room.userNickname,
+                userProfileImageUrl = room.userProfileImageUrl,
+            )
+        }
+
     override suspend fun getRoom(roomId: Long): ChallaResult<RoomDetail> =
         roomApi.getRoom(roomId).mapCatching { response ->
             check(response.success) { response.message }

@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -81,6 +82,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
@@ -126,6 +128,7 @@ fun HomeRoute(
     fromProfileSetup: Boolean,
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: Long) -> Unit,
+    onRoomIdsLoaded: (Set<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -135,6 +138,13 @@ fun HomeRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
+    val currentOnRoomIdsLoaded by rememberUpdatedState(onRoomIdsLoaded)
+
+    LaunchedEffect(state.roomLoadState, state.rooms) {
+        if (state.roomLoadState == HomeRoomLoadState.LOADED) {
+            currentOnRoomIdsLoaded(state.rooms.mapTo(mutableSetOf()) { it.id })
+        }
+    }
 
     // fromProfileSetup은 라우트 인자라 이 홈 엔트리가 살아있는 동안 계속 true로 남는다.
     // 스피너 억제는 프로필 설정에서 넘어온 첫 로드에만 필요하므로, 로드가 끝나면 여기서 한 번 소비한다.
@@ -227,7 +237,7 @@ private fun HomeScreen(
             when {
                 // 프로필 설정에서 막 넘어왔다면 방이 없는 게 확실하다.
                 // 목록을 불러오는 동안 스피너로 갈아끼우면 이어서 보이던 화면이 끊기므로 빈 상태를 그대로 둔다.
-                state.isLoading && !suppressLoading ->
+                state.roomLoadState == HomeRoomLoadState.LOADING && !suppressLoading ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,
@@ -978,7 +988,7 @@ private fun HomeRoomsPreview() {
         HomeScreen(
             state =
                 HomeState(
-                    isLoading = false,
+                    roomLoadState = HomeRoomLoadState.LOADED,
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                     rooms = previewRooms(),
@@ -1002,7 +1012,7 @@ private fun HomeEmptyPreview() {
         HomeScreen(
             state =
                 HomeState(
-                    isLoading = false,
+                    roomLoadState = HomeRoomLoadState.LOADED,
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                 ),
@@ -1023,7 +1033,7 @@ private fun HomeEmptyPreview() {
 private fun HomeLoadingPreview() {
     ChallaTheme {
         HomeScreen(
-            state = HomeState(isLoading = true),
+            state = HomeState(),
             snackbarHostState = remember { SnackbarHostState() },
             suppressLoading = false,
             fromProfileSetup = false,
