@@ -21,6 +21,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
@@ -29,6 +30,7 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
 import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -41,6 +43,7 @@ private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 @Composable
 fun GalleryRoute(
     roomId: Long,
+    memberJoinedEvents: Flow<RoomMemberJoinedEvent>,
     onBackClick: () -> Unit,
     onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
@@ -67,6 +70,14 @@ fun GalleryRoute(
         if (shouldRefreshAfterCamera.value) {
             shouldRefreshAfterCamera.value = false
             viewModel.onIntent(GalleryIntent.PhotosLoad)
+        }
+    }
+
+    LaunchedEffect(viewModel, roomId, memberJoinedEvents) {
+        memberJoinedEvents.collect { event ->
+            if (event.roomId == roomId) {
+                viewModel.onIntent(GalleryIntent.MembersRefresh)
+            }
         }
     }
 

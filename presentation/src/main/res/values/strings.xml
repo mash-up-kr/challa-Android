@@ -66,6 +66,8 @@
     <string name="gallery_invite_menu_open_label">참여자 목록 열기</string>
     <string name="gallery_invite_menu_close_label">참여자 목록 닫기</string>
 
+    <string name="room_member_joined_suffix">에 참여했어요.</string>
+
     <string name="app_name_kr">찰나</string>
     <string name="app_name_en">Challa</string>
     <string name="login_brand" translatable="false">challa</string>

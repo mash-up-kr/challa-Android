@@ -53,11 +53,13 @@ fun ChallaSnackbar(
         modifier = modifier.fillMaxWidth(),
         icon = icon,
         iconTint = iconTint,
+        leadingContent = null,
         actionLabel = actionLabel,
         actionLabelColor = actionLabelColor,
         onActionClick = onActionClick,
         onCloseClick = onCloseClick,
         fillTextWidth = true,
+        headingMaxLines = Int.MAX_VALUE,
     )
 }
 
@@ -65,20 +67,21 @@ fun ChallaSnackbar(
 fun ChallaToast(
     heading: String,
     modifier: Modifier = Modifier,
-    @DrawableRes icon: Int? = null,
-    iconTint: Color? = null,
+    leadingContent: (@Composable () -> Unit)? = null,
 ) {
     ChallaMessageContent(
         heading = heading,
         description = null,
         modifier = modifier.wrapContentWidth(),
-        icon = icon,
-        iconTint = iconTint,
+        icon = null,
+        iconTint = null,
+        leadingContent = leadingContent,
         actionLabel = null,
         actionLabelColor = null,
         onActionClick = null,
         onCloseClick = null,
         fillTextWidth = false,
+        headingMaxLines = 1,
     )
 }
 
@@ -89,11 +92,13 @@ private fun ChallaMessageContent(
     modifier: Modifier,
     @DrawableRes icon: Int?,
     iconTint: Color?,
+    leadingContent: (@Composable () -> Unit)?,
     actionLabel: String?,
     actionLabelColor: Color?,
     onActionClick: (() -> Unit)?,
     onCloseClick: (() -> Unit)?,
     fillTextWidth: Boolean,
+    headingMaxLines: Int,
 ) {
     Row(
         modifier =
@@ -104,13 +109,18 @@ private fun ChallaMessageContent(
                 .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        icon?.let {
-            Icon(
-                painter = painterResource(it),
-                contentDescription = null,
-                modifier = Modifier.size(ChallaIconSize.V22.dp),
-                tint = iconTint ?: ChallaTheme.colors.labelSubtle,
-            )
+        when {
+            leadingContent != null -> leadingContent()
+            icon != null ->
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(ChallaIconSize.V22.dp),
+                    tint = iconTint ?: ChallaTheme.colors.labelSubtle,
+                )
+        }
+
+        if (leadingContent != null || icon != null) {
             Spacer(modifier = Modifier.width(8.dp))
         }
 
@@ -128,6 +138,7 @@ private fun ChallaMessageContent(
                 Text(
                     text = it,
                     color = ChallaTheme.colors.labelNormal,
+                    maxLines = headingMaxLines,
                     overflow = TextOverflow.Ellipsis,
                     style = ChallaTheme.typography.bodySmall.medium,
                 )
@@ -257,8 +268,14 @@ private fun ChallaToastPreview() {
         )
         ChallaToast(
             heading = "마침표를 붙이지 않아요",
-            icon = ChallaIcons.Error,
-            iconTint = ChallaTheme.colors.statusDestructive,
+            leadingContent = {
+                Icon(
+                    painter = painterResource(ChallaIcons.Error),
+                    contentDescription = null,
+                    modifier = Modifier.size(ChallaIconSize.V22.dp),
+                    tint = ChallaTheme.colors.statusDestructive,
+                )
+            },
         )
     }
 }
