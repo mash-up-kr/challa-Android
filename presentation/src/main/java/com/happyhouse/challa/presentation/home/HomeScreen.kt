@@ -149,8 +149,8 @@ fun HomeRoute(
     // fromProfileSetup은 라우트 인자라 이 홈 엔트리가 살아있는 동안 계속 true로 남는다.
     // 스피너 억제는 프로필 설정에서 넘어온 첫 로드에만 필요하므로, 로드가 끝나면 여기서 한 번 소비한다.
     var suppressLoading by rememberSaveable { mutableStateOf(fromProfileSetup) }
-    LaunchedEffect(state.isLoading) {
-        if (!state.isLoading) suppressLoading = false
+    LaunchedEffect(state.roomLoadState == HomeRoomLoadState.LOADING) {
+        if (state.roomLoadState != HomeRoomLoadState.LOADING) suppressLoading = false
     }
 
     LaunchedEffect(viewModel) {
