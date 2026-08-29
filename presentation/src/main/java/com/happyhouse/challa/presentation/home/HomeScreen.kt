@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +72,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPrevi
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
@@ -100,6 +102,7 @@ private const val FILM_PREVIEW_MAX = 3
 fun HomeRoute(
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: Long) -> Unit,
+    onRoomIdsLoaded: (Set<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -109,6 +112,13 @@ fun HomeRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
+    val currentOnRoomIdsLoaded by rememberUpdatedState(onRoomIdsLoaded)
+
+    LaunchedEffect(state.roomLoadState, state.rooms) {
+        if (state.roomLoadState == HomeRoomLoadState.LOADED) {
+            currentOnRoomIdsLoaded(state.rooms.mapTo(mutableSetOf()) { it.id })
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
@@ -188,7 +198,7 @@ private fun HomeScreen(
             )
 
             when {
-                state.isLoading ->
+                state.roomLoadState == HomeRoomLoadState.LOADING ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,
@@ -899,7 +909,7 @@ private fun HomeRoomsPreview() {
         HomeScreen(
             state =
                 HomeState(
-                    isLoading = false,
+                    roomLoadState = HomeRoomLoadState.LOADED,
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                     rooms = previewRooms(),
@@ -921,7 +931,7 @@ private fun HomeEmptyPreview() {
         HomeScreen(
             state =
                 HomeState(
-                    isLoading = false,
+                    roomLoadState = HomeRoomLoadState.LOADED,
                     nickname = "나는야멋쟁이토마토",
                     profileImageUrl = null,
                 ),
@@ -940,7 +950,7 @@ private fun HomeEmptyPreview() {
 private fun HomeLoadingPreview() {
     ChallaTheme {
         HomeScreen(
-            state = HomeState(isLoading = true),
+            state = HomeState(),
             snackbarHostState = remember { SnackbarHostState() },
             onCreateRoomClick = {},
             onInviteCodeClick = {},

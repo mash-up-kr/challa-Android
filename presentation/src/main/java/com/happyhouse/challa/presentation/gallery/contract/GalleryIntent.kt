@@ -9,6 +9,9 @@ sealed interface GalleryIntent : UiIntent {
     /** 그리드 끝이 가까워져 다음 사진 페이지가 필요할 때 */
     data object PhotosLoadMore : GalleryIntent
 
+    /** 실시간 참여 이벤트를 받은 뒤 프로필 바의 참여자 목록을 다시 조회할 때 */
+    data object MembersRefresh : GalleryIntent
+
     data class PhotoClick(
         val photoId: Long,
     ) : GalleryIntent

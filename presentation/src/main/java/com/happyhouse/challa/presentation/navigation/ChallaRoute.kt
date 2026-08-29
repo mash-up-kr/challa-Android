@@ -6,21 +6,31 @@ import kotlinx.serialization.Serializable
 
 @Immutable
 sealed interface ChallaRoute : NavKey {
+    /**
+     * 특정 방을 컨텍스트로 가지며 해당 방의 [roomId]를 제공하는 Route다.
+     *
+     * [ChallaNavHost]는 현재 Route가 [RoomScoped]이면 홈 방 목록 반영 여부와 관계없이 해당 방을
+     * 실시간 이벤트 구독 대상에 추가한다.
+     */
+    sealed interface RoomScoped : ChallaRoute {
+        val roomId: Long
+    }
+
     @Serializable
     data class Camera(
-        val roomId: Long,
-    ) : ChallaRoute
+        override val roomId: Long,
+    ) : RoomScoped
 
     @Serializable
     data class PhotoDetail(
-        val roomId: Long,
+        override val roomId: Long,
         val args: PhotoDetailArgs,
-    ) : ChallaRoute
+    ) : RoomScoped
 
     @Serializable
     data class Gallery(
-        val roomId: Long,
-    ) : ChallaRoute
+        override val roomId: Long,
+    ) : RoomScoped
 
     @Serializable
     data class Chat(

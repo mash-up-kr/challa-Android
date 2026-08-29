@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -28,6 +31,10 @@ import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
 import com.happyhouse.challa.presentation.profile.SettingProfileRoute
+import com.happyhouse.challa.presentation.room.RoomMemberJoinedObserverViewModel
+import com.happyhouse.challa.presentation.room.RoomMemberJoinedToastHost
+import com.happyhouse.challa.presentation.room.RoomMemberJoinedToastVisuals
+import com.happyhouse.challa.presentation.room.toDisplayMessage
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
 import com.happyhouse.challa.presentation.setting.license.OpenSourceLicenseRoute
@@ -40,10 +47,46 @@ fun ChallaNavHost(
     navigator: ChallaNavigator,
     modifier: Modifier = Modifier,
 ) {
+    val memberJoinedObserverViewModel: RoomMemberJoinedObserverViewModel = hiltViewModel()
     val snackbarHostState = remember { SnackbarHostState() }
+    val roomMemberJoinedHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
+    val roomMemberJoinedSuffix = stringResource(R.string.room_member_joined_suffix)
+    val currentRoute = navigator.currentRoute
+
+    LifecycleStartEffect(memberJoinedObserverViewModel) {
+        memberJoinedObserverViewModel.startObserving()
+
+        onStopOrDispose {
+            memberJoinedObserverViewModel.pauseObserving()
+        }
+    }
+
+    LaunchedEffect(currentRoute) {
+        when (currentRoute) {
+            is ChallaRoute.RoomScoped -> memberJoinedObserverViewModel.addObservedRoom(currentRoute.roomId)
+            ChallaRoute.Login,
+            ChallaRoute.SettingProfile,
+            -> memberJoinedObserverViewModel.stopObserving()
+
+            else -> Unit
+        }
+    }
+
+    LaunchedEffect(memberJoinedObserverViewModel) {
+        memberJoinedObserverViewModel.events.collect { event ->
+            launch {
+                roomMemberJoinedHostState.showSnackbar(
+                    RoomMemberJoinedToastVisuals(
+                        message = event.toDisplayMessage(suffix = roomMemberJoinedSuffix),
+                        userProfileImageUrl = event.userProfileImageUrl,
+                    ),
+                )
+            }
+        }
+    }
 
     Box(modifier = modifier) {
         NavDisplay(
@@ -67,6 +110,7 @@ fun ChallaNavHost(
                     entry<ChallaRoute.Gallery> { route ->
                         GalleryRoute(
                             roomId = route.roomId,
+                            memberJoinedEvents = memberJoinedObserverViewModel.events,
                             onBackClick = { navigator.goBack() },
                             onPhotoClick = { args ->
                                 navigator.navigate(
@@ -143,6 +187,7 @@ fun ChallaNavHost(
                             onNavigateToRoom = { roomId ->
                                 navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
                             },
+                            onRoomIdsLoaded = memberJoinedObserverViewModel::replaceObservedRooms,
                         )
                     }
                     entry<ChallaRoute.Setting> {
@@ -217,6 +262,10 @@ fun ChallaNavHost(
         ChallaSnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.fillMaxSize(),
+        )
+
+        RoomMemberJoinedToastHost(
+            hostState = roomMemberJoinedHostState,
         )
     }
 }
