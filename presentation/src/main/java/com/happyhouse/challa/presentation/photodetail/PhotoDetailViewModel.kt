@@ -1,8 +1,10 @@
 package com.happyhouse.challa.presentation.photodetail
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.PhotoPage
 import com.happyhouse.challa.domain.repository.PhotoRepository
+import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
@@ -24,6 +26,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -32,6 +36,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     @Assisted("roomId") private val roomId: Long,
     @Assisted args: PhotoDetailArgs,
     private val photoRepository: PhotoRepository,
+    private val roomRepository: RoomRepository,
 ) : BaseViewModel<PhotoDetailState, PhotoDetailIntent, PhotoDetailSideEffect>(
         initialState = initialPhotoDetailState(args),
     ) {
@@ -44,6 +49,20 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
     // TODO: 반응 API 연동 전까지 로컬에서 발급하는 반응 id. 좌표 seed로 쓰이므로 반응마다 고유해야 한다.
     private var nextReactionId = 0L
+
+    init {
+        observeRoomEvents()
+    }
+
+    /** 사진 상세가 열려 있는 동안 방 이름이 바뀌면 제목만 갈아끼운다. 사진을 다시 받을 이유는 없다. */
+    private fun observeRoomEvents() {
+        viewModelScope.launch {
+            roomRepository.roomEventFlow
+                .filterIsInstance<RoomEvent.TitleUpdate>()
+                .filter { it.roomId == roomId }
+                .collect { event -> updateState { copy(roomName = event.title) } }
+        }
+    }
 
     override fun onIntent(intent: PhotoDetailIntent) {
         when (intent) {

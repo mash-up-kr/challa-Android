@@ -47,6 +47,7 @@ fun GalleryRoute(
     onBackClick: () -> Unit,
     onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
+    onSettingClick: (roomName: String) -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
@@ -137,6 +138,7 @@ fun GalleryRoute(
         snackbarHostState = snackbarHostState,
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
+        onSettingClick = { onSettingClick(state.roomName) },
         onInviteCodeClick = { invitationCode ->
             coroutineScope.launch {
                 if (clipboard.copyInviteCode(invitationCode)) {

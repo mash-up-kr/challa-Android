@@ -34,6 +34,7 @@ import com.happyhouse.challa.presentation.room.RoomMemberJoinedObserverViewModel
 import com.happyhouse.challa.presentation.room.RoomMemberJoinedToastHost
 import com.happyhouse.challa.presentation.room.RoomMemberJoinedToastVisuals
 import com.happyhouse.challa.presentation.room.toDisplayMessage
+import com.happyhouse.challa.presentation.roomsetting.RoomSettingRoute
 import com.happyhouse.challa.presentation.setting.SettingRoute
 import com.happyhouse.challa.presentation.setting.account.AccountRoute
 import com.happyhouse.challa.presentation.setting.license.OpenSourceLicenseRoute
@@ -122,6 +123,20 @@ fun ChallaNavHost(
                             onShootClick = {
                                 navigator.navigate(ChallaRoute.Camera(roomId = route.roomId))
                             },
+                            onSettingClick = { roomName ->
+                                navigator.navigate(
+                                    ChallaRoute.RoomSetting(roomId = route.roomId, roomName = roomName),
+                                )
+                            },
+                        )
+                    }
+                    entry<ChallaRoute.RoomSetting> { route ->
+                        RoomSettingRoute(
+                            roomId = route.roomId,
+                            roomName = route.roomName,
+                            onBackClick = { navigator.goBack() },
+                            // TODO: 구현 필요
+                            onCoverImageClick = {},
                         )
                     }
                     entry<ChallaRoute.PhotoDetail> { route ->
