@@ -103,6 +103,7 @@ class GalleryViewModel @AssistedInject constructor(
         when (intent) {
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
             GalleryIntent.PhotosLoadMore -> handlePhotosLoadMore()
+            GalleryIntent.MembersRefresh -> loadMembers()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
             GalleryIntent.ProfileBarClick -> handleProfileBarClick()
             GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()

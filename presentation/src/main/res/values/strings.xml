@@ -78,6 +78,8 @@
     <string name="edit_room_name_submit">변경</string>
     <string name="room_setting_room_name_update_failure">방 이름을 변경하지 못했어요.</string>
 
+    <string name="room_member_joined_suffix">에 참여했어요.</string>
+
     <string name="app_name_kr">찰나</string>
     <string name="app_name_en">Challa</string>
     <string name="login_brand" translatable="false">challa</string>

@@ -1,6 +1,7 @@
 package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.RoomApi
+import com.happyhouse.challa.data.network.api.RoomWebSocketApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.request.UpdateRoomTitleRequest
@@ -11,12 +12,15 @@ import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomDetail
+import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.model.RoomUser
 import com.happyhouse.challa.domain.model.ShootableRoom
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import com.happyhouse.challa.domain.result.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,7 +29,18 @@ import javax.inject.Inject
 
 class RoomRepositoryImpl @Inject constructor(
     private val roomApi: RoomApi,
+    private val roomWebSocketApi: RoomWebSocketApi,
 ) : RoomRepository {
+    override fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedEvent> =
+        roomWebSocketApi.observeMemberJoined(roomIds).map { room ->
+            RoomMemberJoinedEvent(
+                roomId = room.id,
+                roomTitle = room.title,
+                nickname = room.userNickname,
+                userProfileImageUrl = room.userProfileImageUrl,
+            )
+        }
+
     /**
      * 구독자가 값을 받아가기 전에 다음 이벤트가 올라와도 요청이 멈추지 않도록 한 칸을 둔다.
      * 지난 이벤트를 다시 줄 이유는 없으므로 replay는 두지 않는다.

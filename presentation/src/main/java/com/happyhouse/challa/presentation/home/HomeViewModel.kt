@@ -9,6 +9,7 @@ import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
 import com.happyhouse.challa.presentation.home.contract.HomeIntent
+import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.toUiModel
@@ -26,9 +27,7 @@ class HomeViewModel
     constructor(
         private val roomRepository: RoomRepository,
         private val userRepository: UserRepository,
-    ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(
-            initialState = HomeState(isLoading = true),
-        ) {
+    ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(initialState = HomeState()) {
         init {
             observeProfile()
             prefetchProfile()
@@ -83,18 +82,19 @@ class HomeViewModel
 
         private fun loadHome() {
             viewModelScope.launch {
-                updateState { copy(isLoading = true) }
+                updateState { copy(roomLoadState = HomeRoomLoadState.LOADING) }
                 roomRepository
                     .getRoomList(ALL_ROOM_STATUSES)
                     .onSuccess { rooms ->
+                        val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
                         updateState {
                             copy(
-                                isLoading = false,
-                                rooms = rooms.mapNotNull { it.toUiModel() }.toImmutableList(),
+                                roomLoadState = HomeRoomLoadState.LOADED,
+                                rooms = roomUiModels,
                             )
                         }
                     }.onFailure {
-                        updateState { copy(isLoading = false) }
+                        updateState { copy(roomLoadState = HomeRoomLoadState.FAILED) }
                         sendEffect(HomeSideEffect.RoomsLoadFailed)
                     }
             }
