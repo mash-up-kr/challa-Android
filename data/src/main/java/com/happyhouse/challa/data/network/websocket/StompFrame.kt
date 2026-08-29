@@ -55,16 +55,18 @@ internal fun stompConnectFrame(host: String): String =
  */
 internal fun stompSubscribeFrame(roomId: Long): String =
     buildString {
+        val subscriptionId = stompMemberJoinedSubscriptionId(roomId)
+
         appendLine("SUBSCRIBE")
-        appendLine("id:room-member-joined-$roomId")
+        appendLine("id:$subscriptionId")
         appendLine("destination:/topic/room/$roomId/member-joined")
         appendLine("ack:auto")
-        appendLine("receipt:${stompSubscriptionReceiptId(roomId)}")
+        appendLine("receipt:$subscriptionId")
         appendLine()
         append(STOMP_FRAME_TERMINATOR)
     }
 
 /** 방별 구독 요청과 서버 `RECEIPT`를 연결하는 안정적인 식별자를 반환한다. */
-internal fun stompSubscriptionReceiptId(roomId: Long): String = "room-member-joined-$roomId"
+internal fun stompMemberJoinedSubscriptionId(roomId: Long): String = "room-$roomId-member-joined"
 
 private const val STOMP_FRAME_TERMINATOR = '\u0000'

@@ -4,8 +4,8 @@ import com.happyhouse.challa.data.BuildConfig
 import com.happyhouse.challa.data.network.dto.BaseResponse
 import com.happyhouse.challa.data.network.dto.response.RoomMemberJoinedResponse
 import com.happyhouse.challa.data.network.websocket.stompConnectFrame
+import com.happyhouse.challa.data.network.websocket.stompMemberJoinedSubscriptionId
 import com.happyhouse.challa.data.network.websocket.stompSubscribeFrame
-import com.happyhouse.challa.data.network.websocket.stompSubscriptionReceiptId
 import com.happyhouse.challa.data.network.websocket.toStompFrames
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.channels.awaitClose
@@ -80,7 +80,7 @@ class RoomWebSocketApi
                 val disposed = AtomicBoolean(false)
                 // TODO: 현재 RECEIPT는 구독 확인 로그에만 사용한다. 추후 제한 시간 내 모든 RECEIPT가 수신되지 않으면
                 //  구독 실패로 처리하고 재연결하도록 개선한다.
-                val roomIdByReceiptId = roomIds.associateBy(::stompSubscriptionReceiptId)
+                val roomIdByReceiptId = roomIds.associateBy(::stompMemberJoinedSubscriptionId)
                 val confirmedRoomIds = mutableSetOf<Long>()
                 val request =
                     Request
@@ -111,7 +111,8 @@ class RoomWebSocketApi
                                             val sent = webSocket.send(stompSubscribeFrame(roomId))
                                             Logger.t(WEB_SOCKET_LOG_TAG).d(
                                                 "방 참여 이벤트 구독 요청을 전송했습니다. " +
-                                                    "roomId=$roomId, receiptId=${stompSubscriptionReceiptId(roomId)}, sent=$sent",
+                                                    "roomId=$roomId, " +
+                                                    "receiptId=${stompMemberJoinedSubscriptionId(roomId)}, sent=$sent",
                                             )
                                             if (!sent) {
                                                 close(IOException("STOMP SUBSCRIBE frame을 전송하지 못했습니다. roomId=$roomId"))
