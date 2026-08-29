@@ -2,7 +2,6 @@ package com.happyhouse.challa.presentation.chatting
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -10,14 +9,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import com.happyhouse.challa.domain.model.chat.ChatType
+import com.happyhouse.challa.presentation.chatting.component.ChatContent
 import com.happyhouse.challa.presentation.chatting.component.ChatInputArea
 import com.happyhouse.challa.presentation.chatting.component.ChatTopBar
 import com.happyhouse.challa.presentation.chatting.contract.ChatIntent
 import com.happyhouse.challa.presentation.chatting.contract.ChatState
+import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
+import com.happyhouse.challa.presentation.chatting.model.ChatUiModel
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ChatScreen(
@@ -52,22 +56,55 @@ fun ChatScreen(
                 )
             },
         ) { innerPadding ->
-            Spacer(
+            ChatContent(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
+                chatInfo = state.chatInfo,
+                onRetry = { onIntent(ChatIntent.ChatsLoad) },
+                onLoadMore = { onIntent(ChatIntent.ChatsLoadMore) },
             )
         }
     }
 }
 
-@Preview
+@Preview(name = "ChatScreen - 채팅 목록")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ChatScreenPreview() {
     ChatScreen(
-        state = ChatState(roomName = "해피하우스 강릉 여행"),
+        state =
+            ChatState(
+                roomName = "해피하우스 강릉 여행",
+                chatInfo =
+                    ChatInfo.Loaded(
+                        chats =
+                            persistentListOf(
+                                ChatUiModel(
+                                    type = ChatType.DEFAULT,
+                                    content = "강릉에 도착하면 바로 사진 찍으러 가자!",
+                                    photoImageUrl = null,
+                                    userName = "user1",
+                                    userProfileImageUrl = null,
+                                ),
+                                ChatUiModel(
+                                    type = ChatType.DEFAULT,
+                                    content = "좋아! 바다부터 보고 숙소로 이동하자.",
+                                    photoImageUrl = null,
+                                    userName = "찰나",
+                                    userProfileImageUrl = null,
+                                ),
+                                ChatUiModel(
+                                    type = ChatType.EMOJI,
+                                    content = "🔥",
+                                    photoImageUrl = null,
+                                    userName = "여름여행가자",
+                                    userProfileImageUrl = null,
+                                ),
+                            ),
+                    ),
+            ),
         onIntent = {},
         onBackClick = {},
     )

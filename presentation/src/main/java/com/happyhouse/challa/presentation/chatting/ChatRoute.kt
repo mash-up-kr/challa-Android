@@ -2,32 +2,26 @@ package com.happyhouse.challa.presentation.chatting
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.happyhouse.challa.presentation.chatting.contract.ChatIntent
-import com.happyhouse.challa.presentation.chatting.contract.ChatState
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun ChatRoute(
+    roomId: Long,
     roomName: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: ChatViewModel =
+        hiltViewModel<ChatViewModel, ChatViewModel.Factory>(
+            creationCallback = { factory -> factory.create(roomId, roomName) },
+        ),
 ) {
-    var message by rememberSaveable { mutableStateOf("") }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     ChatScreen(
-        state =
-            ChatState(
-                roomName = roomName,
-                message = message,
-            ),
-        onIntent = { intent ->
-            when (intent) {
-                is ChatIntent.MessageChange -> message = intent.message
-            }
-        },
+        state = state,
+        onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
         modifier = modifier,
     )
