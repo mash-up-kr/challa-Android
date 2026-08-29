@@ -136,7 +136,7 @@ fun ChallaNavHost(
                             onLoginSuccess = { isNewUser ->
                                 // 신규 유저는 프로필 설정 온보딩으로, 기존 유저는 홈으로 진입한다.
                                 navigator.replace(
-                                    if (isNewUser) ChallaRoute.SettingProfile else ChallaRoute.Home,
+                                    if (isNewUser) ChallaRoute.SettingProfile else ChallaRoute.Home(),
                                 )
                             },
                         )
@@ -144,7 +144,7 @@ fun ChallaNavHost(
                     entry<ChallaRoute.SettingProfile> {
                         SettingProfileRoute(
                             onProfileCreated = {
-                                navigator.replace(ChallaRoute.Home)
+                                navigator.replace(ChallaRoute.Home(fromProfileSetup = true))
                             },
                         )
                     }
@@ -169,8 +169,9 @@ fun ChallaNavHost(
                             },
                         )
                     }
-                    entry<ChallaRoute.Home> {
+                    entry<ChallaRoute.Home> { route ->
                         HomeRoute(
+                            fromProfileSetup = route.fromProfileSetup,
                             onNavigateToSetting = {
                                 navigator.navigate(ChallaRoute.Setting)
                             },

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -47,7 +47,7 @@ fun ChallaProfileImage(
     ) {
         Icon(
             modifier = Modifier.fillMaxSize(),
-            painter = painterResource(ChallaIcons.Profile),
+            painter = painterResource(R.drawable.img_setting_profile_placeholder),
             contentDescription = null,
             tint = fallbackIconTint ?: Color.Unspecified,
         )
