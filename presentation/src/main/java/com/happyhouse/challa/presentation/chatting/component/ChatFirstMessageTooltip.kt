@@ -23,6 +23,8 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
 private const val TOOLTIP_BACKGROUND_ALPHA = 0.77f
+private val TooltipCornerRadius = 10.dp
+private val TooltipContentPadding = 10.dp
 
 @Composable
 fun ChatFirstMessageTooltip(modifier: Modifier = Modifier) {
@@ -33,9 +35,9 @@ fun ChatFirstMessageTooltip(modifier: Modifier = Modifier) {
         Text(
             modifier =
                 Modifier
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(TooltipCornerRadius))
                     .background(ChallaTheme.colors.backgroundLevel2.copy(alpha = TOOLTIP_BACKGROUND_ALPHA))
-                    .padding(10.dp),
+                    .padding(TooltipContentPadding),
             text = stringResource(R.string.chat_first_message_tooltip),
             color = ChallaTheme.colors.labelNormal,
             style = ChallaTheme.typography.descriptionLarge.medium,

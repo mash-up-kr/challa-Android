@@ -39,6 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
+private val BottomBarHorizontalPadding = 16.dp
+private val BottomBarButtonSpacing = 8.dp
 
 /** 촬영 중 하단 바. 카메라로 이어준다. */
 @Composable
@@ -105,12 +107,12 @@ private fun GalleryBottomBarLayout(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = BottomBarHorizontalPadding)
                 .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(BottomBarButtonSpacing),
         ) {
             GalleryChatButton(onClick = onChatClick)
 

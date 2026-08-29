@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -13,6 +12,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
@@ -38,7 +38,7 @@ fun PhotoDetailTopBar(
         title = title,
         variant = ChallaTopNavigationVariant.SUB,
         leadingIcon = {
-            PhotoDetailTopBarIcon(
+            ChallaNavigationIconButton(
                 icon = ChallaIcons.Left,
                 onClick = onBackClick,
                 contentDescription = stringResource(R.string.photo_detail_back_description),
@@ -47,8 +47,7 @@ fun PhotoDetailTopBar(
         trailingIcon =
             onSaveClick?.let { onClick ->
                 {
-                    PhotoDetailTopBarIcon(
-                        icon = ChallaIcons.Download,
+                    PhotoDetailSaveButton(
                         onClick = onClick,
                         contentDescription = stringResource(R.string.photo_detail_save_description),
                         enabled = isSaveEnabled,
@@ -59,8 +58,7 @@ fun PhotoDetailTopBar(
 }
 
 @Composable
-private fun PhotoDetailTopBarIcon(
-    @DrawableRes icon: Int,
+private fun PhotoDetailSaveButton(
     onClick: () -> Unit,
     contentDescription: String,
     enabled: Boolean = true,
@@ -77,10 +75,15 @@ private fun PhotoDetailTopBarIcon(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(icon),
+            painter = painterResource(ChallaIcons.Download),
             contentDescription = contentDescription,
             modifier = Modifier.size(24.dp),
-            tint = ChallaTheme.colors.labelNeutral,
+            tint =
+                if (enabled) {
+                    ChallaTheme.colors.labelNeutral
+                } else {
+                    ChallaTheme.colors.labelDisable
+                },
         )
     }
 }

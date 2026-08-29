@@ -17,6 +17,9 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaInputBox
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 
+private val InputAreaHorizontalPadding = 20.dp
+private val TooltipBottomSpacing = 6.dp
+
 @Composable
 fun ChatInputArea(
     message: String,
@@ -29,12 +32,12 @@ fun ChatInputArea(
             modifier
                 .fillMaxWidth()
                 .imePadding()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = InputAreaHorizontalPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (showsFirstMessageTooltip) {
             ChatFirstMessageTooltip()
-            Spacer(modifier = Modifier.size(6.dp))
+            Spacer(modifier = Modifier.size(TooltipBottomSpacing))
         }
 
         ChallaInputBox(
@@ -45,13 +48,24 @@ fun ChatInputArea(
     }
 }
 
-@Preview
+@Preview(name = "ChatInputArea - Tooltip")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun ChatInputAreaPreview() {
+private fun ChatInputAreaWithTooltipPreview() {
     ChatInputArea(
         message = "",
         showsFirstMessageTooltip = true,
+        onMessageChange = {},
+    )
+}
+
+@Preview(name = "ChatInputArea - Without tooltip")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun ChatInputAreaWithoutTooltipPreview() {
+    ChatInputArea(
+        message = "안녕하세요!",
+        showsFirstMessageTooltip = false,
         onMessageChange = {},
     )
 }
