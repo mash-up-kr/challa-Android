@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -54,6 +55,7 @@ class RoomWebSocketApi
          *
          * 구독 중 방 목록을 변경하려면 기존 수집을 취소하고 새 [roomIds]로 다시 수집해야 한다.
          * 여러 방은 각각 STOMP `SUBSCRIBE` frame을 보내지만 WebSocket 연결은 하나를 공유한다.
+         * 모든 구독의 `RECEIPT`가 제한 시간 내 확인되지 않으면 연결을 종료하고 재시도한다.
          * 일시적인 연결 오류는 자동으로 재시도하며, 동일 조건으로 해결할 수 없는 오류는 수집자에게 전달한다.
          */
         internal fun observeMemberJoined(roomIds: Set<Long>): Flow<RoomMemberJoinedResponse.Room> =
@@ -78,8 +80,7 @@ class RoomWebSocketApi
         private fun openMemberJoinedStream(roomIds: Set<Long>): Flow<RoomMemberJoinedResponse.Room> =
             callbackFlow {
                 val disposed = AtomicBoolean(false)
-                // TODO: 현재 RECEIPT는 구독 확인 로그에만 사용한다. 추후 제한 시간 내 모든 RECEIPT가 수신되지 않으면
-                //  구독 실패로 처리하고 재연결하도록 개선한다.
+                val receiptTimeoutStarted = AtomicBoolean(false)
                 val roomIdByReceiptId = roomIds.associateBy(::stompMemberJoinedSubscriptionId)
                 val confirmedRoomIds = mutableSetOf<Long>()
                 val request =
@@ -88,6 +89,26 @@ class RoomWebSocketApi
                         .url(webSocketUrl())
                         .header(STOMP_PROTOCOL_HEADER, STOMP_PROTOCOL_VERSION)
                         .build()
+
+                fun startReceiptTimeout() {
+                    if (roomIds.isEmpty() || !receiptTimeoutStarted.compareAndSet(false, true)) return
+
+                    launch {
+                        delay(SUBSCRIPTION_RECEIPT_TIMEOUT_MS)
+                        val missingRoomIds =
+                            synchronized(confirmedRoomIds) {
+                                roomIds - confirmedRoomIds
+                            }
+                        if (missingRoomIds.isNotEmpty()) {
+                            close(
+                                IOException(
+                                    "STOMP 구독 RECEIPT를 제한 시간 내 수신하지 못했습니다. " +
+                                        "missingRoomIds=$missingRoomIds",
+                                ),
+                            )
+                        }
+                    }
+                }
 
                 val listener =
                     object : WebSocketListener() {
@@ -107,6 +128,7 @@ class RoomWebSocketApi
                             text.toStompFrames().forEach { frame ->
                                 when (frame.command) {
                                     STOMP_CONNECTED -> {
+                                        var allSubscriptionsSent = true
                                         for (roomId in roomIds) {
                                             val sent = webSocket.send(stompSubscribeFrame(roomId))
                                             Logger.t(WEB_SOCKET_LOG_TAG).d(
@@ -115,10 +137,12 @@ class RoomWebSocketApi
                                                     "receiptId=${stompMemberJoinedSubscriptionId(roomId)}, sent=$sent",
                                             )
                                             if (!sent) {
+                                                allSubscriptionsSent = false
                                                 close(IOException("STOMP SUBSCRIBE frame을 전송하지 못했습니다. roomId=$roomId"))
                                                 break
                                             }
                                         }
+                                        if (allSubscriptionsSent) startReceiptTimeout()
                                     }
 
                                     STOMP_MESSAGE -> handleMessage(frame.body)
@@ -212,15 +236,18 @@ class RoomWebSocketApi
                                 return
                             }
 
-                            if (confirmedRoomIds.add(roomId)) {
-                                Logger.t(WEB_SOCKET_LOG_TAG).d(
-                                    "방 참여 이벤트 구독이 확인되었습니다. roomId=$roomId, receiptId=$receiptId",
-                                )
-                                if (confirmedRoomIds.size == roomIds.size) {
-                                    Logger.t(WEB_SOCKET_LOG_TAG).d(
-                                        "모든 방 참여 이벤트 구독이 확인되었습니다. roomIds=$confirmedRoomIds",
-                                    )
+                            val allConfirmed =
+                                synchronized(confirmedRoomIds) {
+                                    if (!confirmedRoomIds.add(roomId)) return
+                                    confirmedRoomIds.size == roomIds.size
                                 }
+                            Logger.t(WEB_SOCKET_LOG_TAG).d(
+                                "방 참여 이벤트 구독이 확인되었습니다. roomId=$roomId, receiptId=$receiptId",
+                            )
+                            if (allConfirmed) {
+                                Logger.t(WEB_SOCKET_LOG_TAG).d(
+                                    "모든 방 참여 이벤트 구독이 확인되었습니다. roomIds=$roomIds",
+                                )
                             }
                         }
                     }
@@ -264,6 +291,7 @@ class RoomWebSocketApi
             const val NORMAL_CLOSURE_REASON = "Room subscription disposed"
             const val INITIAL_RETRY_DELAY_MS = 1_000L
             const val MAX_RETRY_DELAY_MS = 10_000L
+            const val SUBSCRIPTION_RECEIPT_TIMEOUT_MS = 5_000L
             const val WEB_SOCKET_PING_INTERVAL_SECONDS = 30L
             const val WEB_SOCKET_LOG_TAG = "RoomWebSocket"
             const val HTTP_REQUEST_TIMEOUT = 408
