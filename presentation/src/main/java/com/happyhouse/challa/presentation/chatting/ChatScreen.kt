@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.chatting
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
@@ -34,44 +33,38 @@ fun ChatScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    ChallaScaffold(
         modifier =
             modifier
                 .fillMaxSize()
                 .background(ChallaTheme.colors.backgroundSurface)
-                .challaBackgroundGlow(),
-    ) {
-        ChallaScaffold(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .imePadding(),
-            containerColor = Color.Transparent,
-            topBar = {
-                ChatTopBar(
-                    roomName = state.roomName,
-                    onBackClick = onBackClick,
-                )
-            },
-            bottomBar = {
-                ChatInputArea(
-                    message = state.message,
-                    showsFirstMessageTooltip = state.showsFirstMessageTooltip,
-                    onMessageChange = { message ->
-                        onIntent(ChatIntent.MessageChange(message))
-                    },
-                    onSend = { onIntent(ChatIntent.MessageSend) },
-                )
-            },
-        ) { innerPadding ->
-            ChatContent(
-                modifier = Modifier.fillMaxSize(),
-                chatInfo = state.chatInfo,
-                onRetry = { onIntent(ChatIntent.ChatsLoad) },
-                onLoadMore = { onIntent(ChatIntent.ChatsLoadMore) },
-                scaffoldPadding = innerPadding,
+                .challaBackgroundGlow()
+                .imePadding(),
+        containerColor = Color.Transparent,
+        topBar = {
+            ChatTopBar(
+                roomName = state.roomName,
+                onBackClick = onBackClick,
             )
-        }
+        },
+        bottomBar = {
+            ChatInputArea(
+                message = state.message,
+                showsFirstMessageTooltip = state.showsFirstMessageTooltip,
+                onMessageChange = { message ->
+                    onIntent(ChatIntent.MessageChange(message))
+                },
+                onSend = { onIntent(ChatIntent.MessageSend) },
+            )
+        },
+    ) { innerPadding ->
+        ChatContent(
+            modifier = Modifier.fillMaxSize(),
+            chatInfo = state.chatInfo,
+            onRetry = { onIntent(ChatIntent.ChatsLoad) },
+            onLoadMore = { onIntent(ChatIntent.ChatsLoadMore) },
+            scaffoldPadding = innerPadding,
+        )
     }
 }
 

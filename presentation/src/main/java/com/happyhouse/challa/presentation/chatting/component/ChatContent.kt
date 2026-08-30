@@ -112,6 +112,7 @@ private fun ChatList(
     val isImeVisible = WindowInsets.isImeVisible
     var hasCompletedInitialScroll by remember { mutableStateOf(false) }
     var lastObservedChatId by remember { mutableStateOf(chatInfo.chats.last().chatId) }
+    val chatItemIndexOffset = if (chatInfo.isLoadingMore) 1 else 0
     val shouldLoadMore by
         remember(listState, chatInfo.chats.size, chatInfo.hasNext) {
             derivedStateOf {
@@ -125,15 +126,26 @@ private fun ChatList(
 
     LaunchedEffect(chatInfo.chats.size) {
         if (!hasCompletedInitialScroll && chatInfo.chats.isNotEmpty()) {
-            listState.scrollToItem(chatInfo.chats.lastIndex)
+            listState.scrollToItem(chatInfo.chats.lastIndex + chatItemIndexOffset)
             hasCompletedInitialScroll = true
         }
     }
 
     LaunchedEffect(chatInfo.chats.last().chatId) {
-        val latestChatId = chatInfo.chats.last().chatId
+        val latestChat = chatInfo.chats.last()
+        val latestChatId = latestChat.chatId
         if (hasCompletedInitialScroll && latestChatId != lastObservedChatId) {
-            listState.scrollToItem(chatInfo.chats.lastIndex)
+            val previousLatestIndex = chatInfo.chats.indexOfFirst { chat -> chat.chatId == lastObservedChatId }
+            val lastVisibleChatIndex =
+                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.minus(chatItemIndexOffset)
+            val wasNearBottom =
+                previousLatestIndex >= 0 &&
+                    lastVisibleChatIndex != null &&
+                    lastVisibleChatIndex >= previousLatestIndex - AUTO_SCROLL_THRESHOLD
+
+            if (wasNearBottom || latestChat.isMine) {
+                listState.scrollToItem(chatInfo.chats.lastIndex + chatItemIndexOffset)
+            }
         }
         lastObservedChatId = latestChatId
     }
@@ -144,7 +156,7 @@ private fun ChatList(
         snapshotFlow { listState.layoutInfo.viewportSize.height }
             .distinctUntilChanged()
             .collect {
-                listState.scrollToItem(chatInfo.chats.lastIndex)
+                listState.scrollToItem(chatInfo.chats.lastIndex + chatItemIndexOffset)
             }
     }
 
@@ -157,6 +169,24 @@ private fun ChatList(
         state = listState,
         contentPadding = PaddingValues(horizontal = ChatHorizontalPadding, vertical = ChatVerticalPadding),
     ) {
+        if (chatInfo.isLoadingMore) {
+            item(key = LOADING_ITEM_KEY) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillParentMaxWidth()
+                            .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = ChallaTheme.colors.labelNormal,
+                        strokeWidth = 2.dp,
+                    )
+                }
+            }
+        }
+
         itemsIndexed(
             items = chatInfo.chats,
             key = { _, chat -> chat.chatId },
@@ -192,24 +222,6 @@ private fun ChatList(
                     showsUserName = startsSenderGroup,
                     showsProfileImage = endsSenderGroup,
                 )
-            }
-        }
-
-        if (chatInfo.isLoadingMore) {
-            item {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillParentMaxWidth()
-                            .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = ChallaTheme.colors.labelNormal,
-                        strokeWidth = 2.dp,
-                    )
-                }
             }
         }
     }
@@ -352,6 +364,8 @@ private fun ChatListMessage(
 }
 
 private const val LOAD_MORE_THRESHOLD = 3
+private const val AUTO_SCROLL_THRESHOLD = 1
+private const val LOADING_ITEM_KEY = "chat-loading"
 private val ChatHorizontalPadding = 20.dp
 private val ChatVerticalPadding = 16.dp
 private val SameSenderSpacing = 4.dp

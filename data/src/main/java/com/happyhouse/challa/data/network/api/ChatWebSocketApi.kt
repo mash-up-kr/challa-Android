@@ -189,7 +189,7 @@ class ChatWebSocketApi
                                 return
                             }
 
-                            val result = trySend(ChatWebSocketEvent.ChatsReceived(listOf(chat)))
+                            val result = trySend(ChatWebSocketEvent.ChatReceived(chat))
                             if (result.isFailure) {
                                 Logger.t(WEB_SOCKET_LOG_TAG).w(
                                     "채팅을 전달하지 못했습니다. roomId=$roomId, cause=${result.exceptionOrNull()}",
@@ -272,7 +272,7 @@ class ChatWebSocketApi
 internal sealed interface ChatWebSocketEvent {
     data object Subscribed : ChatWebSocketEvent
 
-    data class ChatsReceived(
-        val chats: List<ChatsResponse.ChatItem>,
+    data class ChatReceived(
+        val chat: ChatsResponse.ChatItem,
     ) : ChatWebSocketEvent
 }

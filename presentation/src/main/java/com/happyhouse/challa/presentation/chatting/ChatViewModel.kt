@@ -45,21 +45,37 @@ class ChatViewModel @AssistedInject constructor(
     private val chatsById = linkedMapOf<Long, Chat>()
     private val bufferedChatsById = linkedMapOf<Long, Chat>()
     private var currentUserId: Long? = null
-
-    init {
-        startChatSession()
-    }
+    private var isChatSessionStarted = false
 
     override fun onIntent(intent: ChatIntent) {
         when (intent) {
-            ChatIntent.ChatsLoad -> startChatSession()
+            ChatIntent.ChatsLoad -> restartChatSession()
             ChatIntent.ChatsLoadMore -> loadMoreChats()
             ChatIntent.MessageSend -> sendMessage()
             is ChatIntent.MessageChange -> updateState { copy(message = intent.message) }
         }
     }
 
-    private fun startChatSession() {
+    fun startChatSession() {
+        if (isChatSessionStarted) return
+
+        isChatSessionStarted = true
+        restartChatSession()
+    }
+
+    fun pauseChatSession() {
+        if (!isChatSessionStarted) return
+
+        isChatSessionStarted = false
+        chatSessionJob?.cancel()
+        chatSessionJob = null
+        loadMoreJob?.cancel()
+        loadMoreJob = null
+    }
+
+    private fun restartChatSession() {
+        if (!isChatSessionStarted) return
+
         chatSessionJob?.cancel()
         loadMoreJob?.cancel()
         nextPage = 0
@@ -80,7 +96,7 @@ class ChatViewModel @AssistedInject constructor(
                                 chatRepository.observeChats(roomId).collect { event ->
                                     when (event) {
                                         ChatSubscriptionEvent.Subscribed -> subscriptionReady.complete(Unit)
-                                        is ChatSubscriptionEvent.ChatsReceived -> handleRealtimeChats(event.chats)
+                                        is ChatSubscriptionEvent.ChatReceived -> handleRealtimeChat(event.chat)
                                     }
                                 }
                             }
@@ -128,13 +144,13 @@ class ChatViewModel @AssistedInject constructor(
             }
     }
 
-    private fun handleRealtimeChats(chats: List<Chat>) {
+    private fun handleRealtimeChat(chat: Chat) {
         if (!initialChatsLoaded) {
-            chats.forEach { chat -> bufferedChatsById[chat.id] = chat }
+            bufferedChatsById[chat.id] = chat
             return
         }
 
-        chats.forEach { chat -> chatsById[chat.id] = chat }
+        chatsById[chat.id] = chat
         currentUserId?.let { userId ->
             val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
             publishChats(userId = userId, isLoadingMore = isLoadingMore)

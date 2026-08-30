@@ -25,8 +25,8 @@ class ChatRepositoryImpl @Inject constructor(
         chatWebSocketApi.observeChats(roomId).map { event ->
             when (event) {
                 ChatWebSocketEvent.Subscribed -> ChatSubscriptionEvent.Subscribed
-                is ChatWebSocketEvent.ChatsReceived ->
-                    ChatSubscriptionEvent.ChatsReceived(event.chats.map(ChatsResponse.ChatItem::toChat))
+                is ChatWebSocketEvent.ChatReceived ->
+                    ChatSubscriptionEvent.ChatReceived(event.chat.toChat())
             }
         }
 
