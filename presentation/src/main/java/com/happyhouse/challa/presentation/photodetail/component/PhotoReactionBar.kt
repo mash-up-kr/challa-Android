@@ -30,7 +30,9 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -47,10 +49,31 @@ private val ReactionBarHorizontalPadding = 24.dp
 /**
  * 한 페이지에 노출하는 이모지 수. 스와이프 한 번에 이만큼 넘어간다.
  *
- * 이모지 수가 이 값의 배수라 마지막 페이지도 꽉 찬다. 배수가 아니게 되면 마지막 페이지에서
+ * [ReactionBarEmojis]의 수가 이 값의 배수라 마지막 페이지도 꽉 찬다. 배수가 아니게 되면 마지막 페이지에서
  * 항목이 양 끝으로 벌어지므로, 그때는 배치를 다시 정해야 한다.
  */
 private const val EMOJI_COUNT_PER_PAGE = 5
+
+/**
+ * 반응 바에 노출하는 순서.
+ *
+ * 노출 순서는 화면 규칙이라 [ReactionEmoji]의 선언 순서에 기대지 않는다.
+ * 이모지를 추가하면 [drawableRes] 등의 `when`이 컴파일 에러로 잡아 주지만 이 목록은 잡아 주지 못하므로,
+ * 리소스를 채울 때 여기도 함께 넣는다.
+ */
+private val ReactionBarEmojis: ImmutableList<ReactionEmoji> =
+    persistentListOf(
+        ReactionEmoji.FIRE,
+        ReactionEmoji.EYES,
+        ReactionEmoji.MEDAL,
+        ReactionEmoji.QUESTION,
+        ReactionEmoji.THINKING,
+        ReactionEmoji.HEART,
+        ReactionEmoji.THUMBS_UP,
+        ReactionEmoji.SPARKLES,
+        ReactionEmoji.POOP,
+        ReactionEmoji.SKULL,
+    )
 
 /**
  * 이모지를 [EMOJI_COUNT_PER_PAGE]개씩 끊어 좌우로 넘긴다.
@@ -70,7 +93,7 @@ fun PhotoReactionBar(
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pages = remember { ReactionEmoji.entries.chunked(EMOJI_COUNT_PER_PAGE) }
+    val pages = remember { ReactionBarEmojis.chunked(EMOJI_COUNT_PER_PAGE) }
     val pagerState = rememberPagerState { pages.size }
 
     HorizontalPager(

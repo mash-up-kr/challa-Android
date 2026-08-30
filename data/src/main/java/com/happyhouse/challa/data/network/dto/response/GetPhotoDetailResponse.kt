@@ -35,7 +35,7 @@ data class GetPhotoDetailResponse(
 /** 이모지 반응만 남긴 시각 오름차순으로 추린다. */
 fun GetPhotoDetailResponse.toPhotoReactions(): List<PhotoReaction> =
     photo.chats
-        .filter { chat -> chat.type.equals(EMOJI_CHAT_TYPE, ignoreCase = true) }
+        .filter { chat -> chat.type == EMOJI_CHAT_TYPE }
         .mapNotNull { chat -> chat.toPhotoReactionOrNull() }
         .sortedBy { reaction -> reaction.createdAtEpochMillis }
 
