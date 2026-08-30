@@ -9,7 +9,7 @@ import kotlinx.collections.immutable.toImmutableList
 
 @Immutable
 data class HomeState(
-    val isLoading: Boolean = false,
+    val roomLoadState: HomeRoomLoadState = HomeRoomLoadState.LOADING,
     val nickname: String = "",
     val profileImageUrl: String? = null,
     val rooms: ImmutableList<RoomUiModel> = persistentListOf(),
@@ -25,4 +25,10 @@ data class HomeState(
     /** 촬영 완료된 방 목록 */
     val completedRooms: ImmutableList<RoomUiModel.Completed>
         get() = rooms.filterIsInstance<RoomUiModel.Completed>().toImmutableList()
+}
+
+enum class HomeRoomLoadState {
+    LOADING,
+    LOADED,
+    FAILED,
 }

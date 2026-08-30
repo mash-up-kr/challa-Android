@@ -48,6 +48,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.androidx.compose)
     implementation(libs.bundles.androidx.navigation3)
+    // ChallaRoute 가 NavKey 를 구현해 공개 API 로 드러나므로, 이 모듈을 쓰는 쪽에도 노출한다.
+    api(libs.androidx.navigation3.runtime)
     implementation(libs.bundles.androidx.camera)
     implementation(libs.bundles.coil)
     implementation(libs.kakao.user)

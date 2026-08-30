@@ -4,14 +4,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+
+private val DefaultMessageBottomOffset = 10.dp
 
 @Composable
 fun ChallaSnackbarHost(
@@ -40,10 +47,19 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
-                        icon = visuals.icon,
-                        iconTint = visuals.iconTint,
+                        leadingContent =
+                            visuals.icon?.let { icon ->
+                                {
+                                    Icon(
+                                        painter = painterResource(icon),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(ChallaIconSize.V22.dp),
+                                        tint = visuals.iconTint ?: ChallaTheme.colors.labelSubtle,
+                                    )
+                                }
+                            },
                     )
 
                 is ChallaSnackbarVisuals ->
@@ -58,7 +74,7 @@ fun ChallaSnackbarHost(
                                         Alignment.BottomCenter
                                     },
                                 )
-                                .challaMessageTopOffset(visuals.topOffset)
+                                .challaMessageEdgePadding(visuals.topOffset)
                                 .padding(horizontal = horizontalPadding),
                         icon = visuals.icon,
                         iconTint = visuals.iconTint,
@@ -77,14 +93,19 @@ fun ChallaSnackbarHost(
                 else ->
                     Snackbar(
                         snackbarData = data,
-                        modifier = Modifier.align(Alignment.BottomCenter),
+                        modifier =
+                            Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = DefaultMessageBottomOffset),
                     )
             }
         }
     }
 }
 
-private fun Modifier.challaMessageTopOffset(topOffset: Dp?): Modifier =
-    topOffset?.let {
-        padding(top = it)
-    } ?: this
+private fun Modifier.challaMessageEdgePadding(topOffset: Dp?): Modifier =
+    if (topOffset != null) {
+        padding(top = topOffset)
+    } else {
+        padding(bottom = DefaultMessageBottomOffset)
+    }

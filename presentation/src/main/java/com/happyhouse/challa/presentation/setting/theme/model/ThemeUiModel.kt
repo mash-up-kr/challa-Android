@@ -1,14 +1,18 @@
 package com.happyhouse.challa.presentation.setting.theme.model
 
+import androidx.annotation.StringRes
 import com.happyhouse.challa.domain.model.PrimaryTheme
+import com.happyhouse.challa.presentation.R
 
-enum class ThemeUiModel {
-    LEMONADE,
-    RASPBERRY,
-    ORANGE,
-    CIDER,
-    BLUEBERRY,
-    ACAI_BOWL,
+enum class ThemeUiModel(
+    @param:StringRes val titleRes: Int,
+) {
+    LEMONADE(R.string.theme_lemonade),
+    RASPBERRY(R.string.theme_raspberry),
+    ORANGE(R.string.theme_orange),
+    CIDER(R.string.theme_cider),
+    BLUEBERRY(R.string.theme_blueberry),
+    ACAI_BOWL(R.string.theme_acai_bowl),
 }
 
 internal fun PrimaryTheme.toUiModel(): ThemeUiModel =

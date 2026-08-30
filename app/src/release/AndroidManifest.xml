@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- HTTPS 전환 전까지 release에서도 현재 서버에 대한 평문 HTTP 통신을 임시 허용한다. -->
+    <application android:networkSecurityConfig="@xml/network_security_config" />
+
+</manifest>

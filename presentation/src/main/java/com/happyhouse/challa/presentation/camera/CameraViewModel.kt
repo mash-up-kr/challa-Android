@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.camera
 
 import androidx.lifecycle.viewModelScope
+import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.repository.CameraRepository
 import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
@@ -22,6 +23,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -38,6 +40,7 @@ class CameraViewModel @AssistedInject constructor(
 
     init {
         observeOnboardingCompletion()
+        observeRoomEvents()
         fetchData()
     }
 
@@ -73,6 +76,27 @@ class CameraViewModel @AssistedInject constructor(
                         Timber.e("카메라 온보딩 완료 여부를 불러오지 못했습니다: %s", result)
                         updateState { copy(onboardingState = CameraOnboardingState.LOAD_FAILED) }
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * 방 선택 목록에 걸린 방 이름이 바뀌면 그 방만 갈아끼운다.
+     *
+     * 촬영 가능한 방 목록을 다시 받으면 선택한 방과 남은 장수까지 되돌아가므로, 이름만 고친다.
+     */
+    private fun observeRoomEvents() {
+        viewModelScope.launch {
+            roomRepository.roomEventFlow.filterIsInstance<RoomEvent.TitleUpdate>().collect { event ->
+                updateState {
+                    copy(
+                        rooms =
+                            rooms
+                                .map { room ->
+                                    if (room.id == event.roomId) room.copy(name = event.title) else room
+                                }.toPersistentList(),
+                    )
                 }
             }
         }

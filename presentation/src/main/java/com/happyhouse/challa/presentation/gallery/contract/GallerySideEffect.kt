@@ -1,10 +1,11 @@
 package com.happyhouse.challa.presentation.gallery.contract
 
 import com.happyhouse.challa.presentation.base.UiSideEffect
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 
 sealed interface GallerySideEffect : UiSideEffect {
     data class NavigateToPhotoDetail(
-        val photoId: Long,
+        val args: PhotoDetailArgs,
     ) : GallerySideEffect
 
     data object NavigateToCamera : GallerySideEffect

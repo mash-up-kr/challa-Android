@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 개발 서버가 HTTPS 미지원이라 debug 빌드에서만 평문 HTTP 를 허용한다. release 는 기본값(cleartext 차단) 유지. -->
+    <!-- 개발 서버가 HTTPS 미지원이라 debug 빌드에서 해당 서버의 평문 HTTP 통신을 허용한다. -->
     <application android:networkSecurityConfig="@xml/network_security_config" />
 
 </manifest>
