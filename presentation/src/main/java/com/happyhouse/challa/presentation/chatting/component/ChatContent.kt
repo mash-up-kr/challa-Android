@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,7 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,17 +58,21 @@ fun ChatContent(
     onRetry: () -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
+    scaffoldPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     when (chatInfo) {
         ChatInfo.Loading -> {
-            Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Box(
+                modifier = modifier.padding(scaffoldPadding),
+                contentAlignment = Alignment.Center,
+            ) {
                 CircularProgressIndicator(color = ChallaTheme.colors.primary)
             }
         }
 
         ChatInfo.Error -> {
             ChatListMessage(
-                modifier = modifier,
+                modifier = modifier.padding(scaffoldPadding),
                 message = stringResource(R.string.chat_load_failure),
                 actionLabel = stringResource(R.string.chat_retry),
                 onAction = onRetry,
@@ -75,12 +82,12 @@ fun ChatContent(
         is ChatInfo.Loaded -> {
             if (chatInfo.chats.isEmpty()) {
                 ChatListMessage(
-                    modifier = modifier,
+                    modifier = modifier.padding(scaffoldPadding),
                     message = stringResource(R.string.chat_empty),
                 )
             } else {
                 ChatList(
-                    modifier = modifier,
+                    modifier = modifier.padding(scaffoldPadding),
                     chatInfo = chatInfo,
                     onLoadMore = onLoadMore,
                 )
@@ -96,6 +103,7 @@ private fun ChatList(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+    var hasCompletedInitialScroll by remember { mutableStateOf(false) }
     val shouldLoadMore by
         remember(listState, chatInfo.chats.size, chatInfo.hasNext) {
             derivedStateOf {
@@ -104,6 +112,13 @@ private fun ChatList(
             }
         }
 
+    LaunchedEffect(chatInfo.chats.size) {
+        if (!hasCompletedInitialScroll && chatInfo.chats.isNotEmpty()) {
+            listState.scrollToItem(chatInfo.chats.lastIndex)
+            hasCompletedInitialScroll = true
+        }
+    }
+
     LaunchedEffect(shouldLoadMore, chatInfo.chats.size) {
         if (shouldLoadMore) onLoadMore()
     }
@@ -111,17 +126,24 @@ private fun ChatList(
     LazyColumn(
         modifier = modifier,
         state = listState,
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(horizontal = ChatHorizontalPadding, vertical = ChatVerticalPadding),
     ) {
         itemsIndexed(chatInfo.chats) { index, chat ->
+            val previousChat = chatInfo.chats.getOrNull(index - 1)
+            val nextChat = chatInfo.chats.getOrNull(index + 1)
             val showsDateHeader =
-                index == 0 ||
-                    chatInfo.chats[index - 1].createdAt.toLocalDate() != chat.createdAt.toLocalDate()
+                previousChat == null || previousChat.createdAt.toLocalDate() != chat.createdAt.toLocalDate()
+            val startsSenderGroup =
+                showsDateHeader || previousChat.userId != chat.userId
+            val endsSenderGroup =
+                nextChat == null ||
+                    nextChat.userId != chat.userId ||
+                    nextChat.createdAt.toLocalDate() != chat.createdAt.toLocalDate()
             val topSpacing =
                 when {
                     index == 0 -> 0.dp
                     showsDateHeader -> DateHeaderTopSpacing
-                    chatInfo.chats[index - 1].userId == chat.userId -> SameSenderSpacing
+                    previousChat.userId == chat.userId -> SameSenderSpacing
                     else -> DifferentSenderSpacing
                 }
 
@@ -133,7 +155,11 @@ private fun ChatList(
                     )
                 }
 
-                ChatListItem(chat = chat)
+                ChatListItem(
+                    chat = chat,
+                    showsUserName = startsSenderGroup,
+                    showsProfileImage = endsSenderGroup,
+                )
             }
         }
 
@@ -186,14 +212,10 @@ private fun ChatDateHeader(
 @Composable
 private fun ChatListItem(
     chat: ChatUiModel,
+    showsUserName: Boolean,
+    showsProfileImage: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val bubbleShape =
-        if (chat.isMine) {
-            RoundedCornerShape(16.dp, 4.dp, 16.dp, 16.dp)
-        } else {
-            RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp)
-        }
     val bubbleColor =
         if (chat.isMine) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel4
     val contentColor =
@@ -202,13 +224,17 @@ private fun ChatListItem(
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.Bottom,
     ) {
         if (!chat.isMine) {
-            ChallaProfileImage(
-                modifier = Modifier.size(22.dp),
-                profileImageUrl = chat.userProfileImageUrl,
-            )
+            if (showsProfileImage) {
+                ChallaProfileImage(
+                    modifier = Modifier.size(22.dp),
+                    profileImageUrl = chat.userProfileImageUrl,
+                )
+            } else {
+                Spacer(modifier = Modifier.size(22.dp))
+            }
         }
 
         Column(
@@ -216,7 +242,7 @@ private fun ChatListItem(
             horizontalAlignment = if (chat.isMine) Alignment.End else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (!chat.isMine) {
+            if (!chat.isMine && showsUserName) {
                 chat.userName?.takeIf(String::isNotBlank)?.let { userName ->
                     Text(
                         text = userName,
@@ -248,7 +274,7 @@ private fun ChatListItem(
                     modifier =
                         Modifier
                             .widthIn(max = 280.dp)
-                            .clip(bubbleShape)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(bubbleColor)
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                     text = content,
@@ -294,6 +320,8 @@ private fun ChatListMessage(
 }
 
 private const val LOAD_MORE_THRESHOLD = 3
+private val ChatHorizontalPadding = 20.dp
+private val ChatVerticalPadding = 16.dp
 private val SameSenderSpacing = 4.dp
 private val DifferentSenderSpacing = 24.dp
 private val DateHeaderTopSpacing = 24.dp
