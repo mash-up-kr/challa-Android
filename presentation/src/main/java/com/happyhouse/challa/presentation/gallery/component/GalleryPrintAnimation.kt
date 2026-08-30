@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -48,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -88,6 +90,8 @@ private val FilmWindowTopPadding = DispenserTopPadding + (DispenserHeight + Disp
 private const val FILM_CELL_ASPECT_RATIO = 4f / 3f
 private const val FILM_STRIP_WIDTH_RATIO = 0.58f
 
+/** 세로 사진을 눕혀 가로 칸을 채운다. */
+private const val FILM_PHOTO_ROTATION_DEGREES = 90f
 private val FilmSprocketAreaWidth = 18.dp
 private val FilmCellSpacing = 10.dp
 private val FilmSprocketSize = 6.dp
@@ -303,20 +307,30 @@ private fun FilmCell(
                 .background(ChallaTheme.colors.staticBlack)
                 .drawBehind { drawFilmSprockets(color = sprocketColor) },
     ) {
-        AsyncImage(
+        Box(
             modifier =
                 Modifier
                     .align(Alignment.TopCenter)
-                    .size(width = cellWidth, height = cellHeight),
-            model =
-                ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .crossfade(true)
-                    .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-        )
+                    .size(width = cellWidth, height = cellHeight)
+                    .clipToBounds(),
+            contentAlignment = Alignment.Center,
+        ) {
+            AsyncImage(
+                modifier =
+                    Modifier
+                        // 회전 전 크기라 가로세로를 바꿔 잡는다. 90도 돌리면 칸에 맞는다.
+                        .requiredSize(width = cellHeight, height = cellWidth)
+                        .graphicsLayer { rotationZ = FILM_PHOTO_ROTATION_DEGREES },
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
+        }
     }
 }
 
