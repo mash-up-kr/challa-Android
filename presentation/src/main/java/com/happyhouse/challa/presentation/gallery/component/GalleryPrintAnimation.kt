@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,6 +67,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
 import com.happyhouse.challa.presentation.gallery.previewGalleryPhotos
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -103,6 +106,9 @@ private const val ROLL_MAX_MS = 4_000
 
 /** 사진이 한 장씩 나타나는 간격 */
 private const val REVEAL_STAGGER_MS = 45L
+
+/** 등장을 따라 그리드가 한 줄 내려가는 시간 */
+private const val REVEAL_SCROLL_MS = 160
 
 /** 필름이 다 내려온 뒤 그리드로 넘어가기까지의 사이 */
 private const val ROLL_TO_REVEAL_DELAY_MS = 200L
@@ -353,10 +359,22 @@ private fun PhotoRevealStage(
 
     LaunchedEffect(photos.size) {
         delay(ROLL_TO_REVEAL_DELAY_MS)
+
+        // 방이 크면 그리드가 한 화면에 다 들어가지 않아, 아래쪽 사진은 화면 밖에서 나타나
+        // 등장 연출이 보이지 않는다. 나타나는 칸을 따라 그리드를 같이 내린다.
+        // 스크롤이 도는 동안에도 등장 간격이 밀리지 않도록 따로 돌린다.
+        val followJob =
+            launch {
+                snapshotFlow { revealedCount }
+                    .collect { count -> gridState.followReveal(revealedIndex = count - 1) }
+            }
+
         while (revealedCount < photos.size) {
             revealedCount++
             delay(REVEAL_STAGGER_MS)
         }
+
+        followJob.cancelAndJoin()
         onComplete()
     }
 
@@ -369,6 +387,24 @@ private fun PhotoRevealStage(
         userScrollEnabled = false,
         onPhotoClick = {},
         onLoadMore = {},
+    )
+}
+
+/**
+ * 방금 나타난 칸이 화면 밖이면 한 줄만큼 내려 다음 줄이 보이게 한다.
+ *
+ * 줄 단위로만 움직이므로 한 줄에 한 번씩만 스크롤이 돈다.
+ */
+private suspend fun LazyGridState.followReveal(revealedIndex: Int) {
+    if (revealedIndex < 0) return
+
+    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull() ?: return
+    if (revealedIndex <= lastVisible.index) return
+
+    val rowHeight = lastVisible.size.height + layoutInfo.mainAxisItemSpacing
+    animateScrollBy(
+        value = rowHeight.toFloat(),
+        animationSpec = tween(durationMillis = REVEAL_SCROLL_MS),
     )
 }
 
