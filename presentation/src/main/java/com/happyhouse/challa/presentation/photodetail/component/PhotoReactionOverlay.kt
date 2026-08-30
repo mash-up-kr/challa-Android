@@ -136,7 +136,6 @@ fun PhotoReactionOverlay(
     }
 }
 
-/** 스티커 에셋에 흰 테두리가 포함돼 있어 배경을 따로 그리지 않는다. */
 @Composable
 private fun ReactionSticker(
     emoji: ReactionEmoji,

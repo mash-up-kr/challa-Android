@@ -34,7 +34,6 @@ class ChatRepositoryImpl @Inject constructor(
             roomId = roomId,
             photoId = photoId,
             type = CreateChatRequest.ChatType.EMOJI,
-            // 서버에는 이모지 이름을 그대로 저장한다.
             content = emoji.name,
         ).mapCatching { response -> response.chat.chatId }
 

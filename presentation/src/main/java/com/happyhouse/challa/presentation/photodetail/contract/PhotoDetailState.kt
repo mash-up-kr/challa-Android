@@ -34,7 +34,7 @@ data class PhotoDetailState(
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
             val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
-            /** 사진별로 내가 남겨둔 이모지. 반응 바에 표시하고, 다시 누르면 취소한다. */
+            /** 반응 바에 표시하고, 다시 누르면 취소한다. */
             val myEmojis: ImmutableMap<Long, ImmutableSet<ReactionEmoji>> = persistentMapOf(),
             val burst: ReactionBurstUiModel? = null,
         ) : PhotoInfo {
@@ -71,14 +71,12 @@ data class PhotoReactionUiModel(
     val emoji: ReactionEmoji,
 )
 
-/** 연출이 끝나면 상태에서 지운다. 남겨두면 사진을 다시 열 때 또 재생된다. */
 const val REACTION_BURST_DURATION_MILLIS = 1100L
 
 /**
  * 반응을 남기는 순간 재생할 연출.
  *
  * @param id 연출을 다시 트리거하는 키. 같은 이모지를 또 남겨도 값이 달라야 다시 재생된다.
- * @param photoId 어느 사진 위에서 터뜨릴지
  */
 @Immutable
 data class ReactionBurstUiModel(
@@ -89,9 +87,6 @@ data class ReactionBurstUiModel(
 
 /**
  * 사진 한 장에 스티커로 보여주는 사람 수.
- *
- * 인당 반응 개수에는 제한이 없고, 사람마다 **가장 먼저 남긴 반응 하나**만 스티커가 된다.
- * 먼저 남긴 순으로 이 수만큼만 붙고 나머지는 채팅 기록에만 쌓인다.
  *
  * 이 값을 늘리려면 스티커를 놓을 자리(`StickerSlotSet`)도 함께 늘려야 한다.
  */

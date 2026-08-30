@@ -31,7 +31,6 @@ import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/** 한 번 남길 때 쏟아지는 이모지 개수 */
 private const val BURST_PARTICLE_COUNT = 18
 
 /** 파티클 크기(사진 폭 대비). 자리에 남는 스티커보다 훨씬 작다. */
