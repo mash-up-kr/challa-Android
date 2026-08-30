@@ -41,6 +41,7 @@ class HomeViewModel
         override fun onIntent(intent: HomeIntent) {
             when (intent) {
                 HomeIntent.ScreenResume -> loadHome()
+                HomeIntent.PrintCountdownFinish -> loadHome()
             }
         }
 
