@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -96,11 +97,21 @@ fun GalleryFilmSlotGrid(
 }
 
 /**
+ * 인화 연출에서 사진이 한 장씩 나타나는 동안의 상태
+ *
+ * @param revealedCount 앞에서부터 이만큼만 보인다.
+ */
+@Immutable
+data class GalleryPhotoReveal(
+    val revealedCount: Int,
+)
+
+/**
  * 인화 완료: 공개된 방 사진 그리드
  *
  * @param state 인화 전 그리드와 같은 것을 넘기면 전환해도 스크롤 위치가 유지된다.
  * @param extraBottomPadding 위에 떠 있는 하단 바에 마지막 줄이 가리지 않도록 더하는 여백
- * @param revealedCount 앞에서부터 이만큼만 보이고 나머지는 투명하다. null이면 전부 그린다.
+ * @param reveal 연출 중이면 넘긴다. 사진이 다 나타나기 전까지 스크롤과 사진 열기를 막는다.
  */
 @Composable
 fun GalleryPhotoGrid(
@@ -110,8 +121,7 @@ fun GalleryPhotoGrid(
     modifier: Modifier = Modifier,
     state: LazyGridState = rememberLazyGridState(),
     extraBottomPadding: Dp = 0.dp,
-    revealedCount: Int? = null,
-    userScrollEnabled: Boolean = true,
+    reveal: GalleryPhotoReveal? = null,
 ) {
     GalleryGridLayout(
         modifier = modifier,
@@ -119,13 +129,13 @@ fun GalleryPhotoGrid(
         loadedItemCount = photos.size,
         onLoadMore = onLoadMore,
         extraBottomPadding = extraBottomPadding,
-        userScrollEnabled = userScrollEnabled,
+        userScrollEnabled = reveal == null,
     ) {
         itemsIndexed(
             items = photos,
             key = { _, photo -> photo.id },
         ) { index, photo ->
-            val revealed = revealedCount == null || index < revealedCount
+            val revealed = reveal == null || index < reveal.revealedCount
             val alpha by animateFloatAsState(
                 targetValue = if (revealed) 1f else 0f,
                 animationSpec = tween(durationMillis = PHOTO_REVEAL_FADE_MS),
@@ -137,8 +147,9 @@ fun GalleryPhotoGrid(
                 order = photo.order,
                 type = ChallaCardType.Printed(imageUrl = photo.imageUrl),
                 contentDescription = stringResource(R.string.gallery_photo_content_description, photo.order),
-                onClickLabel = stringResource(R.string.gallery_open_photo),
-                onClick = { onPhotoClick(photo.id) },
+                // 연출 중에는 눌러도 반응할 수 없으므로 클릭 영역 자체를 두지 않는다.
+                onClickLabel = if (reveal == null) stringResource(R.string.gallery_open_photo) else null,
+                onClick = if (reveal == null) ({ onPhotoClick(photo.id) }) else null,
             )
         }
     }

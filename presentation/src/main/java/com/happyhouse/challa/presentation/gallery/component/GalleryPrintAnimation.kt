@@ -382,10 +382,9 @@ private fun PhotoRevealStage(
         modifier = modifier,
         photos = photos,
         state = gridState,
-        revealedCount = revealedCount,
-        // 다음 페이지는 연출 전에 미리 받아둔다.
-        userScrollEnabled = false,
+        reveal = GalleryPhotoReveal(revealedCount = revealedCount),
         onPhotoClick = {},
+        // 다음 페이지는 연출 전에 미리 받아둔다.
         onLoadMore = {},
     )
 }
