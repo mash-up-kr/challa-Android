@@ -193,6 +193,9 @@ fun ChallaNavHost(
                             onNavigateToRoom = { roomId ->
                                 navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
                             },
+                            onNavigateToCamera = { roomId ->
+                                navigator.navigate(ChallaRoute.Camera(roomId = roomId))
+                            },
                             onRoomIdsLoaded = memberJoinedObserverViewModel::replaceObservedRooms,
                         )
                     }

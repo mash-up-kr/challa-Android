@@ -135,6 +135,7 @@ fun HomeRoute(
     fromProfileSetup: Boolean,
     onNavigateToSetting: () -> Unit,
     onNavigateToRoom: (roomId: Long) -> Unit,
+    onNavigateToCamera: (roomId: Long) -> Unit,
     onRoomIdsLoaded: (Set<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -190,6 +191,7 @@ fun HomeRoute(
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
         onRoomClick = onNavigateToRoom,
+        onShootClick = onNavigateToCamera,
         onPrintCountdownFinish = { viewModel.onIntent(HomeIntent.PrintCountdownFinish) },
         modifier = modifier,
     )
@@ -226,6 +228,7 @@ private fun HomeScreen(
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
     onRoomClick: (roomId: Long) -> Unit,
+    onShootClick: (roomId: Long) -> Unit,
     onPrintCountdownFinish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -296,6 +299,7 @@ private fun HomeScreen(
                         printingRooms = state.printingRooms,
                         completedRooms = state.completedRooms,
                         onRoomClick = onRoomClick,
+                        onShootClick = onShootClick,
                         onPrintCountdownFinish = onPrintCountdownFinish,
                         modifier = Modifier.weight(1f),
                     )
@@ -317,6 +321,7 @@ private fun HomeRoomsContent(
     printingRooms: ImmutableList<RoomUiModel.Printing>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
     onRoomClick: (roomId: Long) -> Unit,
+    onShootClick: (roomId: Long) -> Unit,
     onPrintCountdownFinish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -334,6 +339,7 @@ private fun HomeRoomsContent(
                 shootingRooms = shootingRooms,
                 printingRooms = printingRooms,
                 onRoomClick = onRoomClick,
+                onShootClick = onShootClick,
                 onPrintCountdownFinish = onPrintCountdownFinish,
             )
         }
@@ -359,6 +365,7 @@ private fun HomeShootingSection(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     printingRooms: ImmutableList<RoomUiModel.Printing>,
     onRoomClick: (roomId: Long) -> Unit,
+    onShootClick: (roomId: Long) -> Unit,
     onPrintCountdownFinish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -375,6 +382,7 @@ private fun HomeShootingSection(
             HomeShootingCard(
                 room = room,
                 onClick = { onRoomClick(room.id) },
+                onShootClick = { onShootClick(room.id) },
             )
         }
         printingRooms.forEach { room ->
@@ -391,6 +399,7 @@ private fun HomeShootingSection(
 private fun HomeShootingCard(
     room: RoomUiModel.Shooting,
     onClick: () -> Unit,
+    onShootClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     HomeRoomCoverCard(
@@ -400,9 +409,11 @@ private fun HomeShootingCard(
         onClick = onClick,
         modifier = modifier,
     ) {
+        // 배지 클릭은 카드 클릭(방 이동)보다 먼저 소비되어 바로 카메라로 간다.
         HomeCameraBadge(
             takenCount = room.takenCount,
             totalCount = room.totalCount,
+            modifier = Modifier.noRippleClickOnce(role = Role.Button, onClick = onShootClick),
         )
     }
 }
@@ -1043,6 +1054,7 @@ private fun HomeRoomsPreview() {
             onInviteCodeClick = {},
             onSettingClick = {},
             onRoomClick = {},
+            onShootClick = {},
             onPrintCountdownFinish = {},
         )
     }
@@ -1067,6 +1079,7 @@ private fun HomeEmptyPreview() {
             onInviteCodeClick = {},
             onSettingClick = {},
             onRoomClick = {},
+            onShootClick = {},
             onPrintCountdownFinish = {},
         )
     }
@@ -1086,6 +1099,7 @@ private fun HomeLoadingPreview() {
             onInviteCodeClick = {},
             onSettingClick = {},
             onRoomClick = {},
+            onShootClick = {},
             onPrintCountdownFinish = {},
         )
     }
