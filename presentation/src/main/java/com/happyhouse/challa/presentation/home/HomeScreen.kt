@@ -785,7 +785,10 @@ private fun RoomAsyncImage(
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         placeholder = ColorPainter(ChallaTheme.colors.backgroundLevel3),
-        error = ColorPainter(ChallaTheme.colors.backgroundLevel3),
+        // 로드에 실패한 카드는 깨진 이미지 대신 검은 단색으로 덮는다.
+        error = ColorPainter(ChallaTheme.colors.staticBlack),
+        // 주소가 없는 건 로드 실패가 아니므로(예: 아직 커버 사진이 없는 방) 빈 카드 배경을 그대로 둔다.
+        fallback = ColorPainter(ChallaTheme.colors.backgroundLevel3),
         modifier = modifier,
     )
 }
