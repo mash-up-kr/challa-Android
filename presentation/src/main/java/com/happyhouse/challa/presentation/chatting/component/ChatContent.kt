@@ -8,15 +8,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,9 +40,13 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
 import com.happyhouse.challa.presentation.chatting.model.ChatUiModel
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import kotlinx.collections.immutable.persistentListOf
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
@@ -55,7 +59,7 @@ fun ChatContent(
     when (chatInfo) {
         ChatInfo.Loading -> {
             Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = ChallaTheme.colors.labelNormal)
+                CircularProgressIndicator(color = ChallaTheme.colors.primary)
             }
         }
 
@@ -108,16 +112,38 @@ private fun ChatList(
         modifier = modifier,
         state = listState,
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(chatInfo.chats) { chat ->
-            ChatListItem(chat = chat)
+        itemsIndexed(chatInfo.chats) { index, chat ->
+            val showsDateHeader =
+                index == 0 ||
+                    chatInfo.chats[index - 1].createdAt.toLocalDate() != chat.createdAt.toLocalDate()
+            val topSpacing =
+                when {
+                    index == 0 -> 0.dp
+                    showsDateHeader -> DateHeaderTopSpacing
+                    chatInfo.chats[index - 1].userId == chat.userId -> SameSenderSpacing
+                    else -> DifferentSenderSpacing
+                }
+
+            Column(modifier = Modifier.padding(top = topSpacing)) {
+                if (showsDateHeader) {
+                    ChatDateHeader(
+                        modifier = Modifier.padding(bottom = DateHeaderBottomSpacing),
+                        createdAt = chat.createdAt,
+                    )
+                }
+
+                ChatListItem(chat = chat)
+            }
         }
 
         if (chatInfo.isLoadingMore) {
             item {
                 Box(
-                    modifier = Modifier.fillParentMaxWidth().padding(vertical = 8.dp),
+                    modifier =
+                        Modifier
+                            .fillParentMaxWidth()
+                            .padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
@@ -132,6 +158,32 @@ private fun ChatList(
 }
 
 @Composable
+private fun ChatDateHeader(
+    createdAt: ZonedDateTime,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = ChallaTheme.colors.lineNeutral,
+        )
+        Text(
+            text = ChatDateFormatter.format(createdAt),
+            color = ChallaTheme.colors.labelNeutral,
+            style = ChallaTheme.typography.bodySmall.medium,
+        )
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = ChallaTheme.colors.lineNeutral,
+        )
+    }
+}
+
+@Composable
 private fun ChatListItem(
     chat: ChatUiModel,
     modifier: Modifier = Modifier,
@@ -142,67 +194,64 @@ private fun ChatListItem(
         } else {
             RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp)
         }
-    val bubbleColor = if (chat.isMine) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel2
-    val contentColor = if (chat.isMine) ChallaTheme.colors.staticBlack else ChallaTheme.colors.labelNormal
+    val bubbleColor =
+        if (chat.isMine) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel4
+    val contentColor =
+        if (chat.isMine) ChallaTheme.colors.staticBlack else ChallaTheme.colors.labelNormal
 
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.Top,
     ) {
         if (!chat.isMine) {
             ChallaProfileImage(
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(22.dp),
                 profileImageUrl = chat.userProfileImageUrl,
-                backgroundColor = ChallaTheme.colors.backgroundLevel2,
-                fallbackIconTint = ChallaTheme.colors.lineNeutral,
             )
         }
 
         Column(
             modifier = Modifier.weight(1f),
             horizontalAlignment = if (chat.isMine) Alignment.End else Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (!chat.isMine) {
                 chat.userName?.takeIf(String::isNotBlank)?.let { userName ->
                     Text(
                         text = userName,
-                        color = ChallaTheme.colors.labelSubtle,
-                        style = ChallaTheme.typography.descriptionLarge.medium,
+                        color = ChallaTheme.colors.labelNeutral,
+                        style = ChallaTheme.typography.bodyXSmall.medium,
                     )
                 }
             }
 
-            Column(
-                modifier =
-                    Modifier
-                        .widthIn(max = 280.dp)
-                        .clip(bubbleShape)
-                        .background(bubbleColor)
-                        .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                chat.photoImageUrl?.takeIf(String::isNotBlank)?.let { imageUrl ->
-                    AsyncImage(
-                        modifier =
-                            Modifier
-                                .widthIn(max = 220.dp)
-                                .height(132.dp)
-                                .clip(RoundedCornerShape(10.dp)),
-                        model =
-                            ImageRequest
-                                .Builder(LocalContext.current)
-                                .data(imageUrl)
-                                .crossfade(true)
-                                .build(),
-                        contentDescription = stringResource(R.string.chat_photo_description),
-                        contentScale = ContentScale.Crop,
-                    )
-                }
+            chat.photoImageUrl?.takeIf(String::isNotBlank)?.let { imageUrl ->
+                AsyncImage(
+                    modifier =
+                        Modifier
+                            .size(width = 104.dp, height = 140.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                    model =
+                        ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build(),
+                    contentDescription = stringResource(R.string.chat_photo_description),
+                    contentScale = ContentScale.Crop,
+                )
+            }
 
+            chat.content.takeIf(String::isNotBlank)?.let { content ->
                 Text(
-                    text = chat.content,
+                    modifier =
+                        Modifier
+                            .widthIn(max = 280.dp)
+                            .clip(bubbleShape)
+                            .background(bubbleColor)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    text = content,
                     color = contentColor,
                     style = ChallaTheme.typography.bodyMedium.medium,
                 )
@@ -219,7 +268,10 @@ private fun ChatListMessage(
     onAction: () -> Unit = {},
 ) {
     Column(
-        modifier = modifier.fillMaxSize().padding(24.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -242,11 +294,21 @@ private fun ChatListMessage(
 }
 
 private const val LOAD_MORE_THRESHOLD = 3
+private val SameSenderSpacing = 4.dp
+private val DifferentSenderSpacing = 24.dp
+private val DateHeaderTopSpacing = 24.dp
+private val DateHeaderBottomSpacing = 24.dp
+private val ChatDateFormatter = DateTimeFormatter.ofPattern("M.d. a h:mm", Locale.KOREA)
 
 @ComposePreview(name = "ChatContent - 채팅 목록")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ChatContentLoadedPreview() {
+    val previewPhotoUrl =
+        "android.resource://${LocalContext.current.packageName}/${R.drawable.img_onboarding_1}"
+    val previewCreatedAt =
+        ZonedDateTime.of(2026, 8, 30, 14, 48, 0, 0, ZoneId.systemDefault())
+
     ChatContent(
         modifier = Modifier.fillMaxSize(),
         chatInfo =
@@ -254,17 +316,31 @@ private fun ChatContentLoadedPreview() {
                 chats =
                     persistentListOf(
                         ChatUiModel(
+                            userId = 1L,
                             type = ChatType.DEFAULT,
                             content = "강릉에 도착하면 바로 사진 찍으러 가자!",
                             photoImageUrl = null,
+                            createdAt = previewCreatedAt,
                             isMine = false,
                             userName = "그린그린여성현",
                             userProfileImageUrl = null,
                         ),
                         ChatUiModel(
+                            userId = 2L,
+                            type = ChatType.COMMENT,
+                            content = "이 사진 분위기 정말 좋다.",
+                            photoImageUrl = previewPhotoUrl,
+                            createdAt = previewCreatedAt.plusMinutes(1),
+                            isMine = true,
+                            userName = "찰나",
+                            userProfileImageUrl = null,
+                        ),
+                        ChatUiModel(
+                            userId = 2L,
                             type = ChatType.COMMENT,
                             content = "이 사진 분위기 정말 좋다.",
                             photoImageUrl = null,
+                            createdAt = previewCreatedAt.plusMinutes(2),
                             isMine = true,
                             userName = "찰나",
                             userProfileImageUrl = null,
@@ -277,37 +353,37 @@ private fun ChatContentLoadedPreview() {
 }
 
 @ComposePreview(name = "ChatContent - 빈 목록")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ChatContentEmptyPreview() {
     ChatContent(
-        modifier = Modifier.fillMaxSize(),
         chatInfo = ChatInfo.Loaded(),
         onRetry = {},
         onLoadMore = {},
+        modifier = Modifier.fillMaxSize(),
     )
 }
 
 @ComposePreview(name = "ChatContent - Loading")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ChatContentLoadingPreview() {
     ChatContent(
-        modifier = Modifier.fillMaxSize(),
         chatInfo = ChatInfo.Loading,
         onRetry = {},
         onLoadMore = {},
+        modifier = Modifier.fillMaxSize(),
     )
 }
 
 @ComposePreview(name = "ChatContent - Error")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ChatContentErrorPreview() {
     ChatContent(
-        modifier = Modifier.fillMaxSize(),
         chatInfo = ChatInfo.Error,
         onRetry = {},
         onLoadMore = {},
+        modifier = Modifier.fillMaxSize(),
     )
 }

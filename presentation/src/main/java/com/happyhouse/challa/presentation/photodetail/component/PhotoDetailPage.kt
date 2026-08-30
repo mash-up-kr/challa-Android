@@ -180,8 +180,6 @@ private fun PhotographerAvatar(
     ChallaProfileImage(
         modifier = modifier.size(ProfileImageSize),
         profileImageUrl = profileImageUrl,
-        backgroundColor = ChallaTheme.colors.backgroundLevel2,
-        fallbackIconTint = ChallaTheme.colors.lineNeutral,
     )
 }
 

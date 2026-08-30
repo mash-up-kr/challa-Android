@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.domain.model.chat.ChatType
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.component.ChatContent
 import com.happyhouse.challa.presentation.chatting.component.ChatInputArea
 import com.happyhouse.challa.presentation.chatting.component.ChatTopBar
@@ -22,6 +24,8 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPrevi
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import kotlinx.collections.immutable.persistentListOf
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 @Composable
 fun ChatScreen(
@@ -73,6 +77,10 @@ fun ChatScreen(
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun ChatScreenPreview() {
+    val previewPhotoUrl =
+        "android.resource://${LocalContext.current.packageName}/${R.drawable.img_onboarding_1}"
+    val previewZoneId = ZoneId.systemDefault()
+
     ChatScreen(
         state =
             ChatState(
@@ -82,25 +90,31 @@ private fun ChatScreenPreview() {
                         chats =
                             persistentListOf(
                                 ChatUiModel(
+                                    userId = 1L,
                                     type = ChatType.DEFAULT,
                                     content = "강릉에 도착하면 바로 사진 찍으러 가자!",
                                     photoImageUrl = null,
+                                    createdAt = ZonedDateTime.of(2026, 8, 29, 20, 15, 0, 0, previewZoneId),
                                     isMine = false,
                                     userName = "user1",
                                     userProfileImageUrl = null,
                                 ),
                                 ChatUiModel(
+                                    userId = 2L,
                                     type = ChatType.DEFAULT,
                                     content = "좋아! 바다부터 보고 숙소로 이동하자.",
-                                    photoImageUrl = null,
+                                    photoImageUrl = previewPhotoUrl,
+                                    createdAt = ZonedDateTime.of(2026, 8, 29, 20, 17, 0, 0, previewZoneId),
                                     isMine = true,
                                     userName = "찰나",
                                     userProfileImageUrl = null,
                                 ),
                                 ChatUiModel(
+                                    userId = 3L,
                                     type = ChatType.EMOJI,
                                     content = "🔥",
                                     photoImageUrl = null,
+                                    createdAt = ZonedDateTime.of(2026, 8, 30, 9, 34, 0, 0, previewZoneId),
                                     isMine = false,
                                     userName = "여름여행가자",
                                     userProfileImageUrl = null,
