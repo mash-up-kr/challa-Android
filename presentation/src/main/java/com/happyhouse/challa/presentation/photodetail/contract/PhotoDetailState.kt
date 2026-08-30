@@ -2,11 +2,14 @@ package com.happyhouse.challa.presentation.photodetail.contract
 
 import android.os.Parcelable
 import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.base.UiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.parcelize.Parcelize
 
 @Immutable
@@ -31,8 +34,13 @@ data class PhotoDetailState(
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
             val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
+            /** 반응 바에 표시하고, 다시 누르면 취소한다. */
+            val myEmojis: ImmutableMap<Long, ImmutableSet<ReactionEmoji>> = persistentMapOf(),
+            val burst: ReactionBurstUiModel? = null,
         ) : PhotoInfo {
             fun reactionsOf(photoId: Long): ImmutableList<PhotoReactionUiModel> = reactions[photoId] ?: persistentListOf()
+
+            fun myEmojisOf(photoId: Long): ImmutableSet<ReactionEmoji> = myEmojis[photoId] ?: persistentSetOf()
         }
     }
 }
@@ -53,23 +61,33 @@ data class PhotoDetailUiModel(
 ) : Parcelable
 
 /**
- * @param id 사진 위 노출 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려져야 한다.
+ * 사진 위에 붙는 스티커 하나.
+ *
+ * @param chatId 취소에 쓰고, 배치 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려진다.
  */
 @Immutable
 data class PhotoReactionUiModel(
+    val chatId: Long,
+    val emoji: ReactionEmoji,
+)
+
+const val REACTION_BURST_DURATION_MILLIS = 1100L
+
+/**
+ * 반응을 남기는 순간 재생할 연출.
+ *
+ * @param id 연출을 다시 트리거하는 키. 같은 이모지를 또 남겨도 값이 달라야 다시 재생된다.
+ */
+@Immutable
+data class ReactionBurstUiModel(
     val id: Long,
+    val photoId: Long,
     val emoji: ReactionEmoji,
 )
 
 /**
- * 반응 바에 노출하는 이모지 종류. 선언 순서가 곧 노출 순서다.
+ * 사진 한 장에 스티커로 보여주는 사람 수.
  *
- * TODO: 이모지 셋 2차 수정·추가 예정 (이슈 #62)
+ * 이 값을 늘리려면 스티커를 놓을 자리(`StickerSlotSet`)도 함께 늘려야 한다.
  */
-enum class ReactionEmoji {
-    MEDAL,
-    HEART,
-    POOP,
-    CLAP,
-    SKULL,
-}
+const val MAX_STICKER_USER_COUNT = 3
