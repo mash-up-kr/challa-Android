@@ -1,5 +1,7 @@
 package com.happyhouse.challa.presentation.gallery.component
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -7,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,6 +17,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
@@ -33,6 +37,9 @@ private const val GALLERY_COLUMN_COUNT = 4
 
 /** 받아둔 사진의 끝에서 이만큼 남았을 때 다음 페이지를 미리 요청한다. */
 private const val LOAD_MORE_PREFETCH_ITEM_COUNT = GALLERY_COLUMN_COUNT * 2
+
+/** 인화 연출에서 사진 한 장이 나타나는 데 걸리는 시간 */
+private const val PHOTO_REVEAL_FADE_MS = 220
 
 private val GalleryGridSpacing = 10.dp
 private val GalleryGridHorizontalPadding = 16.dp
@@ -94,6 +101,9 @@ fun GalleryFilmSlotGrid(
  *
  * @param state 인화 전 그리드와 같은 것을 넘기면 전환해도 스크롤 위치가 유지된다.
  * @param extraBottomPadding 위에 떠 있는 하단 바에 마지막 줄이 가리지 않도록 더하는 여백
+ * @param revealedCount 앞에서부터 이만큼만 보이고 나머지는 투명하다. null이면 전부 그린다.
+ *   인화 연출에서 사진을 한 장씩 등장시킬 때 쓴다.
+ * @param userScrollEnabled 인화 연출 중에는 false로 스크롤을 잠근다.
  */
 @Composable
 fun GalleryPhotoGrid(
@@ -103,6 +113,8 @@ fun GalleryPhotoGrid(
     modifier: Modifier = Modifier,
     state: LazyGridState = rememberLazyGridState(),
     extraBottomPadding: Dp = 0.dp,
+    revealedCount: Int? = null,
+    userScrollEnabled: Boolean = true,
 ) {
     GalleryGridLayout(
         modifier = modifier,
@@ -110,12 +122,21 @@ fun GalleryPhotoGrid(
         loadedItemCount = photos.size,
         onLoadMore = onLoadMore,
         extraBottomPadding = extraBottomPadding,
+        userScrollEnabled = userScrollEnabled,
     ) {
-        items(
+        itemsIndexed(
             items = photos,
-            key = { photo -> photo.id },
-        ) { photo ->
+            key = { _, photo -> photo.id },
+        ) { index, photo ->
+            val revealed = revealedCount == null || index < revealedCount
+            val alpha by animateFloatAsState(
+                targetValue = if (revealed) 1f else 0f,
+                animationSpec = tween(durationMillis = PHOTO_REVEAL_FADE_MS),
+                label = "GalleryPhotoReveal",
+            )
+
             ChallaCardItem(
+                modifier = Modifier.alpha(alpha),
                 order = photo.order,
                 type = ChallaCardType.Printed(imageUrl = photo.imageUrl),
                 contentDescription = stringResource(R.string.gallery_photo_content_description, photo.order),
@@ -133,6 +154,7 @@ private fun GalleryGridLayout(
     modifier: Modifier = Modifier,
     state: LazyGridState = rememberLazyGridState(),
     extraBottomPadding: Dp = 0.dp,
+    userScrollEnabled: Boolean = true,
     content: LazyGridScope.() -> Unit,
 ) {
     LoadMoreEffect(
@@ -144,6 +166,7 @@ private fun GalleryGridLayout(
     LazyVerticalGrid(
         modifier = modifier,
         state = state,
+        userScrollEnabled = userScrollEnabled,
         columns = GridCells.Fixed(GALLERY_COLUMN_COUNT),
         contentPadding =
             PaddingValues(
