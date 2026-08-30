@@ -496,3 +496,26 @@ private fun GalleryPrintAnimationPullWaitingPreview() {
         onComplete = {},
     )
 }
+
+@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "인화 연출 - 내려오는 중")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryPrintAnimationRollingPreview() {
+    FilmDispensingStage(
+        photos = previewGalleryPhotos(count = 12),
+        rolls = true,
+        onPulled = {},
+        onRolled = {},
+    )
+}
+
+@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "인화 연출 - 사진 등장")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryPrintAnimationRevealingPreview() {
+    PhotoRevealStage(
+        photos = previewGalleryPhotos(count = 12),
+        gridState = rememberLazyGridState(),
+        onComplete = {},
+    )
+}

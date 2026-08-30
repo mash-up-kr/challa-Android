@@ -235,3 +235,15 @@ private fun GalleryPhotoGridPreview() {
         onLoadMore = {},
     )
 }
+
+@ComposePreview(showBackground = true, widthDp = 390, name = "PhotoGrid - 인화 연출 등장 중")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryPhotoGridRevealingPreview() {
+    GalleryPhotoGrid(
+        photos = previewGalleryPhotos(count = 12),
+        onPhotoClick = {},
+        onLoadMore = {},
+        reveal = GalleryPhotoReveal(revealedCount = 6),
+    )
+}
