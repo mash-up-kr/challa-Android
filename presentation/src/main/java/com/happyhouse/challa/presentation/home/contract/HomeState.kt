@@ -22,7 +22,11 @@ data class HomeState(
     val shootingRooms: ImmutableList<RoomUiModel.Shooting>
         get() = rooms.filterIsInstance<RoomUiModel.Shooting>().toImmutableList()
 
-    /** 촬영 완료된 방 목록 */
+    /** 인화 전(인화 대기) 방 목록 */
+    val printingRooms: ImmutableList<RoomUiModel.Printing>
+        get() = rooms.filterIsInstance<RoomUiModel.Printing>().toImmutableList()
+
+    /** 인화 완료된 방 목록 */
     val completedRooms: ImmutableList<RoomUiModel.Completed>
         get() = rooms.filterIsInstance<RoomUiModel.Completed>().toImmutableList()
 }

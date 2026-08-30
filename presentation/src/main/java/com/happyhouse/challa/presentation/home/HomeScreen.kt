@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -82,16 +83,19 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.component.HomeCameraBadge
+import com.happyhouse.challa.presentation.home.component.HomeTimerBadge
 import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.enterroom.EnterRoomBottomSheet
-import com.happyhouse.challa.presentation.home.model.PrintState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
+import java.time.Instant
+import kotlin.math.ceil
 
 private val SHOOTING_CARD_WIDTH = 200.dp
 private val SHOOTING_CARD_HEIGHT = 266.dp
@@ -278,6 +282,7 @@ private fun HomeScreen(
                 else ->
                     HomeRoomsContent(
                         shootingRooms = state.shootingRooms,
+                        printingRooms = state.printingRooms,
                         completedRooms = state.completedRooms,
                         onRoomClick = onRoomClick,
                         modifier = Modifier.weight(1f),
@@ -297,24 +302,29 @@ private fun HomeScreen(
 @Composable
 private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
+    printingRooms: ImmutableList<RoomUiModel.Printing>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
     onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 인화 전(촬영 중 + 인화 대기) 방은 큰 커버 카드로 상단에, 인화 완료 방은 필름 스택으로 하단에 둔다.
+    val hasCoverCards = shootingRooms.isNotEmpty() || printingRooms.isNotEmpty()
+
     Column(
         modifier =
             modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
     ) {
-        if (shootingRooms.isNotEmpty()) {
+        if (hasCoverCards) {
             HomeShootingSection(
-                rooms = shootingRooms,
+                shootingRooms = shootingRooms,
+                printingRooms = printingRooms,
                 onRoomClick = onRoomClick,
             )
         }
 
-        if (shootingRooms.isNotEmpty() && completedRooms.isNotEmpty()) {
+        if (hasCoverCards && completedRooms.isNotEmpty()) {
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 color = ChallaTheme.colors.lineNormal,
@@ -332,7 +342,8 @@ private fun HomeRoomsContent(
 
 @Composable
 private fun HomeShootingSection(
-    rooms: ImmutableList<RoomUiModel.Shooting>,
+    shootingRooms: ImmutableList<RoomUiModel.Shooting>,
+    printingRooms: ImmutableList<RoomUiModel.Printing>,
     onRoomClick: (roomId: Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -357,8 +368,14 @@ private fun HomeShootingSection(
                     .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            rooms.forEach { room ->
+            shootingRooms.forEach { room ->
                 HomeShootingCard(
+                    room = room,
+                    onClick = { onRoomClick(room.id) },
+                )
+            }
+            printingRooms.forEach { room ->
+                HomePrintingCard(
                     room = room,
                     onClick = { onRoomClick(room.id) },
                 )
@@ -373,6 +390,53 @@ private fun HomeShootingCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    HomeRoomCoverCard(
+        coverImageUrl = room.coverImageUrl,
+        name = room.name,
+        participantCount = room.participantCount,
+        onClick = onClick,
+        modifier = modifier,
+    ) {
+        HomeCameraBadge(
+            takenCount = room.takenCount,
+            totalCount = room.totalCount,
+        )
+    }
+}
+
+@Composable
+private fun HomePrintingCard(
+    room: RoomUiModel.Printing,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val remainingSeconds = rememberPrintRemainingSeconds(room.printCompletedAt)
+
+    HomeRoomCoverCard(
+        coverImageUrl = room.coverImageUrl,
+        name = room.name,
+        participantCount = room.participantCount,
+        onClick = onClick,
+        modifier = modifier,
+    ) {
+        HomeTimerBadge(remainingSeconds = remainingSeconds)
+    }
+}
+
+/**
+ * 촬영 중·인화 대기 방이 공유하는 큰 커버 카드.
+ *
+ * 커버 이미지 위에 그라데이션을 얹고, 위쪽에 방 이름·참여 인원, 아래쪽에 상태 배지를 둔다.
+ */
+@Composable
+private fun HomeRoomCoverCard(
+    coverImageUrl: String?,
+    name: String,
+    participantCount: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    badge: @Composable () -> Unit,
+) {
     Box(
         modifier =
             modifier
@@ -382,7 +446,7 @@ private fun HomeShootingCard(
                 .noRippleClickOnce(role = Role.Button, onClick = onClick),
     ) {
         RoomAsyncImage(
-            imageUrl = room.coverImageUrl,
+            imageUrl = coverImageUrl,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
         )
@@ -428,42 +492,50 @@ private fun HomeShootingCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = room.name,
+                    text = name,
                     color = ChallaTheme.colors.labelNormal,
                     style = ChallaTheme.typography.bodyMedium.bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 HomeParticipantCount(
-                    count = room.participantCount,
+                    count = participantCount,
                     iconSize = 14.dp,
                     textStyle = ChallaTheme.typography.descriptionLarge.bold,
                 )
             }
 
-            Row(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(ChallaTheme.colors.primary)
-                        .padding(horizontal = 11.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(id = ChallaIcons.Camera),
-                    contentDescription = stringResource(id = R.string.home_taken_count_description),
-                    modifier = Modifier.size(22.dp),
-                    tint = ChallaTheme.colors.staticBlack,
-                )
-                Text(
-                    text = room.takenCount.toString(),
-                    color = ChallaTheme.colors.staticBlack,
-                    style = ChallaTheme.typography.bodyMedium.bold,
-                )
-            }
+            badge()
         }
     }
+}
+
+/**
+ * 인화 완료까지 남은 시간을 1초마다 갱신한다.
+ *
+ * 남은 초를 1씩 빼지 않고 매번 완료 시각과 현재 시각을 비교해, 화면이 잠깐 멈췄다 돌아와도 값이 어긋나지 않게 한다.
+ */
+@Composable
+private fun rememberPrintRemainingSeconds(printCompletedAt: Instant?): Long {
+    val remainingSeconds by produceState(
+        initialValue = printCompletedAt.remainingSecondsUntilNow(),
+        key1 = printCompletedAt,
+    ) {
+        while (true) {
+            value = printCompletedAt.remainingSecondsUntilNow()
+            if (value <= 0L) break
+            delay(1000L)
+        }
+    }
+    return remainingSeconds
+}
+
+private fun Instant?.remainingSecondsUntilNow(): Long {
+    if (this == null) return 0L
+    val remainingMillis = toEpochMilli() - System.currentTimeMillis()
+    if (remainingMillis <= 0L) return 0L
+    // 남은 시간이 잘려서 실제보다 짧게 보이지 않도록 올림한다.
+    return ceil(remainingMillis.toDouble() / 1000.0).toLong()
 }
 
 @Composable
@@ -513,7 +585,7 @@ private fun HomeCompletedRoom(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            HomePrintStateChip(printState = room.printState)
+            HomeCompletedChip()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -542,41 +614,22 @@ private fun HomeCompletedRoom(
 }
 
 @Composable
-private fun HomePrintStateChip(
-    printState: PrintState,
-    modifier: Modifier = Modifier,
-) {
-    val label: String
-    val containerColor: Color
-    val borderColor: Color
-    val textColor: Color
-    when (printState) {
-        PrintState.WAITING -> {
-            label = stringResource(id = R.string.home_print_waiting)
-            containerColor = ChallaTheme.colors.backgroundLevel1
-            borderColor = ChallaTheme.colors.lineNormal
-            textColor = ChallaTheme.colors.labelAlternative
-        }
-
-        PrintState.COMPLETED -> {
-            label = stringResource(id = R.string.home_print_completed)
-            containerColor = ChallaTheme.colors.primary.copy(alpha = 0.08f)
-            borderColor = ChallaTheme.colors.primary.copy(alpha = 0.2f)
-            textColor = ChallaTheme.colors.primary
-        }
-    }
-
+private fun HomeCompletedChip(modifier: Modifier = Modifier) {
     Box(
         modifier =
             modifier
                 .clip(RoundedCornerShape(100.dp))
-                .background(containerColor)
-                .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(100.dp))
+                .background(ChallaTheme.colors.primary.copy(alpha = 0.08f))
+                .border(
+                    width = 1.dp,
+                    color = ChallaTheme.colors.primary.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(100.dp),
+                )
                 .padding(horizontal = 8.dp, vertical = 5.dp),
     ) {
         Text(
-            text = label,
-            color = textColor,
+            text = stringResource(id = R.string.home_print_completed),
+            color = ChallaTheme.colors.primary,
             style = ChallaTheme.typography.descriptionLarge.medium,
         )
     }
@@ -1051,28 +1104,21 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             name = "친구들과 강릉 여행",
             participantCount = 1,
             takenCount = 24,
+            totalCount = 24,
             coverImageUrl = null,
         ),
-        RoomUiModel.Shooting(
+        RoomUiModel.Printing(
             id = 2L,
-            name = "제주도 우정여행",
-            participantCount = 4,
-            takenCount = 12,
+            name = "친구들과 유럽 여행",
+            participantCount = 5,
             coverImageUrl = null,
-        ),
-        RoomUiModel.Completed(
-            id = 3L,
-            name = "친구들과 강릉 여행",
-            participantCount = 11,
-            printState = PrintState.WAITING,
-            photoImageUrls = persistentListOf("", "", "", ""),
-            totalPhotoCount = 24,
+            // 2:15:32 뒤 인화 완료
+            printCompletedAt = Instant.now().plusSeconds(8132L),
         ),
         RoomUiModel.Completed(
             id = 4L,
             name = "인화 완료 된 방이에요",
             participantCount = 7,
-            printState = PrintState.COMPLETED,
             photoImageUrls = persistentListOf("", "", ""),
             totalPhotoCount = 3,
         ),
