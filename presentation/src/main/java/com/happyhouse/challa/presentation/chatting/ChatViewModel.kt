@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.chatting
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.model.chat.Chat
+import com.happyhouse.challa.domain.model.chat.ChatSubscriptionEvent
 import com.happyhouse.challa.domain.repository.ChatRepository
 import com.happyhouse.challa.domain.repository.UserRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -19,7 +20,10 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -32,78 +36,159 @@ class ChatViewModel @AssistedInject constructor(
 ) : BaseViewModel<ChatState, ChatIntent, ChatSideEffect>(
         initialState = ChatState(roomName = roomName),
     ) {
-    private var loadJob: Job? = null
+    private var chatSessionJob: Job? = null
+    private var loadMoreJob: Job? = null
     private var nextPage = 0
-    private val loadedChats = mutableListOf<Chat>()
+    private var hasNextPage = false
+    private var initialChatsLoaded = false
+    private val chatsById = linkedMapOf<Long, Chat>()
+    private val bufferedChatsById = linkedMapOf<Long, Chat>()
     private var currentUserId: Long? = null
 
     init {
-        loadChats()
+        startChatSession()
     }
 
     override fun onIntent(intent: ChatIntent) {
         when (intent) {
-            ChatIntent.ChatsLoad -> loadChats()
-            ChatIntent.ChatsLoadMore -> loadChats(loadMore = true)
+            ChatIntent.ChatsLoad -> startChatSession()
+            ChatIntent.ChatsLoadMore -> loadMoreChats()
             is ChatIntent.MessageChange -> updateState { copy(message = intent.message) }
         }
     }
 
-    private fun loadChats(loadMore: Boolean = false) {
-        if (loadJob?.isActive == true) return
+    private fun startChatSession() {
+        chatSessionJob?.cancel()
+        loadMoreJob?.cancel()
+        nextPage = 0
+        hasNextPage = false
+        initialChatsLoaded = false
+        chatsById.clear()
+        bufferedChatsById.clear()
+        updateState { copy(chatInfo = ChatInfo.Loading) }
 
-        val loaded = currentState.chatInfo as? ChatInfo.Loaded
-        if (loadMore && (loaded == null || !loaded.hasNext)) return
+        chatSessionJob =
+            viewModelScope.launch {
+                val subscriptionReady = CompletableDeferred<Unit>()
 
-        if (!loadMore) {
-            nextPage = 0
-            loadedChats.clear()
-            updateState { copy(chatInfo = ChatInfo.Loading) }
-        } else {
-            updateState { copy(chatInfo = checkNotNull(loaded).copy(isLoadingMore = true)) }
+                try {
+                    coroutineScope {
+                        val socketJob =
+                            launch {
+                                chatRepository.observeChats(roomId).collect { event ->
+                                    when (event) {
+                                        ChatSubscriptionEvent.Subscribed -> subscriptionReady.complete(Unit)
+                                        is ChatSubscriptionEvent.ChatsReceived -> handleRealtimeChats(event.chats)
+                                    }
+                                }
+                            }
+
+                        subscriptionReady.await()
+                        val userId =
+                            getCurrentUserId() ?: run {
+                                socketJob.cancel()
+                                updateState { copy(chatInfo = ChatInfo.Error) }
+                                return@coroutineScope
+                            }
+
+                        loadInitialChats(userId)
+                        socketJob.join()
+                    }
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (throwable: Throwable) {
+                    Timber.e(throwable, "채팅 WebSocket 구독이 종료되었습니다. roomId=$roomId")
+                    if (!initialChatsLoaded) {
+                        updateState { copy(chatInfo = ChatInfo.Error) }
+                    }
+                }
+            }
+    }
+
+    private suspend fun loadInitialChats(userId: Long) {
+        chatRepository
+            .getChats(roomId = roomId, page = INITIAL_PAGE)
+            .onSuccess { page ->
+                page.chats.forEach { chat -> chatsById[chat.id] = chat }
+                bufferedChatsById.values.forEach { chat -> chatsById[chat.id] = chat }
+                bufferedChatsById.clear()
+
+                initialChatsLoaded = true
+                nextPage = INITIAL_PAGE + 1
+                hasNextPage = page.hasNext
+                publishChats(userId = userId)
+            }.onFailure { failure ->
+                Timber.e(
+                    failure.causeOrNull(),
+                    "채팅 목록을 불러오지 못했습니다. roomId=$roomId, page=$INITIAL_PAGE",
+                )
+                updateState { copy(chatInfo = ChatInfo.Error) }
+            }
+    }
+
+    private fun handleRealtimeChats(chats: List<Chat>) {
+        if (!initialChatsLoaded) {
+            chats.forEach { chat -> bufferedChatsById[chat.id] = chat }
+            return
         }
 
-        val requestedPage = nextPage
-        loadJob =
-            viewModelScope.launch {
-                val userId =
-                    getCurrentUserId() ?: run {
-                        updateState { copy(chatInfo = ChatInfo.Error) }
-                        return@launch
-                    }
+        chats.forEach { chat -> chatsById[chat.id] = chat }
+        currentUserId?.let { userId ->
+            val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
+            publishChats(userId = userId, isLoadingMore = isLoadingMore)
+        }
+    }
 
+    private fun loadMoreChats() {
+        if (loadMoreJob?.isActive == true) return
+
+        val loaded = currentState.chatInfo as? ChatInfo.Loaded ?: return
+        if (!initialChatsLoaded || !hasNextPage) return
+        val userId = currentUserId ?: return
+        val requestedPage = nextPage
+
+        updateState { copy(chatInfo = loaded.copy(isLoadingMore = true)) }
+        loadMoreJob =
+            viewModelScope.launch {
                 chatRepository
                     .getChats(roomId = roomId, page = requestedPage)
                     .onSuccess { page ->
-                        loadedChats += page.chats
-                        val chats =
-                            loadedChats
-                                .sortedBy { chat -> chat.createdAt }
-                                .map { chat -> chat.toUiModel(currentUserId = userId) }
-
+                        page.chats.forEach { chat -> chatsById.putIfAbsent(chat.id, chat) }
                         nextPage = requestedPage + 1
-                        updateState {
-                            copy(
-                                chatInfo =
-                                    ChatInfo.Loaded(
-                                        chats = chats.toPersistentList(),
-                                        hasNext = page.hasNext,
-                                        isLoadingMore = false,
-                                    ),
-                            )
-                        }
+                        hasNextPage = page.hasNext
+                        publishChats(userId = userId)
                     }.onFailure { failure ->
                         Timber.e(
                             failure.causeOrNull(),
                             "채팅 목록을 불러오지 못했습니다. roomId=$roomId, page=$requestedPage",
                         )
-                        if (loadMore) {
-                            updateState { copy(chatInfo = loaded?.copy(isLoadingMore = false) ?: chatInfo) }
-                        } else {
-                            updateState { copy(chatInfo = ChatInfo.Error) }
+                        updateState {
+                            val latest = chatInfo as? ChatInfo.Loaded
+                            copy(chatInfo = latest?.copy(isLoadingMore = false) ?: chatInfo)
                         }
                     }
             }
+    }
+
+    private fun publishChats(
+        userId: Long,
+        isLoadingMore: Boolean = false,
+    ) {
+        val chats =
+            chatsById.values
+                .sortedWith(compareBy(Chat::createdAt, Chat::id))
+                .map { chat -> chat.toUiModel(currentUserId = userId) }
+
+        updateState {
+            copy(
+                chatInfo =
+                    ChatInfo.Loaded(
+                        chats = chats.toPersistentList(),
+                        hasNext = hasNextPage,
+                        isLoadingMore = isLoadingMore,
+                    ),
+            )
+        }
     }
 
     private suspend fun getCurrentUserId(): Long? {
@@ -124,5 +209,9 @@ class ChatViewModel @AssistedInject constructor(
             roomId: Long,
             roomName: String,
         ): ChatViewModel
+    }
+
+    private companion object {
+        const val INITIAL_PAGE = 0
     }
 }

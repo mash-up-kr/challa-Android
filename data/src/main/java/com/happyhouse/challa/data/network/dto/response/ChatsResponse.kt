@@ -8,6 +8,7 @@ data class ChatsResponse(
 ) {
     @Serializable
     data class ChatItem(
+        val chatId: Long,
         val userId: Long,
         val type: ChatType,
         val content: String,
