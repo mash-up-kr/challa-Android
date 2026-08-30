@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.gallery.component
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -63,6 +62,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.foundation.motion.MotionTokens
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GalleryPhotoUiModel
@@ -413,7 +413,7 @@ private fun pullHintBounce(enabled: Boolean): State<Float> {
             targetValue = 1f,
             animationSpec =
                 infiniteRepeatable(
-                    animation = tween(durationMillis = PULL_HINT_BOUNCE_MS, easing = FastOutSlowInEasing),
+                    animation = tween(durationMillis = PULL_HINT_BOUNCE_MS, easing = MotionTokens.EaseOut),
                     repeatMode = RepeatMode.Reverse,
                 ),
             label = "GalleryPrintPullHintOffset",
