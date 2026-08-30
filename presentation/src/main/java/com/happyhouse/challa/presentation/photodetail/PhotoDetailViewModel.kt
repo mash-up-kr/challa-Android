@@ -271,6 +271,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .sendPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIds += chatId
+                // 재조회가 실패해도 같은 이모지를 다시 누르면 취소로 이어지도록 먼저 잡아둔다.
+                myReactionChatIds.putIfAbsent(photo.id to emoji, chatId)
                 reloadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
@@ -287,6 +289,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .deletePhotoReaction(chatId)
             .onSuccess {
                 myChatIds -= chatId
+                // 지운 반응이 남아 있으면 다시 눌렀을 때 없는 chatId로 취소를 시도한다.
+                myReactionChatIds.remove(photo.id to emoji, chatId)
                 reloadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 취소하지 못했습니다. photoId=${photo.id}, chatId=$chatId")
