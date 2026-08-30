@@ -232,6 +232,10 @@ class ChatViewModel @AssistedInject constructor(
 
     private suspend fun getCurrentUserId(): Long? {
         currentUserId?.let { return it }
+        userRepository.profile.value?.id?.let { userId ->
+            currentUserId = userId
+            return userId
+        }
 
         return when (val result = userRepository.getMyProfile()) {
             is ChallaResult.Success -> result.data.id.also { currentUserId = it }

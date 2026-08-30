@@ -213,7 +213,7 @@ private fun ChatList(
                 if (showsDateHeader) {
                     ChatDateHeader(
                         modifier = Modifier.padding(bottom = DateHeaderBottomSpacing),
-                        createdAt = chat.createdAt,
+                        text = ChatDateFormatter.format(chat.createdAt),
                     )
                 }
 
@@ -229,7 +229,7 @@ private fun ChatList(
 
 @Composable
 private fun ChatDateHeader(
-    createdAt: ZonedDateTime,
+    text: String,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -242,7 +242,7 @@ private fun ChatDateHeader(
             color = ChallaTheme.colors.lineNeutral,
         )
         Text(
-            text = ChatDateFormatter.format(createdAt),
+            text = text,
             color = ChallaTheme.colors.labelNeutral,
             style = ChallaTheme.typography.bodySmall.medium,
         )
