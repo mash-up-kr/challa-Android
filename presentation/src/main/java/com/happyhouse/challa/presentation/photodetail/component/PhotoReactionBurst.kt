@@ -13,9 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
@@ -86,26 +84,32 @@ fun PhotoReactionBurst(
             )
         }
 
+        val centerX = (widthPx - particlePx) / 2f
+        val centerY = (heightPx - particlePx) / 2f
+
+        // 진행값은 람다 안에서 읽는다. 컴포지션에서 읽으면 프레임마다 파티클 전부가 재구성된다.
         particles.forEach { particle ->
-            val particleProgress = particle.progressAt(progress.value)
-            if (particleProgress <= 0f) return@forEach
-
-            val distance = MIN_SPREAD + (particle.spread - MIN_SPREAD) * easeOut(particleProgress)
-            val centerX = (widthPx - particlePx) / 2f
-            val centerY = (heightPx - particlePx) / 2f
-
             Image(
                 modifier =
                     Modifier
                         .size(particleSize)
                         .offset {
+                            val distance =
+                                MIN_SPREAD + (particle.spread - MIN_SPREAD) * easeOut(particle.progressAt(progress.value))
                             IntOffset(
                                 x = (centerX + cos(particle.angleRadians).toFloat() * distance * widthPx).roundToInt(),
                                 y = (centerY + sin(particle.angleRadians).toFloat() * distance * heightPx).roundToInt(),
                             )
-                        }.scale(PARTICLE_START_SCALE + (1f - PARTICLE_START_SCALE) * easeOut(particleProgress))
-                        .rotate(particle.tiltDegrees * particleProgress)
-                        .alpha(fadeAlpha(particleProgress)),
+                        }.graphicsLayer {
+                            val particleProgress = particle.progressAt(progress.value)
+                            val particleScale = PARTICLE_START_SCALE + (1f - PARTICLE_START_SCALE) * easeOut(particleProgress)
+
+                            scaleX = particleScale
+                            scaleY = particleScale
+                            rotationZ = particle.tiltDegrees * particleProgress
+                            // 아직 출발하지 않은 파티클은 투명하게 둔다.
+                            alpha = if (particleProgress <= 0f) 0f else fadeAlpha(particleProgress)
+                        },
                 painter = painterResource(id = burst.emoji.drawableRes),
                 contentDescription = null,
             )
