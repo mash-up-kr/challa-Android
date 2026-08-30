@@ -27,6 +27,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+/**
+ * WebSocket 구독이 확인된 뒤 채팅 목록을 조회하고 두 경로의 채팅을 [Chat.id]로 병합한다.
+ * 목록 조회 전에 수신한 실시간 채팅은 임시 보관해 초기 응답에서 누락되지 않도록 한다.
+ */
 @HiltViewModel(assistedFactory = ChatViewModel.Factory::class)
 class ChatViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
@@ -56,6 +60,7 @@ class ChatViewModel @AssistedInject constructor(
         }
     }
 
+    /** 화면이 foreground에 진입하면 채팅 구독과 초기 조회를 시작한다. */
     fun startChatSession() {
         if (isChatSessionStarted) return
 
@@ -63,6 +68,7 @@ class ChatViewModel @AssistedInject constructor(
         restartChatSession()
     }
 
+    /** 화면이 background로 이동하거나 제거되면 현재 구독을 중단한다. */
     fun pauseChatSession() {
         if (!isChatSessionStarted) return
 
@@ -197,15 +203,36 @@ class ChatViewModel @AssistedInject constructor(
 
         sendMessageJob =
             viewModelScope.launch {
-                chatRepository
-                    .sendChat(roomId = roomId, content = content)
-                    .onSuccess {
+                when (val result = chatRepository.sendChat(roomId = roomId, content = content)) {
+                    is ChallaResult.Success -> {
                         if (currentState.message == originalMessage) {
                             updateState { copy(message = "") }
                         }
-                    }.onFailure { failure ->
-                        Timber.e(failure.causeOrNull(), "채팅을 전송하지 못했습니다. roomId=$roomId")
+
+                        refreshLatestChats()
                     }
+
+                    is ChallaResult.Failure ->
+                        Timber.e(result.causeOrNull(), "채팅을 전송하지 못했습니다. roomId=$roomId")
+                }
+            }
+    }
+
+    /** WebSocket echo 유실에 대비해 전송 성공 후 첫 페이지를 다시 병합한다. */
+    private suspend fun refreshLatestChats() {
+        chatRepository
+            .getChats(roomId = roomId, page = INITIAL_PAGE)
+            .onSuccess { page ->
+                page.chats.forEach { chat -> chatsById[chat.id] = chat }
+                currentUserId?.let { userId ->
+                    val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
+                    publishChats(userId = userId, isLoadingMore = isLoadingMore)
+                }
+            }.onFailure { failure ->
+                Timber.e(
+                    failure.causeOrNull(),
+                    "전송한 채팅을 다시 불러오지 못했습니다. roomId=$roomId",
+                )
             }
     }
 
