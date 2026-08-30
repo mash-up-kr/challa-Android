@@ -73,6 +73,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.request.transformations
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
@@ -94,6 +95,7 @@ import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.enterroom.EnterRoomBottomSheet
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
+import com.happyhouse.challa.presentation.util.BlurTransformation
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -641,6 +643,7 @@ private fun HomeCompletedRoom(
  * 촬영 완료한 방의 필름 미리보기.
  *
  * 사진을 살짝 겹쳐 쌓아 보여주고, 남은 장수가 있으면 마지막에 "더보기" 카드로 개수를 표기한다.
+ * 맨 뒤에 오는 카드는 아직 다 보지 않은 사진임을 드러내도록 블러 처리한다.
  */
 @Composable
 private fun HomeFilmStack(
@@ -650,7 +653,8 @@ private fun HomeFilmStack(
 ) {
     val previews = imageUrls.take(FILM_PREVIEW_MAX)
     val remaining = totalPhotoCount - previews.size
-    val cardCount = previews.size + if (remaining > 0) 1 else 0
+    val hasOverflow = remaining > 0
+    val cardCount = previews.size + if (hasOverflow) 1 else 0
 
     BoxWithConstraints(
         modifier =
@@ -669,15 +673,18 @@ private fun HomeFilmStack(
         previews.forEachIndexed { index, url ->
             HomeFilmCard(
                 imageUrl = url,
+                // 스택의 마지막 카드는 아직 열어보지 않은 사진처럼 보이도록 블러를 건다.
+                blurred = !hasOverflow && index == previews.lastIndex,
                 modifier =
                     Modifier
                         .offset(x = step * index)
                         .rotate(filmCardRotation(index)),
             )
         }
-        if (remaining > 0) {
+        if (hasOverflow) {
             HomeFilmCard(
                 imageUrl = imageUrls.getOrNull(previews.size),
+                blurred = true,
                 overflowCount = remaining,
                 modifier =
                     Modifier
@@ -691,6 +698,7 @@ private fun HomeFilmStack(
 @Composable
 private fun HomeFilmCard(
     imageUrl: String?,
+    blurred: Boolean,
     modifier: Modifier = Modifier,
     overflowCount: Int? = null,
 ) {
@@ -710,6 +718,7 @@ private fun HomeFilmCard(
         RoomAsyncImage(
             imageUrl = imageUrl,
             contentDescription = if (overflowCount == null) stringResource(id = R.string.home_room_photo_description) else null,
+            blurred = blurred,
             modifier = Modifier.fillMaxSize(),
         )
         if (overflowCount != null) {
@@ -759,12 +768,15 @@ private fun RoomAsyncImage(
     imageUrl: String?,
     contentDescription: String?,
     modifier: Modifier = Modifier,
+    blurred: Boolean = false,
 ) {
     AsyncImage(
         model =
             ImageRequest
                 .Builder(LocalContext.current)
                 .data(imageUrl)
+                // Modifier.blur는 API 31 미만에서 동작하지 않아 Coil 트랜스포메이션으로 처리한다.
+                .apply { if (blurred) transformations(BlurTransformation()) }
                 .crossfade(true)
                 .build(),
         contentDescription = contentDescription,
