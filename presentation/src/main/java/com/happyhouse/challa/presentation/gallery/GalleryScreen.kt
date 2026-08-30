@@ -108,8 +108,7 @@ private fun GalleryScaffold(
                 label = "GalleryExtraBottomPadding",
             )
 
-            // 연출 중 필름이 나오는 동안에는 배출구가 프로필 바 자리를 쓴다.
-            // 사진이 나타나는 단계에는 다시 보여야 해서 연출이 알려주는 값을 그대로 따른다.
+            // 필름이 나오는 동안에는 배출구가 프로필 바 자리를 쓴다.
             var printsFilm by remember { mutableStateOf(false) }
 
             GalleryContent(

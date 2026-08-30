@@ -40,7 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
  * 로딩/에러/촬영 중/인화 대기/인화 완료 분기
  *
  * @param extraBottomPadding 위에 떠 있는 하단 바에 그리드 마지막 줄이 가리지 않도록 더하는 여백
- * @param onPrintFilmStageChange 인화 연출에서 필름이 나오는 동안 true. 배출구가 프로필 바 자리를 쓴다.
+ * @param onPrintFilmStageChange 필름이 나오는 동안 true. 배출구가 프로필 바 자리를 쓴다.
  */
 @Composable
 fun GalleryContent(

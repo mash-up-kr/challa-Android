@@ -38,7 +38,6 @@ private const val GALLERY_COLUMN_COUNT = 4
 /** 받아둔 사진의 끝에서 이만큼 남았을 때 다음 페이지를 미리 요청한다. */
 private const val LOAD_MORE_PREFETCH_ITEM_COUNT = GALLERY_COLUMN_COUNT * 2
 
-/** 인화 연출에서 사진 한 장이 나타나는 데 걸리는 시간 */
 private const val PHOTO_REVEAL_FADE_MS = 220
 
 private val GalleryGridSpacing = 10.dp
@@ -102,8 +101,6 @@ fun GalleryFilmSlotGrid(
  * @param state 인화 전 그리드와 같은 것을 넘기면 전환해도 스크롤 위치가 유지된다.
  * @param extraBottomPadding 위에 떠 있는 하단 바에 마지막 줄이 가리지 않도록 더하는 여백
  * @param revealedCount 앞에서부터 이만큼만 보이고 나머지는 투명하다. null이면 전부 그린다.
- *   인화 연출에서 사진을 한 장씩 등장시킬 때 쓴다.
- * @param userScrollEnabled 인화 연출 중에는 false로 스크롤을 잠근다.
  */
 @Composable
 fun GalleryPhotoGrid(
