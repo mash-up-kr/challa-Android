@@ -56,6 +56,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 사진별 반응 조회. 넘길 때마다 겹쳐 돌지 않게 붙잡아 둔다. */
     private val reactionJobs = mutableMapOf<Long, Job>()
 
+    /** 사진별 반응 조회 회차. 늦게 도착한 이전 응답을 가려내는 데 쓴다. */
+    private val reactionRevisions = mutableMapOf<Long, Int>()
+
     private val loadedPhotos = args.photos.toPhotos().toMutableList()
     private val loadedPhotoIds = loadedPhotos.mapTo(mutableSetOf()) { photo -> photo.id }
     private var nextPhotoPage = args.nextPhotoPage
@@ -118,13 +121,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                         }
                 }
 
-                chatRepository
-                    .getPhotoReactions(photo.id)
-                    .onSuccess { reactions -> applyReactions(photo.id, reactions) }
-                    .onFailure { failure ->
-                        Timber.e(failure.causeOrNull(), "반응 목록을 불러오지 못했습니다. photoId=${photo.id}")
-                        sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
-                    }
+                loadReactions(photo.id)
             }.also { job ->
                 // 사진을 넘길수록 끝난 Job이 쌓이지 않게 지운다.
                 job.invokeOnCompletion { reactionJobs.remove(photo.id) }
@@ -266,7 +263,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 myChatIds += chatId
                 // 재조회가 실패해도 같은 이모지를 다시 누르면 취소로 이어지도록 먼저 잡아둔다.
                 myReactionChatIds.putIfAbsent(photo.id to emoji, chatId)
-                reloadReactions(photo.id)
+                loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
@@ -284,20 +281,31 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 myChatIds -= chatId
                 // 지운 반응이 남아 있으면 다시 눌렀을 때 없는 chatId로 취소를 시도한다.
                 myReactionChatIds.remove(photo.id to emoji, chatId)
-                reloadReactions(photo.id)
+                loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 취소하지 못했습니다. photoId=${photo.id}, chatId=$chatId")
                 sendEffect(PhotoDetailSideEffect.ReactionCancelFailed)
             }
     }
 
-    /** 내가 누른 사이 다른 사람이 남긴 것도 함께 들어와, 스티커 주인 순서가 서버 기준과 어긋나지 않는다. */
-    private suspend fun reloadReactions(photoId: Long) {
+    /**
+     * 남기거나 취소한 뒤에도 목록을 다시 받는다. 그 사이 다른 사람이 남긴 것까지 들어와야
+     * 스티커 주인 순서가 서버 기준과 어긋나지 않는다.
+     *
+     * 다른 이모지를 연달아 누르면 한 사진에 조회가 겹쳐 도는데, 늦게 도착한 이전 응답이 최신 목록을
+     * 덮어쓰면 방금 남긴 반응의 링이 꺼지고 다시 눌렀을 때 취소 대신 중복 등록이 나간다.
+     * 그래서 마지막으로 보낸 요청의 응답만 반영한다.
+     */
+    private suspend fun loadReactions(photoId: Long) {
+        val revision = (reactionRevisions[photoId] ?: 0) + 1
+        reactionRevisions[photoId] = revision
+
         chatRepository
             .getPhotoReactions(photoId)
-            .onSuccess { reactions -> applyReactions(photoId, reactions) }
-            .onFailure { failure ->
-                Timber.e(failure.causeOrNull(), "반응 목록을 다시 불러오지 못했습니다. photoId=$photoId")
+            .onSuccess { reactions ->
+                if (reactionRevisions[photoId] == revision) applyReactions(photoId, reactions)
+            }.onFailure { failure ->
+                Timber.e(failure.causeOrNull(), "반응 목록을 불러오지 못했습니다. photoId=$photoId")
                 sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
             }
     }
