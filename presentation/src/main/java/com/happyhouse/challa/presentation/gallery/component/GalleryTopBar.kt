@@ -12,11 +12,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaNavigationIconButton
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -33,18 +31,15 @@ fun GalleryTopBar(
     onSettingClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // 상태바 인셋은 ChallaScaffold의 topBar 슬롯이 적용한다.
     ChallaTopNavigation(
         modifier = modifier,
         title = title,
         variant = ChallaTopNavigationVariant.SUB,
         leadingIcon = {
-            ChallaIconButton(
+            ChallaNavigationIconButton(
                 icon = ChallaIcons.Left,
                 onClick = onBackClick,
                 contentDescription = stringResource(R.string.gallery_back_description),
-                variant = ChallaButtonVariant.TRANSPARENT,
-                size = ChallaButtonSize.MEDIUM,
             )
         },
         trailingIcon = {
@@ -66,7 +61,7 @@ fun GalleryTopBar(
     )
 }
 
-@ComposePreview(showBackground = true, widthDp = 390)
+@ComposePreview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryTopBarPreview() {

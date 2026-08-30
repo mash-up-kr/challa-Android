@@ -44,9 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
@@ -81,6 +79,7 @@ import com.happyhouse.challa.presentation.designsystem.foundation.motion.MotionT
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
@@ -219,7 +218,7 @@ private fun HomeScreen(
             modifier
                 .fillMaxSize()
                 .background(ChallaTheme.colors.backgroundSurface)
-                .homeGlow(),
+                .challaBackgroundGlow(),
     ) {
         Column(
             modifier =
@@ -718,29 +717,6 @@ private fun RoomAsyncImage(
         error = ColorPainter(ChallaTheme.colors.backgroundLevel3),
         modifier = modifier,
     )
-}
-
-/**
- * 화면 하단에 은은하게 깔리는 Glow.
- *
- * 피그마의 blur(150) 처리된 ellipse를 대체한다.
- * [androidx.compose.ui.draw.blur]는 API 31 미만에서 동작하지 않으므로 radial gradient로 표현한다.
- */
-@Composable
-private fun Modifier.homeGlow(): Modifier {
-    val glowColor = ChallaTheme.colors.primary
-    return drawBehind {
-        val center = Offset(x = size.width / 2f, y = size.height * 0.92f)
-        val radius = size.width * 0.95f
-        drawRect(
-            brush =
-                Brush.radialGradient(
-                    colors = listOf(glowColor.copy(alpha = 0.20f), Color.Transparent),
-                    center = center,
-                    radius = radius,
-                ),
-        )
-    }
 }
 
 @Composable

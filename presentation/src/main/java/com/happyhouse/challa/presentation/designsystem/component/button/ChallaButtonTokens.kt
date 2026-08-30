@@ -51,7 +51,7 @@ internal fun ChallaButtonVariant.colorSpec(enabled: Boolean): ChallaButtonColorS
         ChallaButtonVariant.PRIMARY ->
             ChallaButtonColorSpec(
                 containerColor = ChallaTheme.colors.labelNormal,
-                contentColor = ChallaTheme.colors.labelDisable,
+                contentColor = ChallaTheme.colors.staticBlack,
             )
 
         ChallaButtonVariant.TRANSPARENT ->

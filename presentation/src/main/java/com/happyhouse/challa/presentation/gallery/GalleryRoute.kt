@@ -47,6 +47,7 @@ fun GalleryRoute(
     onBackClick: () -> Unit,
     onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
+    onChatClick: (roomName: String) -> Unit,
     onSettingClick: (roomName: String) -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
@@ -86,6 +87,7 @@ fun GalleryRoute(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.args)
+                is GallerySideEffect.NavigateToChat -> onChatClick(effect.roomName)
                 GallerySideEffect.NavigateToCamera -> {
                     shouldRefreshAfterCamera.value = true
                     onShootClick()

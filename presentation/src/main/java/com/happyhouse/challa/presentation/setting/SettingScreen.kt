@@ -60,8 +60,7 @@ fun SettingScreen(
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 28.dp),
+                        .fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
                 ChallaTextButton(
