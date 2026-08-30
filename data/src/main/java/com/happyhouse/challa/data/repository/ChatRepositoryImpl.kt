@@ -1,6 +1,7 @@
 package com.happyhouse.challa.data.repository
 
 import com.happyhouse.challa.data.network.api.ChatApi
+import com.happyhouse.challa.data.network.api.PhotoApi
 import com.happyhouse.challa.data.network.dto.request.CreateChatRequest
 import com.happyhouse.challa.data.network.dto.response.toPhotoReactions
 import com.happyhouse.challa.domain.model.PhotoReaction
@@ -12,9 +13,11 @@ import javax.inject.Inject
 
 class ChatRepositoryImpl @Inject constructor(
     private val chatApi: ChatApi,
+    // 반응·댓글은 사진 상세 응답에 실려 오므로 photos 엔드포인트로 받는다.
+    private val photoApi: PhotoApi,
 ) : ChatRepository {
     override suspend fun getPhotoReactions(photoId: Long): ChallaResult<List<PhotoReaction>> =
-        chatApi
+        photoApi
             .getPhotoDetail(photoId)
             .mapCatching { response ->
                 check(response.success) { response.message }
