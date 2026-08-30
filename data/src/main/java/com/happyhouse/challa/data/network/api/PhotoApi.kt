@@ -24,6 +24,7 @@ interface PhotoApi {
     @GET("api/v1/photos/{photoId}")
     suspend fun getPhotoDetail(
         @Path("photoId") photoId: Long,
+        @Query("roomId") roomId: Long,
     ): ChallaResult<BaseResponse<GetPhotoDetailResponse>>
 
     @POST("api/v1/photos")

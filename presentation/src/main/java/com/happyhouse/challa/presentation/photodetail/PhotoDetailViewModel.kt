@@ -301,7 +301,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         reactionRevisions[photoId] = revision
 
         chatRepository
-            .getPhotoReactions(photoId)
+            .getPhotoReactions(roomId = roomId, photoId = photoId)
             .onSuccess { reactions ->
                 if (reactionRevisions[photoId] == revision) applyReactions(photoId, reactions)
             }.onFailure { failure ->

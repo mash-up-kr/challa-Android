@@ -16,9 +16,12 @@ class ChatRepositoryImpl @Inject constructor(
     // 반응·댓글은 사진 상세 응답에 실려 오므로 photos 엔드포인트로 받는다.
     private val photoApi: PhotoApi,
 ) : ChatRepository {
-    override suspend fun getPhotoReactions(photoId: Long): ChallaResult<List<PhotoReaction>> =
+    override suspend fun getPhotoReactions(
+        roomId: Long,
+        photoId: Long,
+    ): ChallaResult<List<PhotoReaction>> =
         photoApi
-            .getPhotoDetail(photoId)
+            .getPhotoDetail(photoId = photoId, roomId = roomId)
             .mapCatching { response ->
                 check(response.success) { response.message }
                 val data = requireNotNull(response.data) { "사진 상세 응답 데이터가 비어 있습니다." }
