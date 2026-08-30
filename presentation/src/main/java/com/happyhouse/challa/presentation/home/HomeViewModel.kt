@@ -16,6 +16,7 @@ import com.happyhouse.challa.presentation.home.model.toUiModel
 import com.happyhouse.challa.presentation.home.model.withName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -28,14 +29,20 @@ class HomeViewModel
         private val roomRepository: RoomRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(initialState = HomeState()) {
+        private var loadJob: Job? = null
+
         init {
             observeProfile()
             prefetchProfile()
-            loadHome()
             observeRoomEvents()
         }
 
-        override fun onIntent(intent: HomeIntent) = Unit
+        // 최초 진입 로드도 ScreenResume이 맡는다. 그래야 홈이 다시 올라올 때마다 같은 경로로 목록을 갱신할 수 있다.
+        override fun onIntent(intent: HomeIntent) {
+            when (intent) {
+                HomeIntent.ScreenResume -> loadHome()
+            }
+        }
 
         /**
          * 방 설정에서 이름을 바꾸면 목록의 해당 방 이름만 갈아끼운다.
@@ -80,24 +87,33 @@ class HomeViewModel
             }
         }
 
+        /**
+         * 방 목록을 받아온다.
+         *
+         * 최초 진입이든 갱신이든 조회하는 동안 로딩을 노출한다. 목록이 소리 없이 바뀌면 사용자가 무엇이 왜 달라졌는지 알 수 없다.
+         *
+         * 갱신 요청이 겹치면(예: 두 방의 카운트다운이 같이 끝남) 앞선 조회는 버리고 마지막 요청만 남긴다.
+         */
         private fun loadHome() {
-            viewModelScope.launch {
-                updateState { copy(roomLoadState = HomeRoomLoadState.LOADING) }
-                roomRepository
-                    .getRoomList(ALL_ROOM_STATUSES)
-                    .onSuccess { rooms ->
-                        val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
-                        updateState {
-                            copy(
-                                roomLoadState = HomeRoomLoadState.LOADED,
-                                rooms = roomUiModels,
-                            )
+            loadJob?.cancel()
+            loadJob =
+                viewModelScope.launch {
+                    updateState { copy(roomLoadState = HomeRoomLoadState.LOADING) }
+                    roomRepository
+                        .getRoomList(ALL_ROOM_STATUSES)
+                        .onSuccess { rooms ->
+                            val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
+                            updateState {
+                                copy(
+                                    roomLoadState = HomeRoomLoadState.LOADED,
+                                    rooms = roomUiModels,
+                                )
+                            }
+                        }.onFailure {
+                            updateState { copy(roomLoadState = HomeRoomLoadState.FAILED) }
+                            sendEffect(HomeSideEffect.RoomsLoadFailed)
                         }
-                    }.onFailure {
-                        updateState { copy(roomLoadState = HomeRoomLoadState.FAILED) }
-                        sendEffect(HomeSideEffect.RoomsLoadFailed)
-                    }
-            }
+                }
         }
 
         companion object {

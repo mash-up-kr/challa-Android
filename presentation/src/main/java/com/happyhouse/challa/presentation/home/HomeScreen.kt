@@ -66,6 +66,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -82,6 +84,7 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.home.contract.HomeIntent
 import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
@@ -139,6 +142,12 @@ fun HomeRoute(
     val roomLoadFailedMessage = stringResource(id = R.string.home_room_load_failed_message)
     val destructiveTint = ChallaTheme.colors.statusDestructive
     val currentOnRoomIdsLoaded by rememberUpdatedState(onRoomIdsLoaded)
+
+    // 방에서 사진을 찍거나 인화가 끝난 뒤 돌아오면 카드가 옛 정보를 그리고 있으므로 목록을 다시 받는다.
+    // 홈 ViewModel은 홈이 백스택에 남아 있는 동안 살아 있어, 이 갱신이 없으면 진입 시점의 목록이 그대로 남는다.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onIntent(HomeIntent.ScreenResume)
+    }
 
     LaunchedEffect(state.roomLoadState, state.rooms) {
         if (state.roomLoadState == HomeRoomLoadState.LOADED) {
