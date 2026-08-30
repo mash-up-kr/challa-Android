@@ -102,6 +102,7 @@ fun AccountRoute(
 
     AccountScreen(
         nickname = accountState.nickname,
+        profileImageUrl = accountState.profileImageUrl,
         isProcessing = accountState.isProcessing,
         onBackClick = onBackClick,
         onLogoutClick = { accountViewModel.onIntent(AccountIntent.LogoutClick) },

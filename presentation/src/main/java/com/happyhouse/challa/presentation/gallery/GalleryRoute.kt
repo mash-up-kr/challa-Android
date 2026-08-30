@@ -21,13 +21,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GallerySideEffect
+import com.happyhouse.challa.presentation.navigation.PhotoDetailArgs
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -41,9 +44,11 @@ private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 fun GalleryRoute(
     roomId: Long,
     playsPrintAnimation: Boolean,
+    memberJoinedEvents: Flow<RoomMemberJoinedEvent>,
     onBackClick: () -> Unit,
-    onPhotoClick: (Long) -> Unit,
+    onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
+    onSettingClick: (roomName: String) -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
@@ -70,10 +75,18 @@ fun GalleryRoute(
         }
     }
 
+    LaunchedEffect(viewModel, roomId, memberJoinedEvents) {
+        memberJoinedEvents.collect { event ->
+            if (event.roomId == roomId) {
+                viewModel.onIntent(GalleryIntent.MembersRefresh)
+            }
+        }
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
-                is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.photoId)
+                is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.args)
                 GallerySideEffect.NavigateToCamera -> {
                     shouldRefreshAfterCamera.value = true
                     onShootClick()
@@ -126,6 +139,7 @@ fun GalleryRoute(
         snackbarHostState = snackbarHostState,
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
+        onSettingClick = { onSettingClick(state.roomName) },
         onInviteCodeClick = { invitationCode ->
             coroutineScope.launch {
                 if (clipboard.copyInviteCode(invitationCode)) {

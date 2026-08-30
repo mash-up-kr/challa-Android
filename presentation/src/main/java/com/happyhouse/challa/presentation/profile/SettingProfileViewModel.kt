@@ -16,8 +16,15 @@ import kotlinx.coroutines.launch
 
 const val NICKNAME_MAX_LENGTH = 10
 
-// 완료 화면을 잠시 보여준 뒤 다음 화면으로 이동하기까지의 지연 시간
+// 완료 화면을 잠시 보여준 뒤 홈으로 넘어가는 애니메이션을 시작하기까지의 지연 시간
 private const val PROFILE_COMPLETED_NAVIGATE_DELAY_MS = 2000L
+
+/**
+ * 완료 화면이 홈과 같은 모습으로 바뀌는 애니메이션 시간.
+ *
+ * 이 애니메이션이 끝난 시점에 두 화면의 모습이 같아지므로, 그때 홈으로 이동해야 전환이 이어져 보인다.
+ */
+internal const val PROFILE_ENTER_HOME_DURATION_MS = 600
 
 @HiltViewModel(assistedFactory = SettingProfileViewModel.Factory::class)
 class SettingProfileViewModel @AssistedInject constructor(
@@ -85,16 +92,18 @@ class SettingProfileViewModel @AssistedInject constructor(
 
             userRepository
                 .updateProfile(
-                    nickname = currentState.nickname.trim(),
+                    nickname = currentState.nickname,
                     profileImageUrl = profileImageUrl,
-                ).onSuccess { profile ->
+                ).onSuccess {
                     if (currentState.mode == ProfileSettingMode.EDIT) {
                         updateState { copy(isSubmitting = false) }
                         sendEffect(SettingProfileSideEffect.ProfileUpdated)
                     } else {
                         updateState { copy(isSubmitting = false, isCompleted = true) }
                         delay(PROFILE_COMPLETED_NAVIGATE_DELAY_MS)
-                        sendEffect(SettingProfileSideEffect.ProfileCreated(profile.nickname.orEmpty()))
+                        updateState { copy(isEnteringHome = true) }
+                        delay(PROFILE_ENTER_HOME_DURATION_MS.toLong())
+                        sendEffect(SettingProfileSideEffect.ProfileCreated(currentState.nickname))
                     }
                 }.onFailure {
                     handleSaveFailure()

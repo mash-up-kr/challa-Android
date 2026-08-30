@@ -63,7 +63,7 @@ class ChallaAppViewModel
                     if (result.data.nickname.isNullOrBlank()) {
                         ChallaRoute.SettingProfile
                     } else {
-                        ChallaRoute.Home
+                        ChallaRoute.Home()
                     }
                 // 프로필 조회에 실패하면 로그인 화면으로 보낸다.
                 is ChallaResult.Failure -> ChallaRoute.Login
