@@ -66,6 +66,7 @@
     <string name="gallery_invite_menu_open_label">참여자 목록 열기</string>
     <string name="gallery_invite_menu_close_label">참여자 목록 닫기</string>
     <string name="gallery_setting_description">방 설정</string>
+    <string name="gallery_print_animation_pull_hint">필름을 아래로 당겨 보세요!</string>
 
     <!-- roomSettingScreen -->
     <string name="room_setting_title">방 설정</string>
