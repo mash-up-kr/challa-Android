@@ -49,9 +49,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper
@@ -144,6 +146,7 @@ fun GalleryPrintAnimation(
     onFilmStageChange: (Boolean) -> Unit = {},
 ) {
     var phase by remember { mutableStateOf(PrintAnimationPhase.PULL_WAITING) }
+    val haptic = LocalHapticFeedback.current
 
     val showsFilm =
         phase == PrintAnimationPhase.PULL_WAITING || phase == PrintAnimationPhase.ROLLING
@@ -167,7 +170,11 @@ fun GalleryPrintAnimation(
                 modifier = modifier,
                 photos = photos,
                 rolls = phase == PrintAnimationPhase.ROLLING,
-                onPulled = { phase = PrintAnimationPhase.ROLLING },
+                onPulled = {
+                    // 필름이 뽑혀 나가는 순간을 손끝으로도 알린다.
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    phase = PrintAnimationPhase.ROLLING
+                },
                 onRolled = { phase = PrintAnimationPhase.REVEALING },
             )
 
