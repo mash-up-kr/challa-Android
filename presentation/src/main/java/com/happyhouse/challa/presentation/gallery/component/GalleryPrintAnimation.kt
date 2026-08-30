@@ -70,6 +70,8 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -216,6 +218,18 @@ private fun FilmDispensingStage(
             val bounce = pullHintBounce(enabled = !rolls)
             val scope = rememberCoroutineScope()
 
+            // 걸치는 칸이 바뀔 때만 다시 구성된다. 필름이 흐르는 동안 매 프레임 도는 것을 막는다.
+            val visibleCells by remember(photos.size, cellPitchPx, viewportPx, filmTopStartPx, travelPx) {
+                derivedStateOf {
+                    val filmTopPx = filmTopStartPx + travelPx * progress.value
+                    val first = (floor(-filmTopPx / cellPitchPx).toInt() - 1).coerceAtLeast(0)
+                    val last =
+                        (ceil((viewportPx - filmTopPx) / cellPitchPx).toInt() + 1)
+                            .coerceAtMost(photos.lastIndex)
+                    first..last
+                }
+            }
+
             LaunchedEffect(rolls) {
                 if (!rolls) return@LaunchedEffect
 
@@ -229,8 +243,9 @@ private fun FilmDispensingStage(
             }
 
             // 한 덩어리로 그리면 방이 클수록 레이어가 기기 한계를 넘어 통째로 사라진다.
+            // 칸마다 그리되, 72칸 방의 사진을 전부 물고 있지 않도록 화면에 걸치는 것만 그린다.
             // 아래로 흘러내리며 1번 사진부터 보이도록 뒤에서부터 쌓는다.
-            photos.indices.forEach { index ->
+            visibleCells.forEach { index ->
                 val photo = photos[photos.lastIndex - index]
 
                 FilmCell(
