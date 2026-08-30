@@ -4,11 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -27,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +50,7 @@ import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileIm
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -97,18 +102,24 @@ fun ChatContent(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun ChatList(
     chatInfo: ChatInfo.Loaded,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+    val isImeVisible = WindowInsets.isImeVisible
     var hasCompletedInitialScroll by remember { mutableStateOf(false) }
+    var lastObservedChatId by remember { mutableStateOf(chatInfo.chats.last().chatId) }
     val shouldLoadMore by
         remember(listState, chatInfo.chats.size, chatInfo.hasNext) {
             derivedStateOf {
-                val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
-                chatInfo.hasNext && lastVisibleIndex >= chatInfo.chats.lastIndex - LOAD_MORE_THRESHOLD
+                val firstVisibleIndex = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
+                hasCompletedInitialScroll &&
+                    chatInfo.hasNext &&
+                    firstVisibleIndex != null &&
+                    firstVisibleIndex <= LOAD_MORE_THRESHOLD
             }
         }
 
@@ -117,6 +128,24 @@ private fun ChatList(
             listState.scrollToItem(chatInfo.chats.lastIndex)
             hasCompletedInitialScroll = true
         }
+    }
+
+    LaunchedEffect(chatInfo.chats.last().chatId) {
+        val latestChatId = chatInfo.chats.last().chatId
+        if (hasCompletedInitialScroll && latestChatId != lastObservedChatId) {
+            listState.scrollToItem(chatInfo.chats.lastIndex)
+        }
+        lastObservedChatId = latestChatId
+    }
+
+    LaunchedEffect(isImeVisible, chatInfo.chats.size) {
+        if (!isImeVisible || chatInfo.chats.isEmpty()) return@LaunchedEffect
+
+        snapshotFlow { listState.layoutInfo.viewportSize.height }
+            .distinctUntilChanged()
+            .collect {
+                listState.scrollToItem(chatInfo.chats.lastIndex)
+            }
     }
 
     LaunchedEffect(shouldLoadMore, chatInfo.chats.size) {
@@ -128,7 +157,10 @@ private fun ChatList(
         state = listState,
         contentPadding = PaddingValues(horizontal = ChatHorizontalPadding, vertical = ChatVerticalPadding),
     ) {
-        itemsIndexed(chatInfo.chats) { index, chat ->
+        itemsIndexed(
+            items = chatInfo.chats,
+            key = { _, chat -> chat.chatId },
+        ) { index, chat ->
             val previousChat = chatInfo.chats.getOrNull(index - 1)
             val nextChat = chatInfo.chats.getOrNull(index + 1)
             val showsDateHeader =
@@ -344,6 +376,7 @@ private fun ChatContentLoadedPreview() {
                 chats =
                     persistentListOf(
                         ChatUiModel(
+                            chatId = 1L,
                             userId = 1L,
                             type = ChatType.DEFAULT,
                             content = "강릉에 도착하면 바로 사진 찍으러 가자!",
@@ -354,6 +387,7 @@ private fun ChatContentLoadedPreview() {
                             userProfileImageUrl = null,
                         ),
                         ChatUiModel(
+                            chatId = 2L,
                             userId = 2L,
                             type = ChatType.COMMENT,
                             content = "이 사진 분위기 정말 좋다.",
@@ -364,6 +398,7 @@ private fun ChatContentLoadedPreview() {
                             userProfileImageUrl = null,
                         ),
                         ChatUiModel(
+                            chatId = 3L,
                             userId = 2L,
                             type = ChatType.COMMENT,
                             content = "이 사진 분위기 정말 좋다.",

@@ -2,6 +2,7 @@ package com.happyhouse.challa.data.network.api
 
 import com.happyhouse.challa.data.BuildConfig
 import com.happyhouse.challa.data.network.dto.BaseResponse
+import com.happyhouse.challa.data.network.dto.response.ChatWebSocketResponse
 import com.happyhouse.challa.data.network.dto.response.ChatsResponse
 import com.happyhouse.challa.data.network.websocket.stompChatSubscribeFrame
 import com.happyhouse.challa.data.network.websocket.stompChatSubscriptionId
@@ -169,7 +170,7 @@ class ChatWebSocketApi
 
                         private fun handleMessage(body: String) {
                             val response =
-                                runCatching { json.decodeFromString<BaseResponse<ChatsResponse>>(body) }
+                                runCatching { json.decodeFromString<BaseResponse<ChatWebSocketResponse>>(body) }
                                     .onFailure {
                                         Logger.t(WEB_SOCKET_LOG_TAG).w(
                                             "채팅 WebSocket 응답을 해석하지 못했습니다: $body, cause=$it",
@@ -182,13 +183,13 @@ class ChatWebSocketApi
                                 return
                             }
 
-                            val chats = response.data?.chats
-                            if (chats == null) {
-                                Logger.t(WEB_SOCKET_LOG_TAG).w("채팅 WebSocket 응답에 chats 데이터가 없습니다: $body")
+                            val chat = response.data?.chat
+                            if (chat == null) {
+                                Logger.t(WEB_SOCKET_LOG_TAG).w("채팅 WebSocket 응답에 chat 데이터가 없습니다: $body")
                                 return
                             }
 
-                            val result = trySend(ChatWebSocketEvent.ChatsReceived(chats))
+                            val result = trySend(ChatWebSocketEvent.ChatsReceived(listOf(chat)))
                             if (result.isFailure) {
                                 Logger.t(WEB_SOCKET_LOG_TAG).w(
                                     "채팅을 전달하지 못했습니다. roomId=$roomId, cause=${result.exceptionOrNull()}",

@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.chatting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,7 +42,10 @@ fun ChatScreen(
                 .challaBackgroundGlow(),
     ) {
         ChallaScaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .imePadding(),
             containerColor = Color.Transparent,
             topBar = {
                 ChatTopBar(
@@ -56,6 +60,7 @@ fun ChatScreen(
                     onMessageChange = { message ->
                         onIntent(ChatIntent.MessageChange(message))
                     },
+                    onSend = { onIntent(ChatIntent.MessageSend) },
                 )
             },
         ) { innerPadding ->
@@ -87,6 +92,7 @@ private fun ChatScreenPreview() {
                         chats =
                             persistentListOf(
                                 ChatUiModel(
+                                    chatId = 1L,
                                     userId = 1L,
                                     type = ChatType.DEFAULT,
                                     content = "강릉에 도착하면 바로 사진 찍으러 가자!",
@@ -97,6 +103,7 @@ private fun ChatScreenPreview() {
                                     userProfileImageUrl = null,
                                 ),
                                 ChatUiModel(
+                                    chatId = 2L,
                                     userId = 2L,
                                     type = ChatType.DEFAULT,
                                     content = "좋아! 바다부터 보고 숙소로 이동하자.",
@@ -107,6 +114,7 @@ private fun ChatScreenPreview() {
                                     userProfileImageUrl = null,
                                 ),
                                 ChatUiModel(
+                                    chatId = 3L,
                                     userId = 3L,
                                     type = ChatType.EMOJI,
                                     content = "🔥",

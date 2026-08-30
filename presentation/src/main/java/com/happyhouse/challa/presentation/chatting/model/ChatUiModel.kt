@@ -8,6 +8,7 @@ import java.time.ZonedDateTime
 
 @Immutable
 data class ChatUiModel(
+    val chatId: Long,
     val userId: Long,
     val type: ChatType,
     val content: String,
@@ -20,6 +21,7 @@ data class ChatUiModel(
 
 internal fun Chat.toUiModel(currentUserId: Long): ChatUiModel =
     ChatUiModel(
+        chatId = id,
         userId = userId,
         type = type,
         content = content,

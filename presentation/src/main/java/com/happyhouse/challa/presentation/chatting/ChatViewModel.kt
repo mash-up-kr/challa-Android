@@ -38,6 +38,7 @@ class ChatViewModel @AssistedInject constructor(
     ) {
     private var chatSessionJob: Job? = null
     private var loadMoreJob: Job? = null
+    private var sendMessageJob: Job? = null
     private var nextPage = 0
     private var hasNextPage = false
     private var initialChatsLoaded = false
@@ -53,6 +54,7 @@ class ChatViewModel @AssistedInject constructor(
         when (intent) {
             ChatIntent.ChatsLoad -> startChatSession()
             ChatIntent.ChatsLoadMore -> loadMoreChats()
+            ChatIntent.MessageSend -> sendMessage()
             is ChatIntent.MessageChange -> updateState { copy(message = intent.message) }
         }
     }
@@ -166,6 +168,27 @@ class ChatViewModel @AssistedInject constructor(
                             val latest = chatInfo as? ChatInfo.Loaded
                             copy(chatInfo = latest?.copy(isLoadingMore = false) ?: chatInfo)
                         }
+                    }
+            }
+    }
+
+    private fun sendMessage() {
+        if (!initialChatsLoaded || sendMessageJob?.isActive == true) return
+
+        val originalMessage = currentState.message
+        val content = originalMessage.trim()
+        if (content.isEmpty()) return
+
+        sendMessageJob =
+            viewModelScope.launch {
+                chatRepository
+                    .sendChat(roomId = roomId, content = content)
+                    .onSuccess {
+                        if (currentState.message == originalMessage) {
+                            updateState { copy(message = "") }
+                        }
+                    }.onFailure { failure ->
+                        Timber.e(failure.causeOrNull(), "채팅을 전송하지 못했습니다. roomId=$roomId")
                     }
             }
     }

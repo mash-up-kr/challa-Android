@@ -9,6 +9,11 @@ interface ChatRepository {
     /** 구독 확인과 이후 수신한 채팅을 전달하는 cold stream이다. */
     fun observeChats(roomId: Long): Flow<ChatSubscriptionEvent>
 
+    suspend fun sendChat(
+        roomId: Long,
+        content: String,
+    ): ChallaResult<Unit>
+
     /** @param page 0부터 시작한다. */
     suspend fun getChats(
         roomId: Long,

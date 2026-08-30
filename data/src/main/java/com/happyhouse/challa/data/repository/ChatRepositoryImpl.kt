@@ -3,6 +3,7 @@ package com.happyhouse.challa.data.repository
 import com.happyhouse.challa.data.network.api.ChatApi
 import com.happyhouse.challa.data.network.api.ChatWebSocketApi
 import com.happyhouse.challa.data.network.api.ChatWebSocketEvent
+import com.happyhouse.challa.data.network.dto.request.SendChatRequest
 import com.happyhouse.challa.data.network.dto.response.ChatsResponse
 import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.chat.Chat
@@ -29,6 +30,25 @@ class ChatRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun sendChat(
+        roomId: Long,
+        content: String,
+    ): ChallaResult<Unit> =
+        chatApi
+            .sendChat(
+                SendChatRequest(
+                    chat =
+                        SendChatRequest.Chat(
+                            roomId = roomId,
+                            photoId = TEXT_CHAT_PHOTO_ID,
+                            type = SendChatRequest.Chat.Type.DEFAULT,
+                            content = content,
+                        ),
+                ),
+            ).mapCatching { response ->
+                check(response.success) { response.message }
+            }
+
     override suspend fun getChats(
         roomId: Long,
         page: Int,
@@ -47,6 +67,7 @@ class ChatRepositoryImpl @Inject constructor(
 
     companion object {
         private const val CHAT_PAGE_SIZE = 20
+        private const val TEXT_CHAT_PHOTO_ID = 0L
     }
 }
 

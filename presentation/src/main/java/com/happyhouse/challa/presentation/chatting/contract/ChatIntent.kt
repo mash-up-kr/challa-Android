@@ -7,6 +7,8 @@ sealed interface ChatIntent : UiIntent {
 
     data object ChatsLoadMore : ChatIntent
 
+    data object MessageSend : ChatIntent
+
     data class MessageChange(
         val message: String,
     ) : ChatIntent
