@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -267,6 +268,8 @@ private fun FilmDispensingStage(
             }
 
             if (!rolls) {
+                var pulledPx by remember { mutableFloatStateOf(0f) }
+
                 Box(
                     modifier =
                         Modifier
@@ -277,9 +280,12 @@ private fun FilmDispensingStage(
                                     rememberDraggableState { delta ->
                                         if (delta <= 0f) return@rememberDraggableState
 
-                                        val next = progress.value + delta / travelPx
-                                        scope.launch { progress.snapTo(next) }
-                                        if (next * travelPx >= pullTriggerPx) onPulled()
+                                        // snapTo가 코루틴으로 밀리는 사이 다음 델타가 오면
+                                        // progress.value가 아직 이전 값이라 그만큼 유실된다.
+                                        pulledPx += delta
+                                        val pulled = pulledPx
+                                        scope.launch { progress.snapTo(pulled / travelPx) }
+                                        if (pulled >= pullTriggerPx) onPulled()
                                     },
                             ),
                 )
