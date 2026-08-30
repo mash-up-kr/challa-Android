@@ -600,56 +600,28 @@ private fun HomeCompletedRoom(
                 .noRippleClickOnce(role = Role.Button, onClick = onClick),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Column(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            HomeCompletedChip()
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = room.name,
-                    modifier = Modifier.weight(1f, fill = false),
-                    color = ChallaTheme.colors.labelNormal,
-                    style = ChallaTheme.typography.bodyLarge.bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                HomeParticipantCount(
-                    count = room.participantCount,
-                    iconSize = 18.dp,
-                    textStyle = ChallaTheme.typography.bodySmall.bold,
-                )
-            }
+            Text(
+                text = room.name,
+                modifier = Modifier.weight(1f, fill = false),
+                color = ChallaTheme.colors.labelNormal,
+                style = ChallaTheme.typography.bodyLarge.bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            HomeParticipantCount(
+                count = room.participantCount,
+                iconSize = 18.dp,
+                textStyle = ChallaTheme.typography.bodySmall.bold,
+            )
         }
         HomeFilmStack(
             imageUrls = room.photoImageUrls,
             totalPhotoCount = room.totalPhotoCount,
-        )
-    }
-}
-
-@Composable
-private fun HomeCompletedChip(modifier: Modifier = Modifier) {
-    Box(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(100.dp))
-                .background(ChallaTheme.colors.primary.copy(alpha = 0.08f))
-                .border(
-                    width = 1.dp,
-                    color = ChallaTheme.colors.primary.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(100.dp),
-                )
-                .padding(horizontal = 8.dp, vertical = 5.dp),
-    ) {
-        Text(
-            text = stringResource(id = R.string.home_print_completed),
-            color = ChallaTheme.colors.primary,
-            style = ChallaTheme.typography.descriptionLarge.medium,
         )
     }
 }
