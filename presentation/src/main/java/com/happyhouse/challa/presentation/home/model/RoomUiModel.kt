@@ -34,6 +34,13 @@ sealed interface RoomUiModel {
     ) : RoomUiModel
 }
 
+/** 이름만 바꾼 사본. 타입마다 copy가 달라 여기서 한 번에 분기한다. */
+fun RoomUiModel.withName(name: String): RoomUiModel =
+    when (this) {
+        is RoomUiModel.Shooting -> copy(name = name)
+        is RoomUiModel.Completed -> copy(name = name)
+    }
+
 fun Room.toUiModel(): RoomUiModel? =
     when (status) {
         RoomStatus.SHOOTING ->

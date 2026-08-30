@@ -76,6 +76,18 @@
     <string name="chat_retry">다시 시도</string>
     <string name="chat_empty">아직 채팅이 없어요.</string>
     <string name="chat_photo_description">채팅에 연결된 사진</string>
+    <string name="gallery_setting_description">방 설정</string>
+
+    <!-- roomSettingScreen -->
+    <string name="room_setting_title">방 설정</string>
+    <string name="room_setting_back_description">뒤로가기</string>
+    <string name="room_setting_room_name">방 이름</string>
+    <string name="room_setting_cover_image">커버 이미지</string>
+    <string name="edit_room_name_title">방 이름</string>
+    <string name="edit_room_name_close_description">닫기</string>
+    <string name="edit_room_name_placeholder">방 이름 입력</string>
+    <string name="edit_room_name_submit">변경</string>
+    <string name="room_setting_room_name_update_failure">방 이름을 변경하지 못했어요.</string>
 
     <string name="room_member_joined_suffix">에 참여했어요.</string>
 
@@ -134,12 +146,22 @@
     <string name="photo_detail_empty">표시할 사진이 없어요.</string>
     <string name="photo_detail_message_placeholder">이 사진에 메시지를 보내세요.</string>
     <string name="photo_detail_message_send_description">메시지 보내기</string>
-    <string name="photo_detail_reaction_medal">메달 반응 남기기</string>
-    <string name="photo_detail_reaction_heart">하트 반응 남기기</string>
-    <string name="photo_detail_reaction_poop">똥 반응 남기기</string>
-    <string name="photo_detail_reaction_clap">박수 반응 남기기</string>
-    <string name="photo_detail_reaction_skull">해골 반응 남기기</string>
+    <string name="photo_detail_message_send_failure">다시 시도해 주세요</string>
+    <string name="photo_detail_reaction_fire">불</string>
+    <string name="photo_detail_reaction_eyes">눈</string>
+    <string name="photo_detail_reaction_medal">메달</string>
+    <string name="photo_detail_reaction_question">물음표</string>
+    <string name="photo_detail_reaction_thinking">생각</string>
+    <string name="photo_detail_reaction_heart">하트</string>
+    <string name="photo_detail_reaction_thumbs_up">최고</string>
+    <string name="photo_detail_reaction_sparkles">반짝</string>
+    <string name="photo_detail_reaction_poop">똥</string>
+    <string name="photo_detail_reaction_skull">해골</string>
+    <string name="photo_detail_reaction_add_description">%1$s 반응 남기기</string>
+    <string name="photo_detail_reaction_remove_description">%1$s 반응 취소</string>
     <string name="photo_detail_reaction_failure">반응을 남기지 못했어요.</string>
+    <string name="photo_detail_reaction_cancel_failure">반응을 취소하지 못했어요.</string>
+    <string name="photo_detail_reactions_load_failure">반응을 불러오지 못했어요.</string>
 
     <string name="share_invite_title">초대 링크 공유</string>
     <string name="share_invite_card_body">방이 생성되었어요. 일행을 초대하세요.</string>

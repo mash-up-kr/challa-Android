@@ -8,6 +8,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 
+private const val GLOW_CENTER_Y_RATIO = 0.92f
+private const val GLOW_RADIUS_RATIO = 0.95f
+private const val GLOW_ALPHA = 0.20f
+
 /**
  * 화면 하단에 은은하게 깔리는 Glow.
  *
@@ -18,12 +22,12 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 fun Modifier.challaBackgroundGlow(): Modifier {
     val glowColor = ChallaTheme.colors.primary
     return drawBehind {
-        val center = Offset(x = size.width / 2f, y = size.height * 0.92f)
-        val radius = size.width * 0.95f
+        val center = Offset(x = size.width / 2f, y = size.height * GLOW_CENTER_Y_RATIO)
+        val radius = size.width * GLOW_RADIUS_RATIO
         drawRect(
             brush =
                 Brush.radialGradient(
-                    colors = listOf(glowColor.copy(alpha = 0.20f), Color.Transparent),
+                    colors = listOf(glowColor.copy(alpha = GLOW_ALPHA), Color.Transparent),
                     center = center,
                     radius = radius,
                 ),

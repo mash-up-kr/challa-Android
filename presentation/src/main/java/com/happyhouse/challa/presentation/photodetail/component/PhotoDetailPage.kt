@@ -35,6 +35,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
@@ -42,7 +43,7 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
-import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
+import com.happyhouse.challa.presentation.photodetail.contract.ReactionBurstUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -65,53 +66,64 @@ fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
     reactions: ImmutableList<PhotoReactionUiModel>,
     modifier: Modifier = Modifier,
+    burst: ReactionBurstUiModel? = null,
 ) {
     // URL이 바뀌면 초기화되도록 imageUrl을 key로 둔다.
     var isLoadFailed by remember(photo.imageUrl) { mutableStateOf(false) }
 
-    Box(
-        modifier =
-            modifier
-                .clip(PhotoShape)
-                .background(ChallaTheme.colors.backgroundLevel2)
-                .border(1.dp, ChallaTheme.colors.lineNormal, PhotoShape),
-    ) {
-        AsyncImage(
-            modifier = Modifier.fillMaxSize(),
-            model =
-                ImageRequest
-                    .Builder(LocalContext.current)
-                    .data(photo.imageUrl)
-                    .crossfade(true)
-                    .build(),
-            contentDescription = stringResource(R.string.photo_detail_photo_content_description),
-            contentScale = ContentScale.Crop,
-            onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
-        )
-
-        Spacer(
+    // 스티커가 사진 밖으로 넘칠 수 있어야 해서 clip은 바깥이 아닌 사진 카드에만 건다.
+    Box(modifier = modifier) {
+        Box(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .background(PhotoDimBrush),
-        )
+                    .clip(PhotoShape)
+                    .background(ChallaTheme.colors.backgroundLevel2)
+                    .border(1.dp, ChallaTheme.colors.lineNormal, PhotoShape),
+        ) {
+            AsyncImage(
+                modifier = Modifier.fillMaxSize(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(photo.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                contentDescription = stringResource(R.string.photo_detail_photo_content_description),
+                contentScale = ContentScale.Crop,
+                onState = { state -> isLoadFailed = state is AsyncImagePainter.State.Error },
+            )
 
-        if (isLoadFailed) {
-            PhotoImageLoadFailure(modifier = Modifier.align(Alignment.Center))
+            Spacer(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(PhotoDimBrush),
+            )
+
+            if (isLoadFailed) {
+                PhotoImageLoadFailure(modifier = Modifier.align(Alignment.Center))
+            }
+
+            PhotographerInfo(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 32.dp),
+                photo = photo,
+            )
         }
 
-        PhotographerInfo(
-            modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 32.dp),
-            photo = photo,
-        )
-
-        // 카드가 clip(PhotoShape)돼 있어 스티커는 사진 영역 안에서만 보인다.
         PhotoReactionOverlay(
             modifier = Modifier.fillMaxSize(),
+            photoId = photo.id,
             reactions = reactions,
+        )
+
+        // 남기는 순간의 연출. 다른 사진의 연출이 넘어오지 않게 이 사진 것만 재생한다.
+        PhotoReactionBurst(
+            modifier = Modifier.fillMaxSize(),
+            burst = burst?.takeIf { it.photoId == photo.id },
         )
     }
 }
@@ -232,8 +244,8 @@ private fun PhotoDetailPagePreview() {
             ),
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(id = 0L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(id = 1L, emoji = ReactionEmoji.CLAP),
+                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.HEART),
+                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.FIRE),
             ),
     )
 }

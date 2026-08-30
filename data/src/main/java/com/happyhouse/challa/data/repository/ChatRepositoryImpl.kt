@@ -3,9 +3,14 @@ package com.happyhouse.challa.data.repository
 import com.happyhouse.challa.data.network.api.ChatApi
 import com.happyhouse.challa.data.network.api.ChatWebSocketApi
 import com.happyhouse.challa.data.network.api.ChatWebSocketEvent
+import com.happyhouse.challa.data.network.api.PhotoApi
+import com.happyhouse.challa.data.network.dto.request.CreateChatRequest
 import com.happyhouse.challa.data.network.dto.request.SendChatRequest
 import com.happyhouse.challa.data.network.dto.response.ChatsResponse
+import com.happyhouse.challa.data.network.dto.response.toPhotoReactions
 import com.happyhouse.challa.data.network.parseServerInstant
+import com.happyhouse.challa.domain.model.PhotoReaction
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.domain.model.chat.Chat
 import com.happyhouse.challa.domain.model.chat.ChatPage
 import com.happyhouse.challa.domain.model.chat.ChatSubscriptionEvent
@@ -19,6 +24,8 @@ import javax.inject.Inject
 
 class ChatRepositoryImpl @Inject constructor(
     private val chatApi: ChatApi,
+    // 반응·댓글은 사진 상세 응답에 실려 오므로 photos 엔드포인트로 받는다.
+    private val photoApi: PhotoApi,
     private val chatWebSocketApi: ChatWebSocketApi,
 ) : ChatRepository {
     override fun observeChats(roomId: Long): Flow<ChatSubscriptionEvent> =
@@ -29,25 +36,6 @@ class ChatRepositoryImpl @Inject constructor(
                     ChatSubscriptionEvent.ChatReceived(event.chat.toChat())
             }
         }
-
-    override suspend fun sendChat(
-        roomId: Long,
-        content: String,
-    ): ChallaResult<Unit> =
-        chatApi
-            .sendChat(
-                SendChatRequest(
-                    chat =
-                        SendChatRequest.Chat(
-                            roomId = roomId,
-                            photoId = TEXT_CHAT_PHOTO_ID,
-                            type = SendChatRequest.Chat.Type.DEFAULT,
-                            content = content,
-                        ),
-                ),
-            ).mapCatching { response ->
-                check(response.success) { response.message }
-            }
 
     override suspend fun getChats(
         roomId: Long,
@@ -64,6 +52,87 @@ class ChatRepositoryImpl @Inject constructor(
                     hasNext = data.chats.size == CHAT_PAGE_SIZE,
                 )
             }
+
+    override suspend fun sendChat(
+        roomId: Long,
+        content: String,
+    ): ChallaResult<Unit> =
+        chatApi
+            .postChat(
+                SendChatRequest(
+                    chat =
+                        SendChatRequest.Chat(
+                            roomId = roomId,
+                            photoId = TEXT_CHAT_PHOTO_ID,
+                            type = SendChatRequest.Chat.Type.DEFAULT,
+                            content = content,
+                        ),
+                ),
+            ).mapCatching { response ->
+                check(response.success) { response.message }
+            }
+
+    override suspend fun sendPhotoComment(
+        roomId: Long,
+        photoId: Long,
+        message: String,
+    ): ChallaResult<Unit> =
+        postPhotoChat(
+            roomId = roomId,
+            photoId = photoId,
+            type = CreateChatRequest.ChatType.COMMENT,
+            content = message,
+        ).mapCatching { }
+
+    override suspend fun getPhotoReactions(
+        roomId: Long,
+        photoId: Long,
+    ): ChallaResult<List<PhotoReaction>> =
+        photoApi
+            .getPhotoDetail(photoId = photoId, roomId = roomId)
+            .mapCatching { response ->
+                check(response.success) { response.message }
+                val data = requireNotNull(response.data) { "사진 상세 응답 데이터가 비어 있습니다." }
+                data.toPhotoReactions()
+            }
+
+    override suspend fun addPhotoReaction(
+        roomId: Long,
+        photoId: Long,
+        emoji: ReactionEmoji,
+    ): ChallaResult<Long> =
+        postPhotoChat(
+            roomId = roomId,
+            photoId = photoId,
+            type = CreateChatRequest.ChatType.EMOJI,
+            content = emoji.name,
+        ).mapCatching { response -> response.chat.chatId }
+
+    override suspend fun removePhotoReaction(chatId: Long): ChallaResult<Unit> =
+        chatApi
+            .deletePhotoReaction(chatId)
+            .mapCatching { response -> check(response.success) { response.message } }
+
+    private suspend fun postPhotoChat(
+        roomId: Long,
+        photoId: Long,
+        type: CreateChatRequest.ChatType,
+        content: String,
+    ) = chatApi
+        .postPhotoChat(
+            CreateChatRequest(
+                chat =
+                    CreateChatRequest.Chat(
+                        roomId = roomId,
+                        photoId = photoId,
+                        type = type,
+                        content = content,
+                    ),
+            ),
+        ).mapCatching { response ->
+            check(response.success) { response.message }
+            requireNotNull(response.data) { "반응 등록 응답 데이터가 비어 있습니다." }
+        }
 
     companion object {
         private const val CHAT_PAGE_SIZE = 20

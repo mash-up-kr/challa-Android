@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
@@ -24,8 +25,8 @@ import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBa
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
-import com.happyhouse.challa.presentation.photodetail.contract.ReactionEmoji
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
@@ -39,6 +40,7 @@ fun PhotoDetailScreen(
     state: PhotoDetailState,
     snackbarHostState: SnackbarHostState,
     onLoadMore: () -> Unit,
+    onReactionsLoad: (PhotoDetailUiModel) -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
@@ -53,6 +55,16 @@ fun PhotoDetailScreen(
             pageCount = { photos.size },
         )
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
+
+    val addedEmojis =
+        remember(state.photoInfo, currentPhoto) {
+            val loaded = state.photoInfo as? PhotoInfo.Loaded
+            if (loaded == null || currentPhoto == null) persistentSetOf() else loaded.myEmojisOf(currentPhoto.id)
+        }
+
+    LaunchedEffect(currentPhoto?.id) {
+        currentPhoto?.let(onReactionsLoad)
+    }
 
     val reachedLoadMoreThreshold by remember(photos) {
         derivedStateOf { pagerState.currentPage >= photos.size - LOAD_MORE_PREFETCH_PAGE_COUNT }
@@ -81,6 +93,7 @@ fun PhotoDetailScreen(
                     modifier = Modifier.imePadding(),
                     message = state.messageInput,
                     isMessageSendable = state.isMessageSendable,
+                    addedEmojis = addedEmojis,
                     onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
                     onMessageChange = onMessageChange,
                     onSendClick = { onSendClick(currentPhoto) },
@@ -121,6 +134,7 @@ private fun PhotoDetailScreenPreview() {
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onLoadMore = {},
+        onReactionsLoad = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
         onMessageChange = {},
@@ -142,6 +156,7 @@ private fun PhotoDetailScreenEmptyPreview() {
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onLoadMore = {},
+        onReactionsLoad = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
         onMessageChange = {},
