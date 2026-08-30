@@ -32,7 +32,11 @@ data class HomeState(
 }
 
 enum class HomeRoomLoadState {
+    /** 첫 조회 중. 아직 그릴 목록이 없어 화면 전체를 로딩으로 덮는다. */
     LOADING,
+
+    /** 이미 그려둔 홈 위에서 목록을 다시 받는 중 */
+    REFRESHING,
     LOADED,
     FAILED,
 }

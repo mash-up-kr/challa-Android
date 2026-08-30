@@ -65,6 +65,7 @@ class HomeViewModel
          * 방 목록을 받아온다.
          *
          * 최초 진입이든 갱신이든 조회하는 동안 로딩을 노출한다. 목록이 소리 없이 바뀌면 사용자가 무엇이 왜 달라졌는지 알 수 없다.
+         * 다만 첫 조회를 마친 뒤로는 이미 홈이 그려져 있으므로, 화면을 덮지 않고 진행 표시만 얹는 REFRESHING으로 알린다.
          *
          * 갱신 요청이 겹치면(예: 두 방의 카운트다운이 같이 끝남) 앞선 조회는 버리고 마지막 요청만 남긴다.
          */
@@ -72,7 +73,14 @@ class HomeViewModel
             loadJob?.cancel()
             loadJob =
                 viewModelScope.launch {
-                    updateState { copy(roomLoadState = HomeRoomLoadState.LOADING) }
+                    // 첫 조회가 끝나기 전에는 LOADING 그대로 둔다. 그 뒤로는 어떤 상태에서 시작하든 갱신이다.
+                    updateState {
+                        if (roomLoadState == HomeRoomLoadState.LOADING) {
+                            this
+                        } else {
+                            copy(roomLoadState = HomeRoomLoadState.REFRESHING)
+                        }
+                    }
                     roomRepository
                         .getRoomList(ALL_ROOM_STATUSES)
                         .onSuccess { rooms ->

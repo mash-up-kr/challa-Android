@@ -254,28 +254,20 @@ private fun HomeScreen(
                 onSettingClick = onSettingClick,
             )
 
-            when {
-                // 프로필 설정에서 막 넘어왔다면 방이 없는 게 확실하다.
-                // 목록을 불러오는 동안 스피너로 갈아끼우면 이어서 보이던 화면이 끊기므로 빈 상태를 그대로 둔다.
-                state.roomLoadState == HomeRoomLoadState.LOADING && !suppressLoading ->
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(28.dp),
-                            color = ChallaTheme.colors.labelNormal,
-                            strokeWidth = 2.dp,
-                        )
-                    }
+            // 프로필 설정에서 막 넘어왔다면 방이 없는 게 확실하다.
+            // 첫 조회 동안 스피너로 갈아끼우면 이어서 보이던 화면이 끊기므로 빈 상태를 그대로 둔다.
+            val isFirstLoading = state.roomLoadState == HomeRoomLoadState.LOADING && !suppressLoading
+            val isRefreshing = state.roomLoadState == HomeRoomLoadState.REFRESHING
 
-                state.isEmpty ->
-                    Box(
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                    ) {
+            Box(
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+            ) {
+                // 첫 조회 때만 본문을 감춘다. 재조회는 보고 있던 홈을 그대로 두고 진행 표시만 위에 얹는다.
+                if (!isFirstLoading) {
+                    if (state.isEmpty) {
                         // 프로필 설정 화면과 같은 높이를 비워 둬야 넘어올 때 프로필 이미지가 제자리에 온다.
                         // 두 번째 버튼은 시안대로 이 영역 위로 겹친다.
                         HomeEmptyMessage(
@@ -293,18 +285,29 @@ private fun HomeScreen(
                             onInviteCodeClick = onInviteCodeClick,
                             modifier = Modifier.align(Alignment.BottomCenter),
                         )
+                    } else {
+                        HomeRoomsContent(
+                            shootingRooms = state.shootingRooms,
+                            printingRooms = state.printingRooms,
+                            completedRooms = state.completedRooms,
+                            onRoomClick = onRoomClick,
+                            onShootClick = onShootClick,
+                            onPrintCountdownFinish = onPrintCountdownFinish,
+                            modifier = Modifier.fillMaxSize(),
+                        )
                     }
+                }
 
-                else ->
-                    HomeRoomsContent(
-                        shootingRooms = state.shootingRooms,
-                        printingRooms = state.printingRooms,
-                        completedRooms = state.completedRooms,
-                        onRoomClick = onRoomClick,
-                        onShootClick = onShootClick,
-                        onPrintCountdownFinish = onPrintCountdownFinish,
-                        modifier = Modifier.weight(1f),
+                if (isFirstLoading || isRefreshing) {
+                    CircularProgressIndicator(
+                        modifier =
+                            Modifier
+                                .align(Alignment.Center)
+                                .size(28.dp),
+                        color = ChallaTheme.colors.labelNormal,
+                        strokeWidth = 2.dp,
                     )
+                }
             }
         }
 
@@ -1104,6 +1107,32 @@ private fun HomeLoadingPreview() {
     ChallaTheme {
         HomeScreen(
             state = HomeState(),
+            snackbarHostState = remember { SnackbarHostState() },
+            suppressLoading = false,
+            fromProfileSetup = false,
+            onCreateRoomClick = {},
+            onInviteCodeClick = {},
+            onSettingClick = {},
+            onRoomClick = {},
+            onShootClick = {},
+            onPrintCountdownFinish = {},
+        )
+    }
+}
+
+@Preview(name = "Home - Refreshing")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun HomeRefreshingPreview() {
+    ChallaTheme {
+        HomeScreen(
+            state =
+                HomeState(
+                    roomLoadState = HomeRoomLoadState.REFRESHING,
+                    nickname = "나는야멋쟁이토마토",
+                    profileImageUrl = null,
+                    rooms = previewRooms(),
+                ),
             snackbarHostState = remember { SnackbarHostState() },
             suppressLoading = false,
             fromProfileSetup = false,
