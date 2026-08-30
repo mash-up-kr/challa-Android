@@ -32,7 +32,6 @@ data class GetPhotoDetailResponse(
     )
 }
 
-/** 이모지 반응만 남긴 시각 오름차순으로 추린다. */
 fun GetPhotoDetailResponse.toPhotoReactions(): List<PhotoReaction> =
     photo.chats
         .filter { chat -> chat.type == EMOJI_CHAT_TYPE }
@@ -40,7 +39,6 @@ fun GetPhotoDetailResponse.toPhotoReactions(): List<PhotoReaction> =
         .sortedBy { reaction -> reaction.createdAtEpochMillis }
 
 private fun GetPhotoDetailResponse.Chat.toPhotoReactionOrNull(): PhotoReaction? {
-    // 상위 버전에서 추가된 이모지는 그릴 그림이 없어 건너뛴다. 조용히 사라지지 않게 로그를 남긴다.
     val emoji =
         ReactionEmoji.from(content) ?: run {
             Logger.w("모르는 반응 이모지라 표시하지 않습니다: chatId=$id, content=$content")

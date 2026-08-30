@@ -56,14 +56,12 @@ fun PhotoDetailScreen(
         )
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
 
-    // 내가 남긴 이모지는 반응 바에 표시해두고, 다시 누르면 취소한다.
     val addedEmojis =
         remember(state.photoInfo, currentPhoto) {
             val loaded = state.photoInfo as? PhotoInfo.Loaded
             if (loaded == null || currentPhoto == null) persistentSetOf() else loaded.myEmojisOf(currentPhoto.id)
         }
 
-    // 보고 있는 사진이 바뀌면 그 사진의 반응을 받아 온다.
     LaunchedEffect(currentPhoto?.id) {
         currentPhoto?.let(onReactionsLoad)
     }

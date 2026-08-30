@@ -58,8 +58,7 @@ private const val EMOJI_COUNT_PER_PAGE = 5
  * 반응 바에 노출하는 순서.
  *
  * 노출 순서는 화면 규칙이라 [ReactionEmoji]의 선언 순서에 기대지 않는다.
- * 이모지를 추가하면 [drawableRes] 등의 `when`이 컴파일 에러로 잡아 주지만 이 목록은 잡아 주지 못하므로,
- * 리소스를 채울 때 여기도 함께 넣는다.
+ * 이모지를 추가할 때 [drawableRes] 등의 `when`과 달리 여기는 컴파일 에러로 잡히지 않으니 함께 넣는다.
  */
 private val ReactionBarEmojis: ImmutableList<ReactionEmoji> =
     persistentListOf(

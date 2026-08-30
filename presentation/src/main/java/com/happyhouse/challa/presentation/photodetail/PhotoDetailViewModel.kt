@@ -76,7 +76,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
     private var nextBurstId = 0L
 
-    /** 다 재생한 연출을 지우는 작업 */
     private var burstClearJob: Job? = null
 
     init {
@@ -104,7 +103,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /** 사진을 넘길 때마다 그 사진의 반응을 받아 온다. 다른 사람이 남긴 것도 함께 들어온다. */
     private fun handleReactionsLoad(photo: PhotoDetailUiModel) {
         reactionJobs[photo.id]?.let { job -> if (job.isActive) return }
 
@@ -133,7 +131,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    /** 넘기는 중에 올라오는 신호라 화면을 로딩으로 되돌리지 않고, 받아둔 사진 뒤에만 덧붙인다. */
     private fun handlePhotosLoadMore() {
         if (!hasNextPhotoPage) return
         if (appendJob?.isActive == true) return
@@ -195,9 +192,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
     /**
      * 이미 남긴 이모지를 다시 누르면 취소하고, 아니면 새로 남긴다.
-     *
-     * 인당 개수 제한은 없다. 사람마다 가장 먼저 남긴 반응 하나만 사진에 스티커로 붙고,
-     * 나머지는 채팅 기록에만 쌓인다.
      */
     private fun handleReactionClick(
         photo: PhotoDetailUiModel,
@@ -210,7 +204,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
             return
         }
 
-        // 연타로 같은 이모지가 두 번 올라가지 않게 막는다.
         if (!reactingPhotoEmojis.add(photo.id to emoji)) return
 
         val myChatId = myReactionChatIds[photo.id to emoji]
@@ -298,11 +291,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    /**
-     * 반응을 남기거나 취소한 뒤, 그 사진의 반응을 서버에서 다시 받아 반영한다.
-     *
-     * 내가 누른 사이 다른 사람이 남긴 것도 함께 들어와, 스티커 주인 순서가 서버 기준과 어긋나지 않는다.
-     */
+    /** 내가 누른 사이 다른 사람이 남긴 것도 함께 들어와, 스티커 주인 순서가 서버 기준과 어긋나지 않는다. */
     private suspend fun reloadReactions(photoId: Long) {
         chatRepository
             .getPhotoReactions(photoId)
@@ -313,7 +302,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    /** 사람마다 첫 반응만 남기고, 먼저 남긴 순으로 [MAX_STICKER_USER_COUNT]명까지 스티커로 그린다. */
     private fun applyReactions(
         photoId: Long,
         reactions: List<PhotoReaction>,
@@ -324,11 +312,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 .map { reaction -> PhotoReactionUiModel(chatId = reaction.chatId, emoji = reaction.emoji) }
                 .toPersistentList()
 
-        // 프로필 조회가 실패해도 이번 화면에서 남긴 건 알아볼 수 있어야, 같은 이모지가 중복으로 쌓이지 않는다.
         val myReactions = reactions.filter { it.userId == myUserId || it.chatId in myChatIds }
         val myEmojis = myReactions.mapTo(mutableSetOf()) { reaction -> reaction.emoji }.toPersistentSet()
 
-        // 취소할 때 chatId가 필요하다. 같은 이모지를 여러 번 남겼다면 가장 먼저 남긴 것을 지운다.
+        // 같은 이모지를 여러 번 남겼다면 가장 먼저 남긴 것이 남도록 뒤에서부터 덮어쓴다.
         myReactionChatIds.keys.removeAll { key -> key.first == photoId }
         myReactions.reversed().forEach { reaction ->
             myReactionChatIds[photoId to reaction.emoji] = reaction.chatId

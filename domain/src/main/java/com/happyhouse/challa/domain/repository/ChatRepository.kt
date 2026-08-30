@@ -17,7 +17,6 @@ interface ChatRepository {
 
     suspend fun deletePhotoReaction(chatId: Long): ChallaResult<Unit>
 
-    /** 사진 한 장에 메시지를 남긴다. */
     suspend fun sendPhotoMessage(
         roomId: Long,
         photoId: Long,
