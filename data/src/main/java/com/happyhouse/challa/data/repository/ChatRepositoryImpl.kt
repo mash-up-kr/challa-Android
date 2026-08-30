@@ -37,6 +37,7 @@ class ChatRepositoryImpl @Inject constructor(
 
 private fun ChatsResponse.ChatItem.toChat(): Chat =
     Chat(
+        userId = userId,
         type = ChatType.valueOf(type.name),
         content = content,
         photoId = photoId,

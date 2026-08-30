@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -135,36 +136,50 @@ private fun ChatListItem(
     chat: ChatUiModel,
     modifier: Modifier = Modifier,
 ) {
+    val bubbleShape =
+        if (chat.isMine) {
+            RoundedCornerShape(16.dp, 4.dp, 16.dp, 16.dp)
+        } else {
+            RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp)
+        }
+    val bubbleColor = if (chat.isMine) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel2
+    val contentColor = if (chat.isMine) ChallaTheme.colors.staticBlack else ChallaTheme.colors.labelNormal
+
     Row(
-        modifier = modifier,
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        ChallaProfileImage(
-            modifier = Modifier.size(36.dp),
-            profileImageUrl = chat.userProfileImageUrl,
-            backgroundColor = ChallaTheme.colors.backgroundLevel2,
-            fallbackIconTint = ChallaTheme.colors.lineNeutral,
-        )
+        if (!chat.isMine) {
+            ChallaProfileImage(
+                modifier = Modifier.size(36.dp),
+                profileImageUrl = chat.userProfileImageUrl,
+                backgroundColor = ChallaTheme.colors.backgroundLevel2,
+                fallbackIconTint = ChallaTheme.colors.lineNeutral,
+            )
+        }
 
         Column(
             modifier = Modifier.weight(1f),
+            horizontalAlignment = if (chat.isMine) Alignment.End else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            chat.userName?.takeIf(String::isNotBlank)?.let { userName ->
-                Text(
-                    text = userName,
-                    color = ChallaTheme.colors.labelSubtle,
-                    style = ChallaTheme.typography.descriptionLarge.medium,
-                )
+            if (!chat.isMine) {
+                chat.userName?.takeIf(String::isNotBlank)?.let { userName ->
+                    Text(
+                        text = userName,
+                        color = ChallaTheme.colors.labelSubtle,
+                        style = ChallaTheme.typography.descriptionLarge.medium,
+                    )
+                }
             }
 
             Column(
                 modifier =
                     Modifier
                         .widthIn(max = 280.dp)
-                        .clip(RoundedCornerShape(4.dp, 16.dp, 16.dp, 16.dp))
-                        .background(ChallaTheme.colors.backgroundLevel2)
+                        .clip(bubbleShape)
+                        .background(bubbleColor)
                         .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -188,7 +203,7 @@ private fun ChatListItem(
 
                 Text(
                     text = chat.content,
-                    color = ChallaTheme.colors.labelNormal,
+                    color = contentColor,
                     style = ChallaTheme.typography.bodyMedium.medium,
                 )
             }
@@ -242,6 +257,7 @@ private fun ChatContentLoadedPreview() {
                             type = ChatType.DEFAULT,
                             content = "강릉에 도착하면 바로 사진 찍으러 가자!",
                             photoImageUrl = null,
+                            isMine = false,
                             userName = "그린그린여성현",
                             userProfileImageUrl = null,
                         ),
@@ -249,6 +265,7 @@ private fun ChatContentLoadedPreview() {
                             type = ChatType.COMMENT,
                             content = "이 사진 분위기 정말 좋다.",
                             photoImageUrl = null,
+                            isMine = true,
                             userName = "찰나",
                             userProfileImageUrl = null,
                         ),

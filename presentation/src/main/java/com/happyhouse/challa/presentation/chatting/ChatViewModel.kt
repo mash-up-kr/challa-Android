@@ -3,6 +3,8 @@ package com.happyhouse.challa.presentation.chatting
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.model.chat.Chat
 import com.happyhouse.challa.domain.repository.ChatRepository
+import com.happyhouse.challa.domain.repository.UserRepository
+import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.causeOrNull
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
@@ -26,12 +28,14 @@ class ChatViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
     @Assisted roomName: String,
     private val chatRepository: ChatRepository,
+    private val userRepository: UserRepository,
 ) : BaseViewModel<ChatState, ChatIntent, ChatSideEffect>(
         initialState = ChatState(roomName = roomName),
     ) {
     private var loadJob: Job? = null
     private var nextPage = 0
     private val loadedChats = mutableListOf<Chat>()
+    private var currentUserId: Long? = null
 
     init {
         loadChats()
@@ -62,6 +66,12 @@ class ChatViewModel @AssistedInject constructor(
         val requestedPage = nextPage
         loadJob =
             viewModelScope.launch {
+                val userId =
+                    getCurrentUserId() ?: run {
+                        updateState { copy(chatInfo = ChatInfo.Error) }
+                        return@launch
+                    }
+
                 chatRepository
                     .getChats(roomId = roomId, page = requestedPage)
                     .onSuccess { page ->
@@ -69,7 +79,7 @@ class ChatViewModel @AssistedInject constructor(
                         val chats =
                             loadedChats
                                 .sortedBy { chat -> chat.createdAt }
-                                .map { chat -> chat.toUiModel() }
+                                .map { chat -> chat.toUiModel(currentUserId = userId) }
 
                         nextPage = requestedPage + 1
                         updateState {
@@ -94,6 +104,18 @@ class ChatViewModel @AssistedInject constructor(
                         }
                     }
             }
+    }
+
+    private suspend fun getCurrentUserId(): Long? {
+        currentUserId?.let { return it }
+
+        return when (val result = userRepository.getMyProfile()) {
+            is ChallaResult.Success -> result.data.id.also { currentUserId = it }
+            is ChallaResult.Failure -> {
+                Timber.e(result.causeOrNull(), "내 프로필을 불러오지 못해 채팅방을 열 수 없습니다. roomId=$roomId")
+                null
+            }
+        }
     }
 
     @AssistedFactory

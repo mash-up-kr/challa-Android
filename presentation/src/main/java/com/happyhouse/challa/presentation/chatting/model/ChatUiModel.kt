@@ -9,15 +9,17 @@ data class ChatUiModel(
     val type: ChatType,
     val content: String,
     val photoImageUrl: String?,
+    val isMine: Boolean,
     val userName: String?,
     val userProfileImageUrl: String?,
 )
 
-internal fun Chat.toUiModel(): ChatUiModel =
+internal fun Chat.toUiModel(currentUserId: Long): ChatUiModel =
     ChatUiModel(
         type = type,
         content = content,
         photoImageUrl = photoImageUrl,
+        isMine = userId == currentUserId,
         userName = userName,
         userProfileImageUrl = userProfileImageUrl,
     )
