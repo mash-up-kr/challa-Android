@@ -39,7 +39,7 @@ fun PhotoDetailContent(
                 // 카드 높이를 남는 공간에 맞춰 줄여야 해서 높이를 다 넘긴다. 가운데 정렬은 Pager가 한다.
                 PhotoDetailPager(
                     modifier = Modifier.fillMaxSize(),
-                    loaded = photoInfo,
+                    loadedPhotoInfo = photoInfo,
                     pagerState = pagerState,
                 )
             }

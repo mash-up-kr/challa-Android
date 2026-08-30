@@ -29,11 +29,11 @@ private val PhotoPageSpacing = PhotoHorizontalPadding * 2
 
 @Composable
 fun PhotoDetailPager(
-    loaded: PhotoInfo.Loaded,
+    loadedPhotoInfo: PhotoInfo.Loaded,
     pagerState: PagerState,
     modifier: Modifier = Modifier,
 ) {
-    val photos = loaded.photos
+    val photos = loadedPhotoInfo.photos
 
     Column(
         modifier = modifier,
@@ -65,8 +65,8 @@ fun PhotoDetailPager(
             PhotoDetailPage(
                 modifier = Modifier.fillMaxSize(),
                 photo = photo,
-                reactions = loaded.reactionsOf(photo.id),
-                burst = loaded.burst,
+                reactions = loadedPhotoInfo.reactionsOf(photo.id),
+                burst = loadedPhotoInfo.burst,
             )
         }
 
@@ -89,7 +89,7 @@ private fun PhotoDetailPagerPreview() {
     ) {
         PhotoDetailPager(
             modifier = Modifier.fillMaxWidth(),
-            loaded = PhotoInfo.Loaded(photos),
+            loadedPhotoInfo = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
         )
     }
@@ -111,7 +111,7 @@ private fun PhotoDetailPagerSinglePhotoPreview() {
     ) {
         PhotoDetailPager(
             modifier = Modifier.fillMaxWidth(),
-            loaded = PhotoInfo.Loaded(photos),
+            loadedPhotoInfo = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
         )
     }
