@@ -31,7 +31,8 @@ sealed interface ChallaRoute : NavKey {
     @Serializable
     data class Gallery(
         override val roomId: Long,
-        val playsPrintAnimation: Boolean,
+        // 이전 버전이 저장한 백스택에는 이 값이 없어, 기본값이 없으면 복원이 통째로 실패한다.
+        val playsPrintAnimation: Boolean = false,
     ) : RoomScoped
 
     @Serializable
