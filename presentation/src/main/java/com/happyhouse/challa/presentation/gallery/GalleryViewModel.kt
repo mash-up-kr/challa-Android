@@ -113,6 +113,7 @@ class GalleryViewModel @AssistedInject constructor(
             GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
+            GalleryIntent.ChatClick -> handleChatClick()
         }
     }
 
@@ -356,6 +357,12 @@ class GalleryViewModel @AssistedInject constructor(
         }
     }
 
+    private fun handleChatClick() {
+        viewModelScope.launch {
+            sendEffect(GallerySideEffect.NavigateToChat(roomName = currentState.roomName))
+        }
+    }
+
     /**
      * 연출이 끝날 때까지 그리드 스크롤이 잠겨 [handlePhotosLoadMore]가 올라오지 않는다.
      * 연출은 마지막 사진까지 보여줘야 하므로 시작 전에 남은 페이지를 미리 받아둔다.
@@ -409,7 +416,7 @@ class GalleryViewModel @AssistedInject constructor(
         return true
     }
 
-/** 연출을 끝까지 봤을 때. 기록에 실패해도 다음에 한 번 더 보게 될 뿐이라, 알리지 않고 로그만 남긴다. */
+    /** 연출을 끝까지 봤을 때. 기록에 실패해도 다음에 한 번 더 보게 될 뿐이라, 알리지 않고 로그만 남긴다. */
     fun onPrintAnimationComplete() {
         if (printAnimationPhase != PrintAnimationPhase.PLAYING) {
             Timber.w("재생 중인 인화 연출이 없는데 완료 신호가 올라와 무시합니다. roomId=$roomId")

@@ -36,6 +36,11 @@ sealed interface ChallaRoute : NavKey {
     ) : RoomScoped
 
     @Serializable
+    data class Chat(
+        val roomName: String,
+    ) : ChallaRoute
+
+    @Serializable
     data class RoomSetting(
         val roomId: Long,
         val roomName: String,
@@ -73,10 +78,4 @@ sealed interface ChallaRoute : NavKey {
 
     @Serializable
     data object OpenSourceLicense : ChallaRoute
-
-    @Serializable
-    data class ShareInvite(
-        val roomId: String,
-        val roomName: String,
-    ) : ChallaRoute
 }
