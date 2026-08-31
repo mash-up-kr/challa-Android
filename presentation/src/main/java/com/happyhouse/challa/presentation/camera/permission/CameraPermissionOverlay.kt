@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -19,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -53,7 +53,7 @@ internal fun CameraPermissionOverlay(
         contentAlignment = Alignment.Center,
     ) {
         when (state) {
-            CameraPermissionOverlayState.Checking -> CircularProgressIndicator()
+            CameraPermissionOverlayState.Checking -> ChallaProgressIndicator()
             CameraPermissionOverlayState.Requestable -> {
                 CameraPermissionRequestContent(
                     descriptionRes = R.string.camera_permission_required_description,
