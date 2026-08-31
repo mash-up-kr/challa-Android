@@ -1,5 +1,6 @@
 package com.happyhouse.challa.data.network.dto.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -7,22 +8,49 @@ data class ChatsResponse(
     val chats: List<ChatItem>,
 ) {
     @Serializable
-    data class ChatItem(
-        val chatId: Long,
-        val userId: Long,
-        val type: ChatType,
-        val content: String,
-        val photoId: Long? = null,
-        val photoImageUrl: String? = null,
-        val createdAt: String,
-        val userName: String? = null,
-        val userProfileImageUrl: String? = null,
-    )
+    sealed class ChatItem {
+        abstract val chatId: Long
+        abstract val userId: Long
+        abstract val content: String
+        abstract val createdAt: String
+        abstract val userName: String?
+        abstract val userProfileImageUrl: String?
 
-    @Serializable
-    enum class ChatType {
-        DEFAULT,
-        EMOJI,
-        COMMENT,
+        @Serializable
+        @SerialName("DEFAULT")
+        data class Default(
+            override val chatId: Long,
+            override val userId: Long,
+            override val content: String,
+            override val createdAt: String,
+            override val userName: String? = null,
+            override val userProfileImageUrl: String? = null,
+        ) : ChatItem()
+
+        @Serializable
+        @SerialName("EMOJI")
+        data class Emoji(
+            override val chatId: Long,
+            override val userId: Long,
+            override val content: String,
+            val photoId: Long,
+            val photoImageUrl: String,
+            override val createdAt: String,
+            override val userName: String? = null,
+            override val userProfileImageUrl: String? = null,
+        ) : ChatItem()
+
+        @Serializable
+        @SerialName("COMMENT")
+        data class Comment(
+            override val chatId: Long,
+            override val userId: Long,
+            override val content: String,
+            val photoId: Long,
+            val photoImageUrl: String,
+            override val createdAt: String,
+            override val userName: String? = null,
+            override val userProfileImageUrl: String? = null,
+        ) : ChatItem()
     }
 }

@@ -9,7 +9,6 @@ data class SendChatRequest(
     @Serializable
     data class Chat(
         val roomId: Long,
-        val photoId: Long,
         val type: Type,
         val content: String,
     ) {

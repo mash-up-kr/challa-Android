@@ -63,7 +63,6 @@ class ChatRepositoryImpl @Inject constructor(
                     chat =
                         SendChatRequest.Chat(
                             roomId = roomId,
-                            photoId = TEXT_CHAT_PHOTO_ID,
                             type = SendChatRequest.Chat.Type.DEFAULT,
                             content = content,
                         ),
@@ -136,15 +135,21 @@ class ChatRepositoryImpl @Inject constructor(
 
     companion object {
         private const val CHAT_PAGE_SIZE = 20
-        private const val TEXT_CHAT_PHOTO_ID = 0L
     }
 }
 
-private fun ChatsResponse.ChatItem.toChat(): Chat =
-    Chat(
+private fun ChatsResponse.ChatItem.toChat(): Chat {
+    val (type, photoId, photoImageUrl) =
+        when (this) {
+            is ChatsResponse.ChatItem.Default -> Triple(ChatType.DEFAULT, null, null)
+            is ChatsResponse.ChatItem.Emoji -> Triple(ChatType.EMOJI, photoId, photoImageUrl)
+            is ChatsResponse.ChatItem.Comment -> Triple(ChatType.COMMENT, photoId, photoImageUrl)
+        }
+
+    return Chat(
         id = chatId,
         userId = userId,
-        type = ChatType.valueOf(type.name),
+        type = type,
         content = content,
         photoId = photoId,
         photoImageUrl = photoImageUrl,
@@ -152,3 +157,4 @@ private fun ChatsResponse.ChatItem.toChat(): Chat =
         userName = userName,
         userProfileImageUrl = userProfileImageUrl,
     )
+}
