@@ -42,6 +42,13 @@ fun RoomUiModel.withName(name: String): RoomUiModel =
         is RoomUiModel.Completed -> copy(name = name)
     }
 
+/** 인화 연출을 이미 본 것으로 표시한 사본. 촬영 중인 방은 표시할 것이 없다. */
+fun RoomUiModel.withPrintChecked(): RoomUiModel =
+    when (this) {
+        is RoomUiModel.Shooting -> this
+        is RoomUiModel.Completed -> copy(hasUncheckedPrint = false)
+    }
+
 fun Room.toUiModel(): RoomUiModel? =
     when (status) {
         RoomStatus.SHOOTING ->

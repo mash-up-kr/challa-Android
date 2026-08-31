@@ -155,9 +155,14 @@ class RoomRepositoryImpl @Inject constructor(
             }
 
     override suspend fun checkPhotoPrintCompletion(roomId: Long): ChallaResult<Unit> =
-        roomApi.checkPhotoPrintCompletion(roomId).mapCatching { response ->
-            check(response.success) { response.message }
-        }
+        roomApi
+            .checkPhotoPrintCompletion(roomId)
+            .mapCatching { response ->
+                check(response.success) { response.message }
+            }.onSuccess {
+                // 홈이 이 기록보다 먼저 방 목록을 받아오면 확인 전으로 남아 연출이 다시 재생된다.
+                _roomEventFlow.emit(RoomEvent.PhotoPrintCompletionCheck(roomId = roomId))
+            }
 
     private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
         when (this) {

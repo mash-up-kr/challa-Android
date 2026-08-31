@@ -12,11 +12,12 @@ import com.happyhouse.challa.presentation.home.contract.HomeIntent
 import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
+import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import com.happyhouse.challa.presentation.home.model.toUiModel
 import com.happyhouse.challa.presentation.home.model.withName
+import com.happyhouse.challa.presentation.home.model.withPrintChecked
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +29,12 @@ class HomeViewModel
         private val roomRepository: RoomRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(initialState = HomeState()) {
+        /**
+         * 인화 확인이 기록된 방. 목록 조회가 그 기록보다 먼저 끝나면 확인 전으로 내려오므로,
+         * 여기 담아두고 새로 받은 목록에도 다시 씌운다.
+         */
+        private val printCheckedRoomIds = mutableSetOf<Long>()
+
         init {
             observeProfile()
             prefetchProfile()
@@ -53,18 +60,32 @@ class HomeViewModel
          */
         private fun observeRoomEvents() {
             viewModelScope.launch {
-                roomRepository.roomEventFlow.filterIsInstance<RoomEvent.TitleUpdate>()
-                    .collect { event ->
-                        updateState {
-                            copy(
-                                rooms =
-                                    rooms
-                                        .map { room ->
-                                            if (room.id == event.roomId) room.withName(event.title) else room
-                                        }.toImmutableList(),
-                            )
+                roomRepository.roomEventFlow.collect { event ->
+                    when (event) {
+                        is RoomEvent.TitleUpdate ->
+                            updateRoom(event.roomId) { room -> room.withName(event.title) }
+
+                        is RoomEvent.PhotoPrintCompletionCheck -> {
+                            printCheckedRoomIds += event.roomId
+                            updateRoom(event.roomId) { room -> room.withPrintChecked() }
                         }
                     }
+                }
+            }
+        }
+
+        /** 목록에 없는 방(예: 다른 화면에서 바뀐 방)이면 아무것도 바뀌지 않는다. */
+        private fun updateRoom(
+            roomId: Long,
+            transform: (RoomUiModel) -> RoomUiModel,
+        ) {
+            updateState {
+                copy(
+                    rooms =
+                        rooms
+                            .map { room -> if (room.id == roomId) transform(room) else room }
+                            .toImmutableList(),
+                )
             }
         }
 
@@ -97,7 +118,12 @@ class HomeViewModel
                 roomRepository
                     .getRoomList(ALL_ROOM_STATUSES)
                     .onSuccess { rooms ->
-                        val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
+                        val roomUiModels =
+                            rooms
+                                .mapNotNull { it.toUiModel() }
+                                .map { room ->
+                                    if (room.id in printCheckedRoomIds) room.withPrintChecked() else room
+                                }.toImmutableList()
                         updateState {
                             copy(
                                 roomLoadState = HomeRoomLoadState.LOADED,
