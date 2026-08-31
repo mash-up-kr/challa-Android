@@ -79,7 +79,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 /** 필름이 나오는 입구 */
 private val DispenserTopPadding = 12.dp
 private val DispenserHeight = 38.dp
-private val DispenserHorizontalPadding = 32.dp
+private val DispenserHorizontalPadding = 34.dp
 private val DispenserBorderWidth = 4.dp
 private val DispenserSlotHeight = 6.dp
 private val DispenserSlotHorizontalPadding = 28.dp
