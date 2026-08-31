@@ -123,6 +123,10 @@ private const val REVEAL_STAGGER_MS = 45L
 
 private const val REVEAL_SCROLL_MS = 160
 
+/** 등장이 끝난 뒤 마지막 줄을 맞추는 시도 횟수와, 여백이 늘어나길 기다리는 간격 */
+private const val REVEAL_SETTLE_ATTEMPTS = 6
+private const val REVEAL_SETTLE_DELAY_MS = 80L
+
 private const val ROLL_TO_REVEAL_DELAY_MS = 200L
 
 /** 화면 안에서만 쓰이므로 State에 두지 않는다. */
@@ -136,6 +140,7 @@ private enum class PrintAnimationPhase {
  * 인화 완료 연출. 필름을 당겨 뽑으면 사진이 그리드에 하나씩 나타난다.
  *
  * @param gridState 남는 그리드와 같은 것을 넘기면 스크롤 위치가 이어진다.
+ * @param extraBottomPadding 사진이 나타나는 동안에도 하단 바에 마지막 줄이 가리지 않도록 더하는 여백
  * @param onFilmStageChange 필름이 나오는 동안 true. 배출구가 프로필 바 자리를 쓴다.
  */
 @Composable
@@ -144,6 +149,7 @@ fun GalleryPrintAnimation(
     onComplete: () -> Unit,
     modifier: Modifier = Modifier,
     gridState: LazyGridState = rememberLazyGridState(),
+    extraBottomPadding: Dp = 0.dp,
     onFilmStageChange: (Boolean) -> Unit = {},
 ) {
     var phase by remember { mutableStateOf(PrintAnimationPhase.PULL_WAITING) }
@@ -179,6 +185,7 @@ fun GalleryPrintAnimation(
                 modifier = modifier,
                 photos = photos,
                 gridState = gridState,
+                extraBottomPadding = extraBottomPadding,
                 onComplete = onComplete,
             )
     }
@@ -359,6 +366,7 @@ private fun FilmCell(
 private fun PhotoRevealStage(
     photos: ImmutableList<GalleryPhotoUiModel>,
     gridState: LazyGridState,
+    extraBottomPadding: Dp,
     onComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -382,6 +390,12 @@ private fun PhotoRevealStage(
 
         followJob.cancelAndJoin()
 
+        // 하단 바는 등장 단계에서야 올라오고, 그리드 아래 여백도 그때 늘어난다.
+        // 여백이 자리잡기 전에 멈추면 마지막 줄이 바에 걸린 채로 남으므로 몇 번 더 맞춘다.
+        repeat(REVEAL_SETTLE_ATTEMPTS) {
+            if (!gridState.followReveal(photos.lastIndex)) delay(REVEAL_SETTLE_DELAY_MS)
+        }
+
         onComplete()
     }
 
@@ -389,6 +403,7 @@ private fun PhotoRevealStage(
         modifier = modifier,
         photos = photos,
         state = gridState,
+        extraBottomPadding = extraBottomPadding,
         reveal = GalleryPhotoReveal(revealedCount = revealedCount),
         onPhotoClick = {},
         // 다음 페이지는 연출 전에 미리 받아둔다.
@@ -396,18 +411,37 @@ private fun PhotoRevealStage(
     )
 }
 
-/** 줄 단위로만 움직여 한 줄에 한 번씩만 스크롤이 돈다. */
-private suspend fun LazyGridState.followReveal(revealedIndex: Int) {
-    if (revealedIndex < 0) return
+/**
+ * 방금 나타난 칸이 다 보이도록 그리드를 내린다.
+ *
+ * `visibleItemsInfo`에는 아래가 잘린 칸도 들어 있어, 목록에 있다는 것만으로는 다 보인다고 볼 수 없다.
+ * 마지막 줄이 하단 바에 걸친 채로 끝나지 않도록 잘린 만큼을 재서 그만큼만 내린다.
+ *
+ * @return 실제로 내렸으면 true. 더 내려갈 곳이 없으면 false.
+ */
+private suspend fun LazyGridState.followReveal(revealedIndex: Int): Boolean {
+    if (revealedIndex < 0) return false
 
-    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull() ?: return
-    if (revealedIndex <= lastVisible.index) return
+    val info = layoutInfo
+    val lastVisible = info.visibleItemsInfo.lastOrNull() ?: return false
+    val revealed = info.visibleItemsInfo.firstOrNull { item -> item.index == revealedIndex }
 
-    val rowHeight = lastVisible.size.height + layoutInfo.mainAxisItemSpacing
+    val scrollBy =
+        if (revealed == null) {
+            // 아직 화면 아래에 있어 배치되지 않았다. 한 줄만큼 내리고 다음 칸에서 이어서 맞춘다.
+            lastVisible.size.height + info.mainAxisItemSpacing
+        } else {
+            val viewportEnd = info.viewportEndOffset - info.afterContentPadding
+            revealed.offset.y + revealed.size.height - viewportEnd
+        }
+
+    if (scrollBy <= 0) return false
+
     animateScrollBy(
-        value = rowHeight.toFloat(),
+        value = scrollBy.toFloat(),
         animationSpec = tween(durationMillis = REVEAL_SCROLL_MS),
     )
+    return true
 }
 
 /** 당기고 싶게 유도하는 위아래 반복 모션. 0f~1f 비율로 돌려준다. */
@@ -523,6 +557,7 @@ private fun GalleryPrintAnimationRevealingPreview() {
     PhotoRevealStage(
         photos = previewGalleryPhotos(count = 12),
         gridState = rememberLazyGridState(),
+        extraBottomPadding = 0.dp,
         onComplete = {},
     )
 }

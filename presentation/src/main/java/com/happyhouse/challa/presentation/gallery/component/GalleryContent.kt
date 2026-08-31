@@ -108,6 +108,7 @@ fun GalleryContent(
                             modifier = Modifier.fillMaxSize(),
                             photos = photoInfo.photos,
                             gridState = gridState,
+                            extraBottomPadding = extraBottomPadding,
                             onComplete = onPrintAnimationComplete,
                             onFilmStageChange = onPrintFilmStageChange,
                         )
