@@ -177,10 +177,7 @@ class ChatViewModel @AssistedInject constructor(
         if (loadMoreJob?.isActive == true) return
 
         val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return
-        val context =
-            checkNotNull(loadedChatContext) {
-                "ChatInfo.Loaded 상태에는 loadedChatContext가 존재해야 합니다. roomId=$roomId"
-            }
+        val context = resolveLoadedChatContext() ?: return
         if (!context.hasNextPage) return
         val requestedPage = context.nextPage
 
@@ -246,12 +243,9 @@ class ChatViewModel @AssistedInject constructor(
         chatRepository
             .getChats(roomId = roomId, page = INITIAL_PAGE)
             .onSuccess { page ->
-                page.chats.forEach { chat -> chatsById[chat.id] = chat }
                 val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return@onSuccess
-                val context =
-                    checkNotNull(loadedChatContext) {
-                        "ChatInfo.Loaded 상태에는 loadedChatContext가 존재해야 합니다. roomId=$roomId"
-                    }
+                val context = resolveLoadedChatContext() ?: return@onSuccess
+                page.chats.forEach { chat -> chatsById[chat.id] = chat }
                 updateLoadedChatState(
                     context = context,
                     loadMoreState = loadedChatInfo.loadMoreState,
@@ -263,6 +257,16 @@ class ChatViewModel @AssistedInject constructor(
                 )
             }
     }
+
+    private fun resolveLoadedChatContext(): LoadedChatContext? =
+        loadedChatContext
+            ?: run {
+                Timber.e(
+                    "ChatInfo.Loaded 상태에 loadedChatContext가 없습니다. roomId=$roomId",
+                )
+                updateState { copy(chatInfo = ChatInfo.Error) }
+                null
+            }
 
     private fun updateLoadedChatState(
         context: LoadedChatContext,
@@ -297,6 +301,12 @@ class ChatViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 초기 채팅 로드가 성공한 이후에만 유효한 세션 정보.
+     *
+     * 이 객체가 존재하면 [myUserId], [nextPage], [hasNextPage]를 함께 사용할 수 있다.
+     * `null`이면 초기 로드 전이거나 채팅 세션이 초기화된 상태를 의미한다.
+     */
     private data class LoadedChatContext(
         val myUserId: Long,
         val nextPage: Int,
