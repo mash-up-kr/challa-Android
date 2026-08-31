@@ -78,8 +78,8 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 /** 필름이 나오는 입구 */
 private val DispenserTopPadding = 12.dp
-private val DispenserHeight = 36.dp
-private val DispenserHorizontalPadding = 20.dp
+private val DispenserHeight = 38.dp
+private val DispenserHorizontalPadding = 32.dp
 private val DispenserBorderWidth = 4.dp
 private val DispenserSlotHeight = 6.dp
 private val DispenserSlotHorizontalPadding = 28.dp
@@ -98,6 +98,7 @@ private val FilmCellSpacing = 10.dp
 private val FilmSprocketSize = 6.dp
 private val FilmSprocketCornerRadius = 1.dp
 private val FilmSprocketPitch = 24.dp
+private const val FILM_SPROCKET_ALPHA = 0.4f
 
 private const val FILM_PEEK_CELL_RATIO = 1.3f
 
@@ -312,7 +313,7 @@ private fun FilmCell(
     cellPitch: Dp,
     modifier: Modifier = Modifier,
 ) {
-    val sprocketColor = ChallaTheme.colors.labelSubtle
+    val sprocketColor = ChallaTheme.colors.staticWhite.copy(alpha = FILM_SPROCKET_ALPHA)
 
     Box(
         modifier =
@@ -456,7 +457,7 @@ private fun FilmDispenser(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(DispenserSlotHeight)
                     .clip(DispenserShape)
-                    .background(ChallaTheme.colors.labelDisable),
+                    .background(ChallaTheme.colors.backgroundLevel4),
         )
     }
 }
