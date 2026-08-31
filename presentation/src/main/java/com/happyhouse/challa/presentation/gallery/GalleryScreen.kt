@@ -166,8 +166,9 @@ private fun GalleryScaffold(
                     )
                 }
 
+                // 필름이 나오는 동안에는 하단 바도 비운다. 연출이 끝나고 그리드가 드러날 때 함께 올라온다.
                 AnimatedVisibility(
-                    visible = printed,
+                    visible = printed && !printsFilm,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
