@@ -167,10 +167,9 @@ class ChatViewModel @AssistedInject constructor(
         }
 
         chatsById[chat.id] = chat
-        currentUserId?.let { myUserId ->
-            val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
-            updateLoadedChatState(myUserId = myUserId, isLoadingMore = isLoadingMore)
-        }
+        val myUserId = requireCurrentUserId()
+        val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
+        updateLoadedChatState(myUserId = myUserId, isLoadingMore = isLoadingMore)
     }
 
     private fun loadNextChatPage() {
@@ -178,12 +177,7 @@ class ChatViewModel @AssistedInject constructor(
 
         val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return
         if (!isInitialPageLoaded || !hasNextPage) return
-        val myUserId =
-            currentUserId ?: run {
-                Timber.e("현재 사용자 ID 없이 추가 채팅을 요청했습니다. roomId=$roomId")
-                updateState { copy(chatInfo = ChatInfo.Error) }
-                return
-            }
+        val myUserId = requireCurrentUserId()
         val requestedPage = nextPage
 
         updateState { copy(chatInfo = loadedChatInfo.copy(isLoadingMore = true)) }
@@ -239,10 +233,12 @@ class ChatViewModel @AssistedInject constructor(
             .getChats(roomId = roomId, page = INITIAL_PAGE)
             .onSuccess { page ->
                 page.chats.forEach { chat -> chatsById[chat.id] = chat }
-                currentUserId?.let { myUserId ->
-                    val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
-                    updateLoadedChatState(myUserId = myUserId, isLoadingMore = isLoadingMore)
-                }
+                val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return@onSuccess
+                val myUserId = requireCurrentUserId()
+                updateLoadedChatState(
+                    myUserId = myUserId,
+                    isLoadingMore = loadedChatInfo.isLoadingMore,
+                )
             }.onFailure { failure ->
                 Timber.e(
                     failure.causeOrNull(),
@@ -287,6 +283,11 @@ class ChatViewModel @AssistedInject constructor(
             }
         }
     }
+
+    private fun requireCurrentUserId(): Long =
+        checkNotNull(currentUserId) {
+            "ChatInfo.Loaded 상태에는 currentUserId가 존재해야 합니다. roomId=$roomId"
+        }
 
     @AssistedFactory
     interface Factory {
