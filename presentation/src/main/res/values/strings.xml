@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_exit_guide">뒤로가기를 한 번 더 누르면 앱이 종료돼요</string>
     <string name="presentation_module_name">presentation</string>
     <string name="sample_title">Challa Sample</string>
 
