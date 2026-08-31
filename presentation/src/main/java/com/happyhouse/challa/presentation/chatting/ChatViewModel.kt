@@ -45,7 +45,7 @@ class ChatViewModel @AssistedInject constructor(
     private var sendMessageJob: Job? = null
     private var nextPage = 0
     private var hasNextPage = false
-    private var initialChatsLoaded = false
+    private var isInitialPageLoaded = false
     private val chatsById = linkedMapOf<Long, Chat>()
     private val bufferedChatsById = linkedMapOf<Long, Chat>()
     private var currentUserId: Long? = null
@@ -54,7 +54,7 @@ class ChatViewModel @AssistedInject constructor(
     override fun onIntent(intent: ChatIntent) {
         when (intent) {
             ChatIntent.ChatsLoad -> restartChatSession()
-            ChatIntent.ChatsLoadMore -> loadMoreChats()
+            ChatIntent.ChatsLoadMore -> loadNextChatPage()
             ChatIntent.MessageSend -> sendMessage()
             is ChatIntent.MessageChange -> updateState { copy(message = intent.message) }
         }
@@ -86,7 +86,7 @@ class ChatViewModel @AssistedInject constructor(
         loadMoreJob?.cancel()
         nextPage = 0
         hasNextPage = false
-        initialChatsLoaded = false
+        isInitialPageLoaded = false
         chatsById.clear()
         bufferedChatsById.clear()
         updateState { copy(chatInfo = ChatInfo.Loading) }
@@ -108,70 +108,85 @@ class ChatViewModel @AssistedInject constructor(
                             }
 
                         subscriptionReady.await()
-                        val userId =
-                            getCurrentUserId() ?: run {
+                        val myUserId =
+                            resolveCurrentUserId() ?: run {
                                 socketJob.cancel()
                                 updateState { copy(chatInfo = ChatInfo.Error) }
                                 return@coroutineScope
                             }
 
-                        loadInitialChats(userId)
+                        if (!loadInitialChats(myUserId)) {
+                            socketJob.cancel()
+                            bufferedChatsById.clear()
+                            return@coroutineScope
+                        }
                         socketJob.join()
                     }
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (throwable: Throwable) {
                     Timber.e(throwable, "채팅 WebSocket 구독이 종료되었습니다. roomId=$roomId")
-                    if (!initialChatsLoaded) {
+                    if (!isInitialPageLoaded) {
                         updateState { copy(chatInfo = ChatInfo.Error) }
                     }
                 }
             }
     }
 
-    private suspend fun loadInitialChats(userId: Long) {
-        chatRepository
-            .getChats(roomId = roomId, page = INITIAL_PAGE)
-            .onSuccess { page ->
+    private suspend fun loadInitialChats(myUserId: Long): Boolean =
+        when (val result = chatRepository.getChats(roomId = roomId, page = INITIAL_PAGE)) {
+            is ChallaResult.Success -> {
+                val page = result.data
                 page.chats.forEach { chat -> chatsById[chat.id] = chat }
                 bufferedChatsById.values.forEach { chat -> chatsById[chat.id] = chat }
                 bufferedChatsById.clear()
 
-                initialChatsLoaded = true
+                isInitialPageLoaded = true
                 nextPage = INITIAL_PAGE + 1
                 hasNextPage = page.hasNext
-                publishChats(userId = userId)
-            }.onFailure { failure ->
+                updateLoadedChatState(myUserId = myUserId)
+
+                true
+            }
+
+            is ChallaResult.Failure -> {
                 Timber.e(
-                    failure.causeOrNull(),
+                    result.causeOrNull(),
                     "채팅 목록을 불러오지 못했습니다. roomId=$roomId, page=$INITIAL_PAGE",
                 )
                 updateState { copy(chatInfo = ChatInfo.Error) }
+
+                false
             }
-    }
+        }
 
     private fun handleRealtimeChat(chat: Chat) {
-        if (!initialChatsLoaded) {
+        if (!isInitialPageLoaded) {
             bufferedChatsById[chat.id] = chat
             return
         }
 
         chatsById[chat.id] = chat
-        currentUserId?.let { userId ->
+        currentUserId?.let { myUserId ->
             val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
-            publishChats(userId = userId, isLoadingMore = isLoadingMore)
+            updateLoadedChatState(myUserId = myUserId, isLoadingMore = isLoadingMore)
         }
     }
 
-    private fun loadMoreChats() {
+    private fun loadNextChatPage() {
         if (loadMoreJob?.isActive == true) return
 
-        val loaded = currentState.chatInfo as? ChatInfo.Loaded ?: return
-        if (!initialChatsLoaded || !hasNextPage) return
-        val userId = currentUserId ?: return
+        val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return
+        if (!isInitialPageLoaded || !hasNextPage) return
+        val myUserId =
+            currentUserId ?: run {
+                Timber.e("현재 사용자 ID 없이 추가 채팅을 요청했습니다. roomId=$roomId")
+                updateState { copy(chatInfo = ChatInfo.Error) }
+                return
+            }
         val requestedPage = nextPage
 
-        updateState { copy(chatInfo = loaded.copy(isLoadingMore = true)) }
+        updateState { copy(chatInfo = loadedChatInfo.copy(isLoadingMore = true)) }
         loadMoreJob =
             viewModelScope.launch {
                 chatRepository
@@ -180,7 +195,7 @@ class ChatViewModel @AssistedInject constructor(
                         page.chats.forEach { chat -> chatsById.putIfAbsent(chat.id, chat) }
                         nextPage = requestedPage + 1
                         hasNextPage = page.hasNext
-                        publishChats(userId = userId)
+                        updateLoadedChatState(myUserId = myUserId)
                     }.onFailure { failure ->
                         Timber.e(
                             failure.causeOrNull(),
@@ -195,7 +210,7 @@ class ChatViewModel @AssistedInject constructor(
     }
 
     private fun sendMessage() {
-        if (!initialChatsLoaded || sendMessageJob?.isActive == true) return
+        if (!isInitialPageLoaded || sendMessageJob?.isActive == true) return
 
         val originalMessage = currentState.message
         val content = originalMessage.trim()
@@ -224,9 +239,9 @@ class ChatViewModel @AssistedInject constructor(
             .getChats(roomId = roomId, page = INITIAL_PAGE)
             .onSuccess { page ->
                 page.chats.forEach { chat -> chatsById[chat.id] = chat }
-                currentUserId?.let { userId ->
+                currentUserId?.let { myUserId ->
                     val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
-                    publishChats(userId = userId, isLoadingMore = isLoadingMore)
+                    updateLoadedChatState(myUserId = myUserId, isLoadingMore = isLoadingMore)
                 }
             }.onFailure { failure ->
                 Timber.e(
@@ -236,14 +251,14 @@ class ChatViewModel @AssistedInject constructor(
             }
     }
 
-    private fun publishChats(
-        userId: Long,
+    private fun updateLoadedChatState(
+        myUserId: Long,
         isLoadingMore: Boolean = false,
     ) {
         val chats =
             chatsById.values
                 .sortedWith(compareBy(Chat::createdAt, Chat::id))
-                .map { chat -> chat.toUiModel(currentUserId = userId) }
+                .map { chat -> chat.toUiModel(currentUserId = myUserId) }
 
         updateState {
             copy(
@@ -257,11 +272,11 @@ class ChatViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun getCurrentUserId(): Long? {
+    private suspend fun resolveCurrentUserId(): Long? {
         currentUserId?.let { return it }
-        userRepository.profile.value?.id?.let { userId ->
-            currentUserId = userId
-            return userId
+        userRepository.profile.value?.id?.let { myUserId ->
+            currentUserId = myUserId
+            return myUserId
         }
 
         return when (val result = userRepository.getMyProfile()) {
