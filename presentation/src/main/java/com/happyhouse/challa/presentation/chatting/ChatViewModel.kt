@@ -14,6 +14,7 @@ import com.happyhouse.challa.presentation.chatting.contract.ChatIntent
 import com.happyhouse.challa.presentation.chatting.contract.ChatSideEffect
 import com.happyhouse.challa.presentation.chatting.contract.ChatState
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
+import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo.LoadMoreState
 import com.happyhouse.challa.presentation.chatting.model.toUiModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -167,8 +168,9 @@ class ChatViewModel @AssistedInject constructor(
         }
 
         chatsById[chat.id] = chat
-        val isLoadingMore = (currentState.chatInfo as? ChatInfo.Loaded)?.isLoadingMore == true
-        updateLoadedChatState(context = context, isLoadingMore = isLoadingMore)
+        val loadMoreState =
+            (currentState.chatInfo as? ChatInfo.Loaded)?.loadMoreState ?: LoadMoreState.IDLE
+        updateLoadedChatState(context = context, loadMoreState = loadMoreState)
     }
 
     private fun loadNextChatPage() {
@@ -182,7 +184,9 @@ class ChatViewModel @AssistedInject constructor(
         if (!context.hasNextPage) return
         val requestedPage = context.nextPage
 
-        updateState { copy(chatInfo = loadedChatInfo.copy(isLoadingMore = true)) }
+        updateState {
+            copy(chatInfo = loadedChatInfo.copy(loadMoreState = LoadMoreState.LOADING))
+        }
         loadMoreJob =
             viewModelScope.launch {
                 chatRepository
@@ -203,7 +207,11 @@ class ChatViewModel @AssistedInject constructor(
                         )
                         updateState {
                             val latest = chatInfo as? ChatInfo.Loaded
-                            copy(chatInfo = latest?.copy(isLoadingMore = false) ?: chatInfo)
+                            copy(
+                                chatInfo =
+                                    latest?.copy(loadMoreState = LoadMoreState.ERROR)
+                                        ?: chatInfo,
+                            )
                         }
                     }
             }
@@ -246,7 +254,7 @@ class ChatViewModel @AssistedInject constructor(
                     }
                 updateLoadedChatState(
                     context = context,
-                    isLoadingMore = loadedChatInfo.isLoadingMore,
+                    loadMoreState = loadedChatInfo.loadMoreState,
                 )
             }.onFailure { failure ->
                 Timber.e(
@@ -258,7 +266,7 @@ class ChatViewModel @AssistedInject constructor(
 
     private fun updateLoadedChatState(
         context: LoadedChatContext,
-        isLoadingMore: Boolean = false,
+        loadMoreState: LoadMoreState = LoadMoreState.IDLE,
     ) {
         val chats =
             chatsById.values
@@ -271,7 +279,7 @@ class ChatViewModel @AssistedInject constructor(
                     ChatInfo.Loaded(
                         chats = chats.toPersistentList(),
                         hasNext = context.hasNextPage,
-                        isLoadingMore = isLoadingMore,
+                        loadMoreState = loadMoreState,
                     ),
             )
         }

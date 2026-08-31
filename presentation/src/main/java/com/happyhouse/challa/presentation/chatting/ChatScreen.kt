@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.domain.model.chat.ChatType
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.component.ChatContent
@@ -98,7 +99,7 @@ private fun ChatScreenPreview() {
                                 ChatUiModel(
                                     chatId = 2L,
                                     userId = 2L,
-                                    type = ChatType.DEFAULT,
+                                    type = ChatType.COMMENT,
                                     content = "좋아! 바다부터 보고 숙소로 이동하자.",
                                     photoImageUrl = previewPhotoUrl,
                                     createdAt = ZonedDateTime.of(2026, 8, 29, 20, 17, 0, 0, previewZoneId),
@@ -110,8 +111,8 @@ private fun ChatScreenPreview() {
                                     chatId = 3L,
                                     userId = 3L,
                                     type = ChatType.EMOJI,
-                                    content = "🔥",
-                                    photoImageUrl = null,
+                                    content = ReactionEmoji.FIRE.name,
+                                    photoImageUrl = previewPhotoUrl,
                                     createdAt = ZonedDateTime.of(2026, 8, 30, 9, 34, 0, 0, previewZoneId),
                                     isMine = false,
                                     userName = "여름여행가자",

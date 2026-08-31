@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +29,7 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
+import com.happyhouse.challa.presentation.reaction.labelRes
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -185,39 +185,6 @@ internal val ReactionEmoji.drawableRes: Int
             ReactionEmoji.SPARKLES -> R.drawable.img_reaction_sparkles
             ReactionEmoji.POOP -> R.drawable.img_reaction_poop
             ReactionEmoji.SKULL -> R.drawable.img_reaction_skull
-        }
-
-/** 사진 위에 붙는 스티커용. 흰 테두리가 이미지에 포함돼 있어 별도 배경을 그리지 않는다. */
-internal val ReactionEmoji.stickerDrawableRes: Int
-    @DrawableRes
-    get() =
-        when (this) {
-            ReactionEmoji.FIRE -> R.drawable.img_reaction_sticker_fire
-            ReactionEmoji.EYES -> R.drawable.img_reaction_sticker_eyes
-            ReactionEmoji.MEDAL -> R.drawable.img_reaction_sticker_medal
-            ReactionEmoji.QUESTION -> R.drawable.img_reaction_sticker_question
-            ReactionEmoji.THINKING -> R.drawable.img_reaction_sticker_thinking
-            ReactionEmoji.HEART -> R.drawable.img_reaction_sticker_heart
-            ReactionEmoji.THUMBS_UP -> R.drawable.img_reaction_sticker_thumbs_up
-            ReactionEmoji.SPARKLES -> R.drawable.img_reaction_sticker_sparkles
-            ReactionEmoji.POOP -> R.drawable.img_reaction_sticker_poop
-            ReactionEmoji.SKULL -> R.drawable.img_reaction_sticker_skull
-        }
-
-internal val ReactionEmoji.labelRes: Int
-    @StringRes
-    get() =
-        when (this) {
-            ReactionEmoji.FIRE -> R.string.photo_detail_reaction_fire
-            ReactionEmoji.EYES -> R.string.photo_detail_reaction_eyes
-            ReactionEmoji.MEDAL -> R.string.photo_detail_reaction_medal
-            ReactionEmoji.QUESTION -> R.string.photo_detail_reaction_question
-            ReactionEmoji.THINKING -> R.string.photo_detail_reaction_thinking
-            ReactionEmoji.HEART -> R.string.photo_detail_reaction_heart
-            ReactionEmoji.THUMBS_UP -> R.string.photo_detail_reaction_thumbs_up
-            ReactionEmoji.SPARKLES -> R.string.photo_detail_reaction_sparkles
-            ReactionEmoji.POOP -> R.string.photo_detail_reaction_poop
-            ReactionEmoji.SKULL -> R.string.photo_detail_reaction_skull
         }
 
 @ComposePreview(showBackground = true, widthDp = 390)

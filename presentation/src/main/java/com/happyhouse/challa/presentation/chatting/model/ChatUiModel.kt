@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.chatting.model
 
 import androidx.compose.runtime.Immutable
+import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.domain.model.chat.Chat
 import com.happyhouse.challa.domain.model.chat.ChatType
 import java.time.ZoneId
@@ -17,7 +18,10 @@ data class ChatUiModel(
     val isMine: Boolean,
     val userName: String?,
     val userProfileImageUrl: String?,
-)
+) {
+    val reactionEmoji: ReactionEmoji?
+        get() = if (type == ChatType.EMOJI) ReactionEmoji.from(content) else null
+}
 
 internal fun Chat.toUiModel(currentUserId: Long): ChatUiModel =
     ChatUiModel(

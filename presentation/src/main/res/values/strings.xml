@@ -73,6 +73,8 @@
     <string name="chat_message_placeholder">메시지를 보내 보세요.</string>
     <string name="chat_first_message_tooltip">첫 번째 메시지를 보내보세요!</string>
     <string name="chat_load_failure">채팅을 불러오지 못했어요.</string>
+    <string name="chat_load_more_failure">이전 채팅을 불러오지 못했어요.</string>
+    <string name="chat_reaction_emoji_description">%1$s 이모지 반응</string>
     <string name="chat_retry">다시 시도</string>
     <string name="chat_empty">아직 채팅이 없어요.</string>
     <string name="chat_photo_description">채팅에 연결된 사진</string>

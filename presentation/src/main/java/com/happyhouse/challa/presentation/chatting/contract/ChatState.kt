@@ -24,7 +24,13 @@ data class ChatState(
         data class Loaded(
             val chats: ImmutableList<ChatUiModel> = persistentListOf(),
             val hasNext: Boolean = false,
-            val isLoadingMore: Boolean = false,
+            val loadMoreState: LoadMoreState = LoadMoreState.IDLE,
         ) : ChatInfo
+
+        enum class LoadMoreState {
+            IDLE,
+            LOADING,
+            ERROR,
+        }
     }
 }
