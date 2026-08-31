@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -60,9 +59,9 @@ fun EnterRoomBottomSheet(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val destructiveTint = ChallaTheme.colors.statusDestructive
+    val roomEnterFailedMessage = stringResource(R.string.enter_room_failed)
 
     // 스크림/뒤로가기 외의 경로(닫기 아이콘·방 입장 완료)로 닫을 때 내려가는 애니메이션을 태운 뒤 실제 콜백을 실행한다.
     fun hideThen(action: () -> Unit) {
@@ -107,7 +106,7 @@ fun EnterRoomBottomSheet(
                 is EnterRoomSideEffect.RoomEnterFailed -> {
                     val message =
                         effect.message?.takeIf { it.isNotBlank() }
-                            ?: context.getString(R.string.enter_room_failed)
+                            ?: roomEnterFailedMessage
                     showToast(message)
                 }
             }

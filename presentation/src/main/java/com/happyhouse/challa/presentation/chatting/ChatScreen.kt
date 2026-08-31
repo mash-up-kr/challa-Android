@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.chatting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,11 +61,10 @@ fun ChatScreen(
         },
     ) { innerPadding ->
         ChatContent(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
             chatInfo = state.chatInfo,
             onRetry = { onIntent(ChatIntent.ChatsLoad) },
             onLoadMore = { onIntent(ChatIntent.ChatsLoadMore) },
-            scaffoldPadding = innerPadding,
         )
     }
 }
