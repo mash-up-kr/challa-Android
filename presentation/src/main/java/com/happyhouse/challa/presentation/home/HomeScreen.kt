@@ -84,7 +84,6 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
-import com.happyhouse.challa.presentation.home.contract.HomeIntent
 import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
@@ -159,7 +158,7 @@ fun HomeRoute(
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (hasResumed) viewModel.onIntent(HomeIntent.RoomsRefresh)
+        if (hasResumed) viewModel.onResume()
         hasResumed = true
     }
 

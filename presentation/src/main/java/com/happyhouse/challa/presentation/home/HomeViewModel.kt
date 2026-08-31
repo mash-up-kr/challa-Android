@@ -42,13 +42,10 @@ class HomeViewModel
             observeRoomEvents()
         }
 
-        override fun onIntent(intent: HomeIntent) {
-            when (intent) {
-                HomeIntent.RoomsRefresh -> handleRoomsRefresh()
-            }
-        }
+        override fun onIntent(intent: HomeIntent) = Unit
 
-        private fun handleRoomsRefresh() {
+        /** 다른 화면에 다녀왔을 때. 낡은 목록을 들고 있으면 인화 연출이 다시 재생된다. */
+        fun onResume() {
             loadHome(showLoading = false)
         }
 
