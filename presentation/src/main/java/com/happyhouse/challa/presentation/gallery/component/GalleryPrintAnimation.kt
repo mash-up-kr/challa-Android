@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.gallery.component
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -110,10 +109,15 @@ private const val PULL_HINT_BOUNCE_MS = 900
 /** 넘기면 나머지는 자동으로 흘러내린다. */
 private val PullTriggerDistance = 56.dp
 
-/** 필름이 흘러내리는 시간. 칸 수에 비례하되 너무 짧거나 지루하지 않게 자른다. */
-private const val ROLL_MS_PER_PHOTO = 110
-private const val ROLL_MIN_MS = 1_400
-private const val ROLL_MAX_MS = 4_000
+/**
+ * 필름이 흘러내리는 시간. 칸 수에 비례하되 너무 짧거나 지루하지 않게 자른다.
+ *
+ * 상한에 걸리는 큰 방(72칸)은 칸당 시간이 저절로 짧아져, 작은 방과 큰 방의 속도가 알아서 갈린다.
+ */
+private const val ROLL_BASE_MS = 1_200
+private const val ROLL_MS_PER_PHOTO = 130
+private const val ROLL_MIN_MS = 2_000
+private const val ROLL_MAX_MS = 8_000
 
 private const val REVEAL_STAGGER_MS = 45L
 
@@ -236,10 +240,11 @@ private fun FilmDispensingStage(
                 if (!rolls) return@LaunchedEffect
 
                 val durationMillis =
-                    (photos.size * ROLL_MS_PER_PHOTO).coerceIn(ROLL_MIN_MS, ROLL_MAX_MS)
+                    (ROLL_BASE_MS + photos.size * ROLL_MS_PER_PHOTO)
+                        .coerceIn(ROLL_MIN_MS, ROLL_MAX_MS)
                 progress.animateTo(
                     targetValue = 1f,
-                    animationSpec = tween(durationMillis = durationMillis, easing = LinearEasing),
+                    animationSpec = tween(durationMillis = durationMillis, easing = MotionTokens.EaseInOut),
                 )
                 onRolled()
             }
@@ -376,6 +381,7 @@ private fun PhotoRevealStage(
         }
 
         followJob.cancelAndJoin()
+
         onComplete()
     }
 
