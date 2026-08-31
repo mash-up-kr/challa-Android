@@ -48,6 +48,7 @@ fun GalleryScreen(
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
+    onPrintAnimationComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.background(ChallaTheme.colors.backgroundSurface)) {
@@ -60,6 +61,7 @@ fun GalleryScreen(
             onBackClick = onBackClick,
             onInviteCodeClick = onInviteCodeClick,
             onSettingClick = onSettingClick,
+            onPrintAnimationComplete = onPrintAnimationComplete,
         )
     }
 }
@@ -72,6 +74,7 @@ private fun GalleryScaffold(
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
+    onPrintAnimationComplete: () -> Unit,
 ) {
     ChallaScaffold(
         // 배경과 글로우는 화면 루트에서 그린다.
@@ -117,6 +120,7 @@ private fun GalleryScaffold(
                 onIntent = onIntent,
                 extraBottomPadding = extraBottomPadding,
                 onPrintFilmStageChange = { printsFilm = it },
+                onPrintAnimationComplete = onPrintAnimationComplete,
             )
 
             // 두 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
@@ -268,6 +272,7 @@ private fun GalleryScreenPreviewTemplate(
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
+        onPrintAnimationComplete = {},
         onBackClick = {},
         onInviteCodeClick = {},
         onSettingClick = {},

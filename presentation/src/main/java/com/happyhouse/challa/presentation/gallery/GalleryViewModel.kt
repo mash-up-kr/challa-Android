@@ -113,7 +113,6 @@ class GalleryViewModel @AssistedInject constructor(
             GalleryIntent.InviteMenuDismiss -> handleInviteMenuDismiss()
             GalleryIntent.PrintCountdownClick -> handlePrintCountdownClick()
             GalleryIntent.ShootClick -> handleShootClick()
-            GalleryIntent.PrintAnimationComplete -> handlePrintAnimationComplete()
         }
     }
 
@@ -410,8 +409,8 @@ class GalleryViewModel @AssistedInject constructor(
         return true
     }
 
-    /** 기록에 실패해도 다음에 연출을 한 번 더 보게 될 뿐이라, 알리지 않고 로그만 남긴다. */
-    private fun handlePrintAnimationComplete() {
+/** 연출을 끝까지 봤을 때. 기록에 실패해도 다음에 한 번 더 보게 될 뿐이라, 알리지 않고 로그만 남긴다. */
+    fun onPrintAnimationComplete() {
         if (printAnimationPhase != PrintAnimationPhase.PLAYING) {
             Timber.w("재생 중인 인화 연출이 없는데 완료 신호가 올라와 무시합니다. roomId=$roomId")
             return

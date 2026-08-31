@@ -140,6 +140,7 @@ fun GalleryRoute(
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
         onSettingClick = { onSettingClick(state.roomName) },
+        onPrintAnimationComplete = viewModel::onPrintAnimationComplete,
         onInviteCodeClick = { invitationCode ->
             coroutineScope.launch {
                 if (clipboard.copyInviteCode(invitationCode)) {

@@ -25,7 +25,4 @@ sealed interface GalleryIntent : UiIntent {
     data object PrintCountdownClick : GalleryIntent
 
     data object ShootClick : GalleryIntent
-
-    /** 인화 연출을 끝까지 봤을 때. 연출 진행은 화면이 들고 있고 이 시점만 올린다. */
-    data object PrintAnimationComplete : GalleryIntent
 }

@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
  *
  * @param extraBottomPadding 위에 떠 있는 하단 바에 그리드 마지막 줄이 가리지 않도록 더하는 여백
  * @param onPrintFilmStageChange 필름이 나오는 동안 true. 배출구가 프로필 바 자리를 쓴다.
+ * @param onPrintAnimationComplete 인화 연출을 끝까지 봤을 때
  */
 @Composable
 fun GalleryContent(
@@ -49,6 +50,7 @@ fun GalleryContent(
     modifier: Modifier = Modifier,
     extraBottomPadding: Dp = 0.dp,
     onPrintFilmStageChange: (Boolean) -> Unit = {},
+    onPrintAnimationComplete: () -> Unit = {},
 ) {
     Box(modifier = modifier) {
         // 인화 전/후 그리드는 서로 다른 LazyVerticalGrid라, 상태를 공유하지 않으면
@@ -106,7 +108,7 @@ fun GalleryContent(
                             modifier = Modifier.fillMaxSize(),
                             photos = photoInfo.photos,
                             gridState = gridState,
-                            onComplete = { onIntent(GalleryIntent.PrintAnimationComplete) },
+                            onComplete = onPrintAnimationComplete,
                             onFilmStageChange = onPrintFilmStageChange,
                         )
                     } else {
