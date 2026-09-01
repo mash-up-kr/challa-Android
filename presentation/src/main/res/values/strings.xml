@@ -71,6 +71,7 @@
     <!-- chattingScreen -->
     <string name="chat_back_description">뒤로가기</string>
     <string name="chat_message_placeholder">메시지를 보내 보세요.</string>
+    <string name="chat_message_send_failure">메시지를 보내지 못했어요. 다시 시도해 주세요.</string>
     <string name="chat_first_message_tooltip">첫 번째 메시지를 보내보세요!</string>
     <string name="chat_load_failure">채팅을 불러오지 못했어요.</string>
     <string name="chat_load_more_failure">이전 채팅을 불러오지 못했어요.</string>

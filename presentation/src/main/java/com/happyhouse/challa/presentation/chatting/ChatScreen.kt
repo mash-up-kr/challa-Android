@@ -3,7 +3,9 @@ package com.happyhouse.challa.presentation.chatting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +31,7 @@ import java.time.ZonedDateTime
 @Composable
 fun ChatScreen(
     state: ChatState,
+    snackbarHostState: SnackbarHostState,
     onIntent: (ChatIntent) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -41,6 +44,7 @@ fun ChatScreen(
                 .challaBackgroundGlow()
                 .imePadding(),
         containerColor = Color.Transparent,
+        snackbarHostState = snackbarHostState,
         topBar = {
             ChatTopBar(
                 roomName = state.roomName,
@@ -116,6 +120,7 @@ private fun ChatScreenPreview() {
                             ),
                     ),
             ),
+        snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
         onBackClick = {},
     )

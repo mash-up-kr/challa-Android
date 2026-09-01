@@ -232,8 +232,10 @@ class ChatViewModel @AssistedInject constructor(
                         refreshLatestChats()
                     }
 
-                    is ChallaResult.Failure ->
+                    is ChallaResult.Failure -> {
                         Timber.e(result.causeOrNull(), "채팅을 전송하지 못했습니다. roomId=$roomId")
+                        sendEffect(ChatSideEffect.MessageSendFailed)
+                    }
                 }
             }
     }
