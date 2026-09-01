@@ -28,10 +28,11 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
-import com.happyhouse.challa.presentation.gallery.component.GalleryBackgroundGlow
 import com.happyhouse.challa.presentation.gallery.component.GalleryContent
 import com.happyhouse.challa.presentation.gallery.component.GalleryCountdownBar
+import com.happyhouse.challa.presentation.gallery.component.GalleryPrintedBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryProfileMenu
 import com.happyhouse.challa.presentation.gallery.component.GalleryShootBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
@@ -48,11 +49,15 @@ fun GalleryScreen(
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
+    onPrintAnimationComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.background(ChallaTheme.colors.backgroundSurface)) {
-        GalleryBackgroundGlow(modifier = Modifier.align(Alignment.BottomCenter))
-
+    Box(
+        modifier =
+            modifier
+                .background(ChallaTheme.colors.backgroundSurface)
+                .challaBackgroundGlow(),
+    ) {
         GalleryScaffold(
             state = state,
             snackbarHostState = snackbarHostState,
@@ -60,6 +65,7 @@ fun GalleryScreen(
             onBackClick = onBackClick,
             onInviteCodeClick = onInviteCodeClick,
             onSettingClick = onSettingClick,
+            onPrintAnimationComplete = onPrintAnimationComplete,
         )
     }
 }
@@ -72,6 +78,7 @@ private fun GalleryScaffold(
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
+    onPrintAnimationComplete: () -> Unit,
 ) {
     ChallaScaffold(
         // 배경과 글로우는 화면 루트에서 그린다.
@@ -95,6 +102,7 @@ private fun GalleryScaffold(
             val density = LocalDensity.current
             val film = state.photoInfo as? PhotoInfo.Film
             val waiting = film as? PhotoInfo.Waiting
+            val printed = state.photoInfo is PhotoInfo.Printed
 
             // 하단 바가 그리드 위에 떠 있으므로, 끝까지 스크롤했을 때 마지막 줄이 가리지 않도록
             // 실제로 차지하는 높이만큼 그리드 아래 여백을 준다.
@@ -104,18 +112,23 @@ private fun GalleryScaffold(
             // 바가 사라지면 여백도 같이 줄어든다.
             // 즉시 0으로 떨어뜨리면 페이드아웃 중에 마지막 줄이 바 밑으로 파고들어서 함께 애니메이션한다.
             val extraBottomPadding by animateDpAsState(
-                targetValue = if (film == null) 0.dp else bottomBarHeight,
+                targetValue = if (film == null && !printed) 0.dp else bottomBarHeight,
                 label = "GalleryExtraBottomPadding",
             )
+
+            // 필름이 나오는 동안에는 배출구가 프로필 바 자리를 쓴다.
+            var printsFilm by remember { mutableStateOf(false) }
 
             GalleryContent(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 onIntent = onIntent,
                 extraBottomPadding = extraBottomPadding,
+                onPrintFilmStageChange = { printsFilm = it },
+                onPrintAnimationComplete = onPrintAnimationComplete,
             )
 
-            // 두 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
+            // 모든 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
             // 카운트다운으로 1초마다 재구성되므로 Modifier를 매번 새로 만들지 않는다.
             val measureBottomBar =
                 remember(density) {
@@ -135,6 +148,7 @@ private fun GalleryScaffold(
                     GalleryShootBar(
                         modifier = measureBottomBar,
                         onShootClick = { onIntent(GalleryIntent.ShootClick) },
+                        onChatClick = { onIntent(GalleryIntent.ChatClick) },
                     )
                 }
 
@@ -148,6 +162,19 @@ private fun GalleryScaffold(
                         // 사라지는 동안에는 마지막으로 센 값이 없으므로 0으로 둔다.
                         remainingSeconds = waiting?.remainingSeconds ?: 0L,
                         onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
+                        onChatClick = { onIntent(GalleryIntent.ChatClick) },
+                    )
+                }
+
+                // 필름이 나오는 동안에는 하단 바도 비운다. 연출이 끝나고 그리드가 드러날 때 함께 올라온다.
+                AnimatedVisibility(
+                    visible = printed && !printsFilm,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
+                    GalleryPrintedBar(
+                        modifier = measureBottomBar,
+                        onChatClick = { onIntent(GalleryIntent.ChatClick) },
                     )
                 }
             }
@@ -155,6 +182,7 @@ private fun GalleryScaffold(
             // 참여자를 못 받으면 프로필 바가 없어 메뉴를 열고 닫을 자리도 없다.
             val showsProfileMenu =
                 state.members.isNotEmpty() &&
+                    !printsFilm &&
                     when (state.photoInfo) {
                         is PhotoInfo.Film, is PhotoInfo.Printed -> true
                         PhotoInfo.Loading, PhotoInfo.Error -> false
@@ -214,7 +242,13 @@ private fun GalleryScreenWaitingPreview() {
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenPrintedPreview() {
-    GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
+    GalleryScreenPreviewTemplate(
+        photoInfo =
+            PhotoInfo.Printed(
+                photos = previewGalleryPhotos(),
+                playsPrintAnimation = false,
+            ),
+    )
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Loading")
@@ -257,6 +291,7 @@ private fun GalleryScreenPreviewTemplate(
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
+        onPrintAnimationComplete = {},
         onBackClick = {},
         onInviteCodeClick = {},
         onSettingClick = {},

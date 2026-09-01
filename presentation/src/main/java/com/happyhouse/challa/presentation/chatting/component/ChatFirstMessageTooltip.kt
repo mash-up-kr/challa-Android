@@ -1,60 +1,62 @@
-package com.happyhouse.challa.presentation.gallery.component
+package com.happyhouse.challa.presentation.chatting.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/** 배경 위로 살짝 비치는 툴팁이라 배경색에 투명도를 준다. 꼬리 에셋에도 같은 값이 적용돼 있다. */
 private const val TOOLTIP_BACKGROUND_ALPHA = 0.77f
+private val TooltipCornerRadius = 10.dp
+private val TooltipContentPadding = 10.dp
 
-/** 초대 메뉴 아래에 붙는 안내 툴팁 */
 @Composable
-fun GalleryInviteTooltip(modifier: Modifier = Modifier) {
+fun ChatFirstMessageTooltip(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(
-            modifier = Modifier.size(width = 20.dp, height = 8.dp),
-            painter = painterResource(ChallaIcons.ArrowTip),
-            contentDescription = null,
-        )
-
         Text(
             modifier =
                 Modifier
-                    .widthIn(min = 64.dp, max = 256.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(TooltipCornerRadius))
                     .background(ChallaTheme.colors.backgroundLevel2.copy(alpha = TOOLTIP_BACKGROUND_ALPHA))
-                    .padding(10.dp),
-            text = stringResource(R.string.gallery_invite_tooltip),
+                    .padding(TooltipContentPadding),
+            text = stringResource(R.string.chat_first_message_tooltip),
             color = ChallaTheme.colors.labelNormal,
             style = ChallaTheme.typography.descriptionLarge.medium,
+        )
+
+        Image(
+            modifier =
+                Modifier
+                    .size(width = 20.dp, height = 8.dp)
+                    .rotate(180f),
+            painter = painterResource(ChallaIcons.ArrowTip),
+            contentDescription = null,
         )
     }
 }
 
-@ComposePreview(showBackground = true, name = "InviteTooltip")
+@Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryInviteTooltipPreview() {
-    GalleryInviteTooltip()
+private fun ChatFirstMessageTooltipPreview() {
+    ChatFirstMessageTooltip()
 }

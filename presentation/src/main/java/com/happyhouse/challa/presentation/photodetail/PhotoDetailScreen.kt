@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
-import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailBottomBar
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailContent
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBar
@@ -120,8 +120,8 @@ fun PhotoDetailScreen(
     }
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@ComposePreview
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun PhotoDetailScreenPreview() {
     PhotoDetailScreen(
@@ -143,13 +143,8 @@ private fun PhotoDetailScreenPreview() {
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    heightDp = 844,
-    name = "PhotoDetailScreen - Empty",
-)
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@ComposePreview(name = "PhotoDetailScreen - Empty")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun PhotoDetailScreenEmptyPreview() {
     PhotoDetailScreen(

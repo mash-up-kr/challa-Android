@@ -19,6 +19,7 @@ data class GetRoomsResponse(
         val remainedPhotoCount: Int,
         val thumbnailImageUrls: List<String>,
         val photoPrintCompletedAt: String? = null,
+        val photoPrintCompletionCheckedAt: String? = null,
     )
 }
 
@@ -32,4 +33,5 @@ fun GetRoomsResponse.Room.toDomain(): Room =
         remainedPhotoCount = remainedPhotoCount,
         thumbnailImageUrls = thumbnailImageUrls,
         photoPrintCompletedAt = photoPrintCompletedAt?.parseServerInstant(),
+        photoPrintCompletionCheckedAt = photoPrintCompletionCheckedAt,
     )

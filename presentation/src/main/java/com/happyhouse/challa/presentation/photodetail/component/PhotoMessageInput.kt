@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -39,8 +40,10 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 // TODO: 피그마 수치 확인 전까지 쓰는 임시 값. 디자인 확정되면 맞출 것. (이슈 #62)
 private val InputShape = RoundedCornerShape(12.dp)
 private val InputBorderWidth = 1.5.dp
-private val InputPadding = 16.dp
-private val SendButtonSpacing = 8.dp
+private val InputHeight = 52.dp
+private val InputTextStartPadding = 16.dp
+private val InputTextVerticalPadding = 16.dp
+private val SendButtonEndPadding = 10.dp
 
 /**
  * 전송 버튼은 보낼 수 있을 때만 노출한다(ref. 인스타그램).
@@ -84,13 +87,14 @@ private fun PhotoMessageInputContent(
         modifier =
             modifier
                 .fillMaxWidth()
+                .height(InputHeight)
                 .clip(InputShape)
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .border(
                     width = InputBorderWidth,
                     color = if (isFocused) ChallaTheme.colors.primary else Color.Transparent,
                     shape = InputShape,
-                ).padding(InputPadding),
+                ),
         singleLine = true,
         textStyle =
             ChallaTheme.typography.bodyMedium.medium.copy(
@@ -100,12 +104,21 @@ private fun PhotoMessageInputContent(
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(SendButtonSpacing),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(end = SendButtonEndPadding),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier.weight(1f),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(
+                                start = InputTextStartPadding,
+                                top = InputTextVerticalPadding,
+                                bottom = InputTextVerticalPadding,
+                            ),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     if (message.isEmpty()) {
@@ -132,7 +145,7 @@ private fun PhotoMessageInputContent(
     )
 }
 
-@ComposePreview(showBackground = true, widthDp = 390)
+@ComposePreview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoMessageInputPreview() {

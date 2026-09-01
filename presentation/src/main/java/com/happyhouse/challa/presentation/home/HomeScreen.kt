@@ -45,9 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
@@ -85,6 +83,7 @@ import com.happyhouse.challa.presentation.designsystem.foundation.motion.MotionT
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.home.component.HomeCameraBadge
 import com.happyhouse.challa.presentation.home.component.HomeTimerBadge
@@ -136,13 +135,15 @@ private fun <T> actionButtonsEnterSpec() =
 fun HomeRoute(
     fromProfileSetup: Boolean,
     onNavigateToSetting: () -> Unit,
-    onNavigateToRoom: (roomId: Long) -> Unit,
+    onNavigateToRoom: (roomId: Long, playsPrintAnimation: Boolean) -> Unit,
     onNavigateToCamera: (roomId: Long) -> Unit,
     onRoomIdsLoaded: (Set<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // 첫 진입은 ViewModel이 init에서 이미 받아둔다.
+    var hasResumed by rememberSaveable { mutableStateOf(false) }
     var showCreateRoomSheet by remember { mutableStateOf(false) }
     var showEnterRoomSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -169,6 +170,11 @@ fun HomeRoute(
         if (state.roomLoadState != HomeRoomLoadState.LOADING) suppressLoading = false
     }
 
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (hasResumed) viewModel.onResume()
+        hasResumed = true
+    }
+
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -192,7 +198,12 @@ fun HomeRoute(
         onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
-        onRoomClick = onNavigateToRoom,
+        onRoomClick = { room ->
+            onNavigateToRoom(
+                room.id,
+                room is RoomUiModel.Completed && room.hasUncheckedPrint,
+            )
+        },
         onShootClick = onNavigateToCamera,
         onPrintCountdownFinish = { viewModel.onIntent(HomeIntent.PrintCountdownFinish) },
         modifier = modifier,
@@ -204,7 +215,7 @@ fun HomeRoute(
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
                 // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다.
-                onNavigateToRoom(roomId)
+                onNavigateToRoom(roomId, false)
             },
         )
     }
@@ -214,7 +225,7 @@ fun HomeRoute(
             onDismiss = { showEnterRoomSheet = false },
             onRoomEntered = { roomId ->
                 showEnterRoomSheet = false
-                onNavigateToRoom(roomId)
+                onNavigateToRoom(roomId, false)
             },
         )
     }
@@ -229,7 +240,7 @@ private fun HomeScreen(
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     onShootClick: (roomId: Long) -> Unit,
     onPrintCountdownFinish: () -> Unit,
     modifier: Modifier = Modifier,
@@ -239,7 +250,7 @@ private fun HomeScreen(
             modifier
                 .fillMaxSize()
                 .background(ChallaTheme.colors.backgroundSurface)
-                .homeGlow(),
+                .challaBackgroundGlow(),
     ) {
         Column(
             modifier =
@@ -325,7 +336,7 @@ private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     printingRooms: ImmutableList<RoomUiModel.Printing>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     onShootClick: (roomId: Long) -> Unit,
     onPrintCountdownFinish: () -> Unit,
     modifier: Modifier = Modifier,
@@ -369,7 +380,7 @@ private fun HomeRoomsContent(
 private fun HomeShootingSection(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     printingRooms: ImmutableList<RoomUiModel.Printing>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     onShootClick: (roomId: Long) -> Unit,
     onPrintCountdownFinish: () -> Unit,
     modifier: Modifier = Modifier,
@@ -386,14 +397,14 @@ private fun HomeShootingSection(
         shootingRooms.forEach { room ->
             HomeShootingCard(
                 room = room,
-                onClick = { onRoomClick(room.id) },
+                onClick = { onRoomClick(room) },
                 onShootClick = { onShootClick(room.id) },
             )
         }
         printingRooms.forEach { room ->
             HomePrintingCard(
                 room = room,
-                onClick = { onRoomClick(room.id) },
+                onClick = { onRoomClick(room) },
                 onCountdownFinish = onPrintCountdownFinish,
             )
         }
@@ -576,7 +587,7 @@ private fun Instant?.remainingSecondsUntilNow(): Long {
 @Composable
 private fun HomeCompletedSection(
     rooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -596,7 +607,7 @@ private fun HomeCompletedSection(
             rooms.forEach { room ->
                 HomeCompletedRoom(
                     room = room,
-                    onClick = { onRoomClick(room.id) },
+                    onClick = { onRoomClick(room) },
                 )
             }
         }
@@ -791,29 +802,6 @@ private fun RoomAsyncImage(
         fallback = ColorPainter(ChallaTheme.colors.backgroundLevel3),
         modifier = modifier,
     )
-}
-
-/**
- * 화면 하단에 은은하게 깔리는 Glow.
- *
- * 피그마의 blur(150) 처리된 ellipse를 대체한다.
- * [androidx.compose.ui.draw.blur]는 API 31 미만에서 동작하지 않으므로 radial gradient로 표현한다.
- */
-@Composable
-private fun Modifier.homeGlow(): Modifier {
-    val glowColor = ChallaTheme.colors.primary
-    return drawBehind {
-        val center = Offset(x = size.width / 2f, y = size.height * 0.92f)
-        val radius = size.width * 0.95f
-        drawRect(
-            brush =
-                Brush.radialGradient(
-                    colors = listOf(glowColor.copy(alpha = 0.20f), Color.Transparent),
-                    center = center,
-                    radius = radius,
-                ),
-        )
-    }
 }
 
 @Composable
@@ -1168,10 +1156,20 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             printCompletedAt = Instant.now().plusSeconds(8132L),
         ),
         RoomUiModel.Completed(
+            id = 3L,
+            name = "친구들과 강릉 여행",
+            participantCount = 11,
+            printState = PrintState.WAITING,
+            photoImageUrls = persistentListOf("", "", "", ""),
+            totalPhotoCount = 24,
+            hasUncheckedPrint = false,
+        ),
+        RoomUiModel.Completed(
             id = 4L,
             name = "인화 완료 된 방이에요",
             participantCount = 7,
             photoImageUrls = persistentListOf("", "", ""),
             totalPhotoCount = 3,
+            hasUncheckedPrint = true,
         ),
     )

@@ -43,6 +43,8 @@ fun SettingScreen(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    // TODO: 인앱 신고·차단 기능 구현 전까지 쓰는 임시 콜백. 구현되면 삭제할 것.
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
     onOpenSourceLicenseClick: () -> Unit,
@@ -60,8 +62,7 @@ fun SettingScreen(
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 28.dp),
+                        .fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
                 ChallaTextButton(
@@ -84,6 +85,7 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
+                    onReportAndBlockClick = onReportAndBlockClick,
                     onSupportClick = onSupportClick,
                     onFeedbackClick = onFeedbackClick,
                 )
@@ -98,6 +100,7 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
+                    onReportAndBlockClick = onReportAndBlockClick,
                     onSupportClick = onSupportClick,
                     onFeedbackClick = onFeedbackClick,
                 )
@@ -130,6 +133,7 @@ private fun ProfileErrorSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -139,6 +143,7 @@ private fun ProfileErrorSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
+            onReportAndBlockClick = onReportAndBlockClick,
             onSupportClick = onSupportClick,
             onFeedbackClick = onFeedbackClick,
         )
@@ -154,6 +159,7 @@ private fun ProfileLoadedSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -168,6 +174,7 @@ private fun ProfileLoadedSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
+            onReportAndBlockClick = onReportAndBlockClick,
             onSupportClick = onSupportClick,
             onFeedbackClick = onFeedbackClick,
         )
@@ -197,6 +204,7 @@ private fun SettingMenuSections(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -228,22 +236,28 @@ private fun SettingMenuSections(
                 leadingIcon = ChallaIcons.Profile,
                 onClick = onAccountClick,
             )
+            // TODO: 인앱 신고·차단 기능 구현 전까지 구글 폼으로 연결하는 임시 메뉴. 구현되면 삭제할 것.
+            ChallaListItem(
+                text = stringResource(R.string.setting_report_and_block),
+                leadingIcon = ChallaIcons.Error,
+                onClick = onReportAndBlockClick,
+            )
         }
 
-        SettingSection(
-            title = stringResource(R.string.setting_feedback_section),
-        ) {
-            ChallaListItem(
-                text = stringResource(R.string.setting_support),
-                leadingIcon = ChallaIcons.Carrot,
-                onClick = onSupportClick,
-            )
-            ChallaListItem(
-                text = stringResource(R.string.setting_send_feedback),
-                leadingIcon = ChallaIcons.Feedback,
-                onClick = onFeedbackClick,
-            )
-        }
+//        SettingSection(
+//            title = stringResource(R.string.setting_feedback_section),
+//        ) {
+//            ChallaListItem(
+//                text = stringResource(R.string.setting_support),
+//                leadingIcon = ChallaIcons.Carrot,
+//                onClick = onSupportClick,
+//            )
+//            ChallaListItem(
+//                text = stringResource(R.string.setting_send_feedback),
+//                leadingIcon = ChallaIcons.Feedback,
+//                onClick = onFeedbackClick,
+//            )
+//        }
     }
 }
 
@@ -293,6 +307,7 @@ private fun SettingScreenPreviewContent(state: SettingState) {
         onThemeClick = {},
         onNotificationClick = {},
         onAccountClick = {},
+        onReportAndBlockClick = {},
         onSupportClick = {},
         onFeedbackClick = {},
         onOpenSourceLicenseClick = {},

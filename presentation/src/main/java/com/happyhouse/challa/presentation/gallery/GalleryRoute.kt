@@ -43,15 +43,17 @@ private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 @Composable
 fun GalleryRoute(
     roomId: Long,
+    playsPrintAnimation: Boolean,
     memberJoinedEvents: Flow<RoomMemberJoinedEvent>,
     onBackClick: () -> Unit,
     onPhotoClick: (args: PhotoDetailArgs) -> Unit,
     onShootClick: () -> Unit,
+    onChatClick: (roomName: String) -> Unit,
     onSettingClick: (roomName: String) -> Unit,
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
-                factory.create(roomId)
+                factory.create(roomId, playsPrintAnimation)
             },
         ),
 ) {
@@ -86,6 +88,7 @@ fun GalleryRoute(
         viewModel.uiEffect.collect { effect ->
             when (effect) {
                 is GallerySideEffect.NavigateToPhotoDetail -> onPhotoClick(effect.args)
+                is GallerySideEffect.NavigateToChat -> onChatClick(effect.roomName)
                 GallerySideEffect.NavigateToCamera -> {
                     shouldRefreshAfterCamera.value = true
                     onShootClick()
@@ -139,6 +142,7 @@ fun GalleryRoute(
         onIntent = viewModel::onIntent,
         onBackClick = onBackClick,
         onSettingClick = { onSettingClick(state.roomName) },
+        onPrintAnimationComplete = viewModel::onPrintAnimationComplete,
         onInviteCodeClick = { invitationCode ->
             coroutineScope.launch {
                 if (clipboard.copyInviteCode(invitationCode)) {

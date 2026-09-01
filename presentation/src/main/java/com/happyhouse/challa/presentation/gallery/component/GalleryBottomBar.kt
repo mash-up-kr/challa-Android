@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -26,6 +25,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
+import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
@@ -36,14 +39,20 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
+private val BottomBarHorizontalPadding = 16.dp
+private val BottomBarButtonSpacing = 8.dp
 
 /** 촬영 중 하단 바. 카메라로 이어준다. */
 @Composable
 fun GalleryShootBar(
     onShootClick: () -> Unit,
+    onChatClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    GalleryBottomBarLayout(modifier = modifier) {
+    GalleryBottomBarLayout(
+        modifier = modifier,
+        onChatClick = onChatClick,
+    ) {
         GalleryShootButton(onClick = onShootClick)
     }
 }
@@ -53,9 +62,13 @@ fun GalleryShootBar(
 fun GalleryCountdownBar(
     remainingSeconds: Long,
     onCountdownClick: () -> Unit,
+    onChatClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    GalleryBottomBarLayout(modifier = modifier) {
+    GalleryBottomBarLayout(
+        modifier = modifier,
+        onChatClick = onChatClick,
+    ) {
         GalleryCountdownButton(
             remainingSeconds = remainingSeconds,
             onClick = onCountdownClick,
@@ -63,24 +76,55 @@ fun GalleryCountdownBar(
     }
 }
 
-/** 두 하단 바가 같은 여백과 시스템 바 처리를 쓰도록 묶는다. */
+/** 인화 완료 하단 바. 채팅방 이동만 제공한다. */
+@Composable
+fun GalleryPrintedBar(
+    onChatClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    GalleryBottomBarLayout(
+        modifier = modifier,
+        onChatClick = onChatClick,
+    ) {
+        ChallaTextButton(
+            text = stringResource(R.string.gallery_print_completed),
+            onClick = {},
+            modifier = Modifier.fillMaxWidth(),
+            enabled = false,
+            size = ChallaButtonSize.LARGE,
+        )
+    }
+}
+
+/** 하단 바들이 같은 여백과 시스템 바 처리를 쓰도록 묶는다. */
 @Composable
 private fun GalleryBottomBarLayout(
+    onChatClick: () -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+                .padding(horizontal = BottomBarHorizontalPadding)
                 .navigationBarsPadding(),
-        content = content,
-    )
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(BottomBarButtonSpacing),
+        ) {
+            GalleryChatButton(onClick = onChatClick)
+
+            Box(modifier = Modifier.weight(1f)) {
+                content()
+            }
+        }
+    }
 }
 
 /**
- * 두 하단 바 버튼이 공유하는 모양·크기·클릭 처리
+ * 하단 바 버튼들이 공유하는 모양·크기·클릭 처리
  *
  * 높이는 [heightIn] min으로 잡으므로 안쪽 세로 여백을 따로 두지 않는다.
  */
@@ -90,7 +134,6 @@ private fun Modifier.bottomBarButton(
     onClickLabel: String? = null,
 ): Modifier =
     this
-        .fillMaxWidth()
         .heightIn(min = 54.dp)
         .clip(RoundedCornerShape(12.dp))
         .background(backgroundColor)
@@ -99,6 +142,21 @@ private fun Modifier.bottomBarButton(
             onClickLabel = onClickLabel,
             onClick = onClick,
         )
+
+@Composable
+private fun GalleryChatButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ChallaIconButton(
+        icon = ChallaIcons.Chat,
+        onClick = onClick,
+        modifier = modifier,
+        contentDescription = stringResource(R.string.gallery_chat_description),
+        variant = ChallaButtonVariant.PRIMARY,
+        size = ChallaButtonSize.LARGE,
+    )
+}
 
 /**
  * 카메라로 이어주는 CTA
@@ -113,10 +171,12 @@ private fun GalleryShootButton(
 ) {
     Row(
         modifier =
-            modifier.bottomBarButton(
-                backgroundColor = ChallaTheme.colors.primary,
-                onClick = onClick,
-            ),
+            modifier
+                .fillMaxWidth()
+                .bottomBarButton(
+                    backgroundColor = ChallaTheme.colors.primary,
+                    onClick = onClick,
+                ),
         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -149,11 +209,13 @@ private fun GalleryCountdownButton(
 ) {
     Box(
         modifier =
-            modifier.bottomBarButton(
-                backgroundColor = ChallaTheme.colors.backgroundLevel2,
-                onClick = onClick,
-                onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
-            ),
+            modifier
+                .fillMaxWidth()
+                .bottomBarButton(
+                    backgroundColor = ChallaTheme.colors.backgroundLevel2,
+                    onClick = onClick,
+                    onClickLabel = stringResource(R.string.gallery_print_countdown_click_label),
+                ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -183,27 +245,30 @@ private fun Long.toCountdownText(): String {
 
 private fun Long.toTwoDigits(): String = toString().padStart(2, '0')
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    name = "BottomBar - 촬영 중",
-)
+@ComposePreview(name = "BottomBar - 촬영 중")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryShootBarPreview() {
-    GalleryShootBar(onShootClick = {})
+    GalleryShootBar(
+        onShootClick = {},
+        onChatClick = {},
+    )
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    name = "BottomBar - 인화 대기",
-)
+@ComposePreview(name = "BottomBar - 인화 대기")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryCountdownBarPreview() {
     GalleryCountdownBar(
         remainingSeconds = PREVIEW_REMAINING_SECONDS,
         onCountdownClick = {},
+        onChatClick = {},
     )
+}
+
+@ComposePreview(name = "BottomBar - 인화 완료")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryPrintedBarPreview() {
+    GalleryPrintedBar(onChatClick = {})
 }

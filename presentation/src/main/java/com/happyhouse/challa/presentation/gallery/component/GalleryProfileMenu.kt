@@ -70,7 +70,10 @@ fun GalleryProfileMenu(
         )
 
         if (inviteMenu.showsTooltip) {
-            GalleryInviteTooltip(modifier = Modifier.padding(top = 4.dp))
+            GalleryTooltip(
+                modifier = Modifier.padding(top = 4.dp),
+                text = stringResource(R.string.gallery_invite_tooltip),
+            )
         }
     }
 }
