@@ -64,6 +64,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -126,12 +128,14 @@ private fun <T> actionButtonsEnterSpec() =
 fun HomeRoute(
     fromProfileSetup: Boolean,
     onNavigateToSetting: () -> Unit,
-    onNavigateToRoom: (roomId: Long) -> Unit,
+    onNavigateToRoom: (roomId: Long, playsPrintAnimation: Boolean) -> Unit,
     onRoomIdsLoaded: (Set<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // 첫 진입은 ViewModel이 init에서 이미 받아둔다.
+    var hasResumed by rememberSaveable { mutableStateOf(false) }
     var showCreateRoomSheet by remember { mutableStateOf(false) }
     var showEnterRoomSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -150,6 +154,11 @@ fun HomeRoute(
     var suppressLoading by rememberSaveable { mutableStateOf(fromProfileSetup) }
     LaunchedEffect(state.roomLoadState == HomeRoomLoadState.LOADING) {
         if (state.roomLoadState != HomeRoomLoadState.LOADING) suppressLoading = false
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        if (hasResumed) viewModel.onResume()
+        hasResumed = true
     }
 
     LaunchedEffect(viewModel) {
@@ -175,7 +184,12 @@ fun HomeRoute(
         onCreateRoomClick = { showCreateRoomSheet = true },
         onInviteCodeClick = { showEnterRoomSheet = true },
         onSettingClick = onNavigateToSetting,
-        onRoomClick = onNavigateToRoom,
+        onRoomClick = { room ->
+            onNavigateToRoom(
+                room.id,
+                room is RoomUiModel.Completed && room.hasUncheckedPrint,
+            )
+        },
         modifier = modifier,
     )
 
@@ -185,7 +199,7 @@ fun HomeRoute(
             onRoomCreated = { roomId, _ ->
                 showCreateRoomSheet = false
                 // 방 생성 완료 후 해당 방의 갤러리 화면으로 이동한다.
-                onNavigateToRoom(roomId)
+                onNavigateToRoom(roomId, false)
             },
         )
     }
@@ -195,7 +209,7 @@ fun HomeRoute(
             onDismiss = { showEnterRoomSheet = false },
             onRoomEntered = { roomId ->
                 showEnterRoomSheet = false
-                onNavigateToRoom(roomId)
+                onNavigateToRoom(roomId, false)
             },
         )
     }
@@ -210,7 +224,7 @@ private fun HomeScreen(
     onCreateRoomClick: () -> Unit,
     onInviteCodeClick: () -> Unit,
     onSettingClick: () -> Unit,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -297,7 +311,7 @@ private fun HomeScreen(
 private fun HomeRoomsContent(
     shootingRooms: ImmutableList<RoomUiModel.Shooting>,
     completedRooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -332,7 +346,7 @@ private fun HomeRoomsContent(
 @Composable
 private fun HomeShootingSection(
     rooms: ImmutableList<RoomUiModel.Shooting>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -359,7 +373,7 @@ private fun HomeShootingSection(
             rooms.forEach { room ->
                 HomeShootingCard(
                     room = room,
-                    onClick = { onRoomClick(room.id) },
+                    onClick = { onRoomClick(room) },
                 )
             }
         }
@@ -468,7 +482,7 @@ private fun HomeShootingCard(
 @Composable
 private fun HomeCompletedSection(
     rooms: ImmutableList<RoomUiModel.Completed>,
-    onRoomClick: (roomId: Long) -> Unit,
+    onRoomClick: (room: RoomUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -488,7 +502,7 @@ private fun HomeCompletedSection(
             rooms.forEach { room ->
                 HomeCompletedRoom(
                     room = room,
-                    onClick = { onRoomClick(room.id) },
+                    onClick = { onRoomClick(room) },
                 )
             }
         }
@@ -1043,6 +1057,7 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             printState = PrintState.WAITING,
             photoImageUrls = persistentListOf("", "", "", ""),
             totalPhotoCount = 24,
+            hasUncheckedPrint = false,
         ),
         RoomUiModel.Completed(
             id = 4L,
@@ -1051,5 +1066,6 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             printState = PrintState.COMPLETED,
             photoImageUrls = persistentListOf("", "", ""),
             totalPhotoCount = 3,
+            hasUncheckedPrint = true,
         ),
     )

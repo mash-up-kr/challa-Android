@@ -15,11 +15,13 @@ import timber.log.Timber
  *
  * @param remainingSeconds 인화 완료까지 남은 시간. 인화 대기가 아니면 쓰이지 않는다.
  * @param hasNextPhotoPage 아직 받지 않은 사진 페이지가 남았는지. 남았으면 사진이 촬영 수보다 적은 것이 정상이다.
+ * @param playsPrintAnimation 인화 연출을 재생해야 하는지. 인화 완료가 아니면 쓰이지 않는다.
  */
 internal fun RoomDetail.toPhotoInfo(
     photos: List<Photo>,
     remainingSeconds: Long,
     hasNextPhotoPage: Boolean,
+    playsPrintAnimation: Boolean,
 ): PhotoInfo =
     when (status) {
         RoomStatus.SHOOTING -> PhotoInfo.Shooting(slots = toFilmSlots(photos, hasNextPhotoPage))
@@ -30,7 +32,11 @@ internal fun RoomDetail.toPhotoInfo(
                 remainingSeconds = remainingSeconds,
             )
 
-        RoomStatus.PHOTO_PRINT_COMPLETED -> PhotoInfo.Printed(photos = photos.toGalleryPhotos())
+        RoomStatus.PHOTO_PRINT_COMPLETED ->
+            PhotoInfo.Printed(
+                photos = photos.toGalleryPhotos(),
+                playsPrintAnimation = playsPrintAnimation,
+            )
 
         RoomStatus.UNKNOWN -> {
             Timber.w("방 상태를 해석하지 못해 갤러리를 에러로 표시합니다. roomId=$id")

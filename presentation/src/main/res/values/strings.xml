@@ -73,6 +73,7 @@
     <string name="chat_message_placeholder">메시지를 보내 보세요.</string>
     <string name="chat_first_message_tooltip">첫 번째 메시지를 보내보세요!</string>
     <string name="gallery_setting_description">방 설정</string>
+    <string name="gallery_print_animation_pull_hint">필름을 아래로 당겨 보세요!</string>
 
     <!-- roomSettingScreen -->
     <string name="room_setting_title">방 설정</string>

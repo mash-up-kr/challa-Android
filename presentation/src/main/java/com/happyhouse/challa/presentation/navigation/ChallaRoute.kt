@@ -27,9 +27,12 @@ sealed interface ChallaRoute : NavKey {
         val args: PhotoDetailArgs,
     ) : RoomScoped
 
+    /** @param playsPrintAnimation 방 상세 응답에는 확인 여부가 없어 방 목록을 가진 홈이 판단해 넘긴다. */
     @Serializable
     data class Gallery(
         override val roomId: Long,
+        // 이전 버전이 저장한 백스택에는 이 값이 없어, 기본값이 없으면 복원이 통째로 실패한다.
+        val playsPrintAnimation: Boolean = false,
     ) : RoomScoped
 
     @Serializable

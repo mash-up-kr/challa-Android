@@ -48,6 +48,11 @@ interface RoomApi {
     @GET("api/v1/rooms/shootable")
     suspend fun getShootableRooms(): ChallaResult<BaseResponse<ShootableRoomResponse>>
 
+    @PUT("api/v1/rooms/{roomId}/photo-print-completion/check")
+    suspend fun checkPhotoPrintCompletion(
+        @Path("roomId") roomId: Long,
+    ): ChallaResult<BaseResponse<Unit>>
+
     @POST("api/v1/rooms/join")
     suspend fun joinRoom(
         @Body request: JoinRoomRequest,
