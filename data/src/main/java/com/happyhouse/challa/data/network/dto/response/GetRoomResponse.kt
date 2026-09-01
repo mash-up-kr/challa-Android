@@ -14,6 +14,8 @@ data class GetRoomResponse(
         val remainedPhotoCount: Int,
         val invitationCode: String,
         val status: Status = Status.UNKNOWN,
+        // 커버를 배정받지 못한 예전 방은 이 필드가 빠져 올 수 있다.
+        val cover: RoomCoverResponse = RoomCoverResponse(),
         val photoPrintCompletedAt: String? = null,
     )
 

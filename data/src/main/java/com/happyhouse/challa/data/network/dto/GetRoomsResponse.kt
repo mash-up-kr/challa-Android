@@ -1,5 +1,7 @@
 package com.happyhouse.challa.data.network.dto
 
+import com.happyhouse.challa.data.network.dto.response.RoomCoverResponse
+import com.happyhouse.challa.data.network.dto.response.toRoomCover
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
 import kotlinx.serialization.Serializable
@@ -17,6 +19,8 @@ data class GetRoomsResponse(
         val totalPhotoCount: Int,
         val remainedPhotoCount: Int,
         val thumbnailImageUrls: List<String>,
+        // 커버를 배정받지 못한 예전 방은 이 필드가 빠져 올 수 있다.
+        val cover: RoomCoverResponse = RoomCoverResponse(),
         val photoPrintCompletedAt: String? = null,
         val photoPrintCompletionCheckedAt: String? = null,
     )
@@ -31,6 +35,7 @@ fun GetRoomsResponse.Room.toDomain(): Room =
         totalPhotoCount = totalPhotoCount,
         remainedPhotoCount = remainedPhotoCount,
         thumbnailImageUrls = thumbnailImageUrls,
+        cover = cover.toRoomCover(),
         photoPrintCompletedAt = photoPrintCompletedAt,
         photoPrintCompletionCheckedAt = photoPrintCompletionCheckedAt,
     )

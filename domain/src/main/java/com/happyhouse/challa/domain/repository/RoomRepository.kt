@@ -3,6 +3,7 @@ package com.happyhouse.challa.domain.repository
 import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
+import com.happyhouse.challa.domain.model.RoomCoverOptions
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.domain.model.RoomStatus
@@ -59,6 +60,9 @@ interface RoomRepository {
     suspend fun enterRoom(code: String): ChallaResult<CreatedRoom>
 
     suspend fun getShootableRooms(): ChallaResult<List<ShootableRoom>>
+
+    /** 커버 수정 화면에서 고를 수 있는 스티커·색상 목록을 가져온다. */
+    suspend fun getRoomCoverOptions(): ChallaResult<RoomCoverOptions>
 
     /** 인화 완료를 확인했다고 기록한다. 이후 방 목록의 `photoPrintCompletionCheckedAt`가 채워진다. */
     suspend fun checkPhotoPrintCompletion(roomId: Long): ChallaResult<Unit>

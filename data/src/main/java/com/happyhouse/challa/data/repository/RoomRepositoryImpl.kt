@@ -6,11 +6,14 @@ import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.request.UpdateRoomTitleRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
+import com.happyhouse.challa.data.network.dto.response.toRoomCover
+import com.happyhouse.challa.data.network.dto.response.toRoomCoverOptions
 import com.happyhouse.challa.data.network.dto.toDomain
 import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
+import com.happyhouse.challa.domain.model.RoomCoverOptions
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
 import com.happyhouse.challa.domain.model.RoomStatus
@@ -58,8 +61,15 @@ class RoomRepositoryImpl @Inject constructor(
                 remainedPhotoCount = room.remainedPhotoCount,
                 invitationCode = room.invitationCode,
                 status = room.status.toRoomStatus(),
+                cover = room.cover.toRoomCover(),
                 photoPrintCompletedAt = room.photoPrintCompletedAt?.parseServerInstant(),
             )
+        }
+
+    override suspend fun getRoomCoverOptions(): ChallaResult<RoomCoverOptions> =
+        roomApi.getRoomCoverOptions().mapCatching { response ->
+            check(response.success) { response.message }
+            requireNotNull(response.data) { "커버 옵션 응답 데이터가 비어 있습니다." }.room.toRoomCoverOptions()
         }
 
     override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
