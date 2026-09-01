@@ -14,14 +14,12 @@ sealed interface RoomUiModel {
     val name: String
     val participantCount: Int
 
-    /** 촬영 중 — 촬영한 사진 수와 커버 이미지 표기 */
+    /** 촬영 중 — 촬영 배지와 커버 이미지 표기 */
     @Immutable
     data class Shooting(
         override val id: Long,
         override val name: String,
         override val participantCount: Int,
-        val takenCount: Int,
-        val totalCount: Int,
         val coverImageUrl: String?,
     ) : RoomUiModel
 
@@ -55,9 +53,6 @@ fun Room.toUiModel(): RoomUiModel? =
                 id = id,
                 name = title,
                 participantCount = memberCount,
-                // "촬영한 사진 수" = 전체 장수 - 남은 장수
-                takenCount = (totalPhotoCount - remainedPhotoCount).coerceAtLeast(0),
-                totalCount = totalPhotoCount,
                 coverImageUrl = thumbnailImageUrls.firstOrNull(),
             )
 

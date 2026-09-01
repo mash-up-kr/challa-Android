@@ -70,20 +70,16 @@ private fun HomeCardBadge(
     }
 }
 
-/** 촬영 촬영버튼 배지. `촬영수/전체수` 형태로 표기한다. */
+/** 촬영 촬영버튼 배지. `사진 찍기` 문구로 표기한다. */
 @Composable
-fun HomeCameraBadge(
-    takenCount: Int,
-    totalCount: Int,
-    modifier: Modifier = Modifier,
-) {
+fun HomeCameraBadge(modifier: Modifier = Modifier) {
     HomeCardBadge(
         iconRes = ChallaIcons.Camera,
         iconTint = ChallaTheme.colors.staticBlack,
-        text = stringResource(id = R.string.home_taken_count, takenCount, totalCount),
+        text = stringResource(id = R.string.home_shoot),
         textColor = ChallaTheme.colors.staticBlack,
         backgroundColor = ChallaTheme.colors.primary,
-        contentDescription = stringResource(id = R.string.home_taken_count_description),
+        contentDescription = null,
         modifier = modifier,
     )
 }
@@ -120,7 +116,7 @@ private fun Long.toTwoDigits(): String = toString().padStart(2, '0')
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun HomeCameraBadgePreview() {
-    HomeCameraBadge(takenCount = 24, totalCount = 24)
+    HomeCameraBadge()
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF111111)

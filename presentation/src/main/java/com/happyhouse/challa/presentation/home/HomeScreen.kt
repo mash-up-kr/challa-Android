@@ -420,8 +420,6 @@ private fun HomeShootingCard(
     ) {
         // 배지 클릭은 카드 클릭(방 이동)보다 먼저 소비되어 바로 카메라로 간다.
         HomeCameraBadge(
-            takenCount = room.takenCount,
-            totalCount = room.totalCount,
             modifier = Modifier.noRippleClickOnce(role = Role.Button, onClick = onShootClick),
         )
     }
@@ -1136,8 +1134,6 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             id = 1L,
             name = "친구들과 강릉 여행",
             participantCount = 1,
-            takenCount = 24,
-            totalCount = 24,
             coverImageUrl = null,
         ),
         RoomUiModel.Printing(
