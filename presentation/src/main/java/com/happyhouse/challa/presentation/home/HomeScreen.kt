@@ -142,8 +142,6 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    // 첫 진입은 ViewModel이 init에서 이미 받아둔다.
-    var hasResumed by rememberSaveable { mutableStateOf(false) }
     var showCreateRoomSheet by remember { mutableStateOf(false) }
     var showEnterRoomSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -168,11 +166,6 @@ fun HomeRoute(
     var suppressLoading by rememberSaveable { mutableStateOf(fromProfileSetup) }
     LaunchedEffect(state.roomLoadState == HomeRoomLoadState.LOADING) {
         if (state.roomLoadState != HomeRoomLoadState.LOADING) suppressLoading = false
-    }
-
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (hasResumed) viewModel.onResume()
-        hasResumed = true
     }
 
     LaunchedEffect(viewModel) {
@@ -1159,7 +1152,6 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             id = 3L,
             name = "친구들과 강릉 여행",
             participantCount = 11,
-            printState = PrintState.WAITING,
             photoImageUrls = persistentListOf("", "", "", ""),
             totalPhotoCount = 24,
             hasUncheckedPrint = false,

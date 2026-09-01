@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.home.model
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.*
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import java.time.Instant
@@ -47,17 +48,10 @@ sealed interface RoomUiModel {
     ) : RoomUiModel
 }
 
-/** 인화 연출을 이미 본 것으로 표시한 사본. 촬영 중인 방은 표시할 것이 없다. */
-fun RoomUiModel.withPrintChecked(): RoomUiModel =
-    when (this) {
-        is RoomUiModel.Shooting -> this
-        is RoomUiModel.Completed -> copy(hasUncheckedPrint = false)
-    }
-
 fun Room.toUiModel(): RoomUiModel? =
     when (status) {
         RoomStatus.SHOOTING ->
-            RoomUiModel.Shooting(
+            Shooting(
                 id = id,
                 name = title,
                 participantCount = memberCount,
@@ -68,7 +62,7 @@ fun Room.toUiModel(): RoomUiModel? =
             )
 
         RoomStatus.PHOTO_PRINT_PENDING ->
-            RoomUiModel.Printing(
+            Printing(
                 id = id,
                 name = title,
                 participantCount = memberCount,
@@ -77,16 +71,14 @@ fun Room.toUiModel(): RoomUiModel? =
             )
 
         RoomStatus.PHOTO_PRINT_COMPLETED ->
-            RoomUiModel.Completed(
+            Completed(
                 id = id,
                 name = title,
                 participantCount = memberCount,
                 photoImageUrls = thumbnailImageUrls.toImmutableList(),
                 totalPhotoCount = totalPhotoCount,
-                hasUncheckedPrint =
-                    printState == PrintState.COMPLETED && photoPrintCompletionCheckedAt == null,
+                hasUncheckedPrint = photoPrintCompletionCheckedAt == null,
             )
-        }
 
-        RoomStatus.UNKNOWN -> null
+        RoomStatus.UNKNOWN -> TODO()
     }

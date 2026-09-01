@@ -13,7 +13,6 @@ import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import com.happyhouse.challa.presentation.home.model.toUiModel
-import com.happyhouse.challa.presentation.home.model.withPrintChecked
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
