@@ -5,6 +5,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -13,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
@@ -34,6 +37,11 @@ fun SettingRoute(
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
+    // TODO: 인앱 신고·차단 기능 구현 전까지 쓰는 임시 값. 구현되면 아래 두 줄과 onReportAndBlockClick 삭제할 것.
+    val reportAndBlockUrl = stringResource(R.string.setting_report_and_block_url)
+    val reportAndBlockLinkOpenFailureMessage = stringResource(R.string.setting_report_and_block_link_open_failure)
     val profileReadFailureMessage = stringResource(R.string.setting_profile_read_failure)
     val themeReadFailureMessage = stringResource(R.string.theme_read_failure)
     val retryLabel = stringResource(R.string.theme_retry)
@@ -88,6 +96,21 @@ fun SettingRoute(
         onThemeClick = onThemeClick,
         onNotificationClick = onNotificationClick,
         onAccountClick = onAccountClick,
+        onReportAndBlockClick = {
+            try {
+                uriHandler.openUri(reportAndBlockUrl)
+            } catch (_: IllegalArgumentException) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = reportAndBlockLinkOpenFailureMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                        ),
+                    )
+                }
+            }
+        },
         onSupportClick = onSupportClick,
         onFeedbackClick = onFeedbackClick,
         onOpenSourceLicenseClick = onOpenSourceLicenseClick,

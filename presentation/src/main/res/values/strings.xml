@@ -200,6 +200,10 @@
     <string name="setting_notification">알림</string>
     <string name="setting_account_section">계정</string>
     <string name="setting_account_management">계정 관리</string>
+    <!-- TODO: 구글 폼으로 연결하는 임시 신고/차단 메뉴. 인앱 신고·차단 기능 구현되면 아래 3개 문자열 삭제할 것. -->
+    <string name="setting_report_and_block">신고 및 차단</string>
+    <string name="setting_report_and_block_url" translatable="false">https://forms.gle/cKUj3JXAajLH1Cdr7</string>
+    <string name="setting_report_and_block_link_open_failure">신고 및 차단 링크를 열 수 없어요.</string>
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>
