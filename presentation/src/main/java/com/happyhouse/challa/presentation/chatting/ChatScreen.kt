@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.domain.model.ReactionEmoji
-import com.happyhouse.challa.domain.model.chat.ChatType
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.component.ChatContent
 import com.happyhouse.challa.presentation.chatting.component.ChatInputArea
@@ -85,21 +84,18 @@ private fun ChatScreenPreview() {
                     ChatInfo.Loaded(
                         chats =
                             persistentListOf(
-                                ChatUiModel(
+                                ChatUiModel.Default(
                                     chatId = 1L,
                                     userId = 1L,
-                                    type = ChatType.DEFAULT,
                                     content = "강릉에 도착하면 바로 사진 찍으러 가자!",
-                                    photoImageUrl = null,
                                     createdAt = ZonedDateTime.of(2026, 8, 29, 20, 15, 0, 0, previewZoneId),
                                     isMine = false,
                                     userName = "user1",
                                     userProfileImageUrl = null,
                                 ),
-                                ChatUiModel(
+                                ChatUiModel.Comment(
                                     chatId = 2L,
                                     userId = 2L,
-                                    type = ChatType.COMMENT,
                                     content = "좋아! 바다부터 보고 숙소로 이동하자.",
                                     photoImageUrl = previewPhotoUrl,
                                     createdAt = ZonedDateTime.of(2026, 8, 29, 20, 17, 0, 0, previewZoneId),
@@ -107,11 +103,10 @@ private fun ChatScreenPreview() {
                                     userName = "찰나",
                                     userProfileImageUrl = null,
                                 ),
-                                ChatUiModel(
+                                ChatUiModel.Emoji(
                                     chatId = 3L,
                                     userId = 3L,
-                                    type = ChatType.EMOJI,
-                                    content = ReactionEmoji.FIRE.name,
+                                    reactionEmoji = ReactionEmoji.FIRE,
                                     photoImageUrl = previewPhotoUrl,
                                     createdAt = ZonedDateTime.of(2026, 8, 30, 9, 34, 0, 0, previewZoneId),
                                     isMine = false,

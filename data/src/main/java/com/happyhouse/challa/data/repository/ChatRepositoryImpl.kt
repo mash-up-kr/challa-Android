@@ -14,7 +14,6 @@ import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.domain.model.chat.Chat
 import com.happyhouse.challa.domain.model.chat.ChatPage
 import com.happyhouse.challa.domain.model.chat.ChatSubscriptionEvent
-import com.happyhouse.challa.domain.model.chat.ChatType
 import com.happyhouse.challa.domain.repository.ChatRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -138,23 +137,39 @@ class ChatRepositoryImpl @Inject constructor(
     }
 }
 
-private fun ChatsResponse.ChatItem.toChat(): Chat {
-    val (type, photoId, photoImageUrl) =
-        when (this) {
-            is ChatsResponse.ChatItem.Default -> Triple(ChatType.DEFAULT, null, null)
-            is ChatsResponse.ChatItem.Emoji -> Triple(ChatType.EMOJI, photoId, photoImageUrl)
-            is ChatsResponse.ChatItem.Comment -> Triple(ChatType.COMMENT, photoId, photoImageUrl)
-        }
+private fun ChatsResponse.ChatItem.toChat(): Chat =
+    when (this) {
+        is ChatsResponse.ChatItem.Default ->
+            Chat.Default(
+                id = chatId,
+                userId = userId,
+                content = content,
+                createdAt = createdAt.parseServerInstant(),
+                userName = userName,
+                userProfileImageUrl = userProfileImageUrl,
+            )
 
-    return Chat(
-        id = chatId,
-        userId = userId,
-        type = type,
-        content = content,
-        photoId = photoId,
-        photoImageUrl = photoImageUrl,
-        createdAt = createdAt.parseServerInstant(),
-        userName = userName,
-        userProfileImageUrl = userProfileImageUrl,
-    )
-}
+        is ChatsResponse.ChatItem.Emoji ->
+            Chat.Emoji(
+                id = chatId,
+                userId = userId,
+                content = content,
+                photoId = photoId,
+                photoImageUrl = photoImageUrl,
+                createdAt = createdAt.parseServerInstant(),
+                userName = userName,
+                userProfileImageUrl = userProfileImageUrl,
+            )
+
+        is ChatsResponse.ChatItem.Comment ->
+            Chat.Comment(
+                id = chatId,
+                userId = userId,
+                content = content,
+                photoId = photoId,
+                photoImageUrl = photoImageUrl,
+                createdAt = createdAt.parseServerInstant(),
+                userName = userName,
+                userProfileImageUrl = userProfileImageUrl,
+            )
+    }
