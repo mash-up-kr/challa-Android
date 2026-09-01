@@ -13,6 +13,13 @@ interface ImageUploadRepository {
      */
     suspend fun uploadProfileImage(imageUri: String): ChallaResult<String>
 
+    /**
+     * 방 커버 배경 이미지를 업로드하고, 커버 저장에 사용할 공개 URL 을 돌려준다.
+     *
+     * @param imageUri 갤러리에서 선택한 이미지의 content URI 문자열
+     */
+    suspend fun uploadRoomCoverImage(imageUri: String): ChallaResult<String>
+
     /** 촬영한 JPEG 이미지를 업로드하고 사진 생성 요청에 사용할 공개 URL을 돌려준다. */
     suspend fun uploadPhoto(imageBytes: ByteArray): ChallaResult<String>
 }

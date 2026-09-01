@@ -3,6 +3,7 @@ package com.happyhouse.challa.domain.repository
 import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
+import com.happyhouse.challa.domain.model.RoomCover
 import com.happyhouse.challa.domain.model.RoomCoverOptions
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
@@ -60,6 +61,16 @@ interface RoomRepository {
     suspend fun enterRoom(code: String): ChallaResult<CreatedRoom>
 
     suspend fun getShootableRooms(): ChallaResult<List<ShootableRoom>>
+
+    /**
+     * 방 커버를 바꾼다. 부분 갱신이 아니라 [cover] 전체로 교체한다.
+     *
+     * @param cover 새 커버. 배경 이미지나 스티커를 지우려면 해당 값을 null로 둔다.
+     */
+    suspend fun updateRoomCover(
+        roomId: Long,
+        cover: RoomCover,
+    ): ChallaResult<Unit>
 
     /** 커버 수정 화면에서 고를 수 있는 스티커·색상 목록을 가져온다. */
     suspend fun getRoomCoverOptions(): ChallaResult<RoomCoverOptions>

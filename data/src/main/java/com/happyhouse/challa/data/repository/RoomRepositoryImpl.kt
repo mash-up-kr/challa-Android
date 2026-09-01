@@ -4,6 +4,7 @@ import com.happyhouse.challa.data.network.api.RoomApi
 import com.happyhouse.challa.data.network.api.RoomWebSocketApi
 import com.happyhouse.challa.data.network.dto.CreateRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
+import com.happyhouse.challa.data.network.dto.request.UpdateRoomCoverRequest
 import com.happyhouse.challa.data.network.dto.request.UpdateRoomTitleRequest
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
 import com.happyhouse.challa.data.network.dto.response.toRoomCover
@@ -13,6 +14,7 @@ import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.CreatedRoom
 import com.happyhouse.challa.domain.model.Room
+import com.happyhouse.challa.domain.model.RoomCover
 import com.happyhouse.challa.domain.model.RoomCoverOptions
 import com.happyhouse.challa.domain.model.RoomDetail
 import com.happyhouse.challa.domain.model.RoomMemberJoinedEvent
@@ -65,6 +67,26 @@ class RoomRepositoryImpl @Inject constructor(
                 photoPrintCompletedAt = room.photoPrintCompletedAt?.parseServerInstant(),
             )
         }
+
+    override suspend fun updateRoomCover(
+        roomId: Long,
+        cover: RoomCover,
+    ): ChallaResult<Unit> =
+        roomApi
+            .putRoomCover(
+                roomId = roomId,
+                request =
+                    UpdateRoomCoverRequest(
+                        room =
+                            UpdateRoomCoverRequest.Room(
+                                coverImageUrl = cover.imageUrl,
+                                coverStickerId = cover.sticker?.id,
+                                coverStickerColorId = cover.sticker?.color?.id,
+                            ),
+                    ),
+            ).mapCatching { response ->
+                check(response.success) { response.message }
+            }
 
     override suspend fun getRoomCoverOptions(): ChallaResult<RoomCoverOptions> =
         roomApi.getRoomCoverOptions().mapCatching { response ->

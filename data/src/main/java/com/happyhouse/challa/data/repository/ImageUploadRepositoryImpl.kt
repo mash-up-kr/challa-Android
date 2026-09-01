@@ -37,6 +37,17 @@ class ImageUploadRepositoryImpl
             )
         }
 
+        override suspend fun uploadRoomCoverImage(imageUri: String): ChallaResult<String> {
+            val bytes =
+                imageCompressor.compressToJpeg(imageUri)
+                    ?: return ChallaResult.Failure.Unknown(IllegalStateException("이미지를 읽을 수 없습니다."))
+
+            return uploadImage(
+                purpose = PURPOSE_ROOM_COVER_IMAGE,
+                bytes = bytes,
+            )
+        }
+
         override suspend fun uploadPhoto(imageBytes: ByteArray): ChallaResult<String> =
             uploadImage(
                 purpose = PURPOSE_PHOTO,
@@ -99,6 +110,7 @@ class ImageUploadRepositoryImpl
         companion object {
             private const val PURPOSE_PROFILE_IMAGE = "PROFILE_IMAGE"
             private const val PURPOSE_PHOTO = "PHOTO"
+            private const val PURPOSE_ROOM_COVER_IMAGE = "ROOM_COVER_IMAGE"
             private const val CONTENT_TYPE_JPEG = "image/jpeg"
         }
     }
