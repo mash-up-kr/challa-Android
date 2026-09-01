@@ -29,8 +29,9 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * WebSocket 구독이 확인된 뒤 채팅 목록을 조회하고 두 경로의 채팅을 [Chat.id]로 병합한다.
- * 목록 조회 전에 수신한 실시간 채팅은 임시 보관해 초기 응답에서 누락되지 않도록 한다.
+ * WebSocket 구독 확인 후 REST로 초기 채팅 목록을 조회하고 [Chat.id] 기준으로 병합한다.
+ * 초기 조회 전에 수신한 실시간 채팅은 임시 보관해 초기 응답에서 누락되지 않도록 한다.
+ * 초기 조회가 끝난 뒤 재구독되면 최신 페이지를 다시 조회해 연결 공백을 보정한다.
  */
 @HiltViewModel(assistedFactory = ChatViewModel.Factory::class)
 class ChatViewModel @AssistedInject constructor(
@@ -103,7 +104,8 @@ class ChatViewModel @AssistedInject constructor(
                                                 launch {
                                                     fetchAndMergeLatestChats(
                                                         failureLogMessage =
-                                                            "WebSocket 재연결 후 최신 채팅을 불러오지 못했습니다. roomId=$roomId",
+                                                            "WebSocket 재연결 후 최신 채팅 목록을 동기화하지 " +
+                                                                "못했습니다. roomId=$roomId, page=$INITIAL_PAGE",
                                                     )
                                                 }
                                             }
@@ -135,7 +137,7 @@ class ChatViewModel @AssistedInject constructor(
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (throwable: Throwable) {
-                    Timber.e(throwable, "채팅 WebSocket 구독이 종료되었습니다. roomId=$roomId")
+                    Timber.e(throwable, "채팅 WebSocket 구독이 예기치 않게 종료되었습니다. roomId=$roomId")
                     if (loadedChatContext == null) {
                         updateState { copy(chatInfo = ChatInfo.Error) }
                     }
@@ -244,7 +246,9 @@ class ChatViewModel @AssistedInject constructor(
                         }
 
                         fetchAndMergeLatestChats(
-                            failureLogMessage = "전송한 채팅을 다시 불러오지 못했습니다. roomId=$roomId",
+                            failureLogMessage =
+                                "채팅 전송 후 최신 채팅 목록을 동기화하지 못했습니다. " +
+                                    "roomId=$roomId, page=$INITIAL_PAGE",
                         )
                     }
 
@@ -256,7 +260,7 @@ class ChatViewModel @AssistedInject constructor(
             }
     }
 
-    /** WebSocket 수신 공백을 보정할 수 있도록 첫 페이지를 현재 목록에 다시 병합한다. */
+    /** 최신 채팅 첫 페이지를 조회해 현재 목록에 [Chat.id] 기준으로 병합한다. */
     private suspend fun fetchAndMergeLatestChats(failureLogMessage: String) {
         chatRepository
             .getChats(roomId = roomId, page = INITIAL_PAGE)
