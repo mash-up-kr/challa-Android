@@ -22,12 +22,18 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-/** 배경 위로 살짝 비치는 툴팁이라 배경색에 투명도를 준다. 꼬리 에셋에도 같은 값이 적용돼 있다. */
 private const val TOOLTIP_BACKGROUND_ALPHA = 0.77f
 
-/** 초대 메뉴 아래에 붙는 안내 툴팁 */
+/**
+ * 위쪽을 가리키는 꼬리가 달린 안내 툴팁
+ *
+ * @param text 툴팁에 그릴 문구
+ */
 @Composable
-fun GalleryInviteTooltip(modifier: Modifier = Modifier) {
+fun GalleryTooltip(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -45,16 +51,23 @@ fun GalleryInviteTooltip(modifier: Modifier = Modifier) {
                     .clip(RoundedCornerShape(10.dp))
                     .background(ChallaTheme.colors.backgroundLevel2.copy(alpha = TOOLTIP_BACKGROUND_ALPHA))
                     .padding(10.dp),
-            text = stringResource(R.string.gallery_invite_tooltip),
+            text = text,
             color = ChallaTheme.colors.labelNormal,
             style = ChallaTheme.typography.descriptionLarge.medium,
         )
     }
 }
 
-@ComposePreview(showBackground = true, name = "InviteTooltip")
+@ComposePreview(showBackground = true, name = "Tooltip - 초대 안내")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
-private fun GalleryInviteTooltipPreview() {
-    GalleryInviteTooltip()
+private fun GalleryTooltipInvitePreview() {
+    GalleryTooltip(text = stringResource(R.string.gallery_invite_tooltip))
+}
+
+@ComposePreview(showBackground = true, name = "Tooltip - 필름 당김 안내")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun GalleryTooltipPullPreview() {
+    GalleryTooltip(text = stringResource(R.string.gallery_print_animation_pull_hint))
 }

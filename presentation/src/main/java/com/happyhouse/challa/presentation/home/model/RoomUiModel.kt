@@ -31,6 +31,7 @@ sealed interface RoomUiModel {
         val printState: PrintState,
         val photoImageUrls: ImmutableList<String>,
         val totalPhotoCount: Int,
+        val hasUncheckedPrint: Boolean,
     ) : RoomUiModel
 }
 
@@ -39,6 +40,13 @@ fun RoomUiModel.withName(name: String): RoomUiModel =
     when (this) {
         is RoomUiModel.Shooting -> copy(name = name)
         is RoomUiModel.Completed -> copy(name = name)
+    }
+
+/** 인화 연출을 이미 본 것으로 표시한 사본. 촬영 중인 방은 표시할 것이 없다. */
+fun RoomUiModel.withPrintChecked(): RoomUiModel =
+    when (this) {
+        is RoomUiModel.Shooting -> this
+        is RoomUiModel.Completed -> copy(hasUncheckedPrint = false)
     }
 
 fun Room.toUiModel(): RoomUiModel? =
@@ -55,15 +63,20 @@ fun Room.toUiModel(): RoomUiModel? =
 
         RoomStatus.PHOTO_PRINT_PENDING,
         RoomStatus.PHOTO_PRINT_COMPLETED,
-        ->
+        -> {
+            val printState = status.toPrintState()
+
             RoomUiModel.Completed(
                 id = id,
                 name = title,
                 participantCount = memberCount,
-                printState = status.toPrintState(),
+                printState = printState,
                 photoImageUrls = thumbnailImageUrls.toImmutableList(),
                 totalPhotoCount = totalPhotoCount,
+                hasUncheckedPrint =
+                    printState == PrintState.COMPLETED && photoPrintCompletionCheckedAt == null,
             )
+        }
 
         RoomStatus.UNKNOWN -> null
     }

@@ -59,4 +59,7 @@ interface RoomRepository {
     suspend fun enterRoom(code: String): ChallaResult<CreatedRoom>
 
     suspend fun getShootableRooms(): ChallaResult<List<ShootableRoom>>
+
+    /** 인화 완료를 확인했다고 기록한다. 이후 방 목록의 `photoPrintCompletionCheckedAt`가 채워진다. */
+    suspend fun checkPhotoPrintCompletion(roomId: Long): ChallaResult<Unit>
 }
