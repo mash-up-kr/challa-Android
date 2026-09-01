@@ -229,20 +229,20 @@ private fun SettingMenuSections(
             )
         }
 
-        SettingSection(
-            title = stringResource(R.string.setting_feedback_section),
-        ) {
-            ChallaListItem(
-                text = stringResource(R.string.setting_support),
-                leadingIcon = ChallaIcons.Carrot,
-                onClick = onSupportClick,
-            )
-            ChallaListItem(
-                text = stringResource(R.string.setting_send_feedback),
-                leadingIcon = ChallaIcons.Feedback,
-                onClick = onFeedbackClick,
-            )
-        }
+//        SettingSection(
+//            title = stringResource(R.string.setting_feedback_section),
+//        ) {
+//            ChallaListItem(
+//                text = stringResource(R.string.setting_support),
+//                leadingIcon = ChallaIcons.Carrot,
+//                onClick = onSupportClick,
+//            )
+//            ChallaListItem(
+//                text = stringResource(R.string.setting_send_feedback),
+//                leadingIcon = ChallaIcons.Feedback,
+//                onClick = onFeedbackClick,
+//            )
+//        }
     }
 }
 
