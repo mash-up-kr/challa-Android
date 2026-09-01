@@ -14,8 +14,10 @@ import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import com.happyhouse.challa.presentation.home.model.toUiModel
+import com.happyhouse.challa.presentation.home.model.withCover
 import com.happyhouse.challa.presentation.home.model.withName
 import com.happyhouse.challa.presentation.home.model.withPrintChecked
+import com.happyhouse.challa.presentation.roomcover.model.toCoverUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.filterNotNull
@@ -61,6 +63,9 @@ class HomeViewModel
                     when (event) {
                         is RoomEvent.TitleUpdate ->
                             updateRoom(event.roomId) { room -> room.withName(event.title) }
+
+                        is RoomEvent.CoverUpdate ->
+                            updateRoom(event.roomId) { room -> room.withCover(event.cover.toCoverUiModel()) }
 
                         is RoomEvent.PhotoPrintCompletionCheck -> {
                             printCheckedRoomIds += event.roomId

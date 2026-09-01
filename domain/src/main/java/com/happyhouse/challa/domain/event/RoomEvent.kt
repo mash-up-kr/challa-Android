@@ -1,5 +1,7 @@
 package com.happyhouse.challa.domain.event
 
+import com.happyhouse.challa.domain.model.RoomCover
+
 /**
  * 방에 생긴 변화를 알리는 이벤트.
  *
@@ -13,6 +15,12 @@ sealed interface RoomEvent {
     data class TitleUpdate(
         override val roomId: Long,
         val title: String,
+    ) : RoomEvent
+
+    /** 방 커버가 [cover]로 바뀌었다. */
+    data class CoverUpdate(
+        override val roomId: Long,
+        val cover: RoomCover,
     ) : RoomEvent
 
     /** 인화 완료를 확인했다고 서버에 기록됐다. */

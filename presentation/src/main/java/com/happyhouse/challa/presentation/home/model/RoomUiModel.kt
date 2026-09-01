@@ -3,6 +3,8 @@ package com.happyhouse.challa.presentation.home.model
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
+import com.happyhouse.challa.presentation.roomcover.model.toCoverUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -19,7 +21,7 @@ sealed interface RoomUiModel {
         override val name: String,
         override val participantCount: Int,
         val takenCount: Int,
-        val coverImageUrl: String?,
+        val cover: RoomCoverUiModel,
     ) : RoomUiModel
 
     /** 촬영 완료 — 인화 상태와 필름 미리보기 표기 */
@@ -42,6 +44,13 @@ fun RoomUiModel.withName(name: String): RoomUiModel =
         is RoomUiModel.Completed -> copy(name = name)
     }
 
+/** 커버만 바꾼 사본. 촬영 완료한 방은 카드에 커버를 쓰지 않는다. */
+fun RoomUiModel.withCover(cover: RoomCoverUiModel): RoomUiModel =
+    when (this) {
+        is RoomUiModel.Shooting -> copy(cover = cover)
+        is RoomUiModel.Completed -> this
+    }
+
 /** 인화 연출을 이미 본 것으로 표시한 사본. 촬영 중인 방은 표시할 것이 없다. */
 fun RoomUiModel.withPrintChecked(): RoomUiModel =
     when (this) {
@@ -58,7 +67,7 @@ fun Room.toUiModel(): RoomUiModel? =
                 participantCount = memberCount,
                 // "촬영한 사진 수" = 전체 장수 - 남은 장수
                 takenCount = (totalPhotoCount - remainedPhotoCount).coerceAtLeast(0),
-                coverImageUrl = thumbnailImageUrls.firstOrNull(),
+                cover = cover.toCoverUiModel(),
             )
 
         RoomStatus.PHOTO_PRINT_PENDING,

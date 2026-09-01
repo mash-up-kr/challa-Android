@@ -90,6 +90,8 @@ import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.enterroom.EnterRoomBottomSheet
 import com.happyhouse.challa.presentation.home.model.PrintState
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
+import com.happyhouse.challa.presentation.roomcover.component.RoomCoverBackground
+import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -394,9 +396,8 @@ private fun HomeShootingCard(
                 .background(ChallaTheme.colors.backgroundLevel2)
                 .noRippleClickOnce(role = Role.Button, onClick = onClick),
     ) {
-        RoomAsyncImage(
-            imageUrl = room.coverImageUrl,
-            contentDescription = null,
+        RoomCoverBackground(
+            cover = room.cover,
             modifier = Modifier.fillMaxSize(),
         )
         Box(
@@ -1041,14 +1042,14 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             name = "친구들과 강릉 여행",
             participantCount = 1,
             takenCount = 24,
-            coverImageUrl = null,
+            cover = RoomCoverUiModel(),
         ),
         RoomUiModel.Shooting(
             id = 2L,
             name = "제주도 우정여행",
             participantCount = 4,
             takenCount = 12,
-            coverImageUrl = null,
+            cover = RoomCoverUiModel(),
         ),
         RoomUiModel.Completed(
             id = 3L,
