@@ -265,11 +265,21 @@ class ChatViewModel @AssistedInject constructor(
         chatRepository
             .getChats(roomId = roomId, page = INITIAL_PAGE)
             .onSuccess { page ->
-                val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return@onSuccess
+                val chatInfo = currentState.chatInfo
+                val loadedChatInfo =
+                    chatInfo as? ChatInfo.Loaded ?: run {
+                        Timber.w(
+                            "채팅 목록이 로드된 상태가 아니어서 최신 채팅 조회 결과를 반영하지 않습니다. " +
+                                "roomId=$roomId, chatInfo=${chatInfo::class.simpleName}",
+                        )
+                        return@onSuccess
+                    }
                 val context = resolveLoadedChatContext() ?: return@onSuccess
+                val updatedContext = context.copy(hasNextPage = page.hasNext)
+                loadedChatContext = updatedContext
                 page.chats.forEach { chat -> chatsById[chat.id] = chat }
                 updateLoadedChatState(
-                    context = context,
+                    context = updatedContext,
                     loadMoreState = loadedChatInfo.loadMoreState,
                 )
             }.onFailure { failure ->

@@ -1,5 +1,7 @@
 package com.happyhouse.challa.data.network.dto.response
 
+import com.happyhouse.challa.data.network.parseServerInstant
+import com.happyhouse.challa.domain.model.chat.Chat
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -54,3 +56,40 @@ data class ChatsResponse(
         ) : ChatItem()
     }
 }
+
+internal fun ChatsResponse.ChatItem.toChat(): Chat =
+    when (this) {
+        is ChatsResponse.ChatItem.Default ->
+            Chat.Default(
+                id = chatId,
+                userId = userId,
+                content = content,
+                createdAt = createdAt.parseServerInstant(),
+                userName = userName,
+                userProfileImageUrl = userProfileImageUrl,
+            )
+
+        is ChatsResponse.ChatItem.Emoji ->
+            Chat.Emoji(
+                id = chatId,
+                userId = userId,
+                content = content,
+                photoId = photoId,
+                photoImageUrl = photoImageUrl,
+                createdAt = createdAt.parseServerInstant(),
+                userName = userName,
+                userProfileImageUrl = userProfileImageUrl,
+            )
+
+        is ChatsResponse.ChatItem.Comment ->
+            Chat.Comment(
+                id = chatId,
+                userId = userId,
+                content = content,
+                photoId = photoId,
+                photoImageUrl = photoImageUrl,
+                createdAt = createdAt.parseServerInstant(),
+                userName = userName,
+                userProfileImageUrl = userProfileImageUrl,
+            )
+    }

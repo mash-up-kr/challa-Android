@@ -6,12 +6,10 @@ import com.happyhouse.challa.data.network.api.ChatWebSocketEvent
 import com.happyhouse.challa.data.network.api.PhotoApi
 import com.happyhouse.challa.data.network.dto.request.CreateChatRequest
 import com.happyhouse.challa.data.network.dto.request.SendChatRequest
-import com.happyhouse.challa.data.network.dto.response.ChatsResponse
+import com.happyhouse.challa.data.network.dto.response.toChat
 import com.happyhouse.challa.data.network.dto.response.toPhotoReactions
-import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.PhotoReaction
 import com.happyhouse.challa.domain.model.ReactionEmoji
-import com.happyhouse.challa.domain.model.chat.Chat
 import com.happyhouse.challa.domain.model.chat.ChatPage
 import com.happyhouse.challa.domain.model.chat.ChatSubscriptionEvent
 import com.happyhouse.challa.domain.repository.ChatRepository
@@ -136,40 +134,3 @@ class ChatRepositoryImpl @Inject constructor(
         private const val CHAT_PAGE_SIZE = 20
     }
 }
-
-private fun ChatsResponse.ChatItem.toChat(): Chat =
-    when (this) {
-        is ChatsResponse.ChatItem.Default ->
-            Chat.Default(
-                id = chatId,
-                userId = userId,
-                content = content,
-                createdAt = createdAt.parseServerInstant(),
-                userName = userName,
-                userProfileImageUrl = userProfileImageUrl,
-            )
-
-        is ChatsResponse.ChatItem.Emoji ->
-            Chat.Emoji(
-                id = chatId,
-                userId = userId,
-                content = content,
-                photoId = photoId,
-                photoImageUrl = photoImageUrl,
-                createdAt = createdAt.parseServerInstant(),
-                userName = userName,
-                userProfileImageUrl = userProfileImageUrl,
-            )
-
-        is ChatsResponse.ChatItem.Comment ->
-            Chat.Comment(
-                id = chatId,
-                userId = userId,
-                content = content,
-                photoId = photoId,
-                photoImageUrl = photoImageUrl,
-                createdAt = createdAt.parseServerInstant(),
-                userName = userName,
-                userProfileImageUrl = userProfileImageUrl,
-            )
-    }
