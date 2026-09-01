@@ -89,7 +89,7 @@ class ChatViewModel @AssistedInject constructor(
 
         chatSessionJob =
             viewModelScope.launch {
-                val subscriptionReady = CompletableDeferred<Unit>()
+                val initialSubscriptionReady = CompletableDeferred<Unit>()
 
                 try {
                     coroutineScope {
@@ -97,13 +97,27 @@ class ChatViewModel @AssistedInject constructor(
                             launch {
                                 chatRepository.observeChats(roomId).collect { event ->
                                     when (event) {
-                                        ChatSubscriptionEvent.Subscribed -> subscriptionReady.complete(Unit)
-                                        is ChatSubscriptionEvent.ChatReceived -> handleRealtimeChat(event.chat)
+                                        ChatSubscriptionEvent.Subscribed -> {
+                                            // complete는 최초 구독에서만 true이므로 false이면 재구독이다.
+                                            if (!initialSubscriptionReady.complete(Unit) && loadedChatContext != null) {
+                                                launch {
+                                                    fetchAndMergeLatestChats(
+                                                        failureLogMessage =
+                                                            "WebSocket 재연결 후 최신 채팅을 불러오지 못했습니다. roomId=$roomId",
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        is ChatSubscriptionEvent.ChatReceived ->
+                                            handleRealtimeChat(
+                                                event.chat,
+                                            )
                                     }
                                 }
                             }
 
-                        subscriptionReady.await()
+                        initialSubscriptionReady.await()
                         val myUserId =
                             resolveCurrentUserId() ?: run {
                                 socketJob.cancel()
@@ -229,7 +243,9 @@ class ChatViewModel @AssistedInject constructor(
                             updateState { copy(message = "") }
                         }
 
-                        refreshLatestChats()
+                        fetchAndMergeLatestChats(
+                            failureLogMessage = "전송한 채팅을 다시 불러오지 못했습니다. roomId=$roomId",
+                        )
                     }
 
                     is ChallaResult.Failure -> {
@@ -240,8 +256,8 @@ class ChatViewModel @AssistedInject constructor(
             }
     }
 
-    /** WebSocket echo 유실에 대비해 전송 성공 후 첫 페이지를 다시 병합한다. */
-    private suspend fun refreshLatestChats() {
+    /** WebSocket 수신 공백을 보정할 수 있도록 첫 페이지를 현재 목록에 다시 병합한다. */
+    private suspend fun fetchAndMergeLatestChats(failureLogMessage: String) {
         chatRepository
             .getChats(roomId = roomId, page = INITIAL_PAGE)
             .onSuccess { page ->
@@ -255,7 +271,7 @@ class ChatViewModel @AssistedInject constructor(
             }.onFailure { failure ->
                 Timber.e(
                     failure.causeOrNull(),
-                    "전송한 채팅을 다시 불러오지 못했습니다. roomId=$roomId",
+                    failureLogMessage,
                 )
             }
     }
