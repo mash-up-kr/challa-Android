@@ -141,17 +141,14 @@ fun ChallaNavHost(
                             roomId = route.roomId,
                             roomName = route.roomName,
                             onBackClick = { navigator.goBack() },
-                            onCoverImageClick = { roomName ->
-                                navigator.navigate(
-                                    ChallaRoute.RoomCover(roomId = route.roomId, roomName = roomName),
-                                )
+                            onCoverImageClick = {
+                                navigator.navigate(ChallaRoute.RoomCover(roomId = route.roomId))
                             },
                         )
                     }
                     entry<ChallaRoute.RoomCover> { route ->
                         RoomCoverRoute(
                             roomId = route.roomId,
-                            roomName = route.roomName,
                             onBackClick = { navigator.goBack() },
                         )
                     }

@@ -31,11 +31,10 @@ import timber.log.Timber
 @HiltViewModel(assistedFactory = RoomCoverViewModel.Factory::class)
 class RoomCoverViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
-    @Assisted roomName: String,
     private val roomRepository: RoomRepository,
     private val imageUploadRepository: ImageUploadRepository,
 ) : BaseViewModel<RoomCoverState, RoomCoverIntent, RoomCoverSideEffect>(
-        initialState = RoomCoverState(roomName = roomName),
+        initialState = RoomCoverState(),
     ) {
     /** 화면이 고른 id를 서버에 보낼 값으로 되돌리는 데 쓴다. */
     private var coverOptions: RoomCoverOptions? = null
@@ -228,9 +227,6 @@ class RoomCoverViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(
-            roomId: Long,
-            roomName: String,
-        ): RoomCoverViewModel
+        fun create(roomId: Long): RoomCoverViewModel
     }
 }

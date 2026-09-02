@@ -28,13 +28,12 @@ private val ToastTopOffset = 8.dp
 @Composable
 fun RoomCoverRoute(
     roomId: Long,
-    roomName: String,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RoomCoverViewModel =
         hiltViewModel<RoomCoverViewModel, RoomCoverViewModel.Factory>(
             creationCallback = { factory ->
-                factory.create(roomId, roomName)
+                factory.create(roomId)
             },
         ),
 ) {

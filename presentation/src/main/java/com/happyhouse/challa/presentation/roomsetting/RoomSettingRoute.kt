@@ -26,7 +26,7 @@ fun RoomSettingRoute(
     roomId: Long,
     roomName: String,
     onBackClick: () -> Unit,
-    onCoverImageClick: (roomName: String) -> Unit,
+    onCoverImageClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RoomSettingViewModel =
         hiltViewModel<RoomSettingViewModel, RoomSettingViewModel.Factory>(
