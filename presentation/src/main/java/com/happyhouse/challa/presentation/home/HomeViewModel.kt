@@ -26,12 +26,6 @@ class HomeViewModel
         private val roomRepository: RoomRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(initialState = HomeState()) {
-        /**
-         * 인화 확인이 기록된 방. 목록 조회가 그 기록보다 먼저 끝나면 확인 전으로 내려오므로,
-         * 여기 담아두고 새로 받은 목록에도 다시 씌운다.
-         */
-        private val printCheckedRoomIds = mutableSetOf<Long>()
-
         private var loadJob: Job? = null
 
         init {
