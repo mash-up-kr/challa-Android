@@ -215,6 +215,9 @@ fun ChallaNavHost(
                                     ),
                                 )
                             },
+                            onNavigateToCamera = { roomId ->
+                                navigator.navigate(ChallaRoute.Camera(roomId = roomId))
+                            },
                             onRoomIdsLoaded = memberJoinedObserverViewModel::replaceObservedRooms,
                         )
                     }
