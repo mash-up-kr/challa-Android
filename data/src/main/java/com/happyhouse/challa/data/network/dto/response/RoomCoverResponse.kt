@@ -75,6 +75,5 @@ fun GetRoomCoverOptionsResponse.Options.toRoomCoverOptions(): RoomCoverOptions =
 private fun RoomCoverColorResponse.toDomain(): RoomCoverColor =
     RoomCoverColor(
         id = id,
-        name = name,
         hex = hex,
     )

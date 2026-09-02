@@ -124,7 +124,7 @@ private fun RoomCoverEditor(
             SectionLabel(text = stringResource(R.string.room_cover_color))
             RoomCoverColorPicker(
                 colors = content.colors,
-                selectedColorId = content.selectedColorId,
+                selectedColor = content.selectedColor,
                 onColorClick = { color -> onIntent(RoomCoverIntent.ColorClick(color)) },
                 modifier = Modifier.padding(horizontal = HorizontalPadding),
             )
@@ -134,8 +134,8 @@ private fun RoomCoverEditor(
             SectionLabel(text = stringResource(R.string.room_cover_sticker))
             RoomCoverStickerPicker(
                 stickers = content.stickers,
-                selectedStickerId = content.selectedStickerId,
-                stickerColor = content.selectedColor,
+                selectedSticker = content.selectedSticker,
+                stickerColor = content.selectedColor?.color,
                 onStickerClick = { sticker -> onIntent(RoomCoverIntent.StickerClick(sticker)) },
                 modifier = Modifier.padding(horizontal = HorizontalPadding),
             )
@@ -192,8 +192,8 @@ private fun RoomCoverScreenReadyPreview() {
                         memberCount = 12,
                         colors = previewCoverColors(),
                         stickers = previewCoverStickers(),
-                        selectedColorId = 1L,
-                        selectedStickerId = 1L,
+                        selectedColor = previewCoverColors().first(),
+                        selectedSticker = previewCoverStickers().first(),
                         backgroundImageUrl = null,
                     ),
             ),

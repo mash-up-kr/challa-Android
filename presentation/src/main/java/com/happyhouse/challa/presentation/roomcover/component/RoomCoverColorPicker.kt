@@ -31,7 +31,7 @@ private val SwatchSize = 36.dp
 @Composable
 fun RoomCoverColorPicker(
     colors: ImmutableList<RoomCoverColorUiModel>,
-    selectedColorId: Long?,
+    selectedColor: RoomCoverColorUiModel?,
     onColorClick: (RoomCoverColorUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -42,7 +42,7 @@ fun RoomCoverColorPicker(
         colors.forEach { color ->
             ColorSwatch(
                 color = color.color,
-                selected = color.id == selectedColorId,
+                selected = color == selectedColor,
                 onClick = { onColorClick(color) },
             )
         }
@@ -78,7 +78,7 @@ private fun ColorSwatch(
 private fun RoomCoverColorPickerPreview() {
     RoomCoverColorPicker(
         colors = previewCoverColors(),
-        selectedColorId = 1L,
+        selectedColor = previewCoverColors().first(),
         onColorClick = {},
     )
 }

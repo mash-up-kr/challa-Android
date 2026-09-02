@@ -40,7 +40,7 @@ private val StickerShape = RoundedCornerShape(8.dp)
 @Composable
 fun RoomCoverStickerPicker(
     stickers: ImmutableList<RoomCoverStickerUiModel>,
-    selectedStickerId: Long?,
+    selectedSticker: RoomCoverStickerUiModel?,
     stickerColor: Color?,
     onStickerClick: (RoomCoverStickerUiModel) -> Unit,
     modifier: Modifier = Modifier,
@@ -53,7 +53,7 @@ fun RoomCoverStickerPicker(
             StickerItem(
                 sticker = sticker,
                 stickerColor = stickerColor,
-                selected = sticker.id == selectedStickerId,
+                selected = sticker == selectedSticker,
                 onClick = { onStickerClick(sticker) },
             )
         }
@@ -101,7 +101,7 @@ private fun StickerItem(
 private fun RoomCoverStickerPickerPreview() {
     RoomCoverStickerPicker(
         stickers = previewCoverStickers(count = 3),
-        selectedStickerId = 1L,
+        selectedSticker = previewCoverStickers().first(),
         stickerColor = ChallaTheme.colors.primaryYellow,
         onStickerClick = {},
     )

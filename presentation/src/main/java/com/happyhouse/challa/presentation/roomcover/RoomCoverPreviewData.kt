@@ -1,6 +1,7 @@
 package com.happyhouse.challa.presentation.roomcover
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.toArgb
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.roomcover.contract.RoomCoverColorUiModel
 import com.happyhouse.challa.presentation.roomcover.contract.RoomCoverStickerUiModel
@@ -25,7 +26,11 @@ internal fun previewCoverColors(): ImmutableList<RoomCoverColorUiModel> =
             primaryPurple,
         )
     }.mapIndexed { index, color ->
-        RoomCoverColorUiModel(id = index + 1L, color = color)
+        RoomCoverColorUiModel(
+            id = index + 1L,
+            hex = "#%06X".format(color.toArgb() and 0xFFFFFF),
+            color = color,
+        )
     }.toPersistentList()
 
 /** @Preview 전용 mock 스티커 목록. 프리뷰는 원격 이미지를 그리지 못해 모양만 확인한다. */

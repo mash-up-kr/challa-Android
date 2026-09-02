@@ -2,7 +2,7 @@ package com.happyhouse.challa.presentation.roomcover
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.model.RoomCover
-import com.happyhouse.challa.domain.model.RoomCoverOptions
+import com.happyhouse.challa.domain.model.RoomCoverColor
 import com.happyhouse.challa.domain.model.RoomCoverSticker
 import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
@@ -36,9 +36,6 @@ class RoomCoverViewModel @AssistedInject constructor(
 ) : BaseViewModel<RoomCoverState, RoomCoverIntent, RoomCoverSideEffect>(
         initialState = RoomCoverState(),
     ) {
-    /** 화면이 고른 id를 서버에 보낼 값으로 되돌리는 데 쓴다. */
-    private var coverOptions: RoomCoverOptions? = null
-
     /** 마지막으로 저장에 성공한 커버. 저장이 실패하면 화면을 여기로 되돌린다. */
     private var savedCover: RoomCover = RoomCover()
 
@@ -74,10 +71,10 @@ class RoomCoverViewModel @AssistedInject constructor(
                 return@launch
             }
 
-            coverOptions = options
             savedCover = room.cover
 
             val colors = options.colors.mapNotNull { it.toUiModelOrNull() }
+            val stickers = options.stickers.map { it.toUiModel() }
             updateState {
                 copy(
                     roomName = room.title,
@@ -85,10 +82,11 @@ class RoomCoverViewModel @AssistedInject constructor(
                         RoomCoverState.Content.Ready(
                             memberCount = users.size,
                             colors = colors.toImmutableList(),
-                            stickers = options.stickers.map { it.toUiModel() }.toImmutableList(),
+                            stickers = stickers.toImmutableList(),
                             // 커버가 없는 방은 첫 색을 골라둔 채로 시작해, 스티커만 누르면 바로 색이 입혀진다.
-                            selectedColorId = room.cover.sticker?.color?.id ?: colors.firstOrNull()?.id,
-                            selectedStickerId = room.cover.sticker?.id,
+                            selectedColor =
+                                colors.find { it.id == room.cover.sticker?.color?.id } ?: colors.firstOrNull(),
+                            selectedSticker = stickers.find { it.id == room.cover.sticker?.id },
                             backgroundImageUrl = room.cover.imageUrl,
                         ),
                 )
@@ -102,17 +100,17 @@ class RoomCoverViewModel @AssistedInject constructor(
      */
     private fun handleColorClick(color: RoomCoverColorUiModel) {
         val ready = readyContent() ?: return
-        if (ready.selectedColorId == color.id) return
+        if (ready.selectedColor == color) return
 
-        val next = ready.copy(selectedColorId = color.id)
+        val next = ready.copy(selectedColor = color)
         updateState { copy(content = next) }
-        if (next.selectedStickerId != null) saveCover(next)
+        if (next.selectedSticker != null) saveCover(next)
     }
 
     private fun handleStickerClick(sticker: RoomCoverStickerUiModel) {
         val ready = readyContent() ?: return
 
-        val next = ready.copy(selectedStickerId = sticker.id.takeIf { it != ready.selectedStickerId })
+        val next = ready.copy(selectedSticker = sticker.takeIf { it != ready.selectedSticker })
         updateState { copy(content = next) }
         saveCover(next)
     }
@@ -161,7 +159,7 @@ class RoomCoverViewModel @AssistedInject constructor(
 
     /** 연달아 고르면 앞선 요청을 버리고 마지막 선택만 남긴다. */
     private fun saveCover(ready: RoomCoverState.Content.Ready) {
-        val cover = ready.toRoomCover() ?: return
+        val cover = ready.toRoomCover()
 
         saveJob?.cancel()
         saveJob =
@@ -183,9 +181,10 @@ class RoomCoverViewModel @AssistedInject constructor(
             copy(
                 content =
                     ready.copy(
-                        selectedStickerId = savedCover.sticker?.id,
+                        selectedSticker = ready.stickers.find { it.id == savedCover.sticker?.id },
                         // 스티커가 없는 커버에는 색이 없다. 팔레트 선택은 그대로 둔다.
-                        selectedColorId = savedCover.sticker?.color?.id ?: ready.selectedColorId,
+                        selectedColor =
+                            ready.colors.find { it.id == savedCover.sticker?.color?.id } ?: ready.selectedColor,
                         backgroundImageUrl = savedCover.imageUrl,
                         pendingImageUri = null,
                     ),
@@ -193,21 +192,21 @@ class RoomCoverViewModel @AssistedInject constructor(
         }
     }
 
-    /** 화면의 선택을 서버에 보낼 커버로 되돌린다. 옵션 목록에 없는 선택이면 null이다. */
-    private fun RoomCoverState.Content.Ready.toRoomCover(): RoomCover? {
-        val stickerId = selectedStickerId ?: return RoomCover(imageUrl = backgroundImageUrl)
-
-        val sticker = coverOptions?.stickers?.find { it.id == stickerId }
-        val color = coverOptions?.colors?.find { it.id == selectedColorId }
-        if (sticker == null || color == null) {
-            Timber.w("커버 옵션에 없는 선택입니다. stickerId=$stickerId, colorId=$selectedColorId")
-            return null
-        }
-        return RoomCover(
+    /** 화면의 선택을 서버에 보낼 커버로 되돌린다. 색을 고르지 않았으면 스티커도 그릴 수 없어 함께 비운다. */
+    private fun RoomCoverState.Content.Ready.toRoomCover(): RoomCover =
+        RoomCover(
             imageUrl = backgroundImageUrl,
-            sticker = RoomCoverSticker(id = sticker.id, imageUrl = sticker.imageUrl, color = color),
+            sticker =
+                selectedSticker?.let { sticker ->
+                    selectedColor?.let { color ->
+                        RoomCoverSticker(
+                            id = sticker.id,
+                            imageUrl = sticker.imageUrl,
+                            color = RoomCoverColor(id = color.id, hex = color.hex),
+                        )
+                    }
+                },
         )
-    }
 
     /** 목록을 그린 뒤에만 올라오는 인텐트라 늘 Ready다. 아니면 상태가 어긋난 것이므로 남긴다. */
     private fun readyContent(): RoomCoverState.Content.Ready? {

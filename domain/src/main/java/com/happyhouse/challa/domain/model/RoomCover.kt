@@ -25,7 +25,6 @@ data class RoomCoverSticker(
 /** @param hex `#RRGGBB` 형식의 색상 문자열. */
 data class RoomCoverColor(
     val id: Long,
-    val name: String,
     val hex: String,
 )
 

@@ -26,7 +26,7 @@ data class RoomCoverState(
         data object Error : Content
 
         /**
-         * @param selectedColorId 고른 색. 스티커가 없어도 팔레트 선택은 남는다.
+         * @param selectedColor 고른 색. 스티커가 없어도 팔레트 선택은 남는다.
          * @param backgroundImageUrl 서버에 저장된 배경 이미지. 저장 요청에는 이 값만 보낸다.
          * @param pendingImageUri 방금 고른 사진의 로컬 URI. 업로드가 끝날 때까지 미리보기에만 쓴다.
          *  서버가 읽을 수 없는 주소라 저장 요청에 실려서는 안 된다.
@@ -36,36 +36,35 @@ data class RoomCoverState(
             val memberCount: Int,
             val colors: ImmutableList<RoomCoverColorUiModel>,
             val stickers: ImmutableList<RoomCoverStickerUiModel>,
-            val selectedColorId: Long?,
-            val selectedStickerId: Long?,
+            val selectedColor: RoomCoverColorUiModel?,
+            val selectedSticker: RoomCoverStickerUiModel?,
             val backgroundImageUrl: String?,
             val pendingImageUri: String? = null,
         ) : Content {
-            val selectedColor: Color?
-                get() = colors.find { it.id == selectedColorId }?.color
-
             /** 미리보기 카드에 그릴 커버 */
             val cover: RoomCoverUiModel
-                get() {
-                    val sticker = stickers.find { it.id == selectedStickerId }
-                    val color = selectedColor
-                    return RoomCoverUiModel(
+                get() =
+                    RoomCoverUiModel(
                         imageUrl = pendingImageUri ?: backgroundImageUrl,
                         sticker =
-                            if (sticker != null && color != null) {
-                                RoomCoverUiModel.Sticker(imageUrl = sticker.imageUrl, color = color)
-                            } else {
-                                null
+                            selectedSticker?.let { sticker ->
+                                selectedColor?.let { color ->
+                                    RoomCoverUiModel.Sticker(imageUrl = sticker.imageUrl, color = color.color)
+                                }
                             },
                     )
-                }
         }
     }
 }
 
+/**
+ * @param hex 저장할 때 서버로 되돌려 보내는 값.
+ * @param color 화면에 그릴 색. [hex]를 미리 해석해 둔 것이다.
+ */
 @Immutable
 data class RoomCoverColorUiModel(
     val id: Long,
+    val hex: String,
     val color: Color,
 )
 
@@ -76,6 +75,7 @@ data class RoomCoverStickerUiModel(
 )
 
 /** 색을 해석하지 못한 항목은 팔레트에서 뺀다. 그릴 수 없는 색을 고르게 둘 수는 없다. */
-fun RoomCoverColor.toUiModelOrNull(): RoomCoverColorUiModel? = hex.toColorOrNull()?.let { RoomCoverColorUiModel(id = id, color = it) }
+fun RoomCoverColor.toUiModelOrNull(): RoomCoverColorUiModel? =
+    hex.toColorOrNull()?.let { RoomCoverColorUiModel(id = id, hex = hex, color = it) }
 
 fun RoomCoverStickerOption.toUiModel(): RoomCoverStickerUiModel = RoomCoverStickerUiModel(id = id, imageUrl = imageUrl)
