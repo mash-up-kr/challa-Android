@@ -31,6 +31,12 @@ data class RoomCoverColor(
 
 /** 커버 수정 화면에서 고를 수 있는 스티커·색상 목록. */
 data class RoomCoverOptions(
-    val stickers: List<RoomCoverSticker>,
+    val stickers: List<RoomCoverStickerOption>,
     val colors: List<RoomCoverColor>,
+)
+
+/** 고를 수 있는 스티커. 색은 팔레트에서 따로 고르므로 여기에는 없다. */
+data class RoomCoverStickerOption(
+    val id: Long,
+    val imageUrl: String,
 )

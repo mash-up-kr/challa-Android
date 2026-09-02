@@ -3,7 +3,7 @@ package com.happyhouse.challa.presentation.roomcover.contract
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.happyhouse.challa.domain.model.RoomCoverColor
-import com.happyhouse.challa.domain.model.RoomCoverSticker
+import com.happyhouse.challa.domain.model.RoomCoverStickerOption
 import com.happyhouse.challa.presentation.base.UiState
 import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 import com.happyhouse.challa.presentation.roomcover.model.toColorOrNull
@@ -75,4 +75,4 @@ data class RoomCoverStickerUiModel(
 /** 색을 해석하지 못한 항목은 팔레트에서 뺀다. 그릴 수 없는 색을 고르게 둘 수는 없다. */
 fun RoomCoverColor.toUiModelOrNull(): RoomCoverColorUiModel? = hex.toColorOrNull()?.let { RoomCoverColorUiModel(id = id, color = it) }
 
-fun RoomCoverSticker.toUiModel(): RoomCoverStickerUiModel = RoomCoverStickerUiModel(id = id, imageUrl = imageUrl)
+fun RoomCoverStickerOption.toUiModel(): RoomCoverStickerUiModel = RoomCoverStickerUiModel(id = id, imageUrl = imageUrl)

@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.roomcover
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.model.RoomCover
 import com.happyhouse.challa.domain.model.RoomCoverOptions
+import com.happyhouse.challa.domain.model.RoomCoverSticker
 import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.result.ChallaResult
@@ -194,7 +195,10 @@ class RoomCoverViewModel @AssistedInject constructor(
             Timber.w("커버 옵션에 없는 선택입니다. stickerId=$stickerId, colorId=$selectedColorId")
             return null
         }
-        return RoomCover(imageUrl = backgroundImageUrl, sticker = sticker.copy(color = color))
+        return RoomCover(
+            imageUrl = backgroundImageUrl,
+            sticker = RoomCoverSticker(id = sticker.id, imageUrl = sticker.imageUrl, color = color),
+        )
     }
 
     /** 목록을 그린 뒤에만 올라오는 인텐트라 늘 Ready다. 아니면 상태가 어긋난 것이므로 남긴다. */
