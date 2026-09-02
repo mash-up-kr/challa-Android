@@ -149,6 +149,7 @@ private fun KakaoLoginButton(
             ChallaProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 color = ChallaTheme.colors.staticBlack,
+                strokeWidth = 2.dp,
             )
         } else {
             Icon(
@@ -166,12 +167,22 @@ private fun KakaoLoginButton(
     }
 }
 
-@Preview(showBackground = true, name = "Login")
+@Preview(name = "Login")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
         state = LoginState(isLoading = false),
+        onLoginClick = {},
+    )
+}
+
+@Preview(name = "Login - Loading")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun LoginScreenLoadingPreview() {
+    LoginScreen(
+        state = LoginState(isLoading = true),
         onLoginClick = {},
     )
 }
