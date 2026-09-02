@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.photodetail
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,7 @@ import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailBottomBar
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailContent
 import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBar
@@ -73,49 +75,57 @@ fun PhotoDetailScreen(
         if (reachedLoadMoreThreshold) onLoadMore()
     }
 
-    ChallaScaffold(
-        modifier = modifier,
-        containerColor = PhotoDetailBackgroundColor,
-        // 사진이 화면 끝까지 차야 해서 content에는 기본 인셋을 주지 않는다(시스템 바는 ChallaScaffold가 바에 적용).
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            PhotoDetailTopBar(
-                title = state.roomName,
-                onBackClick = onBackClick,
-                onSaveClick = currentPhoto?.let { photo -> { onSaveClick(photo) } },
-                isSaveEnabled = !state.isSaving,
-            )
-        },
-        bottomBar = {
-            if (currentPhoto != null) {
-                PhotoDetailBottomBar(
-                    // navigationBarsPadding은 ChallaScaffold가 이미 적용해 인셋을 소비했다.
-                    modifier = Modifier.imePadding(),
-                    message = state.messageInput,
-                    isMessageSendable = state.isMessageSendable,
-                    addedEmojis = addedEmojis,
-                    onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
-                    onMessageChange = onMessageChange,
-                    onSendClick = { onSendClick(currentPhoto) },
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(PhotoDetailBackgroundColor)
+                .challaBackgroundGlow(),
+    ) {
+        ChallaScaffold(
+            // 배경과 Glow는 바깥 Box가 그린다. 여기서 색을 채우면 Glow가 가려진다.
+            containerColor = Color.Transparent,
+            // 사진이 화면 끝까지 차야 해서 content에는 기본 인셋을 주지 않는다(시스템 바는 ChallaScaffold가 바에 적용).
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+            topBar = {
+                PhotoDetailTopBar(
+                    title = state.roomName,
+                    onBackClick = onBackClick,
+                    onSaveClick = currentPhoto?.let { photo -> { onSaveClick(photo) } },
+                    isSaveEnabled = !state.isSaving,
                 )
-            }
-        },
-    ) { innerPadding ->
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-        ) {
-            PhotoDetailContent(
-                modifier = Modifier.fillMaxSize(),
-                state = state,
-                pagerState = pagerState,
-            )
+            },
+            bottomBar = {
+                if (currentPhoto != null) {
+                    PhotoDetailBottomBar(
+                        // navigationBarsPadding은 ChallaScaffold가 이미 적용해 인셋을 소비했다.
+                        modifier = Modifier.imePadding(),
+                        message = state.messageInput,
+                        isMessageSendable = state.isMessageSendable,
+                        addedEmojis = addedEmojis,
+                        onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
+                        onMessageChange = onMessageChange,
+                        onSendClick = { onSendClick(currentPhoto) },
+                    )
+                }
+            },
+        ) { innerPadding ->
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+            ) {
+                PhotoDetailContent(
+                    modifier = Modifier.fillMaxSize(),
+                    state = state,
+                    pagerState = pagerState,
+                )
 
-            // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
-            // 여기 두면 Route가 지정하는 topOffset 기준점이 상단 바 아래라 기기별 상태바 높이에 흔들리지 않는다.
-            ChallaSnackbarHost(hostState = snackbarHostState)
+                // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
+                // 여기 두면 Route가 지정하는 topOffset 기준점이 상단 바 아래라 기기별 상태바 높이에 흔들리지 않는다.
+                ChallaSnackbarHost(hostState = snackbarHostState)
+            }
         }
     }
 }
