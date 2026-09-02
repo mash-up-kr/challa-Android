@@ -43,6 +43,7 @@ fun ChallaInputBox(
     isError: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     onDone: KeyboardActionScope.() -> Unit = {},
+    onSend: KeyboardActionScope.() -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -53,6 +54,7 @@ fun ChallaInputBox(
                 focusManager.clearFocus()
                 onDone()
             },
+            onSend = onSend,
         )
 
     ChallaInputBoxContent(

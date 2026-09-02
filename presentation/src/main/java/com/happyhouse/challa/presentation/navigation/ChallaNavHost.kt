@@ -131,7 +131,12 @@ fun ChallaNavHost(
                                 )
                             },
                             onChatClick = { roomName ->
-                                navigator.navigate(ChallaRoute.Chat(roomName = roomName))
+                                navigator.navigate(
+                                    ChallaRoute.Chat(
+                                        roomId = route.roomId,
+                                        roomName = roomName,
+                                    ),
+                                )
                             },
                         )
                     }
@@ -146,6 +151,7 @@ fun ChallaNavHost(
                     }
                     entry<ChallaRoute.Chat> { route ->
                         ChatRoute(
+                            roomId = route.roomId,
                             roomName = route.roomName,
                             onBackClick = { navigator.goBack() },
                         )
