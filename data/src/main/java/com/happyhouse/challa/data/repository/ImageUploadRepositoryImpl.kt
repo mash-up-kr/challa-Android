@@ -24,35 +24,32 @@ class ImageUploadRepositoryImpl
         private val uploadApi: UploadApi,
         @param:S3UploadClient private val s3UploadClient: OkHttpClient,
     ) : ImageUploadRepository {
-        override suspend fun uploadProfileImage(imageUri: String): ChallaResult<String> {
-            // 원본 대신 다운샘플·리사이즈 후 JPEG 로 통일한 바이트를 올린다.
-            // 따라서 contentType 은 항상 image/jpeg 로 고정된다.
-            val bytes =
-                imageCompressor.compressToJpeg(imageUri)
-                    ?: return ChallaResult.Failure.Unknown(IllegalStateException("이미지를 읽을 수 없습니다."))
+        override suspend fun uploadProfileImage(imageUri: String): ChallaResult<String> =
+            uploadImageFromUri(imageUri = imageUri, purpose = PURPOSE_PROFILE_IMAGE)
 
-            return uploadImage(
-                purpose = PURPOSE_PROFILE_IMAGE,
-                bytes = bytes,
-            )
-        }
-
-        override suspend fun uploadRoomCoverImage(imageUri: String): ChallaResult<String> {
-            val bytes =
-                imageCompressor.compressToJpeg(imageUri)
-                    ?: return ChallaResult.Failure.Unknown(IllegalStateException("이미지를 읽을 수 없습니다."))
-
-            return uploadImage(
-                purpose = PURPOSE_ROOM_COVER_IMAGE,
-                bytes = bytes,
-            )
-        }
+        override suspend fun uploadRoomCoverImage(imageUri: String): ChallaResult<String> =
+            uploadImageFromUri(imageUri = imageUri, purpose = PURPOSE_ROOM_COVER_IMAGE)
 
         override suspend fun uploadPhoto(imageBytes: ByteArray): ChallaResult<String> =
             uploadImage(
                 purpose = PURPOSE_PHOTO,
                 bytes = imageBytes,
             )
+
+        /**
+         * 원본 대신 다운샘플·리사이즈 후 JPEG 로 통일한 바이트를 올린다.
+         * 따라서 contentType 은 항상 image/jpeg 로 고정된다.
+         */
+        private suspend fun uploadImageFromUri(
+            imageUri: String,
+            purpose: String,
+        ): ChallaResult<String> {
+            val bytes =
+                imageCompressor.compressToJpeg(imageUri)
+                    ?: return ChallaResult.Failure.Unknown(IllegalStateException("이미지를 읽을 수 없습니다."))
+
+            return uploadImage(purpose = purpose, bytes = bytes)
+        }
 
         private suspend fun uploadImage(
             purpose: String,
