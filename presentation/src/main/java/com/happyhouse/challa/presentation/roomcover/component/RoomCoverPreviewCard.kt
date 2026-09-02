@@ -2,6 +2,7 @@ package com.happyhouse.challa.presentation.roomcover.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +41,12 @@ import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 
 private val CardWidth = 200.dp
 private val CardHeight = 266.dp
+private val CardShape = RoundedCornerShape(12.dp)
+private val CardBorderWidth = 2.dp
 private val ActionBarHeight = 40.dp
+
+/** 흰색 오버레이가 사라지는 지점. 시안에서 카드 높이의 78%로 측정했다. */
+private const val WHITE_OVERLAY_END = 0.78f
 
 /**
  * 커버가 홈 카드에 어떻게 보일지 미리 보여주는 카드.
@@ -66,7 +72,7 @@ fun RoomCoverPreviewCard(
                 Modifier
                     .width(CardWidth)
                     .height(CardHeight)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(CardShape),
         ) {
             RoomCoverBackground(
                 cover = cover,
@@ -79,7 +85,26 @@ fun RoomCoverPreviewCard(
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color.Black.copy(alpha = 0.5f), Color.Transparent),
+                                colors =
+                                    listOf(
+                                        Color.Black.copy(alpha = 0.8f),
+                                        Color.Black.copy(alpha = 0.2f),
+                                    ),
+                            ),
+                        ),
+            )
+            // 어둡게 덮은 위를 다시 살짝 띄운다. 검정 위에 얹어야 시안과 같은 밝기가 나온다.
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colorStops =
+                                    arrayOf(
+                                        0f to Color.White.copy(alpha = 0.2f),
+                                        WHITE_OVERLAY_END to Color.Transparent,
+                                    ),
                             ),
                         ),
             )
@@ -114,6 +139,18 @@ fun RoomCoverPreviewCard(
                     )
                 }
             }
+
+            // 테두리를 modifier로 주면 배경·내용에 가려지므로 맨 위에 얹는다.
+            Box(
+                modifier =
+                    Modifier
+                        .matchParentSize()
+                        .border(
+                            width = CardBorderWidth,
+                            color = ChallaTheme.colors.lineNormal,
+                            shape = CardShape,
+                        ),
+            )
         }
 
         Row(
