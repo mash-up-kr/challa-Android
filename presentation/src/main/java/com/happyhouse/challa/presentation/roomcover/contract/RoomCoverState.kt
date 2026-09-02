@@ -27,7 +27,9 @@ data class RoomCoverState(
 
         /**
          * @param selectedColorId 고른 색. 스티커가 없어도 팔레트 선택은 남는다.
-         * @param backgroundImageUrl 배경 이미지. 업로드가 끝나기 전에는 고른 사진의 로컬 URI다.
+         * @param backgroundImageUrl 서버에 저장된 배경 이미지. 저장 요청에는 이 값만 보낸다.
+         * @param pendingImageUri 방금 고른 사진의 로컬 URI. 업로드가 끝날 때까지 미리보기에만 쓴다.
+         *  서버가 읽을 수 없는 주소라 저장 요청에 실려서는 안 된다.
          */
         @Immutable
         data class Ready(
@@ -37,6 +39,7 @@ data class RoomCoverState(
             val selectedColorId: Long?,
             val selectedStickerId: Long?,
             val backgroundImageUrl: String?,
+            val pendingImageUri: String? = null,
         ) : Content {
             val selectedColor: Color?
                 get() = colors.find { it.id == selectedColorId }?.color
@@ -47,7 +50,7 @@ data class RoomCoverState(
                     val sticker = stickers.find { it.id == selectedStickerId }
                     val color = selectedColor
                     return RoomCoverUiModel(
-                        imageUrl = backgroundImageUrl,
+                        imageUrl = pendingImageUri ?: backgroundImageUrl,
                         sticker =
                             if (sticker != null && color != null) {
                                 RoomCoverUiModel.Sticker(imageUrl = sticker.imageUrl, color = color)

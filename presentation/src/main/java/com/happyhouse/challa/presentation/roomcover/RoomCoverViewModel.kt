@@ -118,11 +118,15 @@ class RoomCoverViewModel @AssistedInject constructor(
         saveCover(next)
     }
 
+    /**
+     * 고른 사진은 먼저 미리보기에만 반영하고, 업로드로 공개 URL을 받은 뒤에 저장한다.
+     * 로컬 URI를 [RoomCoverState.Content.Ready.backgroundImageUrl]에 넣으면
+     * 그 사이에 스티커나 색을 바꿀 때 서버가 읽을 수 없는 주소가 함께 저장된다.
+     */
     private fun handleBackgroundImageSelect(imageUri: String) {
         val ready = readyContent() ?: return
 
-        // 업로드가 끝나기 전에도 고른 사진이 보이도록 로컬 URI로 먼저 그린다.
-        updateState { copy(content = ready.copy(backgroundImageUrl = imageUri)) }
+        updateState { copy(content = ready.copy(pendingImageUri = imageUri)) }
 
         uploadJob?.cancel()
         uploadJob =
@@ -130,7 +134,11 @@ class RoomCoverViewModel @AssistedInject constructor(
                 imageUploadRepository
                     .uploadRoomCoverImage(imageUri)
                     .onSuccess { uploadedUrl ->
-                        val uploaded = readyContent()?.copy(backgroundImageUrl = uploadedUrl) ?: return@onSuccess
+                        val uploaded =
+                            readyContent()?.copy(
+                                backgroundImageUrl = uploadedUrl,
+                                pendingImageUri = null,
+                            ) ?: return@onSuccess
                         updateState { copy(content = uploaded) }
                         saveCover(uploaded)
                     }.onFailure { failure ->
@@ -143,11 +151,11 @@ class RoomCoverViewModel @AssistedInject constructor(
 
     private fun handleBackgroundImageRemove() {
         val ready = readyContent() ?: return
-        if (ready.backgroundImageUrl == null) return
+        if (ready.backgroundImageUrl == null && ready.pendingImageUri == null) return
 
         // 올리던 사진이 뒤늦게 도착해 지운 배경을 되살리지 않도록 업로드부터 끊는다.
         uploadJob?.cancel()
-        val next = ready.copy(backgroundImageUrl = null)
+        val next = ready.copy(backgroundImageUrl = null, pendingImageUri = null)
         updateState { copy(content = next) }
         saveCover(next)
     }
@@ -180,6 +188,7 @@ class RoomCoverViewModel @AssistedInject constructor(
                         // 스티커가 없는 커버에는 색이 없다. 팔레트 선택은 그대로 둔다.
                         selectedColorId = savedCover.sticker?.color?.id ?: ready.selectedColorId,
                         backgroundImageUrl = savedCover.imageUrl,
+                        pendingImageUri = null,
                     ),
             )
         }

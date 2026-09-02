@@ -109,7 +109,7 @@ private fun RoomCoverEditor(
             roomName = roomName,
             memberCount = content.memberCount,
             cover = content.cover,
-            canRemoveImage = content.backgroundImageUrl != null,
+            canRemoveImage = content.cover.imageUrl != null,
             onSelectImageClick = onSelectImageClick,
             onRemoveImageClick = { onIntent(RoomCoverIntent.BackgroundImageRemoveClick) },
             modifier =
