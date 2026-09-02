@@ -183,7 +183,6 @@ androidx-test = [
 coil = [
     "coil-compose",
     "coil-network-okhttp",
-    # 방 커버 스티커가 SVG로 내려온다. 의존성만 추가하면 Coil이 디코더를 알아서 등록한다.
     "coil-svg",
 ]
 
