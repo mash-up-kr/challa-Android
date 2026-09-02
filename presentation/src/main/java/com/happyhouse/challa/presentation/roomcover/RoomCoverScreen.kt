@@ -34,8 +34,6 @@ import com.happyhouse.challa.presentation.roomcover.component.RoomCoverStickerPi
 import com.happyhouse.challa.presentation.roomcover.contract.RoomCoverIntent
 import com.happyhouse.challa.presentation.roomcover.contract.RoomCoverState
 
-private val HorizontalPadding = 16.dp
-
 @Composable
 fun RoomCoverScreen(
     state: RoomCoverState,
@@ -103,41 +101,49 @@ private fun RoomCoverEditor(
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         RoomCoverPreviewCard(
             roomName = roomName,
             memberCount = content.memberCount,
             cover = content.cover,
-            canRemoveImage = content.cover.imageUrl != null,
             onSelectImageClick = onSelectImageClick,
             onRemoveImageClick = { onIntent(RoomCoverIntent.BackgroundImageRemoveClick) },
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp),
+                    .padding(top = 16.dp),
         )
 
-        HorizontalDivider(color = ChallaTheme.colors.lineAlternative)
+        HorizontalDivider(
+            modifier = modifier.padding(top = 32.dp),
+            thickness = 8.dp,
+            color = ChallaTheme.colors.backgroundLevel2,
+        )
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            modifier = Modifier.padding(top = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             SectionLabel(text = stringResource(R.string.room_cover_color))
             RoomCoverColorPicker(
                 colors = content.colors,
                 selectedColor = content.selectedColor,
                 onColorClick = { color -> onIntent(RoomCoverIntent.ColorClick(color)) },
-                modifier = Modifier.padding(horizontal = HorizontalPadding),
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            modifier = Modifier.padding(top = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
             SectionLabel(text = stringResource(R.string.room_cover_sticker))
             RoomCoverStickerPicker(
                 stickers = content.stickers,
                 selectedSticker = content.selectedSticker,
                 stickerColor = content.selectedColor?.color,
                 onStickerClick = { sticker -> onIntent(RoomCoverIntent.StickerClick(sticker)) },
-                modifier = Modifier.padding(horizontal = HorizontalPadding),
+                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
     }
@@ -150,9 +156,9 @@ private fun SectionLabel(
 ) {
     Text(
         text = text,
-        modifier = modifier.padding(horizontal = HorizontalPadding),
-        color = ChallaTheme.colors.labelNeutral,
-        style = ChallaTheme.typography.bodySmall.bold,
+        modifier = modifier.padding(horizontal = 16.dp),
+        color = ChallaTheme.colors.labelNormal,
+        style = ChallaTheme.typography.bodyMedium.bold,
     )
 }
 
@@ -162,7 +168,7 @@ private fun RoomCoverError(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(horizontal = HorizontalPadding),
+        modifier = modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {

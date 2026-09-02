@@ -66,7 +66,7 @@ private fun ColorSwatch(
                 // 고른 색은 테두리로 표시한다. 색이 밝아도 보이도록 안쪽에 그린다.
                 .border(
                     width = 2.dp,
-                    color = if (selected) ChallaTheme.colors.labelStrong else Color.Transparent,
+                    color = if (selected) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel4,
                     shape = CircleShape,
                 ),
     )

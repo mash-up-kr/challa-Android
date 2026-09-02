@@ -65,7 +65,6 @@ fun RoomCoverPreviewCard(
     roomName: String,
     memberCount: Int,
     cover: RoomCoverUiModel,
-    canRemoveImage: Boolean,
     onSelectImageClick: () -> Unit,
     onRemoveImageClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -171,14 +170,14 @@ fun RoomCoverPreviewCard(
                         width = CardBorderWidth,
                         color = ChallaTheme.colors.lineNormal,
                         shape = CircleShape,
-                    ).padding(horizontal = ActionBarHorizontalPadding),
+                    )
+                    .padding(horizontal = ActionBarHorizontalPadding),
             horizontalArrangement = Arrangement.spacedBy(ActionBarGap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CoverImageAction(
                 icon = ChallaIcons.Camera,
                 contentDescription = stringResource(id = R.string.room_cover_select_image_description),
-                enabled = true,
                 onClick = onSelectImageClick,
             )
             VerticalDivider(
@@ -189,7 +188,6 @@ fun RoomCoverPreviewCard(
             CoverImageAction(
                 icon = ChallaIcons.Close,
                 contentDescription = stringResource(id = R.string.room_cover_remove_image_description),
-                enabled = canRemoveImage,
                 onClick = onRemoveImageClick,
             )
         }
@@ -200,7 +198,6 @@ fun RoomCoverPreviewCard(
 private fun CoverImageAction(
     @DrawableRes icon: Int,
     contentDescription: String,
-    enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -210,14 +207,14 @@ private fun CoverImageAction(
                 // 아이콘은 24dp지만 누르는 영역은 알약 높이만큼 잡는다.
                 .width(ActionIconSize)
                 .fillMaxHeight()
-                .noRippleClickOnce(enabled = enabled, role = Role.Button, onClick = onClick),
+                .noRippleClickOnce(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
             modifier = Modifier.size(ActionIconSize),
-            tint = if (enabled) ChallaTheme.colors.labelNormal else ChallaTheme.colors.labelDisable,
+            tint = ChallaTheme.colors.labelAlternative,
         )
     }
 }
@@ -230,7 +227,6 @@ private fun RoomCoverPreviewCardEmptyPreview() {
         roomName = "친구들과 유럽 여행",
         memberCount = 12,
         cover = RoomCoverUiModel(),
-        canRemoveImage = false,
         onSelectImageClick = {},
         onRemoveImageClick = {},
     )
@@ -252,7 +248,6 @@ private fun RoomCoverPreviewCardWithImagePreview() {
                         color = ChallaTheme.colors.primaryYellow,
                     ),
             ),
-        canRemoveImage = true,
         onSelectImageClick = {},
         onRemoveImageClick = {},
     )

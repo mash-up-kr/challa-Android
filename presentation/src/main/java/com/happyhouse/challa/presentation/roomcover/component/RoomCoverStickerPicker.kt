@@ -29,8 +29,8 @@ import com.happyhouse.challa.presentation.roomcover.previewCoverStickers
 import kotlinx.collections.immutable.ImmutableList
 
 private val StickerWidth = 100.dp
-private val StickerHeight = 164.dp
-private val StickerShape = RoundedCornerShape(8.dp)
+private val StickerHeight = 134.dp
+private val StickerShape = RoundedCornerShape(12.dp)
 
 /**
  * 스티커를 고르는 가로 목록. 항목마다 고른 색을 입혀 보여준다.
@@ -77,8 +77,8 @@ private fun StickerItem(
                 .semantics { this.selected = selected }
                 .noRippleClickOnce(role = Role.RadioButton, onClick = onClick)
                 .border(
-                    width = 1.5.dp,
-                    color = if (selected) ChallaTheme.colors.labelStrong else Color.Transparent,
+                    width = 2.dp,
+                    color = if (selected) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel4,
                     shape = StickerShape,
                 ),
     ) {
