@@ -41,6 +41,12 @@ sealed interface ChallaRoute : NavKey {
     ) : ChallaRoute
 
     @Serializable
+    data class RoomCover(
+        val roomId: Long,
+        val roomName: String,
+    ) : ChallaRoute
+
+    @Serializable
     data class RoomSetting(
         val roomId: Long,
         val roomName: String,

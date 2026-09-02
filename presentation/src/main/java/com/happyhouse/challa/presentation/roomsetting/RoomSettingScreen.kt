@@ -31,7 +31,7 @@ fun RoomSettingScreen(
     snackbarHostState: SnackbarHostState,
     onIntent: (RoomSettingIntent) -> Unit,
     onBackClick: () -> Unit,
-    onCoverImageClick: () -> Unit,
+    onCoverImageClick: (roomName: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     ChallaScaffold(
@@ -69,7 +69,7 @@ fun RoomSettingScreen(
                 RoomSettingListItem(
                     text = stringResource(R.string.room_setting_cover_image),
                     leadingIcon = ChallaIcons.Image,
-                    onClick = onCoverImageClick,
+                    onClick = { onCoverImageClick(state.roomName) },
                 )
             }
         }
