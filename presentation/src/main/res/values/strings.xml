@@ -107,12 +107,10 @@
     <string name="home_enter_invite_code">초대 코드로 입장하기</string>
     <string name="home_menu_create_room">방 만들기</string>
     <string name="home_menu_enter_room">방 입장하기</string>
-    <string name="home_section_shooting">촬영 중</string>
-    <string name="home_section_completed">촬영 완료</string>
-    <string name="home_print_waiting">인화 대기</string>
-    <string name="home_print_completed">인화 완료</string>
+    <string name="home_section_completed">인화 완료</string>
     <string name="home_participant_description">참여 인원</string>
-    <string name="home_taken_count_description">촬영한 사진 수</string>
+    <string name="home_shoot">사진 찍기</string>
+    <string name="home_remaining_time_description">인화 완료까지 남은 시간</string>
     <string name="home_room_photo_description">방 사진</string>
     <string name="home_film_overflow" translatable="false">+%1$d</string>
     <string name="home_room_load_failed_message">방 목록을 불러오지 못했어요.</string>

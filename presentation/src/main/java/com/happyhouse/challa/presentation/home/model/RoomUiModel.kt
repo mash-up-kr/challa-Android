@@ -3,8 +3,13 @@ package com.happyhouse.challa.presentation.home.model
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.Completed
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.Printing
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.Shooting
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import timber.log.Timber
+import java.time.Instant
 
 @Immutable
 sealed interface RoomUiModel {
@@ -12,77 +17,71 @@ sealed interface RoomUiModel {
     val name: String
     val participantCount: Int
 
-    /** 촬영 중 — 촬영한 사진 수와 커버 이미지 표기 */
+    /** 촬영 중 — 촬영 배지와 커버 이미지 표기 */
     @Immutable
     data class Shooting(
         override val id: Long,
         override val name: String,
         override val participantCount: Int,
-        val takenCount: Int,
         val coverImageUrl: String?,
     ) : RoomUiModel
 
-    /** 촬영 완료 — 인화 상태와 필름 미리보기 표기 */
+    /** 인화 전 — 촬영을 마치고 인화 완료까지 남은 시간을 세는 상태(커버로 가려진 사진) */
+    @Immutable
+    data class Printing(
+        override val id: Long,
+        override val name: String,
+        override val participantCount: Int,
+        val coverImageUrl: String?,
+        /** 인화가 끝나는 시각. 아직 잡히지 않았으면 null */
+        val printCompletedAt: Instant?,
+    ) : RoomUiModel
+
+    /** 인화 완료 — 필름 미리보기 표기 */
     @Immutable
     data class Completed(
         override val id: Long,
         override val name: String,
         override val participantCount: Int,
-        val printState: PrintState,
         val photoImageUrls: ImmutableList<String>,
         val totalPhotoCount: Int,
         val hasUncheckedPrint: Boolean,
     ) : RoomUiModel
 }
 
-/** 이름만 바꾼 사본. 타입마다 copy가 달라 여기서 한 번에 분기한다. */
-fun RoomUiModel.withName(name: String): RoomUiModel =
-    when (this) {
-        is RoomUiModel.Shooting -> copy(name = name)
-        is RoomUiModel.Completed -> copy(name = name)
-    }
-
-/** 인화 연출을 이미 본 것으로 표시한 사본. 촬영 중인 방은 표시할 것이 없다. */
-fun RoomUiModel.withPrintChecked(): RoomUiModel =
-    when (this) {
-        is RoomUiModel.Shooting -> this
-        is RoomUiModel.Completed -> copy(hasUncheckedPrint = false)
-    }
-
 fun Room.toUiModel(): RoomUiModel? =
     when (status) {
         RoomStatus.SHOOTING ->
-            RoomUiModel.Shooting(
+            Shooting(
                 id = id,
                 name = title,
                 participantCount = memberCount,
-                // "촬영한 사진 수" = 전체 장수 - 남은 장수
-                takenCount = (totalPhotoCount - remainedPhotoCount).coerceAtLeast(0),
                 coverImageUrl = thumbnailImageUrls.firstOrNull(),
             )
 
-        RoomStatus.PHOTO_PRINT_PENDING,
-        RoomStatus.PHOTO_PRINT_COMPLETED,
-        -> {
-            val printState = status.toPrintState()
-
-            RoomUiModel.Completed(
+        RoomStatus.PHOTO_PRINT_PENDING ->
+            Printing(
                 id = id,
                 name = title,
                 participantCount = memberCount,
-                printState = printState,
+                coverImageUrl = thumbnailImageUrls.firstOrNull(),
+                printCompletedAt = photoPrintCompletedAt,
+            )
+
+        RoomStatus.PHOTO_PRINT_COMPLETED ->
+            Completed(
+                id = id,
+                name = title,
+                participantCount = memberCount,
                 photoImageUrls = thumbnailImageUrls.toImmutableList(),
                 totalPhotoCount = totalPhotoCount,
-                hasUncheckedPrint =
-                    printState == PrintState.COMPLETED && photoPrintCompletionCheckedAt == null,
+                hasUncheckedPrint = photoPrintCompletionCheckedAt == null,
             )
+
+        // 앱이 모르는 상태(예: 서버가 새로 추가한 상태)는 그릴 방법이 없으므로 목록에서 뺀다.
+        // 방 하나 때문에 홈 전체를 실패로 돌리지는 않는다.
+        RoomStatus.UNKNOWN -> {
+            Timber.w("방 상태를 해석하지 못해 홈 목록에서 제외합니다. roomId=$id")
+            null
         }
-
-        RoomStatus.UNKNOWN -> null
-    }
-
-private fun RoomStatus.toPrintState(): PrintState =
-    when (this) {
-        RoomStatus.PHOTO_PRINT_COMPLETED -> PrintState.COMPLETED
-        else -> PrintState.WAITING
     }
