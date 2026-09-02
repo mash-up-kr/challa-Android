@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -44,6 +46,11 @@ private val CardHeight = 266.dp
 private val CardShape = RoundedCornerShape(12.dp)
 private val CardBorderWidth = 2.dp
 private val ActionBarHeight = 40.dp
+private val ActionBarHorizontalPadding = 10.dp
+private val ActionBarGap = 6.dp
+private val ActionIconSize = 24.dp
+private val ActionDividerWidth = 2.dp
+private val ActionDividerHeight = 16.dp
 
 /** 흰색 오버레이가 사라지는 지점. 시안에서 카드 높이의 78%로 측정했다. */
 private const val WHITE_OVERLAY_END = 0.78f
@@ -158,8 +165,14 @@ fun RoomCoverPreviewCard(
                 Modifier
                     .align(Alignment.BottomCenter)
                     .height(ActionBarHeight)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(ChallaTheme.colors.backgroundLevel3.copy(alpha = 0.9f)),
+                    .clip(CircleShape)
+                    .background(ChallaTheme.colors.backgroundLevel2)
+                    .border(
+                        width = CardBorderWidth,
+                        color = ChallaTheme.colors.lineNormal,
+                        shape = CircleShape,
+                    ).padding(horizontal = ActionBarHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(ActionBarGap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CoverImageAction(
@@ -169,7 +182,8 @@ fun RoomCoverPreviewCard(
                 onClick = onSelectImageClick,
             )
             VerticalDivider(
-                modifier = Modifier.height(16.dp),
+                modifier = Modifier.height(ActionDividerHeight),
+                thickness = ActionDividerWidth,
                 color = ChallaTheme.colors.lineNormal,
             )
             CoverImageAction(
@@ -193,14 +207,16 @@ private fun CoverImageAction(
     Box(
         modifier =
             modifier
-                .size(width = 44.dp, height = ActionBarHeight)
+                // 아이콘은 24dp지만 누르는 영역은 알약 높이만큼 잡는다.
+                .width(ActionIconSize)
+                .fillMaxHeight()
                 .noRippleClickOnce(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = contentDescription,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(ActionIconSize),
             tint = if (enabled) ChallaTheme.colors.labelNormal else ChallaTheme.colors.labelDisable,
         )
     }
