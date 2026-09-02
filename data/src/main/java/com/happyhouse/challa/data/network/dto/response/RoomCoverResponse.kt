@@ -10,8 +10,6 @@ import kotlinx.serialization.Serializable
 /**
  * 방에 적용된 커버. 방 목록·방 상세 응답이 함께 쓴다.
  *
- * 스웨거에 `required`가 없어 두 필드 모두 응답에서 빠질 수 있다. 기본값이 없으면
- * `MissingFieldException`으로 방 조회가 통째로 실패하므로 반드시 남겨둔다.
  */
 @Serializable
 data class RoomCoverResponse(
@@ -37,8 +35,6 @@ data class RoomCoverColorResponse(
 /**
  * 고를 수 있는 스티커·색상 목록.
  *
- * 스웨거는 여기 스티커에도 `color`가 있다고 하지만 실제 응답에는 없다(2026-09-02 확인).
- * 색은 `colors`에서 따로 고르는 구조라 스티커에 색을 요구하면 파싱이 통째로 실패한다.
  */
 @Serializable
 data class GetRoomCoverOptionsResponse(
