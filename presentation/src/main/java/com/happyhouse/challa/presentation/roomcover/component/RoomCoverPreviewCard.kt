@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.roomcover.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -146,7 +147,7 @@ fun RoomCoverPreviewCard(
 
 @Composable
 private fun CoverImageAction(
-    icon: Int,
+    @DrawableRes icon: Int,
     contentDescription: String,
     enabled: Boolean,
     onClick: () -> Unit,
