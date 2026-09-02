@@ -17,13 +17,11 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.roomcover.PREVIEW_COVER_IMAGE_URL
+import com.happyhouse.challa.presentation.roomcover.PREVIEW_STICKER_IMAGE_URL
 import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 
-/**
- * 방 커버 그림. 홈의 촬영 중 카드와 커버 수정 화면 미리보기가 함께 쓴다.
- *
- * 검정 바탕 위에 배경 이미지를 깔고, 그 위에 스티커를 선택한 색으로 물들여 얹는다.
- */
 @Composable
 fun RoomCoverBackground(
     cover: RoomCoverUiModel,
@@ -79,8 +77,8 @@ private fun RoomCoverBackgroundStickerPreview() {
             RoomCoverUiModel(
                 sticker =
                     RoomCoverUiModel.Sticker(
-                        imageUrl = "https://challa.example/sticker.png",
-                        color = Color(0xFFD5F700),
+                        imageUrl = PREVIEW_STICKER_IMAGE_URL,
+                        color = ChallaTheme.colors.primaryYellow,
                     ),
             ),
         modifier = Modifier.size(width = 200.dp, height = 266.dp),
@@ -92,7 +90,7 @@ private fun RoomCoverBackgroundStickerPreview() {
 @Composable
 private fun RoomCoverBackgroundImagePreview() {
     RoomCoverBackground(
-        cover = RoomCoverUiModel(imageUrl = "https://challa.example/cover.jpg"),
+        cover = RoomCoverUiModel(imageUrl = PREVIEW_COVER_IMAGE_URL),
         modifier = Modifier.size(width = 200.dp, height = 266.dp),
     )
 }

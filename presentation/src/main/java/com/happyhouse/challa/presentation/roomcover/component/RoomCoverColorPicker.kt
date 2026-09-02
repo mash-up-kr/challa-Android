@@ -22,8 +22,8 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.roomcover.contract.RoomCoverColorUiModel
+import com.happyhouse.challa.presentation.roomcover.previewCoverColors
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 
 private val SwatchSize = 36.dp
 
@@ -77,19 +77,8 @@ private fun ColorSwatch(
 @Composable
 private fun RoomCoverColorPickerPreview() {
     RoomCoverColorPicker(
-        colors = previewColors(),
+        colors = previewCoverColors(),
         selectedColorId = 1L,
         onColorClick = {},
     )
 }
-
-private fun previewColors(): ImmutableList<RoomCoverColorUiModel> =
-    persistentListOf(
-        RoomCoverColorUiModel(id = 1L, color = Color(0xFFD5F700)),
-        RoomCoverColorUiModel(id = 2L, color = Color(0xFFFF1887)),
-        RoomCoverColorUiModel(id = 3L, color = Color(0xFFFF4D01)),
-        RoomCoverColorUiModel(id = 4L, color = Color(0xFF6BE87A)),
-        RoomCoverColorUiModel(id = 5L, color = Color(0xFF10E6D8)),
-        RoomCoverColorUiModel(id = 6L, color = Color(0xFF508EFF)),
-        RoomCoverColorUiModel(id = 7L, color = Color(0xFFC67AFF)),
-    )

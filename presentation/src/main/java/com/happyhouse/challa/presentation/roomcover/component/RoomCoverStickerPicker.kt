@@ -25,8 +25,8 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.roomcover.contract.RoomCoverStickerUiModel
 import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
+import com.happyhouse.challa.presentation.roomcover.previewCoverStickers
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 
 private val StickerWidth = 96.dp
 private val StickerHeight = 128.dp
@@ -100,16 +100,9 @@ private fun StickerItem(
 @Composable
 private fun RoomCoverStickerPickerPreview() {
     RoomCoverStickerPicker(
-        stickers = previewStickers(),
+        stickers = previewCoverStickers(count = 3),
         selectedStickerId = 1L,
-        stickerColor = Color(0xFFD5F700),
+        stickerColor = ChallaTheme.colors.primaryYellow,
         onStickerClick = {},
     )
 }
-
-private fun previewStickers(): ImmutableList<RoomCoverStickerUiModel> =
-    persistentListOf(
-        RoomCoverStickerUiModel(id = 1L, imageUrl = "https://challa.example/sticker-1.png"),
-        RoomCoverStickerUiModel(id = 2L, imageUrl = "https://challa.example/sticker-2.png"),
-        RoomCoverStickerUiModel(id = 3L, imageUrl = "https://challa.example/sticker-3.png"),
-    )

@@ -9,8 +9,8 @@ import timber.log.Timber
 /**
  * 화면에 그릴 방 커버.
  *
- * @param imageUrl 배경 이미지. null이면 검정으로 그린다.
- * @param sticker 배경 위에 올릴 스티커. 없거나 색을 해석하지 못했으면 null이다.
+ * @param imageUrl 배경 이미지
+ * @param sticker 배경 위에 올릴 스티커
  */
 @Immutable
 data class RoomCoverUiModel(

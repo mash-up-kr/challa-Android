@@ -33,6 +33,8 @@ import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
+import com.happyhouse.challa.presentation.roomcover.PREVIEW_COVER_IMAGE_URL
+import com.happyhouse.challa.presentation.roomcover.PREVIEW_STICKER_IMAGE_URL
 import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 
 private val CardWidth = 200.dp
@@ -189,11 +191,11 @@ private fun RoomCoverPreviewCardWithImagePreview() {
         memberCount = 12,
         cover =
             RoomCoverUiModel(
-                imageUrl = "https://challa.example/cover.jpg",
+                imageUrl = PREVIEW_COVER_IMAGE_URL,
                 sticker =
                     RoomCoverUiModel.Sticker(
-                        imageUrl = "https://challa.example/sticker.png",
-                        color = Color(0xFFD5F700),
+                        imageUrl = PREVIEW_STICKER_IMAGE_URL,
+                        color = ChallaTheme.colors.primaryYellow,
                     ),
             ),
         canRemoveImage = true,
