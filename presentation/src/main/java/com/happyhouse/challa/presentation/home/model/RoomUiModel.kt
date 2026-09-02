@@ -8,6 +8,7 @@ import com.happyhouse.challa.presentation.home.model.RoomUiModel.Printing
 import com.happyhouse.challa.presentation.home.model.RoomUiModel.Shooting
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import timber.log.Timber
 import java.time.Instant
 
 @Immutable
@@ -77,5 +78,10 @@ fun Room.toUiModel(): RoomUiModel? =
                 hasUncheckedPrint = photoPrintCompletionCheckedAt == null,
             )
 
-        RoomStatus.UNKNOWN -> TODO()
+        // 앱이 모르는 상태(예: 서버가 새로 추가한 상태)는 그릴 방법이 없으므로 목록에서 뺀다.
+        // 방 하나 때문에 홈 전체를 실패로 돌리지는 않는다.
+        RoomStatus.UNKNOWN -> {
+            Timber.w("방 상태를 해석하지 못해 홈 목록에서 제외합니다. roomId=$id")
+            null
+        }
     }

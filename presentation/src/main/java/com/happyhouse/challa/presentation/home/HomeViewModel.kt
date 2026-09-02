@@ -105,7 +105,11 @@ class HomeViewModel
         }
 
         companion object {
-            /** 홈 화면은 촬영 중/인화 대기/인화 완료 방을 모두 노출한다. UNKNOWN 타입은 repoImpl에서 필터링된다. */
+            /**
+             * 홈 화면은 촬영 중/인화 대기/인화 완료 방을 모두 노출한다.
+             * UNKNOWN은 요청 파라미터에서 repoImpl이 빼주지만, 앱이 모르는 상태가 응답으로 내려오면
+             * 다시 UNKNOWN으로 매핑되므로 [toUiModel]이 null을 돌려 목록에서 제외한다.
+             */
             private val ALL_ROOM_STATUSES = RoomStatus.entries.toList()
         }
     }
