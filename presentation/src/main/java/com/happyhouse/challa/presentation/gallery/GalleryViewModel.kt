@@ -42,6 +42,8 @@ import kotlin.math.ceil
 @HiltViewModel(assistedFactory = GalleryViewModel.Factory::class)
 class GalleryViewModel @AssistedInject constructor(
     @Assisted private val roomId: Long,
+    /** 인화 완료를 아직 확인하지 않은 방으로 들어왔으면 true. 홈이 판단해 넘긴다. */
+    @Assisted private val playsPrintAnimation: Boolean,
     private val roomRepository: RoomRepository,
     private val photoRepository: PhotoRepository,
     private val roomVisitRepository: RoomVisitRepository,
@@ -75,6 +77,8 @@ class GalleryViewModel @AssistedInject constructor(
 
     /** 인화 상태 재조회로 방 정보를 다시 받아도 초대 메뉴가 또 열리지 않게 한다. */
     private var hasHandledFirstVisit = false
+
+    private var printAnimationPhase = PrintAnimationPhase.NOT_PLAYED
 
     init {
         onIntent(GalleryIntent.PhotosLoad)
@@ -158,11 +162,21 @@ class GalleryViewModel @AssistedInject constructor(
                 resetPhotoPaging()
                 appendPhotoPage(photosResult.data)
 
+                // 인화 대기에서 넘어온 것인지 봐야 하므로 본문을 바꾸기 전에 읽는다.
+                val playsAnimation = resolvePrintAnimation(room, currentState.photoInfo)
+                if (playsAnimation) loadRemainingPhotoPages()
+
                 updateState {
                     copy(
                         roomName = room.title,
                         invitationCode = room.invitationCode,
-                        photoInfo = room.toPhotoInfo(loadedPhotos, remainingSeconds, hasNextPhotoPage),
+                        photoInfo =
+                            room.toPhotoInfo(
+                                photos = loadedPhotos,
+                                remainingSeconds = remainingSeconds,
+                                hasNextPhotoPage = hasNextPhotoPage,
+                                playsPrintAnimation = playsAnimation,
+                            ),
                     )
                 }
 
@@ -207,6 +221,7 @@ class GalleryViewModel @AssistedInject constructor(
                                         photos = loadedPhotos,
                                         remainingSeconds = remainingSecondsUntilPrintComplete(),
                                         hasNextPhotoPage = hasNextPhotoPage,
+                                        playsPrintAnimation = printAnimationPhase == PrintAnimationPhase.PLAYING,
                                     ),
                             )
                         }
@@ -348,6 +363,84 @@ class GalleryViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 연출이 끝날 때까지 그리드 스크롤이 잠겨 [handlePhotosLoadMore]가 올라오지 않는다.
+     * 연출은 마지막 사진까지 보여줘야 하므로 시작 전에 남은 페이지를 미리 받아둔다.
+     * 중간에 실패하면 받아둔 만큼만 연출한다.
+     */
+    private suspend fun loadRemainingPhotoPages() {
+        var requestCount = 0
+
+        while (hasNextPhotoPage && requestCount < MAX_PRINT_ANIMATION_EXTRA_PAGE_COUNT) {
+            val requestedPage = nextPhotoPage
+            val result = photoRepository.getPhotos(roomId, requestedPage)
+            requestCount++
+
+            if (result !is ChallaResult.Success) {
+                Timber.w(
+                    result.causeOrNull(),
+                    "연출에 쓸 사진 페이지를 받지 못해 받아둔 ${loadedPhotos.size}장으로 진행합니다. " +
+                        "roomId=$roomId, page=$requestedPage",
+                )
+                return
+            }
+
+            appendPhotoPage(result.data)
+        }
+
+        if (hasNextPhotoPage) {
+            Timber.w("연출 전 사진을 다 받지 못하고 상한에서 멈췄습니다. roomId=$roomId, 받은 수=${loadedPhotos.size}")
+        }
+    }
+
+    /**
+     * 아직 확인하지 않은 방으로 들어왔거나([playsPrintAnimation]), 인화 대기 화면을 보는 사이에
+     * 완료로 넘어왔으면 재생한다. 홈을 거치지 않은 진입은 확인 여부를 알 수 없어 재생하지 않는다.
+     */
+    private fun resolvePrintAnimation(
+        room: RoomDetail,
+        previousPhotoInfo: PhotoInfo,
+    ): Boolean {
+        if (room.status != RoomStatus.PHOTO_PRINT_COMPLETED) return false
+
+        when (printAnimationPhase) {
+            PrintAnimationPhase.PLAYED -> return false
+            PrintAnimationPhase.PLAYING -> return true
+            PrintAnimationPhase.NOT_PLAYED -> Unit
+        }
+
+        val completedWhileWatching = previousPhotoInfo is PhotoInfo.Film
+        if (!playsPrintAnimation && !completedWhileWatching) return false
+
+        printAnimationPhase = PrintAnimationPhase.PLAYING
+        return true
+    }
+
+    /** 연출을 끝까지 봤을 때. 기록에 실패해도 다음에 한 번 더 보게 될 뿐이라, 알리지 않고 로그만 남긴다. */
+    fun onPrintAnimationComplete() {
+        if (printAnimationPhase != PrintAnimationPhase.PLAYING) {
+            Timber.w("재생 중인 인화 연출이 없는데 완료 신호가 올라와 무시합니다. roomId=$roomId")
+            return
+        }
+
+        val printed = currentState.photoInfo as? PhotoInfo.Printed
+        if (printed == null) {
+            Timber.w("인화 완료 상태가 아니라 연출 종료를 반영하지 못했습니다: ${currentState.photoInfo}")
+            return
+        }
+
+        printAnimationPhase = PrintAnimationPhase.PLAYED
+        updateState { copy(photoInfo = printed.copy(playsPrintAnimation = false)) }
+
+        viewModelScope.launch {
+            roomRepository
+                .checkPhotoPrintCompletion(roomId)
+                .onFailure { failure ->
+                    Timber.w(failure.causeOrNull(), "인화 완료 확인을 기록하지 못했습니다. roomId=$roomId")
+                }
+        }
+    }
+
     private fun handlePrintCountdownClick() {
         viewModelScope.launch {
             sendEffect(GallerySideEffect.PrintNotCompleted)
@@ -454,7 +547,10 @@ class GalleryViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(roomId: Long): GalleryViewModel
+        fun create(
+            roomId: Long,
+            playsPrintAnimation: Boolean,
+        ): GalleryViewModel
     }
 
     companion object {
@@ -467,7 +563,17 @@ class GalleryViewModel @AssistedInject constructor(
         private const val PRINT_STATUS_RECHECK_MS = 5_000L
 
         private const val MAX_PRINT_STATUS_RECHECK_COUNT = 5
+
+        /** 방은 최대 72칸이라 20장씩 4페이지면 끝난다. 서버가 hasNext를 계속 true로 줄 때를 대비한 상한이다. */
+        private const val MAX_PRINT_ANIMATION_EXTRA_PAGE_COUNT = 5
     }
+}
+
+/** 인화 연출은 방마다 한 번만 재생한다. */
+private enum class PrintAnimationPhase {
+    NOT_PLAYED,
+    PLAYING,
+    PLAYED,
 }
 
 private fun List<RoomUser>.toGalleryMembers(): ImmutableList<GalleryMemberUiModel> =

@@ -72,6 +72,7 @@
     <!-- chattingScreen -->
     <string name="chat_back_description">뒤로가기</string>
     <string name="chat_message_placeholder">메시지를 보내 보세요.</string>
+    <string name="chat_message_send_failure">메시지를 보내지 못했어요. 다시 시도해 주세요.</string>
     <string name="chat_first_message_tooltip">첫 번째 메시지를 보내보세요!</string>
     <string name="chat_load_failure">채팅을 불러오지 못했어요.</string>
     <string name="chat_load_more_failure">이전 채팅을 불러오지 못했어요.</string>
@@ -80,6 +81,7 @@
     <string name="chat_empty">아직 채팅이 없어요.</string>
     <string name="chat_photo_description">채팅에 연결된 사진</string>
     <string name="gallery_setting_description">방 설정</string>
+    <string name="gallery_print_animation_pull_hint">필름을 아래로 당겨 보세요!</string>
 
     <!-- roomSettingScreen -->
     <string name="room_setting_title">방 설정</string>
@@ -113,12 +115,10 @@
     <string name="home_enter_invite_code">초대 코드로 입장하기</string>
     <string name="home_menu_create_room">방 만들기</string>
     <string name="home_menu_enter_room">방 입장하기</string>
-    <string name="home_section_shooting">촬영 중</string>
-    <string name="home_section_completed">촬영 완료</string>
-    <string name="home_print_waiting">인화 대기</string>
-    <string name="home_print_completed">인화 완료</string>
+    <string name="home_section_completed">인화 완료</string>
     <string name="home_participant_description">참여 인원</string>
-    <string name="home_taken_count_description">촬영한 사진 수</string>
+    <string name="home_shoot">사진 찍기</string>
+    <string name="home_remaining_time_description">인화 완료까지 남은 시간</string>
     <string name="home_room_photo_description">방 사진</string>
     <string name="home_film_overflow" translatable="false">+%1$d</string>
     <string name="home_room_load_failed_message">방 목록을 불러오지 못했어요.</string>
@@ -206,6 +206,10 @@
     <string name="setting_notification">알림</string>
     <string name="setting_account_section">계정</string>
     <string name="setting_account_management">계정 관리</string>
+    <!-- TODO: 구글 폼으로 연결하는 임시 신고/차단 메뉴. 인앱 신고·차단 기능 구현되면 아래 3개 문자열 삭제할 것. -->
+    <string name="setting_report_and_block">신고 및 차단</string>
+    <string name="setting_report_and_block_url" translatable="false">https://forms.gle/cKUj3JXAajLH1Cdr7</string>
+    <string name="setting_report_and_block_link_open_failure">신고 및 차단 링크를 열 수 없어요.</string>
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
     <string name="setting_send_feedback">피드백 보내기</string>

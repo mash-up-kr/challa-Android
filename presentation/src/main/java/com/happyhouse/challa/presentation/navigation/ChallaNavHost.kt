@@ -148,6 +148,7 @@ fun ChallaNavHost(
                     entry<ChallaRoute.Gallery> { route ->
                         GalleryRoute(
                             roomId = route.roomId,
+                            playsPrintAnimation = route.playsPrintAnimation,
                             memberJoinedEvents = memberJoinedObserverViewModel.events,
                             onBackClick = { navigator.goBack() },
                             onPhotoClick = { args ->
@@ -243,8 +244,16 @@ fun ChallaNavHost(
                             onNavigateToSetting = {
                                 navigator.navigate(ChallaRoute.Setting)
                             },
-                            onNavigateToRoom = { roomId ->
-                                navigator.navigate(ChallaRoute.Gallery(roomId = roomId))
+                            onNavigateToRoom = { roomId, playsPrintAnimation ->
+                                navigator.navigate(
+                                    ChallaRoute.Gallery(
+                                        roomId = roomId,
+                                        playsPrintAnimation = playsPrintAnimation,
+                                    ),
+                                )
+                            },
+                            onNavigateToCamera = { roomId ->
+                                navigator.navigate(ChallaRoute.Camera(roomId = roomId))
                             },
                             onRoomIdsLoaded = memberJoinedObserverViewModel::replaceObservedRooms,
                         )

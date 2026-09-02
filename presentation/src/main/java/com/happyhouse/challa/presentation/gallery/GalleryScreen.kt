@@ -49,6 +49,7 @@ fun GalleryScreen(
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
+    onPrintAnimationComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -64,6 +65,7 @@ fun GalleryScreen(
             onBackClick = onBackClick,
             onInviteCodeClick = onInviteCodeClick,
             onSettingClick = onSettingClick,
+            onPrintAnimationComplete = onPrintAnimationComplete,
         )
     }
 }
@@ -76,6 +78,7 @@ private fun GalleryScaffold(
     onBackClick: () -> Unit,
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
+    onPrintAnimationComplete: () -> Unit,
 ) {
     ChallaScaffold(
         // 배경과 글로우는 화면 루트에서 그린다.
@@ -113,11 +116,16 @@ private fun GalleryScaffold(
                 label = "GalleryExtraBottomPadding",
             )
 
+            // 필름이 나오는 동안에는 배출구가 프로필 바 자리를 쓴다.
+            var printsFilm by remember { mutableStateOf(false) }
+
             GalleryContent(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 onIntent = onIntent,
                 extraBottomPadding = extraBottomPadding,
+                onPrintFilmStageChange = { printsFilm = it },
+                onPrintAnimationComplete = onPrintAnimationComplete,
             )
 
             // 모든 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
@@ -158,8 +166,9 @@ private fun GalleryScaffold(
                     )
                 }
 
+                // 필름이 나오는 동안에는 하단 바도 비운다. 연출이 끝나고 그리드가 드러날 때 함께 올라온다.
                 AnimatedVisibility(
-                    visible = printed,
+                    visible = printed && !printsFilm,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
@@ -173,6 +182,7 @@ private fun GalleryScaffold(
             // 참여자를 못 받으면 프로필 바가 없어 메뉴를 열고 닫을 자리도 없다.
             val showsProfileMenu =
                 state.members.isNotEmpty() &&
+                    !printsFilm &&
                     when (state.photoInfo) {
                         is PhotoInfo.Film, is PhotoInfo.Printed -> true
                         PhotoInfo.Loading, PhotoInfo.Error -> false
@@ -232,7 +242,13 @@ private fun GalleryScreenWaitingPreview() {
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenPrintedPreview() {
-    GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Printed(previewGalleryPhotos()))
+    GalleryScreenPreviewTemplate(
+        photoInfo =
+            PhotoInfo.Printed(
+                photos = previewGalleryPhotos(),
+                playsPrintAnimation = false,
+            ),
+    )
 }
 
 @ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Loading")
@@ -275,6 +291,7 @@ private fun GalleryScreenPreviewTemplate(
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
+        onPrintAnimationComplete = {},
         onBackClick = {},
         onInviteCodeClick = {},
         onSettingClick = {},

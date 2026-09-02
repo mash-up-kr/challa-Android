@@ -1,7 +1,6 @@
 package com.happyhouse.challa.presentation.home
 
 import androidx.lifecycle.viewModelScope
-import com.happyhouse.challa.domain.event.RoomEvent
 import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.domain.repository.RoomRepository
 import com.happyhouse.challa.domain.repository.UserRepository
@@ -13,10 +12,9 @@ import com.happyhouse.challa.presentation.home.contract.HomeRoomLoadState
 import com.happyhouse.challa.presentation.home.contract.HomeSideEffect
 import com.happyhouse.challa.presentation.home.contract.HomeState
 import com.happyhouse.challa.presentation.home.model.toUiModel
-import com.happyhouse.challa.presentation.home.model.withName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,35 +26,18 @@ class HomeViewModel
         private val roomRepository: RoomRepository,
         private val userRepository: UserRepository,
     ) : BaseViewModel<HomeState, HomeIntent, HomeSideEffect>(initialState = HomeState()) {
+        private var loadJob: Job? = null
+
         init {
             observeProfile()
             prefetchProfile()
-            loadHome()
-            observeRoomEvents()
         }
 
-        override fun onIntent(intent: HomeIntent) = Unit
-
-        /**
-         * 방 설정에서 이름을 바꾸면 목록의 해당 방 이름만 갈아끼운다.
-         *
-         * 홈으로 돌아올 때 목록을 다시 받지 않으므로, 이 구독이 없으면 이전 이름이 그대로 남는다.
-         * 목록에 없는 방(예: 다른 화면에서 바뀐 방)이면 아무것도 바뀌지 않는다.
-         */
-        private fun observeRoomEvents() {
-            viewModelScope.launch {
-                roomRepository.roomEventFlow.filterIsInstance<RoomEvent.TitleUpdate>()
-                    .collect { event ->
-                        updateState {
-                            copy(
-                                rooms =
-                                    rooms
-                                        .map { room ->
-                                            if (room.id == event.roomId) room.withName(event.title) else room
-                                        }.toImmutableList(),
-                            )
-                        }
-                    }
+        // 최초 진입 로드도 ScreenResume이 맡는다. 그래야 홈이 다시 올라올 때마다 같은 경로로 목록을 갱신할 수 있다.
+        override fun onIntent(intent: HomeIntent) {
+            when (intent) {
+                HomeIntent.ScreenResume -> loadHome()
+                HomeIntent.PrintCountdownFinish -> loadHome()
             }
         }
 
@@ -80,28 +61,49 @@ class HomeViewModel
             }
         }
 
+        /**
+         * 방 목록을 받아온다.
+         *
+         * 최초 진입이든 갱신이든 조회하는 동안 로딩을 노출한다. 목록이 소리 없이 바뀌면 사용자가 무엇이 왜 달라졌는지 알 수 없다.
+         * 다만 첫 조회를 마친 뒤로는 이미 홈이 그려져 있으므로, 화면을 덮지 않고 진행 표시만 얹는 REFRESHING으로 알린다.
+         *
+         * 갱신 요청이 겹치면(예: 두 방의 카운트다운이 같이 끝남) 앞선 조회는 버리고 마지막 요청만 남긴다.
+         */
         private fun loadHome() {
-            viewModelScope.launch {
-                updateState { copy(roomLoadState = HomeRoomLoadState.LOADING) }
-                roomRepository
-                    .getRoomList(ALL_ROOM_STATUSES)
-                    .onSuccess { rooms ->
-                        val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
-                        updateState {
-                            copy(
-                                roomLoadState = HomeRoomLoadState.LOADED,
-                                rooms = roomUiModels,
-                            )
+            loadJob?.cancel()
+            loadJob =
+                viewModelScope.launch {
+                    // 첫 조회가 끝나기 전에는 LOADING 그대로 둔다. 그 뒤로는 어떤 상태에서 시작하든 갱신이다.
+                    updateState {
+                        if (roomLoadState == HomeRoomLoadState.LOADING) {
+                            this
+                        } else {
+                            copy(roomLoadState = HomeRoomLoadState.REFRESHING)
                         }
-                    }.onFailure {
-                        updateState { copy(roomLoadState = HomeRoomLoadState.FAILED) }
-                        sendEffect(HomeSideEffect.RoomsLoadFailed)
                     }
-            }
+                    roomRepository
+                        .getRoomList(ALL_ROOM_STATUSES)
+                        .onSuccess { rooms ->
+                            val roomUiModels = rooms.mapNotNull { it.toUiModel() }.toImmutableList()
+                            updateState {
+                                copy(
+                                    roomLoadState = HomeRoomLoadState.LOADED,
+                                    rooms = roomUiModels,
+                                )
+                            }
+                        }.onFailure {
+                            updateState { copy(roomLoadState = HomeRoomLoadState.FAILED) }
+                            sendEffect(HomeSideEffect.RoomsLoadFailed)
+                        }
+                }
         }
 
         companion object {
-            /** 홈 화면은 촬영 중/인화 대기/인화 완료 방을 모두 노출한다. UNKNOWN 타입은 repoImpl에서 필터링된다. */
+            /**
+             * 홈 화면은 촬영 중/인화 대기/인화 완료 방을 모두 노출한다.
+             * UNKNOWN은 요청 파라미터에서 repoImpl이 빼주지만, 앱이 모르는 상태가 응답으로 내려오면
+             * 다시 UNKNOWN으로 매핑되므로 [toUiModel]이 null을 돌려 목록에서 제외한다.
+             */
             private val ALL_ROOM_STATUSES = RoomStatus.entries.toList()
         }
     }

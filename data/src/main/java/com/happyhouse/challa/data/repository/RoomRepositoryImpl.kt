@@ -154,6 +154,13 @@ class RoomRepositoryImpl @Inject constructor(
                 data.rooms.map { it.toDomain() }
             }
 
+    override suspend fun checkPhotoPrintCompletion(roomId: Long): ChallaResult<Unit> =
+        roomApi
+            .checkPhotoPrintCompletion(roomId)
+            .mapCatching { response ->
+                check(response.success) { response.message }
+            }
+
     private fun GetRoomResponse.Status.toRoomStatus(): RoomStatus =
         when (this) {
             GetRoomResponse.Status.SHOOTING -> RoomStatus.SHOOTING

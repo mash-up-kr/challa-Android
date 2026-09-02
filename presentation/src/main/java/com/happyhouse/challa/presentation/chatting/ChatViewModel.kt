@@ -29,8 +29,9 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
- * WebSocket 구독이 확인된 뒤 채팅 목록을 조회하고 두 경로의 채팅을 [Chat.id]로 병합한다.
- * 목록 조회 전에 수신한 실시간 채팅은 임시 보관해 초기 응답에서 누락되지 않도록 한다.
+ * WebSocket 구독 확인 후 REST로 초기 채팅 목록을 조회하고 [Chat.id] 기준으로 병합한다.
+ * 초기 조회 전에 수신한 실시간 채팅은 임시 보관해 초기 응답에서 누락되지 않도록 한다.
+ * 초기 조회가 끝난 뒤 재구독되면 최신 페이지를 다시 조회해 연결 공백을 보정한다.
  */
 @HiltViewModel(assistedFactory = ChatViewModel.Factory::class)
 class ChatViewModel @AssistedInject constructor(
@@ -89,7 +90,7 @@ class ChatViewModel @AssistedInject constructor(
 
         chatSessionJob =
             viewModelScope.launch {
-                val subscriptionReady = CompletableDeferred<Unit>()
+                val initialSubscriptionReady = CompletableDeferred<Unit>()
 
                 try {
                     coroutineScope {
@@ -97,13 +98,28 @@ class ChatViewModel @AssistedInject constructor(
                             launch {
                                 chatRepository.observeChats(roomId).collect { event ->
                                     when (event) {
-                                        ChatSubscriptionEvent.Subscribed -> subscriptionReady.complete(Unit)
-                                        is ChatSubscriptionEvent.ChatReceived -> handleRealtimeChat(event.chat)
+                                        ChatSubscriptionEvent.Subscribed -> {
+                                            // complete는 최초 구독에서만 true이므로 false이면 재구독이다.
+                                            if (!initialSubscriptionReady.complete(Unit) && loadedChatContext != null) {
+                                                launch {
+                                                    fetchAndMergeLatestChats(
+                                                        failureLogMessage =
+                                                            "WebSocket 재연결 후 최신 채팅 목록을 동기화하지 " +
+                                                                "못했습니다. roomId=$roomId, page=$INITIAL_PAGE",
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        is ChatSubscriptionEvent.ChatReceived ->
+                                            handleRealtimeChat(
+                                                event.chat,
+                                            )
                                     }
                                 }
                             }
 
-                        subscriptionReady.await()
+                        initialSubscriptionReady.await()
                         val myUserId =
                             resolveCurrentUserId() ?: run {
                                 socketJob.cancel()
@@ -121,7 +137,7 @@ class ChatViewModel @AssistedInject constructor(
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (throwable: Throwable) {
-                    Timber.e(throwable, "채팅 WebSocket 구독이 종료되었습니다. roomId=$roomId")
+                    Timber.e(throwable, "채팅 WebSocket 구독이 예기치 않게 종료되었습니다. roomId=$roomId")
                     if (loadedChatContext == null) {
                         updateState { copy(chatInfo = ChatInfo.Error) }
                     }
@@ -229,31 +245,47 @@ class ChatViewModel @AssistedInject constructor(
                             updateState { copy(message = "") }
                         }
 
-                        refreshLatestChats()
+                        fetchAndMergeLatestChats(
+                            failureLogMessage =
+                                "채팅 전송 후 최신 채팅 목록을 동기화하지 못했습니다. " +
+                                    "roomId=$roomId, page=$INITIAL_PAGE",
+                        )
                     }
 
-                    is ChallaResult.Failure ->
+                    is ChallaResult.Failure -> {
                         Timber.e(result.causeOrNull(), "채팅을 전송하지 못했습니다. roomId=$roomId")
+                        sendEffect(ChatSideEffect.MessageSendFailed)
+                    }
                 }
             }
     }
 
-    /** WebSocket echo 유실에 대비해 전송 성공 후 첫 페이지를 다시 병합한다. */
-    private suspend fun refreshLatestChats() {
+    /** 최신 채팅 첫 페이지를 조회해 현재 목록에 [Chat.id] 기준으로 병합한다. */
+    private suspend fun fetchAndMergeLatestChats(failureLogMessage: String) {
         chatRepository
             .getChats(roomId = roomId, page = INITIAL_PAGE)
             .onSuccess { page ->
-                val loadedChatInfo = currentState.chatInfo as? ChatInfo.Loaded ?: return@onSuccess
+                val chatInfo = currentState.chatInfo
+                val loadedChatInfo =
+                    chatInfo as? ChatInfo.Loaded ?: run {
+                        Timber.w(
+                            "채팅 목록이 로드된 상태가 아니어서 최신 채팅 조회 결과를 반영하지 않습니다. " +
+                                "roomId=$roomId, chatInfo=${chatInfo::class.simpleName}",
+                        )
+                        return@onSuccess
+                    }
                 val context = resolveLoadedChatContext() ?: return@onSuccess
+                val updatedContext = context.copy(hasNextPage = page.hasNext)
+                loadedChatContext = updatedContext
                 page.chats.forEach { chat -> chatsById[chat.id] = chat }
                 updateLoadedChatState(
-                    context = context,
+                    context = updatedContext,
                     loadMoreState = loadedChatInfo.loadMoreState,
                 )
             }.onFailure { failure ->
                 Timber.e(
                     failure.causeOrNull(),
-                    "전송한 채팅을 다시 불러오지 못했습니다. roomId=$roomId",
+                    failureLogMessage,
                 )
             }
     }

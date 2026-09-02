@@ -42,6 +42,8 @@ fun SettingScreen(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    // TODO: 인앱 신고·차단 기능 구현 전까지 쓰는 임시 콜백. 구현되면 삭제할 것.
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
     onOpenSourceLicenseClick: () -> Unit,
@@ -82,6 +84,7 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
+                    onReportAndBlockClick = onReportAndBlockClick,
                     onSupportClick = onSupportClick,
                     onFeedbackClick = onFeedbackClick,
                 )
@@ -96,6 +99,7 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
+                    onReportAndBlockClick = onReportAndBlockClick,
                     onSupportClick = onSupportClick,
                     onFeedbackClick = onFeedbackClick,
                 )
@@ -124,6 +128,7 @@ private fun ProfileErrorSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -133,6 +138,7 @@ private fun ProfileErrorSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
+            onReportAndBlockClick = onReportAndBlockClick,
             onSupportClick = onSupportClick,
             onFeedbackClick = onFeedbackClick,
         )
@@ -148,6 +154,7 @@ private fun ProfileLoadedSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -162,6 +169,7 @@ private fun ProfileLoadedSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
+            onReportAndBlockClick = onReportAndBlockClick,
             onSupportClick = onSupportClick,
             onFeedbackClick = onFeedbackClick,
         )
@@ -191,6 +199,7 @@ private fun SettingMenuSections(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -221,6 +230,12 @@ private fun SettingMenuSections(
                 text = stringResource(R.string.setting_account_management),
                 leadingIcon = ChallaIcons.Profile,
                 onClick = onAccountClick,
+            )
+            // TODO: 인앱 신고·차단 기능 구현 전까지 구글 폼으로 연결하는 임시 메뉴. 구현되면 삭제할 것.
+            ChallaListItem(
+                text = stringResource(R.string.setting_report_and_block),
+                leadingIcon = ChallaIcons.Error,
+                onClick = onReportAndBlockClick,
             )
         }
 
@@ -287,6 +302,7 @@ private fun SettingScreenPreviewContent(state: SettingState) {
         onThemeClick = {},
         onNotificationClick = {},
         onAccountClick = {},
+        onReportAndBlockClick = {},
         onSupportClick = {},
         onFeedbackClick = {},
         onOpenSourceLicenseClick = {},

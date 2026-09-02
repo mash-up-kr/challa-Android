@@ -3,15 +3,15 @@ package com.happyhouse.challa.presentation.chatting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.domain.model.ReactionEmoji
-import com.happyhouse.challa.domain.model.chat.ChatType
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.component.ChatContent
 import com.happyhouse.challa.presentation.chatting.component.ChatInputArea
@@ -31,6 +31,7 @@ import java.time.ZonedDateTime
 @Composable
 fun ChatScreen(
     state: ChatState,
+    snackbarHostState: SnackbarHostState,
     onIntent: (ChatIntent) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -43,6 +44,7 @@ fun ChatScreen(
                 .challaBackgroundGlow()
                 .imePadding(),
         containerColor = Color.Transparent,
+        snackbarHostState = snackbarHostState,
         topBar = {
             ChatTopBar(
                 roomName = state.roomName,
@@ -59,9 +61,9 @@ fun ChatScreen(
                 onSend = { onIntent(ChatIntent.MessageSend) },
             )
         },
-    ) { innerPadding ->
+    ) {
         ChatContent(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier.fillMaxSize(),
             chatInfo = state.chatInfo,
             onRetry = { onIntent(ChatIntent.ChatsLoad) },
             onLoadMore = { onIntent(ChatIntent.ChatsLoadMore) },
@@ -85,35 +87,61 @@ private fun ChatScreenPreview() {
                     ChatInfo.Loaded(
                         chats =
                             persistentListOf(
-                                ChatUiModel(
+                                ChatUiModel.Default(
                                     chatId = 1L,
                                     userId = 1L,
-                                    type = ChatType.DEFAULT,
                                     content = "강릉에 도착하면 바로 사진 찍으러 가자!",
-                                    photoImageUrl = null,
-                                    createdAt = ZonedDateTime.of(2026, 8, 29, 20, 15, 0, 0, previewZoneId),
+                                    createdAt =
+                                        ZonedDateTime.of(
+                                            2026,
+                                            8,
+                                            29,
+                                            20,
+                                            15,
+                                            0,
+                                            0,
+                                            previewZoneId,
+                                        ),
                                     isMine = false,
                                     userName = "user1",
                                     userProfileImageUrl = null,
                                 ),
-                                ChatUiModel(
+                                ChatUiModel.Comment(
                                     chatId = 2L,
                                     userId = 2L,
-                                    type = ChatType.COMMENT,
                                     content = "좋아! 바다부터 보고 숙소로 이동하자.",
                                     photoImageUrl = previewPhotoUrl,
-                                    createdAt = ZonedDateTime.of(2026, 8, 29, 20, 17, 0, 0, previewZoneId),
+                                    createdAt =
+                                        ZonedDateTime.of(
+                                            2026,
+                                            8,
+                                            29,
+                                            20,
+                                            17,
+                                            0,
+                                            0,
+                                            previewZoneId,
+                                        ),
                                     isMine = true,
                                     userName = "찰나",
                                     userProfileImageUrl = null,
                                 ),
-                                ChatUiModel(
+                                ChatUiModel.Emoji(
                                     chatId = 3L,
                                     userId = 3L,
-                                    type = ChatType.EMOJI,
-                                    content = ReactionEmoji.FIRE.name,
+                                    reactionEmoji = ReactionEmoji.FIRE,
                                     photoImageUrl = previewPhotoUrl,
-                                    createdAt = ZonedDateTime.of(2026, 8, 30, 9, 34, 0, 0, previewZoneId),
+                                    createdAt =
+                                        ZonedDateTime.of(
+                                            2026,
+                                            8,
+                                            30,
+                                            9,
+                                            34,
+                                            0,
+                                            0,
+                                            previewZoneId,
+                                        ),
                                     isMine = false,
                                     userName = "여름여행가자",
                                     userProfileImageUrl = null,
@@ -121,6 +149,7 @@ private fun ChatScreenPreview() {
                             ),
                     ),
             ),
+        snackbarHostState = remember { SnackbarHostState() },
         onIntent = {},
         onBackClick = {},
     )

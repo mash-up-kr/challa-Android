@@ -6,15 +6,12 @@ import com.happyhouse.challa.data.network.api.ChatWebSocketEvent
 import com.happyhouse.challa.data.network.api.PhotoApi
 import com.happyhouse.challa.data.network.dto.request.CreateChatRequest
 import com.happyhouse.challa.data.network.dto.request.SendChatRequest
-import com.happyhouse.challa.data.network.dto.response.ChatsResponse
+import com.happyhouse.challa.data.network.dto.response.toChat
 import com.happyhouse.challa.data.network.dto.response.toPhotoReactions
-import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.PhotoReaction
 import com.happyhouse.challa.domain.model.ReactionEmoji
-import com.happyhouse.challa.domain.model.chat.Chat
 import com.happyhouse.challa.domain.model.chat.ChatPage
 import com.happyhouse.challa.domain.model.chat.ChatSubscriptionEvent
-import com.happyhouse.challa.domain.model.chat.ChatType
 import com.happyhouse.challa.domain.repository.ChatRepository
 import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.mapCatching
@@ -136,25 +133,4 @@ class ChatRepositoryImpl @Inject constructor(
     companion object {
         private const val CHAT_PAGE_SIZE = 20
     }
-}
-
-private fun ChatsResponse.ChatItem.toChat(): Chat {
-    val (type, photoId, photoImageUrl) =
-        when (this) {
-            is ChatsResponse.ChatItem.Default -> Triple(ChatType.DEFAULT, null, null)
-            is ChatsResponse.ChatItem.Emoji -> Triple(ChatType.EMOJI, photoId, photoImageUrl)
-            is ChatsResponse.ChatItem.Comment -> Triple(ChatType.COMMENT, photoId, photoImageUrl)
-        }
-
-    return Chat(
-        id = chatId,
-        userId = userId,
-        type = type,
-        content = content,
-        photoId = photoId,
-        photoImageUrl = photoImageUrl,
-        createdAt = createdAt.parseServerInstant(),
-        userName = userName,
-        userProfileImageUrl = userProfileImageUrl,
-    )
 }

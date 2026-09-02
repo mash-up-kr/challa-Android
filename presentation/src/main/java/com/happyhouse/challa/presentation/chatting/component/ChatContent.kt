@@ -42,7 +42,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.happyhouse.challa.domain.model.ReactionEmoji
-import com.happyhouse.challa.domain.model.chat.ChatType
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo.LoadMoreState
@@ -308,11 +307,6 @@ private fun ChatListItem(
     showsProfileImage: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val bubbleColor =
-        if (chat.isMine) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel4
-    val contentColor =
-        if (chat.isMine) ChallaTheme.colors.staticBlack else ChallaTheme.colors.labelNormal
-
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -344,29 +338,58 @@ private fun ChatListItem(
                 }
             }
 
-            chat.photoImageUrl?.takeIf(String::isNotBlank)?.let { imageUrl ->
-                ChatPhoto(
-                    imageUrl = imageUrl,
-                    reactionEmoji = chat.reactionEmoji,
-                    isMine = chat.isMine,
-                )
-            }
+            when (chat) {
+                is ChatUiModel.Default -> {
+                    ChatMessageBubble(
+                        content = chat.content,
+                        isMine = chat.isMine,
+                    )
+                }
 
-            chat.content.takeIf { chat.type != ChatType.EMOJI && it.isNotBlank() }?.let { content ->
-                Text(
-                    modifier =
-                        Modifier
-                            .widthIn(max = 280.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(bubbleColor)
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                    text = content,
-                    color = contentColor,
-                    style = ChallaTheme.typography.bodyMedium.medium,
-                )
+                is ChatUiModel.Emoji -> {
+                    ChatPhoto(
+                        imageUrl = chat.photoImageUrl,
+                        reactionEmoji = chat.reactionEmoji,
+                        isMine = chat.isMine,
+                    )
+                }
+
+                is ChatUiModel.Comment -> {
+                    ChatPhoto(
+                        imageUrl = chat.photoImageUrl,
+                        reactionEmoji = null,
+                        isMine = chat.isMine,
+                    )
+                    ChatMessageBubble(
+                        content = chat.content,
+                        isMine = chat.isMine,
+                    )
+                }
             }
         }
     }
+}
+
+@Composable
+private fun ChatMessageBubble(
+    content: String,
+    isMine: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (content.isBlank()) return
+
+    Text(
+        modifier =
+            modifier
+                .widthIn(max = 280.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    if (isMine) ChallaTheme.colors.staticWhite else ChallaTheme.colors.backgroundLevel4,
+                ).padding(horizontal = 12.dp, vertical = 8.dp),
+        text = content,
+        color = if (isMine) ChallaTheme.colors.staticBlack else ChallaTheme.colors.labelNormal,
+        style = ChallaTheme.typography.bodyMedium.medium,
+    )
 }
 
 @Composable
@@ -376,6 +399,8 @@ private fun ChatPhoto(
     isMine: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    if (imageUrl.isBlank()) return
+
     if (reactionEmoji == null) {
         ChatPhotoImage(
             modifier = modifier,
@@ -502,32 +527,27 @@ private fun ChatContentLoadedPreview() {
             ChatInfo.Loaded(
                 chats =
                     persistentListOf(
-                        ChatUiModel(
+                        ChatUiModel.Default(
                             chatId = 1L,
                             userId = 1L,
-                            type = ChatType.DEFAULT,
                             content = "강릉에 도착하면 바로 사진 찍으러 가자!",
-                            photoImageUrl = null,
                             createdAt = previewCreatedAt,
                             isMine = false,
                             userName = "그린그린여성현",
                             userProfileImageUrl = null,
                         ),
-                        ChatUiModel(
+                        ChatUiModel.Default(
                             chatId = 2L,
                             userId = 2L,
-                            type = ChatType.DEFAULT,
                             content = "좋아! 바다부터 보고 숙소로 이동하자.",
-                            photoImageUrl = null,
                             createdAt = previewCreatedAt.plusMinutes(1),
                             isMine = true,
                             userName = "찰나",
                             userProfileImageUrl = null,
                         ),
-                        ChatUiModel(
+                        ChatUiModel.Comment(
                             chatId = 3L,
                             userId = 1L,
-                            type = ChatType.COMMENT,
                             content = "이 사진 분위기 정말 좋다.",
                             photoImageUrl = previewPhotoUrl,
                             createdAt = previewCreatedAt.plusMinutes(2),
@@ -535,10 +555,9 @@ private fun ChatContentLoadedPreview() {
                             userName = "그린그린여성현",
                             userProfileImageUrl = null,
                         ),
-                        ChatUiModel(
+                        ChatUiModel.Comment(
                             chatId = 4L,
                             userId = 2L,
-                            type = ChatType.COMMENT,
                             content = "나도 이 사진이 제일 마음에 들어.",
                             photoImageUrl = previewPhotoUrl,
                             createdAt = previewCreatedAt.plusMinutes(3),
@@ -546,22 +565,20 @@ private fun ChatContentLoadedPreview() {
                             userName = "찰나",
                             userProfileImageUrl = null,
                         ),
-                        ChatUiModel(
+                        ChatUiModel.Emoji(
                             chatId = 5L,
                             userId = 1L,
-                            type = ChatType.EMOJI,
-                            content = ReactionEmoji.POOP.name,
+                            reactionEmoji = ReactionEmoji.POOP,
                             photoImageUrl = previewPhotoUrl,
                             createdAt = previewCreatedAt.plusMinutes(4),
                             isMine = false,
                             userName = "그린그린여성현",
                             userProfileImageUrl = null,
                         ),
-                        ChatUiModel(
+                        ChatUiModel.Emoji(
                             chatId = 6L,
                             userId = 2L,
-                            type = ChatType.EMOJI,
-                            content = ReactionEmoji.FIRE.name,
+                            reactionEmoji = ReactionEmoji.FIRE,
                             photoImageUrl = previewPhotoUrl,
                             createdAt = previewCreatedAt.plusMinutes(5),
                             isMine = true,
