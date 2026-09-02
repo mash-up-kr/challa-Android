@@ -3,7 +3,9 @@ package com.happyhouse.challa.presentation.home.model
 import androidx.compose.runtime.Immutable
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
-import com.happyhouse.challa.presentation.home.model.RoomUiModel.*
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.Completed
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.Printing
+import com.happyhouse.challa.presentation.home.model.RoomUiModel.Shooting
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import java.time.Instant
