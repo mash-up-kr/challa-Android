@@ -37,7 +37,7 @@ fun RoomCoverColorPicker(
 ) {
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         colors.forEach { color ->
             ColorSwatch(

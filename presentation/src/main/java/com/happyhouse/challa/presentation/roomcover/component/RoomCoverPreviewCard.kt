@@ -39,7 +39,7 @@ import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 
 private val CardWidth = 200.dp
 private val CardHeight = 266.dp
-private val ActionBarHeight = 36.dp
+private val ActionBarHeight = 40.dp
 
 /**
  * 커버가 홈 카드에 어떻게 보일지 미리 보여주는 카드.

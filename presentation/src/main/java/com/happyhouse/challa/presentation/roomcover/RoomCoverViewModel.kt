@@ -57,6 +57,10 @@ class RoomCoverViewModel @AssistedInject constructor(
     }
 
     private fun loadCover() {
+        // 다시 불러오는 동안 앞선 저장이 끝나면 savedCover와 새 화면 상태가 어긋난다.
+        saveJob?.cancel()
+        uploadJob?.cancel()
+
         updateState { copy(content = RoomCoverState.Content.Loading) }
         viewModelScope.launch {
             val roomDeferred = async { roomRepository.getRoom(roomId) }

@@ -28,8 +28,8 @@ import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 import com.happyhouse.challa.presentation.roomcover.previewCoverStickers
 import kotlinx.collections.immutable.ImmutableList
 
-private val StickerWidth = 96.dp
-private val StickerHeight = 128.dp
+private val StickerWidth = 100.dp
+private val StickerHeight = 164.dp
 private val StickerShape = RoundedCornerShape(8.dp)
 
 /**
