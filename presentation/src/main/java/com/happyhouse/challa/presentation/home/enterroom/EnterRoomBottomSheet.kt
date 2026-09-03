@@ -186,7 +186,7 @@ private fun EnterRoomSheetBody(
     }
 }
 
-@Preview(showBackground = true, name = "EnterRoom - Empty")
+@Preview(name = "EnterRoom - Empty")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun EnterRoomSheetBodyEmptyPreview() {
@@ -200,7 +200,7 @@ private fun EnterRoomSheetBodyEmptyPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "EnterRoom - Filled")
+@Preview(name = "EnterRoom - Filled")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun EnterRoomSheetBodyFilledPreview() {
@@ -208,6 +208,20 @@ private fun EnterRoomSheetBodyFilledPreview() {
         Box(modifier = Modifier.background(ChallaTheme.colors.backgroundLevel1).padding(16.dp)) {
             EnterRoomSheetBody(
                 state = EnterRoomState(code = "190329"),
+                onIntent = {},
+            )
+        }
+    }
+}
+
+@Preview(name = "EnterRoom - Submitting")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun EnterRoomSheetBodySubmittingPreview() {
+    ChallaTheme {
+        Box(modifier = Modifier.background(ChallaTheme.colors.backgroundLevel1).padding(16.dp)) {
+            EnterRoomSheetBody(
+                state = EnterRoomState(code = "190329", isSubmitting = true),
                 onIntent = {},
             )
         }
