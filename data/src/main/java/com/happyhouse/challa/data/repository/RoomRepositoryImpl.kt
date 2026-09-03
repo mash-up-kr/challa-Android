@@ -86,9 +86,6 @@ class RoomRepositoryImpl @Inject constructor(
                     ),
             ).mapCatching { response ->
                 check(response.success) { response.message }
-            }.onSuccess {
-                // 저장에 성공한 커버만 알린다. 실패한 커버가 다른 화면에 남으면 서버와 어긋난다.
-                _roomEventFlow.emit(RoomEvent.CoverUpdate(roomId = roomId, cover = cover))
             }
 
     override suspend fun getRoomCoverOptions(): ChallaResult<RoomCoverOptions> =
