@@ -235,6 +235,26 @@ private fun RoomCoverPreviewCardEmptyPreview() {
 @Preview
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
+private fun RoomCoverPreviewCardWithStickerPreview() {
+    RoomCoverPreviewCard(
+        roomName = "친구들과 유럽 여행",
+        memberCount = 12,
+        cover =
+            RoomCoverUiModel(
+                sticker =
+                    RoomCoverUiModel.Sticker(
+                        imageUrl = PREVIEW_STICKER_IMAGE_URL,
+                        color = ChallaTheme.colors.primaryYellow,
+                    ),
+            ),
+        onSelectImageClick = {},
+        onRemoveImageClick = {},
+    )
+}
+
+@Preview
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
 private fun RoomCoverPreviewCardWithImagePreview() {
     RoomCoverPreviewCard(
         roomName = "친구들과 유럽 여행",
