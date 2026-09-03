@@ -44,15 +44,6 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
-private val GalleryBottomGradient =
-    Brush.verticalGradient(
-        colors =
-            listOf(
-                Color.Black.copy(alpha = 0f),
-                Color.Black,
-            ),
-    )
-
 private val GalleryBottomActionHeight = 96.dp
 
 @Composable
@@ -94,6 +85,8 @@ private fun GalleryScaffold(
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
 ) {
+    val bottomGradient = rememberGalleryBottomGradient()
+
     ChallaScaffold(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -115,6 +108,12 @@ private fun GalleryScaffold(
             val film = state.photoInfo as? PhotoInfo.Film
             val waiting = film as? PhotoInfo.Waiting
             val printed = state.photoInfo is PhotoInfo.Printed
+            val bottomActionBackground =
+                if (film == null && !printed) {
+                    Modifier
+                } else {
+                    Modifier.background(bottomGradient)
+                }
 
             // 하단 바가 그리드 위에 떠 있으므로, 끝까지 스크롤했을 때 마지막 줄이 가리지 않도록
             // 실제로 차지하는 높이만큼 그리드 아래 여백을 준다.
@@ -155,7 +154,7 @@ private fun GalleryScaffold(
                         .fillMaxWidth()
                         .height(GalleryBottomActionHeight)
                         .then(measureBottomBar)
-                        .background(GalleryBottomGradient),
+                        .then(bottomActionBackground),
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 AnimatedVisibility(
@@ -228,6 +227,17 @@ private fun GalleryScaffold(
 
             ChallaSnackbarHost(hostState = snackbarHostState)
         }
+    }
+}
+
+@Composable
+private fun rememberGalleryBottomGradient(): Brush {
+    val black = ChallaTheme.colors.staticBlack
+
+    return remember(black) {
+        Brush.verticalGradient(
+            colors = listOf(black.copy(alpha = 0f), black),
+        )
     }
 }
 
