@@ -28,7 +28,6 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaIconButton
-import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
 import com.happyhouse.challa.presentation.designsystem.foundation.icon.ChallaIconSize
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
@@ -40,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 private const val SECONDS_PER_HOUR = 3600
 private const val SECONDS_PER_MINUTE = 60
 private val BottomBarHorizontalPadding = 16.dp
+private val BottomBarBottomPadding = 8.dp
 private val BottomBarButtonSpacing = 8.dp
 
 /** 촬영 중 하단 바. 카메라로 이어준다. */
@@ -85,15 +85,7 @@ fun GalleryPrintedBar(
     GalleryBottomBarLayout(
         modifier = modifier,
         onChatClick = onChatClick,
-    ) {
-        ChallaTextButton(
-            text = stringResource(R.string.gallery_print_completed),
-            onClick = {},
-            modifier = Modifier.fillMaxWidth(),
-            enabled = false,
-            size = ChallaButtonSize.LARGE,
-        )
-    }
+    )
 }
 
 /** 하단 바들이 같은 여백과 시스템 바 처리를 쓰도록 묶는다. */
@@ -101,23 +93,34 @@ fun GalleryPrintedBar(
 private fun GalleryBottomBarLayout(
     onChatClick: () -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(horizontal = BottomBarHorizontalPadding)
+                .padding(
+                    start = BottomBarHorizontalPadding,
+                    end = BottomBarHorizontalPadding,
+                    bottom = BottomBarBottomPadding,
+                )
                 .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(BottomBarButtonSpacing),
+            horizontalArrangement =
+                if (content == null) {
+                    Arrangement.Center
+                } else {
+                    Arrangement.spacedBy(BottomBarButtonSpacing)
+                },
         ) {
             GalleryChatButton(onClick = onChatClick)
 
-            Box(modifier = Modifier.weight(1f)) {
-                content()
+            content?.let { bottomContent ->
+                Box(modifier = Modifier.weight(1f)) {
+                    bottomContent()
+                }
             }
         }
     }
