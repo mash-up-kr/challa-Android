@@ -95,6 +95,7 @@ import com.happyhouse.challa.presentation.home.createroom.CreateRoomBottomSheet
 import com.happyhouse.challa.presentation.home.enterroom.EnterRoomBottomSheet
 import com.happyhouse.challa.presentation.home.model.RoomUiModel
 import com.happyhouse.challa.presentation.roomcover.component.RoomCoverBackground
+import com.happyhouse.challa.presentation.roomcover.component.RoomCoverScrim
 import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
 import com.happyhouse.challa.presentation.util.BlurTransformation
 import kotlinx.collections.immutable.ImmutableList
@@ -422,6 +423,7 @@ private fun HomeShootingCard(
                 cover = room.displayCover,
                 modifier = Modifier.fillMaxSize(),
             )
+            RoomCoverScrim(modifier = Modifier.fillMaxSize())
         },
         modifier = modifier,
     ) {
@@ -455,6 +457,7 @@ private fun HomePrintingCard(
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
             )
+            HomePrintingScrim(modifier = Modifier.fillMaxSize())
         },
         modifier = modifier,
     ) {
@@ -462,30 +465,10 @@ private fun HomePrintingCard(
     }
 }
 
-/**
- * 촬영 중·인화 대기 방이 공유하는 큰 커버 카드.
- *
- * [background] 위에 그라데이션을 얹고, 위쪽에 방 이름·참여 인원, 아래쪽에 상태 배지를 둔다.
- * 촬영 중은 방 커버(스티커 포함)를, 인화 대기는 찍어둔 사진을 배경으로 넘긴다.
- */
+/** 인화 대기 카드가 사진 위에 얹는 오버레이. */
 @Composable
-private fun HomeRoomCoverCard(
-    name: String,
-    participantCount: Int,
-    onClick: () -> Unit,
-    background: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    badge: @Composable () -> Unit,
-) {
-    Box(
-        modifier =
-            modifier
-                .size(width = SHOOTING_CARD_WIDTH, height = SHOOTING_CARD_HEIGHT)
-                .clip(RoundedCornerShape(12.dp))
-                .background(ChallaTheme.colors.backgroundLevel2)
-                .noRippleClickOnce(role = Role.Button, onClick = onClick),
-    ) {
-        background()
+private fun HomePrintingScrim(modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
         Box(
             modifier =
                 Modifier
@@ -514,6 +497,34 @@ private fun HomeRoomCoverCard(
                         ),
                     ),
         )
+    }
+}
+
+/**
+ * 촬영 중·인화 대기 방이 공유하는 큰 커버 카드.
+ *
+ * 위쪽에 방 이름·참여 인원, 아래쪽에 상태 배지를 둔다.
+ * 배경과 그 위에 얹을 오버레이는 [background]로 받는다. 촬영 중은 방 커버(스티커 포함)를,
+ * 인화 대기는 찍어둔 사진을 넘긴다.
+ */
+@Composable
+private fun HomeRoomCoverCard(
+    name: String,
+    participantCount: Int,
+    onClick: () -> Unit,
+    background: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    badge: @Composable () -> Unit,
+) {
+    Box(
+        modifier =
+            modifier
+                .size(width = SHOOTING_CARD_WIDTH, height = SHOOTING_CARD_HEIGHT)
+                .clip(RoundedCornerShape(12.dp))
+                .background(ChallaTheme.colors.backgroundLevel2)
+                .noRippleClickOnce(role = Role.Button, onClick = onClick),
+    ) {
+        background()
 
         Column(
             modifier =

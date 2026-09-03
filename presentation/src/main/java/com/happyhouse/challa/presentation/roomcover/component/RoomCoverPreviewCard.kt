@@ -23,8 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -51,9 +49,6 @@ private val ActionBarGap = 6.dp
 private val ActionIconSize = 24.dp
 private val ActionDividerWidth = 2.dp
 private val ActionDividerHeight = 16.dp
-
-/** 흰색 오버레이가 사라지는 지점. 시안에서 카드 높이의 78%로 측정했다. */
-private const val WHITE_OVERLAY_END = 0.78f
 
 /**
  * 커버가 홈 카드에 어떻게 보일지 미리 보여주는 카드.
@@ -84,36 +79,7 @@ fun RoomCoverPreviewCard(
                 cover = cover,
                 modifier = Modifier.fillMaxSize(),
             )
-            // 커버가 밝아도 방 이름이 읽히도록 위쪽을 어둡게 덮는다.
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        Color.Black.copy(alpha = 0.8f),
-                                        Color.Black.copy(alpha = 0.2f),
-                                    ),
-                            ),
-                        ),
-            )
-            // 어둡게 덮은 위를 다시 살짝 띄운다. 검정 위에 얹어야 시안과 같은 밝기가 나온다.
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colorStops =
-                                    arrayOf(
-                                        0f to Color.White.copy(alpha = 0.2f),
-                                        WHITE_OVERLAY_END to Color.Transparent,
-                                    ),
-                            ),
-                        ),
-            )
+            RoomCoverScrim(modifier = Modifier.fillMaxSize())
             Column(
                 modifier =
                     Modifier
