@@ -1,26 +1,24 @@
 package com.happyhouse.challa.presentation.camera.onboarding
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
-import com.happyhouse.challa.presentation.camera.component.CAMERA_BEZEL_ASPECT_RATIO
-import com.happyhouse.challa.presentation.camera.component.CameraBezelBorderWidth
-import com.happyhouse.challa.presentation.camera.component.CameraBezelCornerRadius
-import com.happyhouse.challa.presentation.camera.component.CameraBezelHorizontalPadding
-import com.happyhouse.challa.presentation.camera.component.CameraBezelTopPadding
+import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
-import com.happyhouse.challa.presentation.camera.component.CameraControlsTopSpacing
-import com.happyhouse.challa.presentation.camera.component.CameraShutterButtonInnerSize
-import com.happyhouse.challa.presentation.camera.component.CameraShutterButtonSize
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbar
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
@@ -28,10 +26,14 @@ import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 internal fun CameraOnboardingOverlay(modifier: Modifier = Modifier) {
-    val dimColor = ChallaTheme.colors.materialDimmer
-    val bezelColor = ChallaTheme.colors.staticWhite
-    val shutterColor = ChallaTheme.colors.primary
-    val shutterInnerColor = ChallaTheme.colors.staticWhite
+    val backdropBrush =
+        Brush.verticalGradient(
+            colors =
+                listOf(
+                    Color.Black.copy(alpha = 0.3f),
+                    Color.Black,
+                ),
+        )
 
     Canvas(
         modifier =
@@ -44,40 +46,7 @@ internal fun CameraOnboardingOverlay(modifier: Modifier = Modifier) {
                     }
                 },
     ) {
-        drawRect(color = dimColor)
-
-        val bezelBorderWidth = CameraBezelBorderWidth.toPx()
-        val bezelLeft = CameraBezelHorizontalPadding.toPx()
-        val bezelTop = CameraBezelTopPadding.toPx()
-        val bezelWidth = (size.width - bezelLeft * 2).coerceAtLeast(0f)
-        val bezelHeight = bezelWidth / CAMERA_BEZEL_ASPECT_RATIO
-        val bezelStrokeInset = bezelBorderWidth / 2
-
-        drawRoundRect(
-            color = bezelColor,
-            topLeft = Offset(bezelLeft + bezelStrokeInset, bezelTop + bezelStrokeInset),
-            size = Size(bezelWidth - bezelBorderWidth, bezelHeight - bezelBorderWidth),
-            cornerRadius = CornerRadius(CameraBezelCornerRadius.toPx()),
-            style = Stroke(width = bezelBorderWidth),
-        )
-
-        val shutterRadius = CameraShutterButtonSize.toPx() / 2
-        val shutterCenter =
-            Offset(
-                x = size.width / 2,
-                y = bezelTop + bezelHeight + CameraControlsTopSpacing.toPx() + shutterRadius,
-            )
-        drawCircle(
-            color = shutterColor,
-            radius = shutterRadius - bezelStrokeInset,
-            center = shutterCenter,
-            style = Stroke(width = bezelBorderWidth),
-        )
-        drawCircle(
-            color = shutterInnerColor,
-            radius = CameraShutterButtonInnerSize.toPx() / 2,
-            center = shutterCenter,
-        )
+        drawRect(brush = backdropBrush)
     }
 }
 
@@ -85,27 +54,51 @@ internal fun CameraOnboardingOverlay(modifier: Modifier = Modifier) {
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun CameraOnboardingPreview() {
-    CameraContentLayout(
-        modifier = Modifier.fillMaxSize(),
-        roomName = "해피하우스강릉여행",
-        remainingCount = 6,
-        totalCount = ROOM_REQUIRED_PHOTO_COUNT,
-        isRoomLoaded = true,
-        isFilterSelectorReady = true,
-        filters = persistentListOf(CameraFilterUiModel.Original),
-        selectedFilterIndex = 0,
-        isFlashEnabled = false,
-        isCameraSwitchEnabled = true,
-        shutterEnabled = true,
-        isShutterEffectVisible = false,
-        isOnboardingVisible = true,
-        zoomLevel = 1f,
-        onFlashClick = {},
-        onSwitchCameraClick = {},
-        onShutterClick = {},
-        onZoomClick = {},
-        onFilterClick = {},
-        onRoomInfoClick = {},
-        viewFinder = {},
-    )
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(ChallaTheme.colors.staticBlack.copy(alpha = 0.9f)),
+    ) {
+        CameraContentLayout(
+            modifier = Modifier.fillMaxSize(),
+            roomName = "해피하우스강릉여행",
+            remainingCount = 6,
+            totalCount = ROOM_REQUIRED_PHOTO_COUNT,
+            isRoomLoaded = true,
+            isFilterSelectorReady = true,
+            filters = persistentListOf(CameraFilterUiModel.Original),
+            selectedFilterIndex = 0,
+            isFlashEnabled = false,
+            isCameraSwitchEnabled = true,
+            shutterEnabled = true,
+            isShutterEffectVisible = false,
+            isOnboardingVisible = true,
+            zoomLevel = 1f,
+            onFlashClick = {},
+            onSwitchCameraClick = {},
+            onShutterClick = {},
+            onZoomClick = {},
+            onFilterClick = {},
+            onRoomInfoClick = {},
+            viewFinder = {},
+        )
+
+        CameraOnboardingOverlay(modifier = Modifier.fillMaxSize())
+
+        ChallaSnackbar(
+            content =
+                ChallaSnackbarContent.HeadingOnly(
+                    heading = "셔터를 누르는 순간 장수가 차감돼요.",
+                ),
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            actionLabel = "다음",
+            actionLabelColor = ChallaTheme.colors.primary,
+            onActionClick = {},
+        )
+    }
 }

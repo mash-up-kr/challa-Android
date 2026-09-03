@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraState
+import com.happyhouse.challa.presentation.camera.onboarding.CameraOnboardingOverlay
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
@@ -36,7 +37,6 @@ fun CameraScreen(
         ChallaScaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = cameraBackgroundColor,
-            snackbarHostState = onboardingSnackbarHostState,
         ) { innerPadding ->
             CameraContent(
                 modifier =
@@ -56,6 +56,15 @@ fun CameraScreen(
                 onIntent = onIntent,
             )
         }
+
+        if (isOnboardingVisible) {
+            CameraOnboardingOverlay(modifier = Modifier.fillMaxSize())
+        }
+
+        ChallaSnackbarHost(
+            hostState = onboardingSnackbarHostState,
+            modifier = Modifier.fillMaxSize(),
+        )
 
         ChallaSnackbarHost(
             hostState = feedbackSnackbarHostState,
