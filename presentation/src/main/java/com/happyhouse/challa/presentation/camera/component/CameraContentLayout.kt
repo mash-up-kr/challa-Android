@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
-import com.happyhouse.challa.presentation.camera.onboarding.CameraOnboardingOverlay
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import kotlinx.collections.immutable.ImmutableList
@@ -101,27 +100,29 @@ internal fun CameraContentLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            CameraFilterSelector(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                        .then(
-                            if (isFilterSelectorReady) {
-                                Modifier
-                            } else {
-                                Modifier
-                                    .alpha(0f)
-                                    .clearAndSetSemantics {}
-                            },
-                        ),
-                filters = filters,
-                selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
-            )
+            if (!isOnboardingVisible) {
+                CameraFilterSelector(
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .then(
+                                if (isFilterSelectorReady) {
+                                    Modifier
+                                } else {
+                                    Modifier
+                                        .alpha(0f)
+                                        .clearAndSetSemantics {}
+                                },
+                            ),
+                    filters = filters,
+                    selectedFilterIndex = selectedFilterIndex,
+                    onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            if (isRoomLoaded) {
+            if (isRoomLoaded && !isOnboardingVisible) {
                 CameraRoomInfo(
                     roomName = roomName,
                     remainingCount = remainingCount,
@@ -130,10 +131,6 @@ internal fun CameraContentLayout(
                     modifier = Modifier.padding(bottom = 40.dp),
                 )
             }
-        }
-
-        if (isOnboardingVisible) {
-            CameraOnboardingOverlay(modifier = Modifier.fillMaxSize())
         }
     }
 }
