@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SnackbarHostState
@@ -100,7 +102,11 @@ private fun RoomCoverEditor(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                // 화면이 낮은 기기에서 스티커 줄이 잘리지 않도록 편집 영역 전체를 스크롤한다.
+                .verticalScroll(rememberScrollState()),
     ) {
         RoomCoverPreviewCard(
             roomName = roomName,
@@ -115,7 +121,7 @@ private fun RoomCoverEditor(
         )
 
         HorizontalDivider(
-            modifier = modifier.padding(top = 32.dp),
+            modifier = Modifier.padding(top = 32.dp),
             thickness = 8.dp,
             color = ChallaTheme.colors.backgroundLevel2,
         )
