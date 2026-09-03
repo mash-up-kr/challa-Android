@@ -2,6 +2,7 @@ package com.happyhouse.challa.data.network.dto.response
 
 import com.happyhouse.challa.domain.model.RoomCoverOptions
 import com.happyhouse.challa.domain.model.RoomCoverStickerOption
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -12,7 +13,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class GetRoomCoverOptionsResponse(
-    val room: Options,
+    @SerialName("room") val options: Options,
 ) {
     @Serializable
     data class Options(

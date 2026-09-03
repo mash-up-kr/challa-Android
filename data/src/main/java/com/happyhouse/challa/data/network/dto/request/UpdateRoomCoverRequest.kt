@@ -1,5 +1,6 @@
 package com.happyhouse.challa.data.network.dto.request
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,10 +9,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class UpdateRoomCoverRequest(
-    val room: Room,
+    @SerialName("room") val cover: Cover,
 ) {
     @Serializable
-    data class Room(
+    data class Cover(
         val coverImageUrl: String?,
         val coverStickerId: Long?,
         val coverStickerColorId: Long?,

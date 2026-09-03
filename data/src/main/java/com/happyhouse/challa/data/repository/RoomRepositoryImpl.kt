@@ -77,8 +77,8 @@ class RoomRepositoryImpl @Inject constructor(
                 roomId = roomId,
                 request =
                     UpdateRoomCoverRequest(
-                        room =
-                            UpdateRoomCoverRequest.Room(
+                        cover =
+                            UpdateRoomCoverRequest.Cover(
                                 coverImageUrl = cover.imageUrl,
                                 coverStickerId = cover.sticker?.id,
                                 coverStickerColorId = cover.sticker?.color?.id,
@@ -94,7 +94,7 @@ class RoomRepositoryImpl @Inject constructor(
     override suspend fun getRoomCoverOptions(): ChallaResult<RoomCoverOptions> =
         roomApi.getRoomCoverOptions().mapCatching { response ->
             check(response.success) { response.message }
-            requireNotNull(response.data) { "커버 옵션 응답 데이터가 비어 있습니다." }.room.toRoomCoverOptions()
+            requireNotNull(response.data) { "커버 옵션 응답 데이터가 비어 있습니다." }.options.toRoomCoverOptions()
         }
 
     override suspend fun getRoomUsers(roomId: Long): ChallaResult<List<RoomUser>> =
