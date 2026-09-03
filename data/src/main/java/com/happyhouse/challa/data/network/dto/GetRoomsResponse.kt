@@ -19,7 +19,7 @@ data class GetRoomsResponse(
         val totalPhotoCount: Int,
         val remainedPhotoCount: Int,
         val thumbnailImageUrls: List<String>,
-        val cover: RoomCoverResponse = RoomCoverResponse(),
+        val cover: RoomCoverResponse,
         val photoPrintCompletedAt: String? = null,
         val photoPrintCompletionCheckedAt: String? = null,
     )
