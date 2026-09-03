@@ -42,6 +42,9 @@ class RoomCoverViewModel @AssistedInject constructor(
     private var saveJob: Job? = null
     private var uploadJob: Job? = null
 
+    /** 마지막으로 보내야 할 커버. 저장을 기다리는 사이 선택이 또 바뀌었는지 이 값으로 가린다. */
+    private var latestCover: RoomCover? = null
+
     init {
         loadCover()
     }
@@ -60,6 +63,7 @@ class RoomCoverViewModel @AssistedInject constructor(
         // 다시 불러오는 동안 앞선 저장이 끝나면 savedCover와 새 화면 상태가 어긋난다.
         saveJob?.cancel()
         uploadJob?.cancel()
+        latestCover = null
 
         updateState { copy(content = RoomCoverState.Content.Loading) }
         viewModelScope.launch {
@@ -161,18 +165,28 @@ class RoomCoverViewModel @AssistedInject constructor(
         saveCover(next)
     }
 
-    /** 연달아 고르면 앞선 요청을 버리고 마지막 선택만 남긴다. */
+    /**
+     * 앞선 저장이 끝난 뒤에 보낸다. 이미 나간 요청은 취소해도 서버가 처리하므로,
+     * 순서를 맞추지 않으면 앞선 선택이 마지막 선택보다 늦게 도착해 서버에 남을 수 있다.
+     * 기다리는 사이 선택이 또 바뀌면 중간 요청은 보내지 않고 마지막 것만 보낸다.
+     */
     private fun saveCover(ready: RoomCoverState.Content.Ready) {
         val cover = ready.toRoomCover()
+        latestCover = cover
 
-        saveJob?.cancel()
+        val previousSave = saveJob
         saveJob =
             viewModelScope.launch {
+                previousSave?.join()
+                if (latestCover != cover) return@launch
+
                 roomRepository
                     .updateRoomCover(roomId = roomId, cover = cover)
                     .onSuccess { savedCover = cover }
                     .onFailure { failure ->
                         Timber.e(failure.causeOrNull(), "방 커버를 저장하지 못했습니다. roomId=$roomId")
+                        // 이어서 보낼 선택이 있으면 그 결과를 따른다. 여기서 되돌리면 최신 선택이 화면에서 사라진다.
+                        if (latestCover != cover) return@onFailure
                         restoreSavedCover()
                         sendEffect(RoomCoverSideEffect.CoverUpdateFailed)
                     }
