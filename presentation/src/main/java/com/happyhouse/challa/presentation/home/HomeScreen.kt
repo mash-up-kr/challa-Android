@@ -397,7 +397,7 @@ private fun HomeShootingCard(
                 .noRippleClickOnce(role = Role.Button, onClick = onClick),
     ) {
         RoomCoverBackground(
-            cover = room.cover,
+            cover = room.displayCover,
             modifier = Modifier.fillMaxSize(),
         )
         Box(
@@ -1043,6 +1043,7 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             participantCount = 1,
             takenCount = 24,
             cover = RoomCoverUiModel(),
+            firstPhotoImageUrl = null,
         ),
         RoomUiModel.Shooting(
             id = 2L,
@@ -1050,6 +1051,7 @@ private fun previewRooms(): ImmutableList<RoomUiModel> =
             participantCount = 4,
             takenCount = 12,
             cover = RoomCoverUiModel(),
+            firstPhotoImageUrl = null,
         ),
         RoomUiModel.Completed(
             id = 3L,

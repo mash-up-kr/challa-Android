@@ -22,7 +22,15 @@ sealed interface RoomUiModel {
         override val participantCount: Int,
         val takenCount: Int,
         val cover: RoomCoverUiModel,
-    ) : RoomUiModel
+        val firstPhotoImageUrl: String?,
+    ) : RoomUiModel {
+        /**
+         * 카드에 그릴 커버. 배경을 따로 지정하지 않은 방은 찍어둔 첫 사진을 대신 깐다.
+         * [cover]가 아니라 이 값을 그려야 커버를 지웠을 때도 첫 사진으로 되돌아간다.
+         */
+        val displayCover: RoomCoverUiModel
+            get() = cover.copy(imageUrl = cover.imageUrl ?: firstPhotoImageUrl)
+    }
 
     /** 촬영 완료 — 인화 상태와 필름 미리보기 표기 */
     @Immutable
@@ -68,6 +76,7 @@ fun Room.toUiModel(): RoomUiModel? =
                 // "촬영한 사진 수" = 전체 장수 - 남은 장수
                 takenCount = (totalPhotoCount - remainedPhotoCount).coerceAtLeast(0),
                 cover = cover.toCoverUiModel(),
+                firstPhotoImageUrl = thumbnailImageUrls.firstOrNull(),
             )
 
         RoomStatus.PHOTO_PRINT_PENDING,
