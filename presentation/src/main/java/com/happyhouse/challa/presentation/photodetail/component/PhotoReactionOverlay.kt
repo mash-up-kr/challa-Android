@@ -1,6 +1,5 @@
 package com.happyhouse.challa.presentation.photodetail.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -11,13 +10,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
+import com.happyhouse.challa.presentation.reaction.ReactionEmojiSticker
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.math.roundToInt
@@ -123,7 +122,7 @@ fun PhotoReactionOverlay(
                         )
                     }
 
-                ReactionSticker(
+                ReactionEmojiSticker(
                     modifier =
                         Modifier
                             .size(stickerSize)
@@ -134,18 +133,6 @@ fun PhotoReactionOverlay(
             }
         }
     }
-}
-
-@Composable
-private fun ReactionSticker(
-    emoji: ReactionEmoji,
-    modifier: Modifier = Modifier,
-) {
-    Image(
-        modifier = modifier,
-        painter = painterResource(id = emoji.stickerDrawableRes),
-        contentDescription = null,
-    )
 }
 
 /**

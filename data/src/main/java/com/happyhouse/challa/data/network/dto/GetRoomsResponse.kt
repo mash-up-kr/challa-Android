@@ -2,6 +2,7 @@ package com.happyhouse.challa.data.network.dto
 
 import com.happyhouse.challa.data.network.dto.response.RoomCoverResponse
 import com.happyhouse.challa.data.network.dto.response.toRoomCover
+import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
 import kotlinx.serialization.Serializable
@@ -35,6 +36,6 @@ fun GetRoomsResponse.Room.toDomain(): Room =
         remainedPhotoCount = remainedPhotoCount,
         thumbnailImageUrls = thumbnailImageUrls,
         cover = cover.toRoomCover(),
-        photoPrintCompletedAt = photoPrintCompletedAt,
+        photoPrintCompletedAt = photoPrintCompletedAt?.parseServerInstant(),
         photoPrintCompletionCheckedAt = photoPrintCompletionCheckedAt,
     )

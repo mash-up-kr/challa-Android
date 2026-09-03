@@ -66,6 +66,23 @@ internal fun stompSubscribeFrame(roomId: Long): String =
         append(STOMP_FRAME_TERMINATOR)
     }
 
+/** [roomId]의 채팅 destination을 구독하는 `SUBSCRIBE` frame을 만든다. */
+internal fun stompChatSubscribeFrame(roomId: Long): String =
+    buildString {
+        val subscriptionId = stompChatSubscriptionId(roomId)
+
+        appendLine("SUBSCRIBE")
+        appendLine("id:$subscriptionId")
+        appendLine("destination:/topic/room/$roomId/chat")
+        appendLine("ack:auto")
+        appendLine("receipt:$subscriptionId")
+        appendLine()
+        append(STOMP_FRAME_TERMINATOR)
+    }
+
+/** 채팅 구독의 `id`와 `receipt`에 사용할 `room-{roomId}-chat` 식별자를 반환한다. */
+internal fun stompChatSubscriptionId(roomId: Long): String = "room-$roomId-chat"
+
 /** 방 참여 이벤트 구독의 `id`와 `receipt`에 사용할 `room-{roomId}-member-joined` 식별자를 반환한다. */
 internal fun stompMemberJoinedSubscriptionId(roomId: Long): String = "room-$roomId-member-joined"
 

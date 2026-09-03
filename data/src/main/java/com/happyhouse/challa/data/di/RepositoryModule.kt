@@ -39,11 +39,11 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindPhotoRepository(impl: PhotoRepositoryImpl): PhotoRepository
+    abstract fun bindChatRepository(impl: ChatRepositoryImpl): ChatRepository
 
     @Binds
     @Singleton
-    abstract fun bindChatRepository(impl: ChatRepositoryImpl): ChatRepository
+    abstract fun bindPhotoRepository(impl: PhotoRepositoryImpl): PhotoRepository
 
     @Binds
     @Singleton

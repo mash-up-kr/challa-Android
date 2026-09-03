@@ -258,7 +258,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         emoji: ReactionEmoji,
     ) {
         chatRepository
-            .sendPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
+            .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIds += chatId
                 // 재조회가 실패해도 같은 이모지를 다시 누르면 취소로 이어지도록 먼저 잡아둔다.
@@ -276,7 +276,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         chatId: Long,
     ) {
         chatRepository
-            .deletePhotoReaction(chatId)
+            .removePhotoReaction(chatId)
             .onSuccess {
                 myChatIds -= chatId
                 // 지운 반응이 남아 있으면 다시 눌렀을 때 없는 chatId로 취소를 시도한다.
@@ -363,7 +363,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 chatRepository
-                    .sendPhotoMessage(roomId = roomId, photoId = photo.id, message = message)
+                    .sendPhotoComment(roomId = roomId, photoId = photo.id, message = message)
                     .onSuccess { updateState { copy(messageInput = "") } }
                     .onFailure { failure ->
                         // 메시지 본문은 개인정보라 로그에 남기지 않는다.

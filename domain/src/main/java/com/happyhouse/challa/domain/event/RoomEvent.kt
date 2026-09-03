@@ -22,9 +22,4 @@ sealed interface RoomEvent {
         override val roomId: Long,
         val cover: RoomCover,
     ) : RoomEvent
-
-    /** 인화 완료를 확인했다고 서버에 기록됐다. */
-    data class PhotoPrintCompletionCheck(
-        override val roomId: Long,
-    ) : RoomEvent
 }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -80,7 +79,11 @@ fun PhotoReactionBurst(
             progress.snapTo(0f)
             progress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = REACTION_BURST_DURATION_MILLIS.toInt(), easing = LinearEasing),
+                animationSpec =
+                    tween(
+                        durationMillis = REACTION_BURST_DURATION_MILLIS.toInt(),
+                        easing = LinearEasing,
+                    ),
             )
         }
 
@@ -95,14 +98,24 @@ fun PhotoReactionBurst(
                         .size(particleSize)
                         .offset {
                             val distance =
-                                MIN_SPREAD + (particle.spread - MIN_SPREAD) * easeOut(particle.progressAt(progress.value))
+                                MIN_SPREAD + (particle.spread - MIN_SPREAD) *
+                                    easeOut(
+                                        particle.progressAt(
+                                            progress.value,
+                                        ),
+                                    )
                             IntOffset(
                                 x = (centerX + cos(particle.angleRadians).toFloat() * distance * widthPx).roundToInt(),
                                 y = (centerY + sin(particle.angleRadians).toFloat() * distance * heightPx).roundToInt(),
                             )
-                        }.graphicsLayer {
+                        }
+                        .graphicsLayer {
                             val particleProgress = particle.progressAt(progress.value)
-                            val particleScale = PARTICLE_START_SCALE + (1f - PARTICLE_START_SCALE) * easeOut(particleProgress)
+                            val particleScale =
+                                PARTICLE_START_SCALE + (1f - PARTICLE_START_SCALE) *
+                                    easeOut(
+                                        particleProgress,
+                                    )
 
                             scaleX = particleScale
                             scaleY = particleScale
@@ -155,7 +168,12 @@ private fun PhotoReactionBurstPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, widthDp = 358, heightDp = 477, name = "PhotoReactionBurst - 없음")
+@ComposePreview(
+    showBackground = true,
+    widthDp = 358,
+    heightDp = 477,
+    name = "PhotoReactionBurst - 없음",
+)
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoReactionBurstEmptyPreview() {
