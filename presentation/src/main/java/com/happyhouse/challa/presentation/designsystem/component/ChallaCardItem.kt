@@ -63,9 +63,7 @@ sealed interface ChallaCardType {
 
 enum class ChallaCardBorder {
     DEFAULT,
-
     DASHED,
-
     PRIMARY,
 }
 
@@ -175,24 +173,30 @@ private fun CardBorder(
     ) { displayedBorder ->
         Box(
             modifier =
-                Modifier.fillMaxSize().then(
-                    when (displayedBorder) {
-                        ChallaCardBorder.DASHED ->
-                            Modifier.dashedRoundedBorder(
-                                color = ChallaTheme.colors.lineNormal,
-                                cornerRadius = CardCornerRadius,
-                                strokeWidth = CardBorderWidth,
-                                dashLength = CardDashLength,
-                                gapLength = CardDashLength,
-                            )
+                Modifier
+                    .fillMaxSize()
+                    .then(
+                        when (displayedBorder) {
+                            ChallaCardBorder.DASHED ->
+                                Modifier.dashedRoundedBorder(
+                                    color = ChallaTheme.colors.lineNormal,
+                                    cornerRadius = CardCornerRadius,
+                                    strokeWidth = CardBorderWidth,
+                                    dashLength = CardDashLength,
+                                    gapLength = CardDashLength,
+                                )
 
-                        ChallaCardBorder.PRIMARY ->
-                            Modifier.border(2.dp, ChallaTheme.colors.primary, CardShape)
+                            ChallaCardBorder.PRIMARY ->
+                                Modifier.border(2.dp, ChallaTheme.colors.primary, CardShape)
 
-                        ChallaCardBorder.DEFAULT ->
-                            Modifier.border(CardBorderWidth, ChallaTheme.colors.lineNeutral, CardShape)
-                    },
-                ),
+                            ChallaCardBorder.DEFAULT ->
+                                Modifier.border(
+                                    CardBorderWidth,
+                                    ChallaTheme.colors.lineNeutral,
+                                    CardShape,
+                                )
+                        },
+                    ),
         )
     }
 }

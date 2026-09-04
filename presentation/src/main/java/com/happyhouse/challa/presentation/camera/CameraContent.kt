@@ -22,7 +22,6 @@ import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraState
-import com.happyhouse.challa.presentation.camera.filter.CubeLut
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.permission.CameraPermissionOverlay
@@ -60,7 +59,6 @@ internal fun CameraContent(
     val selectedRoom = state.selectedRoom
     val isRoomLoaded = state.roomLoadState == CameraRoomLoadState.LOADED && selectedRoom != null
     val remainingCount = selectedRoom?.remainingCount ?: 0
-    var previewLut by remember { mutableStateOf<CubeLut.Data?>(null) }
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
 
@@ -148,11 +146,10 @@ internal fun CameraContent(
                         isFlashEnabled = state.isFlashEnabled,
                         zoomLevel = state.zoomLevel,
                         filters = state.cameraFilters,
-                        selectedFilter = state.selectedFilter,
+                        selectedFilter = captureRequest?.selectedFilter ?: state.selectedFilter,
                         captureRequestId = captureRequest?.requestId.takeIf { state.capturedImage == null },
                         getCameraFilterFile = getCameraFilterFile,
                         onStateChanged = { cameraSessionState = it },
-                        onPreviewLutChanged = { previewLut = it },
                         onEvent = { event ->
                             when (event) {
                                 CameraSessionEvent.BindingFailed -> {
@@ -205,8 +202,6 @@ internal fun CameraContent(
         state.capturedImage?.let { image ->
             CameraCaptureTransition(
                 image = image,
-                lut = previewLut.takeIf { cameraSessionState.previewFilter == captureRequest?.selectedFilter },
-                isFilterReady = cameraSessionState.previewFilter == captureRequest?.selectedFilter,
                 onAnimationFinished = onCaptureAnimationFinished,
                 modifier = Modifier.fillMaxSize(),
             )

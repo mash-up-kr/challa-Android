@@ -42,12 +42,13 @@ import timber.log.Timber
  * PreviewView의 핀치 줌은 사용하지 않으며, 촬영 플래시와 [zoomLevel]만 Controller API로 적용합니다.
  * Android 13 이상에서는 서버가 제공한 모든 LUT를 미리 내려받고 [selectedFilter]를 프리뷰에 적용합니다.
  * LUT가 준비되지 않았거나 로드에 실패하면 색상 효과를 적용하지 않습니다. 실패한 제어 요청은 기록합니다.
- * 새로운 [captureRequestId]가 전달되면 이미지를 메모리로 촬영하고 즉시 닫은 뒤 처리 결과를 [CameraSessionEvent.CaptureCompleted]로 전달합니다.
+ * 새로운 [captureRequestId]가 전달되면 이미지를 메모리로 촬영하고 선택한 LUT를 JPEG에 적용한 뒤
+ * [CameraSessionEvent.CaptureCompleted]로 전달합니다. 이미지 처리가 끝나면 ImageProxy를 닫습니다.
  * Composable이 Composition에서 제거되면 Controller를 해제하고 진행 중인 촬영 코루틴을 취소합니다.
  *
  * @param captureRequestId 현재 세션에서 처리할 촬영 요청 식별자. 값이 바뀔 때마다 새 요청으로
  * 처리하며, 호출자는 결과를 받은 뒤 요청 식별자를 제거해야 합니다.
- * @param selectedFilter 프리뷰에 적용할 필터
+ * @param selectedFilter 프리뷰와 촬영 JPEG에 적용할 필터. 촬영 중에는 요청 시점의 필터를 유지합니다.
  * @param onStateChanged 바인딩·촬영 상태가 바뀐 때 최신 [CameraSessionState]를 전달하는 콜백
  * @param onEvent 바인딩 실패와 촬영 시작·완료처럼 한 번만 소비할 [CameraSessionEvent]를 전달하는 콜백
  */
@@ -62,7 +63,6 @@ internal fun CameraSession(
     captureRequestId: Long?,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onStateChanged: (CameraSessionState) -> Unit,
-    onPreviewLutChanged: (CubeLut.Data?) -> Unit,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
@@ -141,7 +141,6 @@ internal fun CameraSession(
 
     LaunchedEffect(previewView, selectedFilter, selectedLut) {
         previewView.applyCameraFilter(selectedFilter, selectedLut)
-        onPreviewLutChanged(selectedLut)
         sessionState = sessionState.copy(previewFilter = previewFilter)
         currentOnStateChanged(sessionState)
     }
@@ -259,6 +258,12 @@ internal fun CameraSession(
         currentOnStateChanged(sessionState)
         val result =
             try {
+                val captureLut =
+                    if (selectedFilter is CameraFilterUiModel.Remote) {
+                        checkNotNull(selectedLut) { "촬영 필터가 준비되지 않았습니다." }
+                    } else {
+                        null
+                    }
                 val imageBytes =
                     cameraController
                         .takePicture(
@@ -268,7 +273,7 @@ internal fun CameraSession(
                                     CameraSessionEvent.CaptureStarted(requestId),
                                 )
                             },
-                        ).let { image -> capturedImageProcessor.process(image) }
+                        ).let { image -> capturedImageProcessor.process(image, captureLut) }
                 CameraCaptureResult.Success(imageBytes)
             } catch (cancellationException: CancellationException) {
                 currentOnEvent(

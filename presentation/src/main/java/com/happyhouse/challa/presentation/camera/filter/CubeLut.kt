@@ -10,6 +10,8 @@ import android.graphics.Shader
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Immutable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /**
  * `.cube` 3D LUT를 RuntimeShader가 샘플링할 수 있는 2D 비트맵으로 변환합니다.
@@ -27,6 +29,69 @@ internal object CubeLut {
     ) {
         private val bitmap = Bitmap.createBitmap(pixels, size * size, size, Bitmap.Config.ARGB_8888)
         private val colorMatrix = fallbackColorMatrix.copyOf()
+
+        /** 촬영 비트맵의 RGB를 프리뷰 셰이더와 같은 삼선형 보간으로 변환합니다. */
+        suspend fun applyTo(image: Bitmap) {
+            val size = bitmap.height
+            val samples = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(samples, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            val row = IntArray(image.width)
+            for (y in 0 until image.height) {
+                currentCoroutineContext().ensureActive()
+                image.getPixels(row, 0, image.width, 0, y, image.width, 1)
+                for (x in row.indices) {
+                    val color = row[x]
+                    val red = Color.red(color) * (size - 1) / 255f
+                    val green = Color.green(color) * (size - 1) / 255f
+                    val blue = Color.blue(color) * (size - 1) / 255f
+                    val r0 = red.toInt()
+                    val g0 = green.toInt()
+                    val b0 = blue.toInt()
+                    val r1 = (r0 + 1).coerceAtMost(size - 1)
+                    val g1 = (g0 + 1).coerceAtMost(size - 1)
+                    val b1 = (b0 + 1).coerceAtMost(size - 1)
+
+                    fun sample(
+                        r: Int,
+                        g: Int,
+                        b: Int,
+                    ): Int = samples[g * size * size + b * size + r]
+                    val c000 = sample(r0, g0, b0)
+                    val c100 = sample(r1, g0, b0)
+                    val c010 = sample(r0, g1, b0)
+                    val c110 = sample(r1, g1, b0)
+                    val c001 = sample(r0, g0, b1)
+                    val c101 = sample(r1, g0, b1)
+                    val c011 = sample(r0, g1, b1)
+                    val c111 = sample(r1, g1, b1)
+
+                    fun channel(shift: Int): Int {
+                        fun component(value: Int): Float = ((value shr shift) and 255).toFloat()
+
+                        fun mix(
+                            a: Float,
+                            b: Float,
+                            fraction: Float,
+                        ): Float = a + (b - a) * fraction
+                        val low =
+                            mix(
+                                mix(component(c000), component(c100), red - r0),
+                                mix(component(c010), component(c110), red - r0),
+                                green - g0,
+                            )
+                        val high =
+                            mix(
+                                mix(component(c001), component(c101), red - r0),
+                                mix(component(c011), component(c111), red - r0),
+                                green - g0,
+                            )
+                        return (mix(low, high, blue - b0) + 0.5f).toInt().coerceIn(0, 255)
+                    }
+                    row[x] = Color.rgb(channel(16), channel(8), channel(0))
+                }
+                image.setPixels(row, 0, image.width, 0, y, image.width, 1)
+            }
+        }
 
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)
         fun createRenderEffect(): RenderEffect = createLutRenderEffect(bitmap)
