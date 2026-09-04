@@ -142,6 +142,7 @@ fun ChallaNavHost(
                 entryProvider {
                     entry<ChallaRoute.Camera> { route ->
                         CameraRoute(
+                            onCloseClick = { navigator.goBack() },
                             roomId = route.roomId,
                         )
                     }

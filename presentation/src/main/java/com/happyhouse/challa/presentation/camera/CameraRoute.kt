@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CameraRoute(
     roomId: Long,
+    onCloseClick: () -> Unit,
     viewModel: CameraViewModel =
         hiltViewModel<CameraViewModel, CameraViewModel.Factory>(
             creationCallback = { factory ->
@@ -184,5 +185,6 @@ fun CameraRoute(
         onSelectedFilterLutLoadFailed = viewModel::onSelectedFilterLutLoadFailed,
         getCameraFilterFile = viewModel::getCameraFilterFile,
         onIntent = viewModel::onIntent,
+        onCloseClick = onCloseClick,
     )
 }

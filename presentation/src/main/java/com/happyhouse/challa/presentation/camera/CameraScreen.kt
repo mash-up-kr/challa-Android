@@ -29,6 +29,7 @@ fun CameraScreen(
     onSelectedFilterLutLoadFailed: (fileUrl: String) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
+    onCloseClick: () -> Unit,
 ) {
     val cameraBackgroundColor = ChallaTheme.colors.staticBlack.copy(alpha = 0.9f)
 
@@ -54,6 +55,7 @@ fun CameraScreen(
                 onSelectedFilterLutLoadFailed = onSelectedFilterLutLoadFailed,
                 getCameraFilterFile = getCameraFilterFile,
                 onIntent = onIntent,
+                onCloseClick = onCloseClick,
             )
         }
 

@@ -8,19 +8,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.onboarding.CameraOnboardingOverlay
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -32,7 +40,6 @@ internal val CameraControlsTopSpacing = 20.dp
 
 @Composable
 internal fun CameraContentLayout(
-    roomName: String,
     remainingCount: Int,
     totalCount: Int,
     isRoomLoaded: Boolean,
@@ -50,11 +57,12 @@ internal fun CameraContentLayout(
     onShutterClick: () -> Unit,
     onZoomClick: () -> Unit,
     onFilterClick: (Int) -> Unit,
-    onRoomInfoClick: () -> Unit,
+    onCloseClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
     val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
+    val isFilterSelectorVisible = isFilterSelectorReady && !isOnboardingVisible
 
     Box(modifier = modifier) {
         Column(
@@ -101,12 +109,22 @@ internal fun CameraContentLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            if (isRoomLoaded) {
+                CameraRoomInfo(
+                    modifier = Modifier.alpha(if (isOnboardingVisible) 0f else 1f),
+                    remainingCount = remainingCount,
+                    totalCount = totalCount,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             CameraFilterSelector(
                 modifier =
                     Modifier
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                         .then(
-                            if (isFilterSelectorReady) {
+                            if (isFilterSelectorVisible) {
                                 Modifier
                             } else {
                                 Modifier
@@ -116,18 +134,20 @@ internal fun CameraContentLayout(
                         ),
                 filters = filters,
                 selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
+                onFilterClick = if (isFilterSelectorVisible) onFilterClick else { _ -> },
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            if (isRoomLoaded) {
-                CameraRoomInfo(
-                    roomName = roomName,
-                    remainingCount = remainingCount,
-                    totalCount = totalCount,
-                    onClick = onRoomInfoClick,
-                    modifier = Modifier.padding(bottom = 40.dp),
+            Box(
+                modifier = Modifier.size(52.dp).noRippleClickOnce(role = Role.Button, onClick = onCloseClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_close),
+                    contentDescription = stringResource(R.string.camera_close_button),
+                    modifier = Modifier.size(24.dp),
+                    tint = ChallaTheme.colors.labelNeutral,
                 )
             }
         }
@@ -144,7 +164,6 @@ internal fun CameraContentLayout(
 private fun CameraContentLayoutPreview() {
     CameraContentLayout(
         modifier = Modifier.fillMaxSize(),
-        roomName = "해피하우스강릉여행",
         remainingCount = 6,
         totalCount = ROOM_REQUIRED_PHOTO_COUNT,
         isRoomLoaded = true,
@@ -162,7 +181,7 @@ private fun CameraContentLayoutPreview() {
         onShutterClick = {},
         onZoomClick = {},
         onFilterClick = {},
-        onRoomInfoClick = {},
+        onCloseClick = {},
         viewFinder = {},
     )
 }
@@ -173,7 +192,6 @@ private fun CameraContentLayoutPreview() {
 private fun CameraContentLimitReachedPreview() {
     CameraContentLayout(
         modifier = Modifier.fillMaxSize(),
-        roomName = "방이름방이름방이름3",
         remainingCount = 0,
         totalCount = 48,
         isRoomLoaded = true,
@@ -191,7 +209,7 @@ private fun CameraContentLimitReachedPreview() {
         onShutterClick = {},
         onZoomClick = {},
         onFilterClick = {},
-        onRoomInfoClick = {},
+        onCloseClick = {},
         viewFinder = {},
     )
 }
