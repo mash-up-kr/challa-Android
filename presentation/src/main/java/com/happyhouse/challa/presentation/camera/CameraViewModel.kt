@@ -250,7 +250,7 @@ class CameraViewModel @AssistedInject constructor(
 
         if (currentState.capturedImage != null) return
         val capturedImage = CapturedImage(imageBytes)
-        updateState { copy(capturedImage = capturedImage, isPhotoSaved = false, savedImageUrl = null) }
+        updateState { copy(capturedImage = capturedImage, savedImageUrl = null) }
 
         viewModelScope.launch {
             val imageUrl =
@@ -279,7 +279,7 @@ class CameraViewModel @AssistedInject constructor(
     fun onPhotoCaptureFailed(requestId: Long) {
         if (currentState.captureRequest?.requestId != requestId) return
 
-        updateState { copy(captureRequest = null, capturedImage = null, isPhotoSaved = false, savedImageUrl = null) }
+        updateState { copy(captureRequest = null, capturedImage = null, savedImageUrl = null) }
         viewModelScope.launch {
             sendEffect(CameraSideEffect.PhotoCaptureFailed)
         }
@@ -293,7 +293,6 @@ class CameraViewModel @AssistedInject constructor(
 
         updateState {
             copy(
-                isPhotoSaved = true,
                 savedImageUrl = imageUrl,
                 rooms =
                     rooms
@@ -310,7 +309,7 @@ class CameraViewModel @AssistedInject constructor(
 
     private suspend fun handlePhotoCreateFailure(result: ChallaResult.Failure) {
         Timber.e("사진 업로드 또는 생성에 실패했습니다: %s", result)
-        updateState { copy(captureRequest = null, capturedImage = null, isPhotoSaved = false, savedImageUrl = null) }
+        updateState { copy(captureRequest = null, capturedImage = null, savedImageUrl = null) }
         sendEffect(CameraSideEffect.PhotoCaptureFailed)
     }
 
@@ -318,7 +317,7 @@ class CameraViewModel @AssistedInject constructor(
     fun onPhotoCaptureCancelled(requestId: Long) {
         if (currentState.captureRequest?.requestId != requestId) return
 
-        updateState { copy(captureRequest = null, capturedImage = null, isPhotoSaved = false, savedImageUrl = null) }
+        updateState { copy(captureRequest = null, capturedImage = null, savedImageUrl = null) }
     }
 
     private fun handleZoomClick() {

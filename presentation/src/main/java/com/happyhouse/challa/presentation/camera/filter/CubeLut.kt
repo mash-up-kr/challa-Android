@@ -30,8 +30,12 @@ internal object CubeLut {
         private val bitmap = Bitmap.createBitmap(pixels, size * size, size, Bitmap.Config.ARGB_8888)
         private val colorMatrix = fallbackColorMatrix.copyOf()
 
-        /** 촬영 비트맵의 RGB를 프리뷰 셰이더와 같은 삼선형 보간으로 변환합니다. */
+        /**
+         * 촬영 비트맵에 프리뷰와 같은 필터 계산 방식을 적용합니다.
+         * Android 13 이상은 삼선형 LUT 보간, Android 12 이하는 ColorMatrix 근사를 사용합니다.
+         */
         suspend fun applyTo(image: Bitmap) {
+            val usesColorMatrix = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
             val size = bitmap.height
             val samples = IntArray(bitmap.width * bitmap.height)
             bitmap.getPixels(samples, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
@@ -41,6 +45,10 @@ internal object CubeLut {
                 image.getPixels(row, 0, image.width, 0, y, image.width, 1)
                 for (x in row.indices) {
                     val color = row[x]
+                    if (usesColorMatrix) {
+                        row[x] = applyColorMatrix(color)
+                        continue
+                    }
                     val red = Color.red(color) * (size - 1) / 255f
                     val green = Color.green(color) * (size - 1) / 255f
                     val blue = Color.blue(color) * (size - 1) / 255f
@@ -97,6 +105,25 @@ internal object CubeLut {
         fun createRenderEffect(): RenderEffect = createLutRenderEffect(bitmap)
 
         fun createColorFilter(): ColorMatrixColorFilter = ColorMatrixColorFilter(colorMatrix)
+
+        private fun applyColorMatrix(color: Int): Int {
+            val red = Color.red(color)
+            val green = Color.green(color)
+            val blue = Color.blue(color)
+            val alpha = Color.alpha(color)
+
+            fun channel(offset: Int): Int {
+                val value =
+                    colorMatrix[offset] * red +
+                        colorMatrix[offset + 1] * green +
+                        colorMatrix[offset + 2] * blue +
+                        colorMatrix[offset + 3] * alpha +
+                        colorMatrix[offset + 4]
+                return (value.coerceIn(0f, 255f) + 0.5f).toInt()
+            }
+
+            return Color.argb(channel(15), channel(0), channel(5), channel(10))
+        }
     }
 
     /**

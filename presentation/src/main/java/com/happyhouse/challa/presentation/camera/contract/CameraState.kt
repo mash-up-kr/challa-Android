@@ -20,7 +20,7 @@ import kotlinx.collections.immutable.persistentListOf
  * 촬영 결과를 받기 전이나 실패·취소 시에는 null입니다.
  * @property isPhotoSaved 이미지 업로드와 사진 등록 API가 모두 성공했는지 여부.
  * Route는 이 값과 해당 요청의 애니메이션 완료 여부를 함께 확인해 Gallery로 이동합니다.
- * @property savedImageUrl 저장된 사진을 Gallery에서 식별하기 위한 업로드 URL
+ * @property savedImageUrl 업로드와 사진 등록이 모두 성공한 사진의 URL. 완료 전이나 실패·취소 시에는 null입니다.
  * @property isFilterSelectorReady 필터 목록 요청이 끝나 선택 UI를 표시할 수 있는지 여부
  * @property selectedFilterIndex [cameraFilters]에서 선택한 필터의 인덱스
  * @property isCapturePending 촬영·저장·화면 전환 중인 요청이 있어 추가 촬영을 막아야 하는지 여부
@@ -35,7 +35,6 @@ data class CameraState(
     val isFlashEnabled: Boolean = false,
     val captureRequest: PhotoCaptureRequest? = null,
     val capturedImage: CapturedImage? = null,
-    val isPhotoSaved: Boolean = false,
     val savedImageUrl: String? = null,
     val zoomLevel: Float = 1f,
     val isFilterSelectorReady: Boolean = false,
@@ -44,6 +43,9 @@ data class CameraState(
         persistentListOf(CameraFilterUiModel.Original),
     val rooms: ImmutableList<CameraRoomUiModel> = persistentListOf(),
 ) : UiState {
+    val isPhotoSaved: Boolean
+        get() = savedImageUrl != null
+
     val isCapturePending: Boolean
         get() = captureRequest != null
 

@@ -95,14 +95,6 @@ internal fun CameraContent(
         }
     }
 
-    LaunchedEffect(state.capturedImage, cameraSessionState.failedFilterUrls) {
-        val filter = captureRequest?.selectedFilter as? CameraFilterUiModel.Remote
-        if (state.capturedImage != null && filter?.fileUrl in cameraSessionState.failedFilterUrls) {
-            // 화면 재생성 후 LUT 재로딩 실패가 이미 저장한 사진의 Gallery 이동을 막지 않게 한다.
-            onCaptureAnimationFinished()
-        }
-    }
-
     Box(modifier = modifier) {
         CameraContentLayout(
             modifier =

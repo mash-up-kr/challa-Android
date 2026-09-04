@@ -14,7 +14,8 @@ import java.io.ByteArrayOutputStream
  * CameraX가 촬영한 JPEG 이미지를 업로드 가능한 바이트 배열로 변환합니다.
  *
  * [process]가 [ImageProxy]의 소유권을 넘겨받아 항상 닫습니다. ImageCapture의 기본 출력인
- * JPEG만 허용하며, 선택한 LUT를 픽셀에 적용한 뒤 회전 방향을 반영해 JPEG로 인코딩합니다.
+ * JPEG만 허용하며, 선택한 필터를 프리뷰와 같은 계산 방식으로 픽셀에 적용한 뒤
+ * 회전 방향을 반영해 JPEG로 인코딩합니다.
  * 필터가 없으면 재인코딩 없이 원본 JPEG와 메타데이터를 유지합니다.
  */
 internal class CapturedImageProcessor {

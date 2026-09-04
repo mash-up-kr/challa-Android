@@ -61,96 +61,94 @@ internal fun CameraContentLayout(
 ) {
     val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
 
-    Box(modifier = modifier) {
-        Column(
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .then(
+                    if (isOnboardingVisible) {
+                        Modifier.clearAndSetSemantics {}
+                    } else {
+                        Modifier
+                    },
+                ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CameraBezel(
+            isPhotoLimitReached =
+                isRoomLoaded &&
+                    remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
+            isShutterEffectVisible = isShutterEffectVisible,
+            zoomLevel = zoomLevel,
+            onZoomClick = onZoomClick,
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (isOnboardingVisible) {
-                            Modifier.clearAndSetSemantics {}
-                        } else {
-                            Modifier
-                        },
-                    ),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                    .padding(
+                        start = CameraBezelHorizontalPadding,
+                        top = CameraBezelTopPadding,
+                        end = CameraBezelHorizontalPadding,
+                    ).fillMaxWidth()
+                    .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
+            viewFinder = viewFinder,
+        )
+
+        Spacer(modifier = Modifier.height(CameraControlsTopSpacing))
+
+        CameraControls(
+            isFlashEnabled = isFlashEnabled,
+            isCameraSwitchEnabled = isCameraSwitchEnabled,
+            shutterEnabled = shutterEnabled,
+            onFlashClick = onFlashClick,
+            onSwitchCameraClick = onSwitchCameraClick,
+            onShutterClick = onShutterClick,
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        if (!isOnboardingVisible) {
+            if (isRoomLoaded) {
+                CameraRemainingCount(
+                    remainingCount = remainingCount,
+                    totalCount = totalCount,
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            CameraFilterSelector(
+                modifier =
+                    Modifier
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                        .then(
+                            if (isFilterSelectorReady) {
+                                Modifier
+                            } else {
+                                Modifier
+                                    .alpha(0f)
+                                    .clearAndSetSemantics {}
+                            },
+                        ),
+                filters = filters,
+                selectedFilterIndex = selectedFilterIndex,
+                onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Box(
+            modifier =
+                Modifier
+                    .size(52.dp)
+                    .noRippleClickOnce(role = Role.Button, onClick = onCloseClick),
+            contentAlignment = Alignment.Center,
         ) {
-            CameraBezel(
-                isPhotoLimitReached =
-                    isRoomLoaded &&
-                        remainingCaptureStatus == RemainingCaptureStatus.UNAVAILABLE,
-                isShutterEffectVisible = isShutterEffectVisible,
-                zoomLevel = zoomLevel,
-                onZoomClick = onZoomClick,
-                modifier =
-                    Modifier
-                        .padding(
-                            start = CameraBezelHorizontalPadding,
-                            top = CameraBezelTopPadding,
-                            end = CameraBezelHorizontalPadding,
-                        ).fillMaxWidth()
-                        .aspectRatio(CAMERA_BEZEL_ASPECT_RATIO),
-                viewFinder = viewFinder,
+            Icon(
+                painter = painterResource(R.drawable.ic_close),
+                contentDescription = stringResource(R.string.camera_close_button),
+                modifier = Modifier.size(24.dp),
+                tint = ChallaTheme.colors.labelNeutral,
             )
-
-            Spacer(modifier = Modifier.height(CameraControlsTopSpacing))
-
-            CameraControls(
-                isFlashEnabled = isFlashEnabled,
-                isCameraSwitchEnabled = isCameraSwitchEnabled,
-                shutterEnabled = shutterEnabled,
-                onFlashClick = onFlashClick,
-                onSwitchCameraClick = onSwitchCameraClick,
-                onShutterClick = onShutterClick,
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            if (!isOnboardingVisible) {
-                if (isRoomLoaded) {
-                    CameraRemainingCount(
-                        remainingCount = remainingCount,
-                        totalCount = totalCount,
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-
-                CameraFilterSelector(
-                    modifier =
-                        Modifier
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                            .then(
-                                if (isFilterSelectorReady) {
-                                    Modifier
-                                } else {
-                                    Modifier
-                                        .alpha(0f)
-                                        .clearAndSetSemantics {}
-                                },
-                            ),
-                    filters = filters,
-                    selectedFilterIndex = selectedFilterIndex,
-                    onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Box(
-                modifier =
-                    Modifier
-                        .size(52.dp)
-                        .noRippleClickOnce(role = Role.Button, onClick = onCloseClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_close),
-                    contentDescription = stringResource(R.string.camera_close_button),
-                    modifier = Modifier.size(24.dp),
-                    tint = ChallaTheme.colors.labelNeutral,
-                )
-            }
         }
     }
 }
