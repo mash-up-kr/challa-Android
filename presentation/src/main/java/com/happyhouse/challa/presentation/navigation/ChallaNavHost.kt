@@ -142,6 +142,14 @@ fun ChallaNavHost(
                 entryProvider {
                     entry<ChallaRoute.Camera> { route ->
                         CameraRoute(
+                            onPhotoSaved = { roomId ->
+                                val previous = navigator.backStack.getOrNull(navigator.backStack.lastIndex - 1)
+                                if (previous is ChallaRoute.Gallery && previous.roomId == roomId) {
+                                    navigator.goBack()
+                                } else {
+                                    navigator.replace(ChallaRoute.Gallery(roomId = roomId))
+                                }
+                            },
                             onCloseClick = { navigator.goBack() },
                             roomId = route.roomId,
                         )

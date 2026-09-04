@@ -15,6 +15,7 @@ import com.happyhouse.challa.presentation.camera.contract.CameraState
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.CameraLensFacing
 import com.happyhouse.challa.presentation.camera.model.CameraRoomUiModel
+import com.happyhouse.challa.presentation.camera.model.CapturedImage
 import com.happyhouse.challa.presentation.camera.model.PhotoCaptureRequest
 import com.happyhouse.challa.presentation.camera.model.remainingCaptureStatus
 import com.happyhouse.challa.presentation.camera.model.toUiModel
@@ -247,6 +248,10 @@ class CameraViewModel @AssistedInject constructor(
         val captureRequest =
             currentState.captureRequest?.takeIf { it.requestId == requestId } ?: return
 
+        if (currentState.capturedImage != null) return
+        val capturedImage = CapturedImage(imageBytes)
+        updateState { copy(capturedImage = capturedImage, isPhotoSaved = false) }
+
         viewModelScope.launch {
             val imageUrl =
                 when (val result = imageUploadRepository.uploadPhoto(imageBytes)) {
@@ -274,7 +279,7 @@ class CameraViewModel @AssistedInject constructor(
     fun onPhotoCaptureFailed(requestId: Long) {
         if (currentState.captureRequest?.requestId != requestId) return
 
-        updateState { copy(captureRequest = null) }
+        updateState { copy(captureRequest = null, capturedImage = null, isPhotoSaved = false) }
         viewModelScope.launch {
             sendEffect(CameraSideEffect.PhotoCaptureFailed)
         }
@@ -285,7 +290,7 @@ class CameraViewModel @AssistedInject constructor(
 
         updateState {
             copy(
-                captureRequest = null,
+                isPhotoSaved = true,
                 rooms =
                     rooms
                         .map { room ->
@@ -301,7 +306,7 @@ class CameraViewModel @AssistedInject constructor(
 
     private suspend fun handlePhotoCreateFailure(result: ChallaResult.Failure) {
         Timber.e("사진 업로드 또는 생성에 실패했습니다: %s", result)
-        updateState { copy(captureRequest = null) }
+        updateState { copy(captureRequest = null, capturedImage = null, isPhotoSaved = false) }
         sendEffect(CameraSideEffect.PhotoCaptureFailed)
     }
 
@@ -309,7 +314,7 @@ class CameraViewModel @AssistedInject constructor(
     fun onPhotoCaptureCancelled(requestId: Long) {
         if (currentState.captureRequest?.requestId != requestId) return
 
-        updateState { copy(captureRequest = null) }
+        updateState { copy(captureRequest = null, capturedImage = null, isPhotoSaved = false) }
     }
 
     private fun handleZoomClick() {

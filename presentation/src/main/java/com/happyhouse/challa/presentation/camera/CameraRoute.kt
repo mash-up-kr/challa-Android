@@ -5,8 +5,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,6 +31,7 @@ import kotlinx.coroutines.launch
 fun CameraRoute(
     roomId: Long,
     onCloseClick: () -> Unit,
+    onPhotoSaved: (Long) -> Unit,
     viewModel: CameraViewModel =
         hiltViewModel<CameraViewModel, CameraViewModel.Factory>(
             creationCallback = { factory ->
@@ -42,6 +46,15 @@ fun CameraRoute(
     val coroutineScope = rememberCoroutineScope()
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
+    var animatedRequestId by remember { mutableStateOf<Long?>(null) }
+
+    LaunchedEffect(state.value.isPhotoSaved, animatedRequestId) {
+        val request = state.value.captureRequest ?: return@LaunchedEffect
+        if (state.value.isPhotoSaved && animatedRequestId == request.requestId) {
+            onPhotoSaved(request.roomId)
+        }
+    }
+
     val roomLoadFailedMessage = stringResource(R.string.camera_room_load_failed_message)
     val filterListLoadFailedMessage = stringResource(R.string.camera_filter_list_load_failed_message)
     val filterLoadFailedMessage = stringResource(R.string.camera_filter_load_failed_message)
@@ -181,5 +194,6 @@ fun CameraRoute(
         getCameraFilterFile = viewModel::getCameraFilterFile,
         onIntent = viewModel::onIntent,
         onCloseClick = onCloseClick,
+        onCaptureAnimationFinished = { animatedRequestId = state.value.captureRequest?.requestId },
     )
 }

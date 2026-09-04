@@ -62,6 +62,7 @@ internal fun CameraSession(
     captureRequestId: Long?,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onStateChanged: (CameraSessionState) -> Unit,
+    onPreviewLutChanged: (CubeLut.Data?) -> Unit,
     onEvent: (CameraSessionEvent) -> Unit,
 ) {
     val context = LocalContext.current
@@ -140,6 +141,7 @@ internal fun CameraSession(
 
     LaunchedEffect(previewView, selectedFilter, selectedLut) {
         previewView.applyCameraFilter(selectedFilter, selectedLut)
+        onPreviewLutChanged(selectedLut)
         sessionState = sessionState.copy(previewFilter = previewFilter)
         currentOnStateChanged(sessionState)
     }

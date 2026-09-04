@@ -72,7 +72,7 @@ fun GalleryRoute(
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (shouldRefreshAfterCamera.value) {
             shouldRefreshAfterCamera.value = false
-            viewModel.onIntent(GalleryIntent.PhotosLoad)
+            viewModel.onIntent(GalleryIntent.PhotosRefresh)
         }
     }
 

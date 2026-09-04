@@ -106,6 +106,7 @@ class GalleryViewModel @AssistedInject constructor(
     override fun onIntent(intent: GalleryIntent) {
         when (intent) {
             GalleryIntent.PhotosLoad -> handlePhotosLoad()
+            GalleryIntent.PhotosRefresh -> handlePhotosLoad(showLoading = false)
             GalleryIntent.PhotosLoadMore -> handlePhotosLoadMore()
             GalleryIntent.MembersRefresh -> loadMembers()
             is GalleryIntent.PhotoClick -> handlePhotoClick(intent.photoId)
