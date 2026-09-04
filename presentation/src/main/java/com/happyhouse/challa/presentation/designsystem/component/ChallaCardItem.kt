@@ -1,5 +1,7 @@
 package com.happyhouse.challa.presentation.designsystem.component
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -38,7 +40,6 @@ private val CardShape = RoundedCornerShape(CardCornerRadius)
 private val CardBorderWidth = 1.dp
 private val CardDashLength = 4.dp
 
-/** 디자인 시스템 Card Item 타입. (`더보기`는 아직 쓰는 화면이 없어 제외) */
 @Immutable
 sealed interface ChallaCardType {
     /** 촬영 전 */
@@ -60,12 +61,24 @@ sealed interface ChallaCardType {
     ) : ChallaCardType
 }
 
+enum class ChallaCardBorder {
+    DEFAULT,
+
+    DASHED,
+
+    PRIMARY,
+}
+
 /**
  * 필름 그리드의 카드 1칸. 인화 상태에 따라 빈 칸 / 흐린 사진 / 공개된 사진을 그린다.
  *
  * @param contentDescription 번호와 이미지가 따로 읽히지 않도록 카드 전체를 대신 읽어줄 문구.
  *  카드는 항상 순서 번호를 그리므로 읽어줄 문구가 없는 경우가 없어 필수로 받는다.
  * @param onClick 넘기지 않으면 클릭 영역을 두지 않는다.
+ * @param border DEFAULT는 [type]에 따른 테두리를 사용하고, 나머지 값은 이를 덮어쓴다.
+ * 테두리 변경 시 사진은 유지하고 테두리만 1초 동안 교차 페이드한다.
+ * @param onImageLoadFinished 이미지 로딩이 성공하거나 실패했을 때 호출한다.
+ * 이미지가 없는 카드에는 호출하지 않으며, 이미지 요청이 다시 실행되면 재호출될 수 있다.
  */
 @Composable
 fun ChallaCardItem(
@@ -75,6 +88,8 @@ fun ChallaCardItem(
     modifier: Modifier = Modifier,
     onClickLabel: String? = null,
     onClick: (() -> Unit)? = null,
+    border: ChallaCardBorder = ChallaCardBorder.DEFAULT,
+    onImageLoadFinished: () -> Unit = {},
 ) {
     Box(
         modifier =
@@ -82,30 +97,10 @@ fun ChallaCardItem(
                 // 번호가 따로 읽히지 않도록 카드 전체를 한 덩어리로 읽힌다.
                 .semantics(mergeDescendants = true) {
                     this.contentDescription = contentDescription
-                }.aspectRatio(CARD_ASPECT_RATIO)
+                }
+                .aspectRatio(CARD_ASPECT_RATIO)
                 .clip(CardShape)
                 .then(
-                    when (type) {
-                        ChallaCardType.NotCaptured ->
-                            Modifier.dashedRoundedBorder(
-                                color = ChallaTheme.colors.lineNormal,
-                                cornerRadius = CardCornerRadius,
-                                // 옆칸 카드의 실선과 굵기를 맞춘다.
-                                strokeWidth = CardBorderWidth,
-                                dashLength = CardDashLength,
-                                gapLength = CardDashLength,
-                            )
-
-                        is ChallaCardType.PrintWaiting,
-                        is ChallaCardType.Printed,
-                        ->
-                            Modifier.border(
-                                width = CardBorderWidth,
-                                color = ChallaTheme.colors.lineNeutral,
-                                shape = CardShape,
-                            )
-                    },
-                ).then(
                     if (onClick == null) {
                         Modifier
                     } else {
@@ -122,11 +117,20 @@ fun ChallaCardItem(
 
             is ChallaCardType.PrintWaiting -> {
                 type.imageUrl?.let { imageUrl ->
-                    CardImage(imageUrl = imageUrl, blurred = true)
+                    CardImage(
+                        imageUrl = imageUrl,
+                        blurred = true,
+                        onLoadFinished = onImageLoadFinished,
+                    )
                 }
             }
 
-            is ChallaCardType.Printed -> CardImage(imageUrl = type.imageUrl, blurred = false)
+            is ChallaCardType.Printed ->
+                CardImage(
+                    imageUrl = type.imageUrl,
+                    blurred = false,
+                    onLoadFinished = onImageLoadFinished,
+                )
         }
 
         Text(
@@ -145,6 +149,51 @@ fun ChallaCardItem(
                 },
             style = ChallaTheme.typography.bodyLarge.bold,
         )
+
+        CardBorder(
+            border =
+                if (border == ChallaCardBorder.DEFAULT && type == ChallaCardType.NotCaptured) {
+                    ChallaCardBorder.DASHED
+                } else {
+                    border
+                },
+            modifier = Modifier.matchParentSize(),
+        )
+    }
+}
+
+@Composable
+private fun CardBorder(
+    border: ChallaCardBorder,
+    modifier: Modifier = Modifier,
+) {
+    Crossfade(
+        targetState = border,
+        modifier = modifier,
+        animationSpec = tween(durationMillis = 1000),
+        label = "CardBorder",
+    ) { displayedBorder ->
+        Box(
+            modifier =
+                Modifier.fillMaxSize().then(
+                    when (displayedBorder) {
+                        ChallaCardBorder.DASHED ->
+                            Modifier.dashedRoundedBorder(
+                                color = ChallaTheme.colors.lineNormal,
+                                cornerRadius = CardCornerRadius,
+                                strokeWidth = CardBorderWidth,
+                                dashLength = CardDashLength,
+                                gapLength = CardDashLength,
+                            )
+
+                        ChallaCardBorder.PRIMARY ->
+                            Modifier.border(2.dp, ChallaTheme.colors.primary, CardShape)
+
+                        ChallaCardBorder.DEFAULT ->
+                            Modifier.border(CardBorderWidth, ChallaTheme.colors.lineNeutral, CardShape)
+                    },
+                ),
+        )
     }
 }
 
@@ -152,6 +201,7 @@ fun ChallaCardItem(
 private fun CardImage(
     imageUrl: String,
     blurred: Boolean,
+    onLoadFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
@@ -165,10 +215,12 @@ private fun CardImage(
                 .build(),
         contentDescription = null,
         contentScale = ContentScale.Crop,
+        onSuccess = { onLoadFinished() },
+        onError = { onLoadFinished() },
     )
 }
 
-@ComposePreview(showBackground = true, name = "CardItem - 촬영 전")
+@ComposePreview(name = "CardItem - 촬영 전")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaCardItemNotCapturedPreview() {
@@ -180,7 +232,7 @@ private fun ChallaCardItemNotCapturedPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, name = "CardItem - 인화 대기")
+@ComposePreview(name = "CardItem - 인화 대기")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaCardItemPrintWaitingPreview() {
@@ -192,7 +244,7 @@ private fun ChallaCardItemPrintWaitingPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, name = "CardItem - 인화 대기(이미지 미수신)")
+@ComposePreview(name = "CardItem - 인화 대기(이미지 미수신)")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaCardItemPrintWaitingNoImagePreview() {
@@ -204,7 +256,7 @@ private fun ChallaCardItemPrintWaitingNoImagePreview() {
     )
 }
 
-@ComposePreview(showBackground = true, name = "CardItem - 인화 완료")
+@ComposePreview(name = "CardItem - 인화 완료")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun ChallaCardItemPrintedPreview() {

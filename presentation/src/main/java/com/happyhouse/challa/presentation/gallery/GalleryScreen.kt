@@ -55,6 +55,8 @@ fun GalleryScreen(
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
+    capturedPhotoUrl: String? = null,
+    onCaptureHighlightFinished: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -64,6 +66,8 @@ fun GalleryScreen(
                 .challaBackgroundGlow(),
     ) {
         GalleryScaffold(
+            capturedPhotoUrl = capturedPhotoUrl,
+            onCaptureHighlightFinished = onCaptureHighlightFinished,
             state = state,
             snackbarHostState = snackbarHostState,
             onIntent = onIntent,
@@ -84,6 +88,8 @@ private fun GalleryScaffold(
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
+    capturedPhotoUrl: String?,
+    onCaptureHighlightFinished: () -> Unit,
 ) {
     val bottomGradient = rememberGalleryBottomGradient()
 
@@ -131,6 +137,8 @@ private fun GalleryScaffold(
             var printsFilm by remember { mutableStateOf(false) }
 
             GalleryContent(
+                capturedPhotoUrl = capturedPhotoUrl,
+                onCaptureHighlightFinished = onCaptureHighlightFinished,
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 onIntent = onIntent,

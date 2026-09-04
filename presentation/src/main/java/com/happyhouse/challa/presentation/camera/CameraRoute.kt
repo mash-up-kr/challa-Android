@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 fun CameraRoute(
     roomId: Long,
     onCloseClick: () -> Unit,
-    onPhotoSaved: (Long) -> Unit,
+    onPhotoSaved: (roomId: Long, imageUrl: String) -> Unit,
     viewModel: CameraViewModel =
         hiltViewModel<CameraViewModel, CameraViewModel.Factory>(
             creationCallback = { factory ->
@@ -51,7 +51,8 @@ fun CameraRoute(
     LaunchedEffect(state.value.isPhotoSaved, animatedRequestId) {
         val request = state.value.captureRequest ?: return@LaunchedEffect
         if (state.value.isPhotoSaved && animatedRequestId == request.requestId) {
-            onPhotoSaved(request.roomId)
+            val imageUrl = state.value.savedImageUrl ?: return@LaunchedEffect
+            onPhotoSaved(request.roomId, imageUrl)
         }
     }
 
