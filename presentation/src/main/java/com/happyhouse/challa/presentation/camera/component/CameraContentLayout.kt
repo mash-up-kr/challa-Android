@@ -123,10 +123,8 @@ internal fun CameraContentLayout(
 
             if (isRoomLoaded && !isOnboardingVisible) {
                 CameraRoomInfo(
-                    roomName = roomName,
                     remainingCount = remainingCount,
                     totalCount = totalCount,
-                    onClick = onRoomInfoClick,
                     modifier = Modifier.padding(bottom = 40.dp),
                 )
             }

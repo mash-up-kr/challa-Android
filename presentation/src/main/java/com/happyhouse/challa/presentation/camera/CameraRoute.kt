@@ -14,11 +14,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
-import com.happyhouse.challa.presentation.camera.contract.CameraOnboardingState
-import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraSideEffect
-import com.happyhouse.challa.presentation.camera.onboarding.rememberCameraOnboardingVisibility
-import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
+import com.happyhouse.challa.presentation.camera.onboarding.rememberCameraOnboarding
 import com.happyhouse.challa.presentation.camera.permission.rememberCameraPermissionController
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
@@ -54,13 +51,11 @@ fun CameraRoute(
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
     val retryLabel = stringResource(R.string.camera_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
-    val shouldShowOnboarding =
-        state.value.onboardingState == CameraOnboardingState.REQUIRED &&
-            state.value.roomLoadState == CameraRoomLoadState.LOADED &&
-            permissionController.state == CameraPermissionState.Granted
     val isOnboardingVisible =
-        rememberCameraOnboardingVisibility(
-            shouldShow = shouldShowOnboarding,
+        rememberCameraOnboarding(
+            onboardingState = state.value.onboardingState,
+            roomLoadState = state.value.roomLoadState,
+            permissionState = permissionController.state,
             snackbarHostState = onboardingSnackbarHostState,
             onCompleted = { viewModel.onIntent(CameraIntent.OnboardingConfirmClick) },
         )
