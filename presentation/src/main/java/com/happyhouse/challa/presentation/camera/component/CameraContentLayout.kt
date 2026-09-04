@@ -8,27 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.component.room.CameraRoomInfo
 import com.happyhouse.challa.presentation.camera.model.CameraFilterUiModel
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
-import com.happyhouse.challa.presentation.camera.onboarding.CameraOnboardingOverlay
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
-import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.model.ROOM_REQUIRED_PHOTO_COUNT
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -62,7 +53,6 @@ internal fun CameraContentLayout(
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
     val remainingCaptureStatus = RemainingCaptureStatus.from(remainingCount)
-    val isFilterSelectorVisible = isFilterSelectorReady && !isOnboardingVisible
 
     Box(modifier = modifier) {
         Column(
@@ -109,51 +99,37 @@ internal fun CameraContentLayout(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (isRoomLoaded) {
-                CameraRoomInfo(
-                    modifier = Modifier.alpha(if (isOnboardingVisible) 0f else 1f),
-                    remainingCount = remainingCount,
-                    totalCount = totalCount,
+            if (!isOnboardingVisible) {
+                CameraFilterSelector(
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                            .then(
+                                if (isFilterSelectorReady) {
+                                    Modifier
+                                } else {
+                                    Modifier
+                                        .alpha(0f)
+                                        .clearAndSetSemantics {}
+                                },
+                            ),
+                    filters = filters,
+                    selectedFilterIndex = selectedFilterIndex,
+                    onFilterClick = if (isFilterSelectorReady) onFilterClick else { _ -> },
                 )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            CameraFilterSelector(
-                modifier =
-                    Modifier
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                        .then(
-                            if (isFilterSelectorVisible) {
-                                Modifier
-                            } else {
-                                Modifier
-                                    .alpha(0f)
-                                    .clearAndSetSemantics {}
-                            },
-                        ),
-                filters = filters,
-                selectedFilterIndex = selectedFilterIndex,
-                onFilterClick = if (isFilterSelectorVisible) onFilterClick else { _ -> },
-            )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Box(
-                modifier = Modifier.size(52.dp).noRippleClickOnce(role = Role.Button, onClick = onCloseClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_close),
-                    contentDescription = stringResource(R.string.camera_close_button),
-                    modifier = Modifier.size(24.dp),
-                    tint = ChallaTheme.colors.labelNeutral,
+            if (isRoomLoaded && !isOnboardingVisible) {
+                CameraRoomInfo(
+                    roomName = roomName,
+                    remainingCount = remainingCount,
+                    totalCount = totalCount,
+                    onClick = onRoomInfoClick,
+                    modifier = Modifier.padding(bottom = 40.dp),
                 )
             }
-        }
-
-        if (isOnboardingVisible) {
-            CameraOnboardingOverlay(modifier = Modifier.fillMaxSize())
         }
     }
 }

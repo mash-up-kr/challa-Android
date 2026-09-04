@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -17,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -40,6 +43,8 @@ import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState
 import com.happyhouse.challa.presentation.gallery.contract.GalleryState.PhotoInfo
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
+
+private val GalleryBottomActionHeight = 96.dp
 
 @Composable
 fun GalleryScreen(
@@ -80,10 +85,10 @@ private fun GalleryScaffold(
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
 ) {
+    val bottomGradient = rememberGalleryBottomGradient()
+
     ChallaScaffold(
-        // 배경과 글로우는 화면 루트에서 그린다.
         containerColor = Color.Transparent,
-        // 그리드가 시스템 바 밑까지 이어지도록 content에는 인셋을 주지 않는다.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             GalleryTopBar(
@@ -103,6 +108,12 @@ private fun GalleryScaffold(
             val film = state.photoInfo as? PhotoInfo.Film
             val waiting = film as? PhotoInfo.Waiting
             val printed = state.photoInfo is PhotoInfo.Printed
+            val bottomActionBackground =
+                if (film == null && !printed) {
+                    Modifier
+                } else {
+                    Modifier.background(bottomGradient)
+                }
 
             // 하단 바가 그리드 위에 떠 있으므로, 끝까지 스크롤했을 때 마지막 줄이 가리지 않도록
             // 실제로 차지하는 높이만큼 그리드 아래 여백을 준다.
@@ -128,8 +139,7 @@ private fun GalleryScaffold(
                 onPrintAnimationComplete = onPrintAnimationComplete,
             )
 
-            // 모든 바의 높이가 같아 어느 쪽이 재도 같은 값이다.
-            // 카운트다운으로 1초마다 재구성되므로 Modifier를 매번 새로 만들지 않는다.
+            // 하단 action 영역은 safe area를 포함한 전체 높이를 그리드 여백으로 사용한다.
             val measureBottomBar =
                 remember(density) {
                     Modifier.onSizeChanged { size ->
@@ -137,16 +147,22 @@ private fun GalleryScaffold(
                     }
                 }
 
-            // 디자인상 하단 바는 그리드를 밀지 않고 위에 떠 있다.
-            // 따로 두면 서로 교체될 때 크로스페이드되고, 사라지는 바가 남의 값을 그리지 않는다.
-            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+            Box(
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(GalleryBottomActionHeight)
+                        .then(measureBottomBar)
+                        .then(bottomActionBackground),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
                 AnimatedVisibility(
                     visible = film is PhotoInfo.Shooting,
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
                     GalleryShootBar(
-                        modifier = measureBottomBar,
                         onShootClick = { onIntent(GalleryIntent.ShootClick) },
                         onChatClick = { onIntent(GalleryIntent.ChatClick) },
                     )
@@ -158,8 +174,6 @@ private fun GalleryScaffold(
                     exit = fadeOut(),
                 ) {
                     GalleryCountdownBar(
-                        modifier = measureBottomBar,
-                        // 사라지는 동안에는 마지막으로 센 값이 없으므로 0으로 둔다.
                         remainingSeconds = waiting?.remainingSeconds ?: 0L,
                         onCountdownClick = { onIntent(GalleryIntent.PrintCountdownClick) },
                         onChatClick = { onIntent(GalleryIntent.ChatClick) },
@@ -173,7 +187,6 @@ private fun GalleryScaffold(
                     exit = fadeOut(),
                 ) {
                     GalleryPrintedBar(
-                        modifier = measureBottomBar,
                         onChatClick = { onIntent(GalleryIntent.ChatClick) },
                     )
                 }
@@ -212,20 +225,30 @@ private fun GalleryScaffold(
                 )
             }
 
-            // 토스트 표시 위치(topOffset)는 SideEffect를 띄우는 Route에서 지정한다.
             ChallaSnackbarHost(hostState = snackbarHostState)
         }
     }
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 촬영 중")
+@Composable
+private fun rememberGalleryBottomGradient(): Brush {
+    val black = ChallaTheme.colors.staticBlack
+
+    return remember(black) {
+        Brush.verticalGradient(
+            colors = listOf(black.copy(alpha = 0f), black),
+        )
+    }
+}
+
+@ComposePreview(name = "GalleryScreen - 촬영 중")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenShootingPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()))
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 인화 대기")
+@ComposePreview(name = "GalleryScreen - 인화 대기")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenWaitingPreview() {
@@ -238,7 +261,7 @@ private fun GalleryScreenWaitingPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 인화 완료")
+@ComposePreview(name = "GalleryScreen - 인화 완료")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenPrintedPreview() {
@@ -251,21 +274,21 @@ private fun GalleryScreenPrintedPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Loading")
+@ComposePreview(name = "GalleryScreen - Loading")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenLoadingPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Loading)
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - Error")
+@ComposePreview(name = "GalleryScreen - Error")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenErrorPreview() {
     GalleryScreenPreviewTemplate(photoInfo = PhotoInfo.Error)
 }
 
-@ComposePreview(showBackground = true, widthDp = 390, heightDp = 844, name = "GalleryScreen - 초대 메뉴 열림")
+@ComposePreview(name = "GalleryScreen - 초대 메뉴 열림")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryScreenInviteMenuPreview() {
