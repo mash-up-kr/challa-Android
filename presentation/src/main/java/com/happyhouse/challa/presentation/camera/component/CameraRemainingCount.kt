@@ -1,4 +1,4 @@
-package com.happyhouse.challa.presentation.camera.component.room
+package com.happyhouse.challa.presentation.camera.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -16,7 +16,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @Composable
-internal fun CameraRoomInfo(
+internal fun CameraRemainingCount(
     remainingCount: Int,
     totalCount: Int,
     modifier: Modifier = Modifier,
@@ -40,26 +40,26 @@ internal fun CameraRoomInfo(
 
 @ComposePreview(name = "6장 남음")
 @Composable
-private fun CameraRoomInfoPreview() {
-    CameraRoomInfoPreviewContent(remainingCount = 6)
+private fun CameraRemainingCountPreview() {
+    CameraRemainingCountPreviewContent(remainingCount = 6)
 }
 
 @ComposePreview(name = "5장 남음")
 @Composable
-private fun CameraRoomInfoLowRemainingPreview() {
-    CameraRoomInfoPreviewContent(remainingCount = 5)
+private fun CameraRemainingCountLowRemainingPreview() {
+    CameraRemainingCountPreviewContent(remainingCount = 5)
 }
 
 @ComposePreview(name = "0장 남음")
 @Composable
-private fun CameraRoomInfoEmptyPreview() {
-    CameraRoomInfoPreviewContent(remainingCount = 0)
+private fun CameraRemainingCountEmptyPreview() {
+    CameraRemainingCountPreviewContent(remainingCount = 0)
 }
 
 @Composable
-private fun CameraRoomInfoPreviewContent(remainingCount: Int) {
+private fun CameraRemainingCountPreviewContent(remainingCount: Int) {
     ChallaTheme {
-        CameraRoomInfo(
+        CameraRemainingCount(
             remainingCount = remainingCount,
             totalCount = 24,
             modifier = Modifier.padding(vertical = 8.dp),
