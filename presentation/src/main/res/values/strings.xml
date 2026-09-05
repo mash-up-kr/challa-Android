@@ -93,6 +93,19 @@
     <string name="edit_room_name_submit">변경</string>
     <string name="room_setting_room_name_update_failure">방 이름을 변경하지 못했어요.</string>
 
+    <!-- roomCoverScreen -->
+    <string name="room_cover_title">커버 이미지</string>
+    <string name="room_cover_back_description">방 설정으로 돌아가기</string>
+    <string name="room_cover_member_count_description">참여자 수</string>
+    <string name="room_cover_select_image_description">갤러리에서 배경 이미지 선택</string>
+    <string name="room_cover_remove_image_description">배경 이미지 제거</string>
+    <string name="room_cover_color">색상</string>
+    <string name="room_cover_sticker">스티커</string>
+    <string name="room_cover_load_failure">커버 정보를 불러오지 못했어요.</string>
+    <string name="room_cover_retry">다시 시도</string>
+    <string name="room_cover_update_failure">커버를 변경하지 못했어요.</string>
+    <string name="room_cover_image_upload_failure">배경 이미지를 올리지 못했어요.</string>
+
     <string name="room_member_joined_suffix">에 참여했어요.</string>
 
     <string name="app_name_kr">찰나</string>

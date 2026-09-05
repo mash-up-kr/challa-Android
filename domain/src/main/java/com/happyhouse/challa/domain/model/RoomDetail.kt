@@ -16,5 +16,6 @@ data class RoomDetail(
     val remainedPhotoCount: Int,
     val invitationCode: String,
     val status: RoomStatus,
+    val cover: RoomCover,
     val photoPrintCompletedAt: Instant?,
 )

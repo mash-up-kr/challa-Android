@@ -1,5 +1,7 @@
 package com.happyhouse.challa.data.network.dto
 
+import com.happyhouse.challa.data.network.dto.response.RoomCoverResponse
+import com.happyhouse.challa.data.network.dto.response.toRoomCover
 import com.happyhouse.challa.data.network.parseServerInstant
 import com.happyhouse.challa.domain.model.Room
 import com.happyhouse.challa.domain.model.RoomStatus
@@ -18,6 +20,7 @@ data class GetRoomsResponse(
         val totalPhotoCount: Int,
         val remainedPhotoCount: Int,
         val thumbnailImageUrls: List<String>,
+        val cover: RoomCoverResponse,
         val photoPrintCompletedAt: String? = null,
         val photoPrintCompletionCheckedAt: String? = null,
     )
@@ -32,6 +35,7 @@ fun GetRoomsResponse.Room.toDomain(): Room =
         totalPhotoCount = totalPhotoCount,
         remainedPhotoCount = remainedPhotoCount,
         thumbnailImageUrls = thumbnailImageUrls,
+        cover = cover.toRoomCover(),
         photoPrintCompletedAt = photoPrintCompletedAt?.parseServerInstant(),
         photoPrintCompletionCheckedAt = photoPrintCompletionCheckedAt,
     )

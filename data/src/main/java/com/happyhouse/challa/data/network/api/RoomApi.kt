@@ -6,7 +6,9 @@ import com.happyhouse.challa.data.network.dto.CreateRoomResponse
 import com.happyhouse.challa.data.network.dto.GetRoomsResponse
 import com.happyhouse.challa.data.network.dto.JoinRoomRequest
 import com.happyhouse.challa.data.network.dto.JoinRoomResponse
+import com.happyhouse.challa.data.network.dto.request.UpdateRoomCoverRequest
 import com.happyhouse.challa.data.network.dto.request.UpdateRoomTitleRequest
+import com.happyhouse.challa.data.network.dto.response.GetRoomCoverOptionsResponse
 import com.happyhouse.challa.data.network.dto.response.GetRoomResponse
 import com.happyhouse.challa.data.network.dto.response.GetRoomUsersResponse
 import com.happyhouse.challa.data.network.dto.response.ShootableRoomResponse
@@ -44,6 +46,15 @@ interface RoomApi {
         @Path("roomId") roomId: Long,
         @Body request: UpdateRoomTitleRequest,
     ): ChallaResult<BaseResponse<Unit>>
+
+    @PUT("api/v1/rooms/{roomId}/cover")
+    suspend fun putRoomCover(
+        @Path("roomId") roomId: Long,
+        @Body request: UpdateRoomCoverRequest,
+    ): ChallaResult<BaseResponse<Unit>>
+
+    @GET("api/v1/rooms/cover-options")
+    suspend fun getRoomCoverOptions(): ChallaResult<BaseResponse<GetRoomCoverOptionsResponse>>
 
     @GET("api/v1/rooms/shootable")
     suspend fun getShootableRooms(): ChallaResult<BaseResponse<ShootableRoomResponse>>
