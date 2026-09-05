@@ -8,7 +8,10 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.navigation.ChallaNavHost
 
 @Composable
-fun ChallaApp(viewModel: ChallaAppViewModel = hiltViewModel()) {
+fun ChallaApp(
+    onExitRequest: () -> Unit,
+    viewModel: ChallaAppViewModel = hiltViewModel(),
+) {
     val startRoute by viewModel.startRoute.collectAsState()
     val primaryTheme by viewModel.primaryTheme.collectAsState()
 
@@ -19,6 +22,7 @@ fun ChallaApp(viewModel: ChallaAppViewModel = hiltViewModel()) {
 
         ChallaNavHost(
             navigator = appState.navigator,
+            onExitRequest = onExitRequest,
         )
     }
 }

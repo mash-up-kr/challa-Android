@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,7 +27,9 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.PREVIEW_FILM_SLOT_COUNT
 import com.happyhouse.challa.presentation.gallery.PREVIEW_REMAINING_SECONDS
@@ -95,7 +96,7 @@ fun GalleryContent(
                 PhotoInfo.Loading -> {
                     GalleryCenterBox {
                         if (showsLoadingIndicator) {
-                            CircularProgressIndicator(color = ChallaTheme.colors.labelNormal)
+                            ChallaProgressIndicator()
                         }
                     }
                 }
@@ -191,22 +192,14 @@ private fun GalleryMessage(
     }
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    name = "Gallery - 촬영 중",
-)
+@ComposePreview(name = "Gallery - 촬영 중")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentShootingPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Shooting(slots = previewGalleryFilmSlots()))
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    name = "Gallery - 촬영 중(일부 촬영)",
-)
+@ComposePreview(name = "Gallery - 촬영 중(일부 촬영)")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentShootingPartlyCapturedPreview() {
@@ -215,11 +208,7 @@ private fun GalleryContentShootingPartlyCapturedPreview() {
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    name = "Gallery - 인화 대기",
-)
+@ComposePreview(name = "Gallery - 인화 대기")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentWaitingPreview() {
@@ -232,11 +221,7 @@ private fun GalleryContentWaitingPreview() {
     )
 }
 
-@ComposePreview(
-    showBackground = true,
-    widthDp = 390,
-    name = "Gallery - 인화 완료",
-)
+@ComposePreview(name = "Gallery - 인화 완료")
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun GalleryContentPrintedPreview() {
@@ -249,15 +234,15 @@ private fun GalleryContentPrintedPreview() {
     )
 }
 
-@ComposePreview(showBackground = true, name = "Gallery - Loading")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@ComposePreview(name = "Gallery - Loading")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryContentLoadingPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Loading)
 }
 
-@ComposePreview(showBackground = true, name = "Gallery - Error")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@ComposePreview(name = "Gallery - Error")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun GalleryContentErrorPreview() {
     GalleryContentPreviewTemplate(photoInfo = PhotoInfo.Error)

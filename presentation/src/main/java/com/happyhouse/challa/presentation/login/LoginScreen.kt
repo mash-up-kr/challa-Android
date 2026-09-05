@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
@@ -146,7 +146,7 @@ private fun KakaoLoginButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
+            ChallaProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 color = ChallaTheme.colors.staticBlack,
                 strokeWidth = 2.dp,
@@ -167,12 +167,22 @@ private fun KakaoLoginButton(
     }
 }
 
-@Preview(showBackground = true, name = "Login")
+@Preview(name = "Login")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
         state = LoginState(isLoading = false),
+        onLoginClick = {},
+    )
+}
+
+@Preview(name = "Login - Loading")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun LoginScreenLoadingPreview() {
+    LoginScreen(
+        state = LoginState(isLoading = true),
         onLoginClick = {},
     )
 }

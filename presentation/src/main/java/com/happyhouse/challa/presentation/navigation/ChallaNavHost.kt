@@ -1,5 +1,7 @@
 package com.happyhouse.challa.presentation.navigation
 
+import android.os.SystemClock
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
@@ -8,8 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -44,9 +49,12 @@ import com.happyhouse.challa.presentation.setting.notification.NotificationRoute
 import com.happyhouse.challa.presentation.setting.theme.ThemeRoute
 import kotlinx.coroutines.launch
 
+private const val EXIT_BACK_PRESS_TIMEOUT_MILLIS = 2_000L
+
 @Composable
 fun ChallaNavHost(
     navigator: ChallaNavigator,
+    onExitRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val memberJoinedObserverViewModel: RoomMemberJoinedObserverViewModel = hiltViewModel()
@@ -56,7 +64,34 @@ fun ChallaNavHost(
     val logoutSuccessMessage = stringResource(R.string.account_logout_success)
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
     val roomMemberJoinedSuffix = stringResource(R.string.room_member_joined_suffix)
+    val exitGuideMessage = stringResource(R.string.app_exit_guide)
     val currentRoute = navigator.currentRoute
+    var lastBackPressedAt by remember { mutableStateOf<Long?>(null) }
+
+    BackHandler(enabled = navigator.backStack.size == 1) {
+        val now = SystemClock.elapsedRealtime()
+        val shouldExit =
+            lastBackPressedAt?.let { lastPress ->
+                now - lastPress <= EXIT_BACK_PRESS_TIMEOUT_MILLIS
+            } == true
+
+        if (shouldExit) {
+            onExitRequest()
+        } else {
+            lastBackPressedAt = now
+            coroutineScope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar(
+                    ChallaSnackbarVisuals(
+                        content =
+                            ChallaSnackbarContent.HeadingOnly(
+                                heading = exitGuideMessage,
+                            ),
+                    ),
+                )
+            }
+        }
+    }
 
     LifecycleStartEffect(memberJoinedObserverViewModel) {
         memberJoinedObserverViewModel.startObserving()
@@ -67,6 +102,8 @@ fun ChallaNavHost(
     }
 
     LaunchedEffect(currentRoute) {
+        lastBackPressedAt = null
+
         when (currentRoute) {
             is ChallaRoute.RoomScoped -> memberJoinedObserverViewModel.addObservedRoom(currentRoute.roomId)
             ChallaRoute.Login,

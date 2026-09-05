@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,6 +48,7 @@ import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo.LoadMoreState
 import com.happyhouse.challa.presentation.chatting.model.ChatUiModel
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.reaction.ReactionEmojiSticker
@@ -66,21 +67,20 @@ fun ChatContent(
     onRetry: () -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
-    scaffoldPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     when (chatInfo) {
         ChatInfo.Loading -> {
             Box(
-                modifier = modifier.padding(scaffoldPadding),
+                modifier = modifier,
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(color = ChallaTheme.colors.primary)
+                ChallaProgressIndicator()
             }
         }
 
         ChatInfo.Error -> {
             ChatStatusMessage(
-                modifier = modifier.padding(scaffoldPadding),
+                modifier = modifier,
                 message = stringResource(R.string.chat_load_failure),
                 actionLabel = stringResource(R.string.chat_retry),
                 onAction = onRetry,
@@ -90,12 +90,12 @@ fun ChatContent(
         is ChatInfo.Loaded -> {
             if (chatInfo.chats.isEmpty()) {
                 ChatStatusMessage(
-                    modifier = modifier.padding(scaffoldPadding),
+                    modifier = modifier,
                     message = stringResource(R.string.chat_empty),
                 )
             } else {
                 ChatList(
-                    modifier = modifier.padding(scaffoldPadding),
+                    modifier = modifier,
                     loadedChatInfo = chatInfo,
                     onLoadMore = onLoadMore,
                 )
@@ -114,7 +114,7 @@ private fun ChatList(
     val listState = rememberLazyListState()
     val isImeVisible = WindowInsets.isImeVisible
     var hasCompletedInitialScroll by remember { mutableStateOf(false) }
-    var lastObservedChatId by remember { mutableStateOf(loadedChatInfo.chats.last().chatId) }
+    var lastObservedChatId by remember { mutableLongStateOf(loadedChatInfo.chats.last().chatId) }
     val statusItemIndexOffset = if (loadedChatInfo.loadMoreState == LoadMoreState.IDLE) 0 else 1
     val shouldLoadMore by
         remember(
@@ -197,10 +197,8 @@ private fun ChatList(
                                     .padding(vertical = 8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            CircularProgressIndicator(
+                            ChallaProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = ChallaTheme.colors.labelNormal,
-                                strokeWidth = 2.dp,
                             )
                         }
                     }
