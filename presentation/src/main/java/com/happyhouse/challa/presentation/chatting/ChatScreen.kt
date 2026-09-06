@@ -3,6 +3,7 @@ package com.happyhouse.challa.presentation.chatting
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -63,11 +64,10 @@ fun ChatScreen(
         },
     ) { innerPadding ->
         ChatContent(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
             chatInfo = state.chatInfo,
             onRetry = { onIntent(ChatIntent.ChatsLoad) },
             onLoadMore = { onIntent(ChatIntent.ChatsLoadMore) },
-            scaffoldPadding = innerPadding,
         )
     }
 }
@@ -92,7 +92,17 @@ private fun ChatScreenPreview() {
                                     chatId = 1L,
                                     userId = 1L,
                                     content = "강릉에 도착하면 바로 사진 찍으러 가자!",
-                                    createdAt = ZonedDateTime.of(2026, 8, 29, 20, 15, 0, 0, previewZoneId),
+                                    createdAt =
+                                        ZonedDateTime.of(
+                                            2026,
+                                            8,
+                                            29,
+                                            20,
+                                            15,
+                                            0,
+                                            0,
+                                            previewZoneId,
+                                        ),
                                     isMine = false,
                                     userName = "user1",
                                     userProfileImageUrl = null,
@@ -102,7 +112,17 @@ private fun ChatScreenPreview() {
                                     userId = 2L,
                                     content = "좋아! 바다부터 보고 숙소로 이동하자.",
                                     photoImageUrl = previewPhotoUrl,
-                                    createdAt = ZonedDateTime.of(2026, 8, 29, 20, 17, 0, 0, previewZoneId),
+                                    createdAt =
+                                        ZonedDateTime.of(
+                                            2026,
+                                            8,
+                                            29,
+                                            20,
+                                            17,
+                                            0,
+                                            0,
+                                            previewZoneId,
+                                        ),
                                     isMine = true,
                                     userName = "찰나",
                                     userProfileImageUrl = null,
@@ -112,7 +132,17 @@ private fun ChatScreenPreview() {
                                     userId = 3L,
                                     reactionEmoji = ReactionEmoji.FIRE,
                                     photoImageUrl = previewPhotoUrl,
-                                    createdAt = ZonedDateTime.of(2026, 8, 30, 9, 34, 0, 0, previewZoneId),
+                                    createdAt =
+                                        ZonedDateTime.of(
+                                            2026,
+                                            8,
+                                            30,
+                                            9,
+                                            34,
+                                            0,
+                                            0,
+                                            previewZoneId,
+                                        ),
                                     isMine = false,
                                     userName = "여름여행가자",
                                     userProfileImageUrl = null,

@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            ChallaApp()
+            ChallaApp(onExitRequest = ::finish)
         }
     }
 }
