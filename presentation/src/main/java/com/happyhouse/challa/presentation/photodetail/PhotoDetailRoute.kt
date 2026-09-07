@@ -49,7 +49,7 @@ fun PhotoDetailRoute(
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
     val retryLabel = stringResource(R.string.photo_detail_retry)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
-    val reactionCancelFailureMessage = stringResource(R.string.photo_detail_reaction_cancel_failure)
+    val stickerRemoveFailureMessage = stringResource(R.string.photo_detail_sticker_remove_failure)
     val reactionsLoadFailureMessage = stringResource(R.string.photo_detail_reactions_load_failure)
     val messageSendSuccessMessage = stringResource(R.string.photo_detail_message_send_success)
     val messageSendFailureMessage = stringResource(R.string.photo_detail_message_send_failure)
@@ -109,9 +109,9 @@ fun PhotoDetailRoute(
                             topOffset = ToastTopOffset,
                         )
 
-                    PhotoDetailSideEffect.ReactionCancelFailed ->
+                    PhotoDetailSideEffect.StickerRemoveFailed ->
                         ChallaToastVisuals(
-                            message = reactionCancelFailureMessage,
+                            message = stickerRemoveFailureMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,

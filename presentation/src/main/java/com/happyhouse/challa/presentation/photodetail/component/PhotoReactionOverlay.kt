@@ -132,7 +132,7 @@ fun PhotoReactionOverlay(
 
                 val removeLabel =
                     stringResource(
-                        R.string.photo_detail_reaction_remove_description,
+                        R.string.photo_detail_sticker_remove_description,
                         stringResource(reaction.emoji.labelRes),
                     )
 

@@ -57,7 +57,7 @@ data class PhotoDetailUiModel(
 /**
  * 사진 위에 붙는 스티커 하나.
  *
- * @param chatId 취소에 쓰고, 배치 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려진다.
+ * @param chatId 지울 때 쓰고, 배치 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려진다.
  * @param isMine 내가 남긴 스티커만 눌러서 지울 수 있다.
  */
 @Immutable

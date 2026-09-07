@@ -285,12 +285,12 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 loadReactions(photoId)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
-                sendEffect(PhotoDetailSideEffect.ReactionCancelFailed)
+                sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
             }
     }
 
     /**
-     * 남기거나 취소한 뒤에도 목록을 다시 받는다. 그 사이 다른 사람이 남긴 것까지 들어와야
+     * 남기거나 지운 뒤에도 목록을 다시 받는다. 그 사이 다른 사람이 남긴 것까지 들어와야
      * 스티커 주인 순서가 서버 기준과 어긋나지 않는다.
      *
      * 이모지를 연달아 누르면 한 사진에 조회가 겹쳐 도는데, 늦게 도착한 이전 응답이 최신 목록을
