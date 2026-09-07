@@ -208,8 +208,28 @@ class PhotoDetailViewModel @AssistedInject constructor(
             return
         }
 
+        // 요청을 기다리는 동안 스티커가 남아 있으면 다시 눌러도 아무 반응이 없다. 먼저 떼고 보낸다.
+        detachSticker(photoId = photo.id, chatId = reaction.chatId)
+
         viewModelScope.launch {
             myReactionMutex.withLock { removeReaction(photoId = photo.id, chatId = reaction.chatId) }
+        }
+    }
+
+    private fun detachSticker(
+        photoId: Long,
+        chatId: Long,
+    ) {
+        updateState {
+            val loaded =
+                photoInfo as? PhotoInfo.Loaded
+                    ?: run {
+                        Timber.w("사진 목록이 열려 있지 않아 스티커를 떼지 않았습니다: $photoInfo")
+                        return@updateState this
+                    }
+            val remaining = loaded.reactionsOf(photoId).filterNot { sticker -> sticker.chatId == chatId }.toPersistentList()
+
+            copy(photoInfo = loaded.copy(reactions = (loaded.reactions + (photoId to remaining)).toPersistentMap()))
         }
     }
 
@@ -276,6 +296,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
                 sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
+                // 떼어둔 스티커를 서버 기준으로 되돌린다.
+                loadReactions(photoId)
             }
     }
 
