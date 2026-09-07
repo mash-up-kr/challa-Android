@@ -265,11 +265,23 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIds += chatId
-                loadReactions(photo.id)
+                if (canBecomeSticker(photo.id)) loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
             }
+    }
+
+    /**
+     * 방금 남긴 반응이 스티커로 붙을 수 있는지.
+     *
+     * 스티커는 사람마다 먼저 남긴 하나씩 [MAX_STICKER_USER_COUNT]명까지라, 내 스티커가 이미 있거나
+     * 자리가 다 찼으면 몇 번을 더 보내도 스티커 목록이 그대로다. 그때는 재조회하지 않는다.
+     */
+    private fun canBecomeSticker(photoId: Long): Boolean {
+        val stickers = (currentState.photoInfo as? PhotoInfo.Loaded)?.reactionsOf(photoId) ?: return true
+
+        return stickers.none { sticker -> sticker.isMine } && stickers.size < MAX_STICKER_USER_COUNT
     }
 
     private suspend fun removeReaction(
