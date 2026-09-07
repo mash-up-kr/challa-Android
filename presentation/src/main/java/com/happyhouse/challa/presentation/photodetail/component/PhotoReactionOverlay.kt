@@ -10,13 +10,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.domain.model.ReactionEmoji
+import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
+import com.happyhouse.challa.presentation.designsystem.util.noRippleClickOnce
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.reaction.ReactionEmojiSticker
+import com.happyhouse.challa.presentation.reaction.labelRes
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.math.roundToInt
@@ -89,11 +94,14 @@ private data class StickerPlacement(
  *
  * 남긴 순서대로 자리 세트의 1 → 2 → 3번 자리를 채우고, 자리 안에서 위치와 각도를 흔든다.
  * 가장자리 자리는 사진 밖으로 밀어내 경계에 걸쳐 붙은 것처럼 보이게 한다.
+ *
+ * @param onStickerClick 내 스티커를 눌렀을 때. 남의 스티커는 눌리지 않는다.
  */
 @Composable
 fun PhotoReactionOverlay(
     photoId: Long,
     reactions: ImmutableList<PhotoReactionUiModel>,
+    onStickerClick: (PhotoReactionUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
@@ -122,12 +130,30 @@ fun PhotoReactionOverlay(
                         )
                     }
 
+                val removeLabel =
+                    stringResource(
+                        R.string.photo_detail_reaction_remove_description,
+                        stringResource(reaction.emoji.labelRes),
+                    )
+
                 ReactionEmojiSticker(
                     modifier =
                         Modifier
                             .size(stickerSize)
                             .offset { placement.offset }
-                            .rotate(placement.tiltDegrees),
+                            .rotate(placement.tiltDegrees)
+                            // 스티커는 테두리가 불규칙해 ripple이 모양 밖으로 번진다.
+                            .then(
+                                if (reaction.isMine) {
+                                    Modifier.noRippleClickOnce(
+                                        role = Role.Button,
+                                        onClickLabel = removeLabel,
+                                        onClick = { onStickerClick(reaction) },
+                                    )
+                                } else {
+                                    Modifier
+                                },
+                            ),
                     emoji = reaction.emoji,
                 )
             }
@@ -183,10 +209,11 @@ private fun PhotoReactionOverlayPreview() {
         photoId = 1L,
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.MEDAL),
-                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(chatId = 2L, emoji = ReactionEmoji.FIRE),
+                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.MEDAL, isMine = true),
+                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.HEART, isMine = false),
+                PhotoReactionUiModel(chatId = 2L, emoji = ReactionEmoji.FIRE, isMine = false),
             ),
+        onStickerClick = {},
     )
 }
 
@@ -204,10 +231,11 @@ private fun PhotoReactionOverlayOtherSlotSetPreview() {
         photoId = 2L,
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(chatId = 3L, emoji = ReactionEmoji.THINKING),
-                PhotoReactionUiModel(chatId = 4L, emoji = ReactionEmoji.SPARKLES),
-                PhotoReactionUiModel(chatId = 5L, emoji = ReactionEmoji.SKULL),
+                PhotoReactionUiModel(chatId = 3L, emoji = ReactionEmoji.THINKING, isMine = false),
+                PhotoReactionUiModel(chatId = 4L, emoji = ReactionEmoji.SPARKLES, isMine = false),
+                PhotoReactionUiModel(chatId = 5L, emoji = ReactionEmoji.SKULL, isMine = false),
             ),
+        onStickerClick = {},
     )
 }
 
@@ -224,5 +252,6 @@ private fun PhotoReactionOverlayEmptyPreview() {
         modifier = Modifier.fillMaxSize(),
         photoId = 1L,
         reactions = persistentListOf(),
+        onStickerClick = {},
     )
 }

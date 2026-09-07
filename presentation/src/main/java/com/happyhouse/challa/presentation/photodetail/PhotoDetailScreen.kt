@@ -27,6 +27,7 @@ import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBa
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -45,6 +46,7 @@ fun PhotoDetailScreen(
     onReactionsLoad: (PhotoDetailUiModel) -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
+    onStickerClick: (PhotoDetailUiModel, PhotoReactionUiModel) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
@@ -120,6 +122,7 @@ fun PhotoDetailScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
                     pagerState = pagerState,
+                    onStickerClick = onStickerClick,
                 )
 
                 // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
@@ -147,6 +150,7 @@ private fun PhotoDetailScreenPreview() {
         onReactionsLoad = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
+        onStickerClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},
@@ -169,6 +173,7 @@ private fun PhotoDetailScreenEmptyPreview() {
         onReactionsLoad = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
+        onStickerClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},

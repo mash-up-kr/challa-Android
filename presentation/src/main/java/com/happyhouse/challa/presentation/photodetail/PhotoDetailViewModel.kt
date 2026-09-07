@@ -73,6 +73,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 처리 중인 (사진, 이모지). 연타로 중복 요청이 나가지 않게 막는다. */
     private val reactingPhotoEmojis = mutableSetOf<Pair<Long, ReactionEmoji>>()
 
+    /** 지우는 중인 스티커. 연타로 같은 chatId에 삭제가 두 번 나가지 않게 막는다. */
+    private val removingChatIds = mutableSetOf<Long>()
+
     /** (사진, 이모지) → 내가 남긴 chatId. 취소할 때 쓴다. */
     private val myReactionChatIds = mutableMapOf<Pair<Long, ReactionEmoji>, Long>()
 
@@ -101,6 +104,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
             is PhotoDetailIntent.ReactionsLoad -> handleReactionsLoad(intent.photo)
             is PhotoDetailIntent.PhotoSave -> handlePhotoSave(intent.photo)
             is PhotoDetailIntent.ReactionClick -> handleReactionClick(intent.photo, intent.emoji)
+            is PhotoDetailIntent.StickerClick -> handleStickerClick(intent.photo, intent.reaction)
             is PhotoDetailIntent.MessageChange -> handleMessageChange(intent.message)
             is PhotoDetailIntent.MessageSend -> handleMessageSend(intent.photo)
         }
@@ -221,6 +225,27 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
+    /** 사진 위의 내 스티커를 눌러 지운다. 남의 스티커는 화면에서 눌리지 않는다. */
+    private fun handleStickerClick(
+        photo: PhotoDetailUiModel,
+        reaction: PhotoReactionUiModel,
+    ) {
+        if (!reaction.isMine) {
+            Timber.w("내 스티커가 아니라 지우지 않았습니다. photoId=${photo.id}, chatId=${reaction.chatId}")
+            return
+        }
+
+        if (!removingChatIds.add(reaction.chatId)) return
+
+        viewModelScope.launch {
+            try {
+                cancelReaction(photo = photo, emoji = reaction.emoji, chatId = reaction.chatId)
+            } finally {
+                removingChatIds -= reaction.chatId
+            }
+        }
+    }
+
     /**
      * 연출은 이모지를 고른 그 순간에만 재생한다.
      *
@@ -317,10 +342,15 @@ class PhotoDetailViewModel @AssistedInject constructor(
         val stickers =
             reactions
                 .toStickerReactions(limit = MAX_STICKER_USER_COUNT)
-                .map { reaction -> PhotoReactionUiModel(chatId = reaction.chatId, emoji = reaction.emoji) }
-                .toPersistentList()
+                .map { reaction ->
+                    PhotoReactionUiModel(
+                        chatId = reaction.chatId,
+                        emoji = reaction.emoji,
+                        isMine = reaction.isMine(),
+                    )
+                }.toPersistentList()
 
-        val myReactions = reactions.filter { it.userId == myUserId || it.chatId in myChatIds }
+        val myReactions = reactions.filter { reaction -> reaction.isMine() }
         val myEmojis = myReactions.mapTo(mutableSetOf()) { reaction -> reaction.emoji }.toPersistentSet()
 
         // 같은 이모지를 여러 번 남겼다면 가장 먼저 남긴 것이 남도록 뒤에서부터 덮어쓴다.
@@ -346,6 +376,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
             )
         }
     }
+
+    private fun PhotoReaction.isMine(): Boolean = userId == myUserId || chatId in myChatIds
 
     private fun handleMessageChange(message: String) {
         updateState { copy(messageInput = message) }

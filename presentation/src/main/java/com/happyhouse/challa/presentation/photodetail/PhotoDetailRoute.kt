@@ -151,6 +151,9 @@ fun PhotoDetailRoute(
         onReactionsLoad = { photo -> viewModel.onIntent(PhotoDetailIntent.ReactionsLoad(photo)) },
         onSaveClick = requestSave,
         onEmojiClick = { photo, emoji -> viewModel.onIntent(PhotoDetailIntent.ReactionClick(photo, emoji)) },
+        onStickerClick = { photo, reaction ->
+            viewModel.onIntent(PhotoDetailIntent.StickerClick(photo, reaction))
+        },
         onMessageChange = { message -> viewModel.onIntent(PhotoDetailIntent.MessageChange(message)) },
         onSendClick = { photo -> viewModel.onIntent(PhotoDetailIntent.MessageSend(photo)) },
         onBackClick = onBackClick,

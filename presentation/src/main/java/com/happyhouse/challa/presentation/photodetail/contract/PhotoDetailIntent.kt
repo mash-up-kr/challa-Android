@@ -21,6 +21,12 @@ sealed interface PhotoDetailIntent : UiIntent {
         val emoji: ReactionEmoji,
     ) : PhotoDetailIntent
 
+    /** 사진 위에 붙은 내 스티커를 눌러 지울 때 */
+    data class StickerClick(
+        val photo: PhotoDetailUiModel,
+        val reaction: PhotoReactionUiModel,
+    ) : PhotoDetailIntent
+
     data class MessageChange(
         val message: String,
     ) : PhotoDetailIntent
