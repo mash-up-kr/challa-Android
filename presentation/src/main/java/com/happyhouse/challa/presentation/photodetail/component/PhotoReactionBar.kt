@@ -107,10 +107,6 @@ fun PhotoReactionBar(
 /**
  * 걸쳐 보이는 폭이 항상 버튼의 [REACTION_BAR_PEEK_RATIO]가 되도록 항목 간격을 정한다.
  *
- * 버튼 크기와 간격을 둘 다 고정하면 걸치는 폭이 화면 폭에 휘둘린다.
- * 366dp처럼 항목이 딱 맞아떨어지는 폭에서는 아예 걸치지 않아 더 있다는 것이 보이지 않고,
- * 360dp에서는 6dp만 잘려 잘린 것인지 알아보기 어렵다.
- *
  * 꽉 차게 보일 개수는 간격이 [ReactionBarBaseItemSpacing]에 가장 가까워지는 값으로 고른다.
  * 어느 개수로도 [ReactionBarMinItemSpacing]을 못 지키는 좁은 화면에서는 하한을 쓰고 걸침을 포기한다.
  */

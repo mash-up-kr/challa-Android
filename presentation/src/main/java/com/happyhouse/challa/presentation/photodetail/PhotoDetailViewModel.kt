@@ -205,7 +205,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
         viewModelScope.launch { addReaction(photo = photo, emoji = emoji) }
     }
 
-    /** 사진 위의 내 스티커를 눌러 지운다. 남의 스티커는 화면에서 눌리지 않는다. */
     private fun handleStickerClick(
         photo: PhotoDetailUiModel,
         reaction: PhotoReactionUiModel,

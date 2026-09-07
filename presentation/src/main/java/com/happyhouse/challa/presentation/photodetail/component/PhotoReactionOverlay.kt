@@ -95,7 +95,7 @@ private data class StickerPlacement(
  * 남긴 순서대로 자리 세트의 1 → 2 → 3번 자리를 채우고, 자리 안에서 위치와 각도를 흔든다.
  * 가장자리 자리는 사진 밖으로 밀어내 경계에 걸쳐 붙은 것처럼 보이게 한다.
  *
- * @param onStickerClick 내 스티커를 눌렀을 때. 남의 스티커는 눌리지 않는다.
+ * @param onStickerClick 화면 위의 내 스티커를 눌렀을 때
  */
 @Composable
 fun PhotoReactionOverlay(
@@ -142,7 +142,6 @@ fun PhotoReactionOverlay(
                             .size(stickerSize)
                             .offset { placement.offset }
                             .rotate(placement.tiltDegrees)
-                            // 스티커는 테두리가 불규칙해 ripple이 모양 밖으로 번진다.
                             .then(
                                 if (reaction.isMine) {
                                     Modifier.noRippleClickOnce(

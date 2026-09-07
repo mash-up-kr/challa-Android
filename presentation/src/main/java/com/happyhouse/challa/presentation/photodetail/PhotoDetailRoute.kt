@@ -128,7 +128,6 @@ fun PhotoDetailRoute(
                     PhotoDetailSideEffect.MessageSendSucceeded ->
                         ChallaToastVisuals(
                             message = messageSendSuccessMessage,
-                            icon = ChallaIcons.Check,
                             topOffset = ToastTopOffset,
                         )
 
