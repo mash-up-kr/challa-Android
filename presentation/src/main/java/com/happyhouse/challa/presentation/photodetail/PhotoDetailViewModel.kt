@@ -108,16 +108,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
         reactionJobs[photo.id] =
             viewModelScope.launch {
-                if (myUserId == null) {
-                    userRepository
-                        .getMyProfile()
-                        .onSuccess { profile -> myUserId = profile.id }
-                        .onFailure { failure ->
-                            // 내 반응을 못 가려내면 링만 안 켜지고 목록은 그대로 보여준다.
-                            Timber.w(failure.causeOrNull(), "내 프로필을 불러오지 못해 내 반응을 표시하지 못합니다.")
-                        }
-                }
-
                 loadReactions(photo.id)
             }.also { job ->
                 // 사진을 넘길수록 끝난 Job이 쌓이지 않게 지운다.
@@ -307,6 +297,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
      * 덮어쓰면 방금 남긴 스티커가 사라진다. 그래서 마지막으로 보낸 요청의 응답만 반영한다.
      */
     private suspend fun loadReactions(photoId: Long) {
+        ensureMyUserId()
+
         val revision = (reactionRevisions[photoId] ?: 0) + 1
         reactionRevisions[photoId] = revision
 
@@ -345,6 +337,21 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
             copy(photoInfo = loaded.copy(reactions = (loaded.reactions + (photoId to stickers)).toPersistentMap()))
         }
+    }
+
+    /**
+     * 실패하면 그 사진에서는 이번 화면에서 남긴 것만 내 반응으로 잡혀 예전 스티커를 지울 수 없다.
+     * 반응을 다시 받을 때마다 재시도해 회복한다.
+     */
+    private suspend fun ensureMyUserId() {
+        if (myUserId != null) return
+
+        userRepository
+            .getMyProfile()
+            .onSuccess { profile -> myUserId = profile.id }
+            .onFailure { failure ->
+                Timber.w(failure.causeOrNull(), "내 프로필을 불러오지 못해 내 반응을 가려내지 못합니다.")
+            }
     }
 
     private fun PhotoReaction.isMine(): Boolean = userId == myUserId || chatId in myChatIds
