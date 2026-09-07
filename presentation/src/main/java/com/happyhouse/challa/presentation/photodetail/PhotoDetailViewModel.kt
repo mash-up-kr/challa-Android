@@ -33,9 +33,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -179,7 +176,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /** 인스타 스토리처럼 몇 번이든 다시 보낼 수 있고, 보낼 때마다 내 스티커가 방금 보낸 이모지로 바뀐다. */
+    /** 인스타 스토리처럼 몇 번이든 보낼 수 있다. 보낸 것은 채팅에 쌓이고, 스티커는 방금 보낸 이모지로 바뀐다. */
     private fun handleReactionClick(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
@@ -193,7 +190,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         // 연출은 서버 왕복을 기다리지 않고 누르는 즉시 재생한다. 실패하면 토스트로 따로 알린다.
         emitBurst(photoId = photo.id, emoji = emoji)
 
-        viewModelScope.launch { myReactionMutex.withLock { replaceMyReaction(photo = photo, emoji = emoji) } }
+        viewModelScope.launch { myReactionMutex.withLock { addReaction(photo = photo, emoji = emoji) } }
     }
 
     private fun handleStickerClick(
@@ -206,16 +203,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
 
         viewModelScope.launch {
-            myReactionMutex.withLock {
-                val chatIds = myChatIdsOf(photo.id).toList()
-                if (chatIds.isEmpty()) {
-                    Timber.w("이미 지워진 스티커라 다시 지우지 않았습니다. photoId=${photo.id}")
-                    return@withLock
-                }
-
-                if (!removeReactions(photo.id, chatIds)) sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
-                loadReactions(photo.id)
-            }
+            myReactionMutex.withLock { removeReaction(photoId = photo.id, chatId = reaction.chatId) }
         }
     }
 
@@ -251,25 +239,14 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * 새 반응을 남긴 뒤 이전 반응을 지운다.
-     *
-     * 스티커는 사람마다 먼저 남긴 하나뿐이라 이전 것이 남아 있으면 방금 보낸 이모지가 붙지 않는다.
-     * 지우기가 실패해도 새 반응은 남도록 남기기를 먼저 한다.
-     */
-    private suspend fun replaceMyReaction(
+    private suspend fun addReaction(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
     ) {
-        val previousChatIds = myChatIdsOf(photo.id).toList()
-
         chatRepository
             .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIdsOf(photo.id) += chatId
-                if (!removeReactions(photo.id, previousChatIds)) {
-                    sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
-                }
                 loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
@@ -277,29 +254,19 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    /** @return 모두 지웠는지. 실패한 것은 서버에 그대로 남는다. */
-    private suspend fun removeReactions(
+    private suspend fun removeReaction(
         photoId: Long,
-        chatIds: List<Long>,
-    ): Boolean {
-        if (chatIds.isEmpty()) return true
-
-        val results =
-            coroutineScope {
-                chatIds.map { chatId -> async { chatId to chatRepository.removePhotoReaction(chatId) } }.awaitAll()
+        chatId: Long,
+    ) {
+        chatRepository
+            .removePhotoReaction(chatId)
+            .onSuccess {
+                myChatIdsOf(photoId) -= chatId
+                loadReactions(photoId)
+            }.onFailure { failure ->
+                Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
+                sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
             }
-
-        var removedAll = true
-        results.forEach { (chatId, result) ->
-            result
-                .onSuccess { myChatIdsOf(photoId) -= chatId }
-                .onFailure { failure ->
-                    removedAll = false
-                    Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
-                }
-        }
-
-        return removedAll
     }
 
     /**
