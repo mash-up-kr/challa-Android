@@ -457,6 +457,7 @@ private fun HomePrintingCard(
             RoomAsyncImage(
                 imageUrl = room.coverImageUrl,
                 contentDescription = null,
+                keepPreviousImage = true,
                 modifier = Modifier.fillMaxSize(),
             )
             HomePrintingScrim(modifier = Modifier.fillMaxSize())
@@ -747,6 +748,7 @@ private fun HomeFilmCard(
             imageUrl = imageUrl,
             contentDescription = if (overflowCount == null) stringResource(id = R.string.home_room_photo_description) else null,
             blurred = blurred,
+            keepPreviousImage = true,
             modifier = Modifier.fillMaxSize(),
         )
         if (overflowCount != null) {

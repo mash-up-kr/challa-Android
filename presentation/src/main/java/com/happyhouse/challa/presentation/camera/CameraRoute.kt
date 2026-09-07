@@ -51,6 +51,13 @@ fun CameraRoute(
     var animatedRequestId by remember { mutableStateOf<Long?>(null) }
     var captureExitFeedbackJob by remember { mutableStateOf<Job?>(null) }
 
+    LaunchedEffect(state.value.isCapturePending) {
+        if (!state.value.isCapturePending) {
+            captureExitFeedbackJob?.cancel()
+            captureExitFeedbackJob = null
+        }
+    }
+
     LaunchedEffect(state.value.isPhotoSaved, animatedRequestId) {
         val request = state.value.captureRequest ?: return@LaunchedEffect
         if (state.value.isPhotoSaved && animatedRequestId == request.requestId) {
