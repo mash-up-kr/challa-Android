@@ -29,6 +29,7 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
@@ -136,6 +137,36 @@ private fun PhotoDetailScreenPreview() {
                 roomName = "해피하우스 강릉 여행",
                 initialPhotoIndex = 0,
                 photoInfo = PhotoInfo.Loaded(previewPhotoDetailPhotos(count = 24)),
+            ),
+        snackbarHostState = remember { SnackbarHostState() },
+        onLoadMore = {},
+        onReactionsLoad = {},
+        onSaveClick = {},
+        onEmojiClick = { _, _ -> },
+        onStickerClick = { _, _ -> },
+        onMessageChange = {},
+        onSendClick = {},
+        onBackClick = {},
+    )
+}
+
+@ComposePreview(name = "PhotoDetailScreen - 스티커 있음")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun PhotoDetailScreenWithReactionsPreview() {
+    val photos = previewPhotoDetailPhotos(count = 24)
+
+    PhotoDetailScreen(
+        modifier = Modifier.fillMaxSize(),
+        state =
+            PhotoDetailState(
+                roomName = "해피하우스 강릉 여행",
+                initialPhotoIndex = 0,
+                photoInfo =
+                    PhotoInfo.Loaded(
+                        photos = photos,
+                        reactions = persistentMapOf(photos.first().id to previewPhotoReactions()),
+                    ),
             ),
         snackbarHostState = remember { SnackbarHostState() },
         onLoadMore = {},
