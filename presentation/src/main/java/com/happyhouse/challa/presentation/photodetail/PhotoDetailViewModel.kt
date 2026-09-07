@@ -40,6 +40,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
 @HiltViewModel(assistedFactory = PhotoDetailViewModel.Factory::class)
@@ -72,8 +74,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 사진별 내 반응의 chatId. 스티커를 지울 때 함께 지울 대상이자, 프로필 조회가 실패했을 때의 대비책이다. */
     private val myChatIds = mutableMapOf<Long, MutableSet<Long>>()
 
-    /** 스티커를 지우는 중인 사진. 연타로 삭제가 겹쳐 나가지 않게 막는다. */
-    private val removingStickerPhotoIds = mutableSetOf<Long>()
+    /** 내 반응을 바꾸는 작업은 겹치면 안 된다. 지운 chatId에 삭제가 또 나가거나 반응이 여러 개 남는다. */
+    private val myReactionMutex = Mutex()
 
     /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
     private var nextBurstId = 0L
@@ -177,11 +179,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * 인스타 스토리처럼 같은 이모지도 몇 번이든 다시 보낼 수 있다.
-     *
-     * 사진에 붙는 스티커는 사람마다 첫 반응 하나뿐이라, 바꾸려면 스티커를 눌러 지우고 새로 보낸다.
-     */
+    /** 인스타 스토리처럼 몇 번이든 다시 보낼 수 있고, 보낼 때마다 내 스티커가 방금 보낸 이모지로 바뀐다. */
     private fun handleReactionClick(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
@@ -195,7 +193,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         // 연출은 서버 왕복을 기다리지 않고 누르는 즉시 재생한다. 실패하면 토스트로 따로 알린다.
         emitBurst(photoId = photo.id, emoji = emoji)
 
-        viewModelScope.launch { addReaction(photo = photo, emoji = emoji) }
+        viewModelScope.launch { myReactionMutex.withLock { replaceMyReaction(photo = photo, emoji = emoji) } }
     }
 
     private fun handleStickerClick(
@@ -207,13 +205,16 @@ class PhotoDetailViewModel @AssistedInject constructor(
             return
         }
 
-        if (!removingStickerPhotoIds.add(photo.id)) return
-
         viewModelScope.launch {
-            try {
-                removeMyReactions(photo.id)
-            } finally {
-                removingStickerPhotoIds -= photo.id
+            myReactionMutex.withLock {
+                val chatIds = myChatIdsOf(photo.id).toList()
+                if (chatIds.isEmpty()) {
+                    Timber.w("이미 지워진 스티커라 다시 지우지 않았습니다. photoId=${photo.id}")
+                    return@withLock
+                }
+
+                if (!removeReactions(photo.id, chatIds)) sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
+                loadReactions(photo.id)
             }
         }
     }
@@ -250,61 +251,55 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun addReaction(
+    /**
+     * 새 반응을 남긴 뒤 이전 반응을 지운다.
+     *
+     * 스티커는 사람마다 먼저 남긴 하나뿐이라 이전 것이 남아 있으면 방금 보낸 이모지가 붙지 않는다.
+     * 지우기가 실패해도 새 반응은 남도록 남기기를 먼저 한다.
+     */
+    private suspend fun replaceMyReaction(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
     ) {
+        val previousChatIds = myChatIdsOf(photo.id).toList()
+
         chatRepository
             .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIdsOf(photo.id) += chatId
-                if (canBecomeSticker(photo.id)) loadReactions(photo.id)
+                if (!removeReactions(photo.id, previousChatIds)) {
+                    sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
+                }
+                loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
             }
     }
 
-    /**
-     * 방금 남긴 반응이 스티커로 붙을 수 있는지.
-     *
-     * 스티커는 사람마다 먼저 남긴 하나씩 [MAX_STICKER_USER_COUNT]명까지라, 내 스티커가 이미 있거나
-     * 자리가 다 찼으면 몇 번을 더 보내도 스티커 목록이 그대로다. 그때는 재조회하지 않는다.
-     */
-    private fun canBecomeSticker(photoId: Long): Boolean {
-        val stickers = (currentState.photoInfo as? PhotoInfo.Loaded)?.reactionsOf(photoId) ?: return true
+    /** @return 모두 지웠는지. 실패한 것은 서버에 그대로 남는다. */
+    private suspend fun removeReactions(
+        photoId: Long,
+        chatIds: List<Long>,
+    ): Boolean {
+        if (chatIds.isEmpty()) return true
 
-        return stickers.none { sticker -> sticker.isMine } && stickers.size < MAX_STICKER_USER_COUNT
-    }
-
-    /**
-     * 이 사진에 내가 남긴 반응을 모두 지운다.
-     *
-     * 스티커 하나만 지우면 그 다음으로 먼저 남긴 내 반응이 스티커로 올라와, 지운 뒤 새로 보낸
-     * 이모지가 붙지 않는다.
-     */
-    private suspend fun removeMyReactions(photoId: Long) {
         val results =
             coroutineScope {
-                myChatIdsOf(photoId)
-                    .toList()
-                    .map { chatId -> async { chatId to chatRepository.removePhotoReaction(chatId) } }
-                    .awaitAll()
+                chatIds.map { chatId -> async { chatId to chatRepository.removePhotoReaction(chatId) } }.awaitAll()
             }
 
-        var hasFailure = false
+        var removedAll = true
         results.forEach { (chatId, result) ->
             result
                 .onSuccess { myChatIdsOf(photoId) -= chatId }
                 .onFailure { failure ->
-                    hasFailure = true
+                    removedAll = false
                     Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
                 }
         }
 
-        if (hasFailure) sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
-
-        loadReactions(photoId)
+        return removedAll
     }
 
     /**
