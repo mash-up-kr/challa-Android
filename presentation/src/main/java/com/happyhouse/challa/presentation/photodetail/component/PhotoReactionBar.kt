@@ -83,9 +83,7 @@ fun PhotoReactionBar(
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        // 왼쪽 여백을 뺀, 이모지가 실제로 놓이는 폭
-        val contentWidth = maxWidth - ReactionBarHorizontalPadding
-        val itemSpacing = remember(contentWidth) { reactionBarItemSpacing(contentWidth) }
+        val itemSpacing = remember(maxWidth) { reactionBarItemSpacing(maxWidth) }
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
@@ -110,11 +108,22 @@ fun PhotoReactionBar(
  * 꽉 차게 보일 개수는 간격이 [ReactionBarBaseItemSpacing]에 가장 가까워지는 값으로 고른다.
  * 어느 개수로도 [ReactionBarMinItemSpacing]을 못 지키는 좁은 화면에서는 하한을 쓰고 걸침을 포기한다.
  */
-private fun reactionBarItemSpacing(contentWidth: Dp): Dp {
+private fun reactionBarItemSpacing(barWidth: Dp): Dp {
+    val count = ReactionBarEmojis.size
+
+    // 전부 들어가면 굳이 걸치게 만들지 않는다. 없으면 태블릿에서 간격만 벌어지고 스크롤이 생긴다.
+    if (ReactionButtonSize * count + ReactionBarBaseItemSpacing * (count - 1) <=
+        barWidth - ReactionBarHorizontalPadding * 2
+    ) {
+        return ReactionBarBaseItemSpacing
+    }
+
+    // 왼쪽 여백 뒤부터 화면 오른쪽 끝까지가 걸침을 계산할 폭이다
+    val visibleWidth = barWidth - ReactionBarHorizontalPadding
     val peekWidth = ReactionButtonSize * REACTION_BAR_PEEK_RATIO
 
-    return (1 until ReactionBarEmojis.size)
-        .map { fullCount -> (contentWidth - ReactionButtonSize * fullCount - peekWidth) / fullCount }
+    return (1 until count)
+        .map { fullCount -> (visibleWidth - ReactionButtonSize * fullCount - peekWidth) / fullCount }
         .filter { spacing -> spacing >= ReactionBarMinItemSpacing }
         .minByOrNull { spacing -> (spacing - ReactionBarBaseItemSpacing).value.absoluteValue }
         ?: ReactionBarMinItemSpacing
