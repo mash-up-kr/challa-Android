@@ -33,6 +33,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -66,11 +69,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 내 반응을 가려내는 기준. 서버 응답에 "내 것" 표시가 없어 userId로 비교한다. */
     private var myUserId: Long? = null
 
-    /** 이번 화면에서 내가 남긴 chatId. 프로필 조회가 실패했을 때의 대비책이다. */
-    private val myChatIds = mutableSetOf<Long>()
+    /** 사진별 내 반응의 chatId. 스티커를 지울 때 함께 지울 대상이자, 프로필 조회가 실패했을 때의 대비책이다. */
+    private val myChatIds = mutableMapOf<Long, MutableSet<Long>>()
 
-    /** 지우는 중인 스티커. 연타로 같은 chatId에 삭제가 두 번 나가지 않게 막는다. */
-    private val removingChatIds = mutableSetOf<Long>()
+    /** 스티커를 지우는 중인 사진. 연타로 삭제가 겹쳐 나가지 않게 막는다. */
+    private val removingStickerPhotoIds = mutableSetOf<Long>()
 
     /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
     private var nextBurstId = 0L
@@ -204,13 +207,13 @@ class PhotoDetailViewModel @AssistedInject constructor(
             return
         }
 
-        if (!removingChatIds.add(reaction.chatId)) return
+        if (!removingStickerPhotoIds.add(photo.id)) return
 
         viewModelScope.launch {
             try {
-                removeReaction(photoId = photo.id, chatId = reaction.chatId)
+                removeMyReactions(photo.id)
             } finally {
-                removingChatIds -= reaction.chatId
+                removingStickerPhotoIds -= photo.id
             }
         }
     }
@@ -254,7 +257,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
         chatRepository
             .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
-                myChatIds += chatId
+                myChatIdsOf(photo.id) += chatId
                 if (canBecomeSticker(photo.id)) loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
@@ -274,19 +277,34 @@ class PhotoDetailViewModel @AssistedInject constructor(
         return stickers.none { sticker -> sticker.isMine } && stickers.size < MAX_STICKER_USER_COUNT
     }
 
-    private suspend fun removeReaction(
-        photoId: Long,
-        chatId: Long,
-    ) {
-        chatRepository
-            .removePhotoReaction(chatId)
-            .onSuccess {
-                myChatIds -= chatId
-                loadReactions(photoId)
-            }.onFailure { failure ->
-                Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
-                sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
+    /**
+     * 이 사진에 내가 남긴 반응을 모두 지운다.
+     *
+     * 스티커 하나만 지우면 그 다음으로 먼저 남긴 내 반응이 스티커로 올라와, 지운 뒤 새로 보낸
+     * 이모지가 붙지 않는다.
+     */
+    private suspend fun removeMyReactions(photoId: Long) {
+        val results =
+            coroutineScope {
+                myChatIdsOf(photoId)
+                    .toList()
+                    .map { chatId -> async { chatId to chatRepository.removePhotoReaction(chatId) } }
+                    .awaitAll()
             }
+
+        var hasFailure = false
+        results.forEach { (chatId, result) ->
+            result
+                .onSuccess { myChatIdsOf(photoId) -= chatId }
+                .onFailure { failure ->
+                    hasFailure = true
+                    Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
+                }
+        }
+
+        if (hasFailure) sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
+
+        loadReactions(photoId)
     }
 
     /**
@@ -316,6 +334,13 @@ class PhotoDetailViewModel @AssistedInject constructor(
         photoId: Long,
         reactions: List<PhotoReaction>,
     ) {
+        val sessionChatIds = myChatIdsOf(photoId)
+        val myChatIdsOnPhoto =
+            reactions
+                .filter { reaction -> reaction.userId == myUserId || reaction.chatId in sessionChatIds }
+                .mapTo(mutableSetOf()) { reaction -> reaction.chatId }
+        myChatIds[photoId] = myChatIdsOnPhoto
+
         val stickers =
             reactions
                 .toStickerReactions(limit = MAX_STICKER_USER_COUNT)
@@ -323,7 +348,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                     PhotoReactionUiModel(
                         chatId = reaction.chatId,
                         emoji = reaction.emoji,
-                        isMine = reaction.isMine(),
+                        isMine = reaction.chatId in myChatIdsOnPhoto,
                     )
                 }.toPersistentList()
 
@@ -354,7 +379,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    private fun PhotoReaction.isMine(): Boolean = userId == myUserId || chatId in myChatIds
+    private fun myChatIdsOf(photoId: Long): MutableSet<Long> = myChatIds.getOrPut(photoId) { mutableSetOf() }
 
     private fun handleMessageChange(message: String) {
         updateState { copy(messageInput = message) }
