@@ -32,7 +32,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
-import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -70,14 +69,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 이번 화면에서 내가 남긴 chatId. 프로필 조회가 실패했을 때의 대비책이다. */
     private val myChatIds = mutableSetOf<Long>()
 
-    /** 처리 중인 (사진, 이모지). 연타로 중복 요청이 나가지 않게 막는다. */
-    private val reactingPhotoEmojis = mutableSetOf<Pair<Long, ReactionEmoji>>()
-
     /** 지우는 중인 스티커. 연타로 같은 chatId에 삭제가 두 번 나가지 않게 막는다. */
     private val removingChatIds = mutableSetOf<Long>()
-
-    /** (사진, 이모지) → 내가 남긴 chatId. 취소할 때 쓴다. */
-    private val myReactionChatIds = mutableMapOf<Pair<Long, ReactionEmoji>, Long>()
 
     /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
     private var nextBurstId = 0L
@@ -192,37 +185,24 @@ class PhotoDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * 이미 남긴 이모지를 다시 누르면 취소하고, 아니면 새로 남긴다.
+     * 인스타 스토리처럼 같은 이모지도 몇 번이든 다시 보낼 수 있다.
+     *
+     * 사진에 붙는 스티커는 사람마다 첫 반응 하나뿐이라, 바꾸려면 스티커를 눌러 지우고 새로 보낸다.
      */
     private fun handleReactionClick(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
     ) {
-        val loaded = currentState.photoInfo as? PhotoInfo.Loaded
-        if (loaded == null) {
+        if (currentState.photoInfo !is PhotoInfo.Loaded) {
             Timber.w("사진이 로드되지 않아 반응을 남기지 못했습니다: photoId=${photo.id}")
             viewModelScope.launch { sendEffect(PhotoDetailSideEffect.ReactionSendFailed) }
             return
         }
 
-        if (!reactingPhotoEmojis.add(photo.id to emoji)) return
-
-        val myChatId = myReactionChatIds[photo.id to emoji]
-
         // 연출은 서버 왕복을 기다리지 않고 누르는 즉시 재생한다. 실패하면 토스트로 따로 알린다.
-        if (myChatId == null) emitBurst(photoId = photo.id, emoji = emoji)
+        emitBurst(photoId = photo.id, emoji = emoji)
 
-        viewModelScope.launch {
-            try {
-                if (myChatId != null) {
-                    cancelReaction(photo = photo, emoji = emoji, chatId = myChatId)
-                } else {
-                    addReaction(photo = photo, emoji = emoji)
-                }
-            } finally {
-                reactingPhotoEmojis -= photo.id to emoji
-            }
-        }
+        viewModelScope.launch { addReaction(photo = photo, emoji = emoji) }
     }
 
     /** 사진 위의 내 스티커를 눌러 지운다. 남의 스티커는 화면에서 눌리지 않는다. */
@@ -239,7 +219,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
 
         viewModelScope.launch {
             try {
-                cancelReaction(photo = photo, emoji = reaction.emoji, chatId = reaction.chatId)
+                removeReaction(photoId = photo.id, chatId = reaction.chatId)
             } finally {
                 removingChatIds -= reaction.chatId
             }
@@ -286,8 +266,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIds += chatId
-                // 재조회가 실패해도 같은 이모지를 다시 누르면 취소로 이어지도록 먼저 잡아둔다.
-                myReactionChatIds.putIfAbsent(photo.id to emoji, chatId)
                 loadReactions(photo.id)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
@@ -295,20 +273,17 @@ class PhotoDetailViewModel @AssistedInject constructor(
             }
     }
 
-    private suspend fun cancelReaction(
-        photo: PhotoDetailUiModel,
-        emoji: ReactionEmoji,
+    private suspend fun removeReaction(
+        photoId: Long,
         chatId: Long,
     ) {
         chatRepository
             .removePhotoReaction(chatId)
             .onSuccess {
                 myChatIds -= chatId
-                // 지운 반응이 남아 있으면 다시 눌렀을 때 없는 chatId로 취소를 시도한다.
-                myReactionChatIds.remove(photo.id to emoji, chatId)
-                loadReactions(photo.id)
+                loadReactions(photoId)
             }.onFailure { failure ->
-                Timber.e(failure.causeOrNull(), "반응을 취소하지 못했습니다. photoId=${photo.id}, chatId=$chatId")
+                Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
                 sendEffect(PhotoDetailSideEffect.ReactionCancelFailed)
             }
     }
@@ -317,9 +292,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
      * 남기거나 취소한 뒤에도 목록을 다시 받는다. 그 사이 다른 사람이 남긴 것까지 들어와야
      * 스티커 주인 순서가 서버 기준과 어긋나지 않는다.
      *
-     * 다른 이모지를 연달아 누르면 한 사진에 조회가 겹쳐 도는데, 늦게 도착한 이전 응답이 최신 목록을
-     * 덮어쓰면 방금 남긴 반응의 링이 꺼지고 다시 눌렀을 때 취소 대신 중복 등록이 나간다.
-     * 그래서 마지막으로 보낸 요청의 응답만 반영한다.
+     * 이모지를 연달아 누르면 한 사진에 조회가 겹쳐 도는데, 늦게 도착한 이전 응답이 최신 목록을
+     * 덮어쓰면 방금 남긴 스티커가 사라진다. 그래서 마지막으로 보낸 요청의 응답만 반영한다.
      */
     private suspend fun loadReactions(photoId: Long) {
         val revision = (reactionRevisions[photoId] ?: 0) + 1
@@ -350,15 +324,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
                     )
                 }.toPersistentList()
 
-        val myReactions = reactions.filter { reaction -> reaction.isMine() }
-        val myEmojis = myReactions.mapTo(mutableSetOf()) { reaction -> reaction.emoji }.toPersistentSet()
-
-        // 같은 이모지를 여러 번 남겼다면 가장 먼저 남긴 것이 남도록 뒤에서부터 덮어쓴다.
-        myReactionChatIds.keys.removeAll { key -> key.first == photoId }
-        myReactions.reversed().forEach { reaction ->
-            myReactionChatIds[photoId to reaction.emoji] = reaction.chatId
-        }
-
         updateState {
             val loaded =
                 photoInfo as? PhotoInfo.Loaded
@@ -367,13 +332,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
                         return@updateState this
                     }
 
-            copy(
-                photoInfo =
-                    loaded.copy(
-                        reactions = (loaded.reactions + (photoId to stickers)).toPersistentMap(),
-                        myEmojis = (loaded.myEmojis + (photoId to myEmojis)).toPersistentMap(),
-                    ),
-            )
+            copy(photoInfo = loaded.copy(reactions = (loaded.reactions + (photoId to stickers)).toPersistentMap()))
         }
     }
 

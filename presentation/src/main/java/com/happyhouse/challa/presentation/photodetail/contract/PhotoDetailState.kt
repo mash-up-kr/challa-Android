@@ -6,10 +6,8 @@ import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.base.UiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.parcelize.Parcelize
 
 @Immutable
@@ -34,13 +32,9 @@ data class PhotoDetailState(
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
             val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
-            /** 반응 바에 표시하고, 다시 누르면 취소한다. */
-            val myEmojis: ImmutableMap<Long, ImmutableSet<ReactionEmoji>> = persistentMapOf(),
             val burst: ReactionBurstUiModel? = null,
         ) : PhotoInfo {
             fun reactionsOf(photoId: Long): ImmutableList<PhotoReactionUiModel> = reactions[photoId] ?: persistentListOf()
-
-            fun myEmojisOf(photoId: Long): ImmutableSet<ReactionEmoji> = myEmojis[photoId] ?: persistentSetOf()
         }
     }
 }

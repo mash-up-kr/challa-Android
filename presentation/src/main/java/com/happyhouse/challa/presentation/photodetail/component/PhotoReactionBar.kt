@@ -3,7 +3,6 @@ package com.happyhouse.challa.presentation.photodetail.component
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -31,16 +29,11 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.reaction.labelRes
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
-
-/** 내가 남겨둔 이모지를 표시하는 테두리 */
-private val ReactionSelectedRingWidth = 2.dp
 
 /** 페이지끼리의 간격. 피그마의 버튼 간격과 같은 값이라 넘길 때 리듬이 이어진다. */
 private val ReactionBarPageSpacing = 13.dp
@@ -88,7 +81,6 @@ private val ReactionBarEmojis: ImmutableList<ReactionEmoji> =
  */
 @Composable
 fun PhotoReactionBar(
-    addedEmojis: ImmutableSet<ReactionEmoji>,
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -109,7 +101,6 @@ fun PhotoReactionBar(
             pages[page].forEach { emoji ->
                 ReactionButton(
                     emoji = emoji,
-                    isAdded = emoji in addedEmojis,
                     onClick = { onEmojiClick(emoji) },
                 )
             }
@@ -117,11 +108,9 @@ fun PhotoReactionBar(
     }
 }
 
-/** @param isAdded 내가 이미 남겨둔 이모지. 링으로 표시하고, 누르면 남기는 대신 취소한다. */
 @Composable
 private fun ReactionButton(
     emoji: ReactionEmoji,
-    isAdded: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -131,19 +120,11 @@ private fun ReactionButton(
                 .size(ReactionButtonSize)
                 .clip(CircleShape)
                 .background(ChallaTheme.colors.backgroundLevel2)
-                .border(
-                    width = if (isAdded) ReactionSelectedRingWidth else 0.dp,
-                    color = if (isAdded) ChallaTheme.colors.primaryYellow else Color.Transparent,
-                    shape = CircleShape,
-                ).clickOnce(
+                .clickOnce(
                     role = Role.Button,
                     onClickLabel =
                         stringResource(
-                            if (isAdded) {
-                                R.string.photo_detail_reaction_remove_description
-                            } else {
-                                R.string.photo_detail_reaction_add_description
-                            },
+                            R.string.photo_detail_reaction_add_description,
                             stringResource(emoji.labelRes),
                         ),
                     onClick = onClick,
@@ -191,18 +172,5 @@ internal val ReactionEmoji.drawableRes: Int
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoReactionBarPreview() {
-    PhotoReactionBar(
-        addedEmojis = persistentSetOf(),
-        onEmojiClick = {},
-    )
-}
-
-@ComposePreview(showBackground = true, widthDp = 390, name = "PhotoReactionBar - 남긴 반응 있음")
-@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
-@Composable
-private fun PhotoReactionBarWithAddedEmojisPreview() {
-    PhotoReactionBar(
-        addedEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.MEDAL),
-        onEmojiClick = {},
-    )
+    PhotoReactionBar(onEmojiClick = {})
 }

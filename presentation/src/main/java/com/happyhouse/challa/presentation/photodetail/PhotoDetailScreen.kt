@@ -29,7 +29,6 @@ import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
@@ -59,12 +58,6 @@ fun PhotoDetailScreen(
             pageCount = { photos.size },
         )
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
-
-    val addedEmojis =
-        remember(state.photoInfo, currentPhoto) {
-            val loaded = state.photoInfo as? PhotoInfo.Loaded
-            if (loaded == null || currentPhoto == null) persistentSetOf() else loaded.myEmojisOf(currentPhoto.id)
-        }
 
     LaunchedEffect(currentPhoto?.id) {
         currentPhoto?.let(onReactionsLoad)
@@ -104,7 +97,6 @@ fun PhotoDetailScreen(
                         modifier = Modifier.imePadding(),
                         message = state.messageInput,
                         isMessageSendable = state.isMessageSendable,
-                        addedEmojis = addedEmojis,
                         onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
                         onMessageChange = onMessageChange,
                         onSendClick = { onSendClick(currentPhoto) },
