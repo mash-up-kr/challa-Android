@@ -6,6 +6,8 @@ import com.happyhouse.challa.domain.model.RoomStatus
 import com.happyhouse.challa.presentation.home.model.RoomUiModel.Completed
 import com.happyhouse.challa.presentation.home.model.RoomUiModel.Printing
 import com.happyhouse.challa.presentation.home.model.RoomUiModel.Shooting
+import com.happyhouse.challa.presentation.roomcover.model.RoomCoverUiModel
+import com.happyhouse.challa.presentation.roomcover.model.toCoverUiModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import timber.log.Timber
@@ -17,14 +19,19 @@ sealed interface RoomUiModel {
     val name: String
     val participantCount: Int
 
-    /** 촬영 중 — 촬영 배지와 커버 이미지 표기 */
+    /** 촬영 중 — 촬영 배지와 방 커버 표기 */
     @Immutable
     data class Shooting(
         override val id: Long,
         override val name: String,
         override val participantCount: Int,
-        val coverImageUrl: String?,
-    ) : RoomUiModel
+        val cover: RoomCoverUiModel,
+        val firstPhotoImageUrl: String?,
+    ) : RoomUiModel {
+        /** 카드에 그릴 커버. 배경을 따로 지정하지 않은 방은 찍어둔 첫 사진을 대신 깐다. */
+        val displayCover: RoomCoverUiModel
+            get() = cover.copy(imageUrl = cover.imageUrl ?: firstPhotoImageUrl)
+    }
 
     /** 인화 전 — 촬영을 마치고 인화 완료까지 남은 시간을 세는 상태(커버로 가려진 사진) */
     @Immutable
@@ -56,7 +63,8 @@ fun Room.toUiModel(): RoomUiModel? =
                 id = id,
                 name = title,
                 participantCount = memberCount,
-                coverImageUrl = thumbnailImageUrls.firstOrNull(),
+                cover = cover.toCoverUiModel(),
+                firstPhotoImageUrl = thumbnailImageUrls.firstOrNull(),
             )
 
         RoomStatus.PHOTO_PRINT_PENDING ->

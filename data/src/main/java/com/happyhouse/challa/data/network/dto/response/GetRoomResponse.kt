@@ -14,6 +14,7 @@ data class GetRoomResponse(
         val remainedPhotoCount: Int,
         val invitationCode: String,
         val status: Status = Status.UNKNOWN,
+        val cover: RoomCoverResponse,
         val photoPrintCompletedAt: String? = null,
     )
 
