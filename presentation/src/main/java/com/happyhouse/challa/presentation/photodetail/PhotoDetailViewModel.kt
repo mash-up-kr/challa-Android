@@ -68,7 +68,7 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 내 반응을 가려내는 기준. 서버 응답에 "내 것" 표시가 없어 userId로 비교한다. */
     private var myUserId: Long? = null
 
-    /** 사진별 내 반응의 chatId. 스티커를 지울 때 함께 지울 대상이자, 프로필 조회가 실패했을 때의 대비책이다. */
+    /** 사진별 내 반응의 chatId. 내 스티커를 가려내는 데 쓰고, 프로필 조회가 실패했을 때의 대비책이다. */
     private val myChatIds = mutableMapOf<Long, MutableSet<Long>>()
 
     /** 내 반응을 바꾸는 작업은 겹치면 안 된다. 지운 chatId에 삭제가 또 나가거나 순서가 뒤집힌다. */
@@ -319,6 +319,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .onSuccess { reactions ->
                 if (reactionRevisions[photoId] == revision) applyReactions(photoId, reactions)
             }.onFailure { failure ->
+                // 스티커를 못 그린 채로 남으므로, 같은 이모지를 다시 눌러 시도할 수 있게 열어둔다.
+                lastSentEmojis.remove(photoId)
                 Timber.e(failure.causeOrNull(), "반응 목록을 불러오지 못했습니다. photoId=$photoId")
                 sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
             }
