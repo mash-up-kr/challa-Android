@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.R
@@ -28,13 +31,22 @@ import com.happyhouse.challa.presentation.designsystem.util.clickOnce
 import com.happyhouse.challa.presentation.reaction.labelRes
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlin.math.absoluteValue
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
 
-private val ReactionBarItemSpacing = 13.dp
+/** 피그마 기준 간격. 화면 폭에 맞춰 이 값에 가장 가깝게 잡는다. */
+private val ReactionBarBaseItemSpacing = 13.dp
+
+/** 좁은 화면에서 버튼끼리 붙어 보이지 않게 하는 하한 */
+private val ReactionBarMinItemSpacing = 8.dp
+
 private val ReactionBarHorizontalPadding = 24.dp
+
+/** 다음 이모지를 버튼 폭의 이만큼 걸쳐 보여, 옆으로 더 있다는 것을 알린다. */
+private const val REACTION_BAR_PEEK_RATIO = 0.5f
 
 /**
  * 반응 바에 노출하는 순서.
@@ -59,8 +71,8 @@ private val ReactionBarEmojis: ImmutableList<ReactionEmoji> =
 /**
  * 이모지를 좌우로 스크롤해 고른다.
  *
- * 페이지 단위로 끊지 않는다. 피그마 기준 폭(390dp)에서 다섯 번째 다음 이모지가 오른쪽 끝에 걸쳐,
- * 옆으로 더 있다는 것이 보이는 것을 노린 배치다.
+ * 페이지 단위로 끊지 않는다. 다음 이모지가 오른쪽 끝에 반쯤 걸쳐,
+ * 옆으로 더 있다는 것이 보이는 것을 인식하게끔 한다.
  *
  * 스크롤 영역이 화면 끝까지 닿아야 걸친 이모지가 잘리지 않고 그려지므로,
  * 좌우 여백은 modifier가 아닌 contentPadding으로 준다.
@@ -70,21 +82,46 @@ fun PhotoReactionBar(
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
-        horizontalArrangement = Arrangement.spacedBy(ReactionBarItemSpacing),
-    ) {
-        items(
-            items = ReactionBarEmojis,
-            key = { emoji -> emoji.name },
-        ) { emoji ->
-            ReactionButton(
-                emoji = emoji,
-                onClick = { onEmojiClick(emoji) },
-            )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        // 왼쪽 여백을 뺀, 이모지가 실제로 놓이는 폭
+        val contentWidth = maxWidth - ReactionBarHorizontalPadding
+        val itemSpacing = remember(contentWidth) { reactionBarItemSpacing(contentWidth) }
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+        ) {
+            items(
+                items = ReactionBarEmojis,
+                key = { emoji -> emoji.name },
+            ) { emoji ->
+                ReactionButton(
+                    emoji = emoji,
+                    onClick = { onEmojiClick(emoji) },
+                )
+            }
         }
     }
+}
+
+/**
+ * 걸쳐 보이는 폭이 항상 버튼의 [REACTION_BAR_PEEK_RATIO]가 되도록 항목 간격을 정한다.
+ *
+ * 버튼 크기와 간격을 둘 다 고정하면 걸치는 폭이 화면 폭에 휘둘린다.
+ * 366dp처럼 항목이 딱 맞아떨어지는 폭에서는 아예 걸치지 않아 더 있다는 것이 보이지 않고,
+ * 360dp에서는 6dp만 잘려 잘린 것인지 알아보기 어렵다.
+ *
+ * 꽉 차게 보일 개수는 간격이 [ReactionBarBaseItemSpacing]에 가장 가까워지는 값으로 고른다.
+ * 어느 개수로도 [ReactionBarMinItemSpacing]을 못 지키는 좁은 화면에서는 하한을 쓰고 걸침을 포기한다.
+ */
+private fun reactionBarItemSpacing(contentWidth: Dp): Dp {
+    val peekWidth = ReactionButtonSize * REACTION_BAR_PEEK_RATIO
+
+    return (1 until ReactionBarEmojis.size)
+        .map { fullCount -> (contentWidth - ReactionButtonSize * fullCount - peekWidth) / fullCount }
+        .filter { spacing -> spacing >= ReactionBarMinItemSpacing }
+        .minByOrNull { spacing -> (spacing - ReactionBarBaseItemSpacing).value.absoluteValue }
+        ?: ReactionBarMinItemSpacing
 }
 
 @Composable
@@ -151,5 +188,12 @@ internal val ReactionEmoji.drawableRes: Int
 @PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun PhotoReactionBarPreview() {
+    PhotoReactionBar(onEmojiClick = {})
+}
+
+@ComposePreview(showBackground = true, widthDp = 360, name = "PhotoReactionBar - 좁은 화면")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
+@Composable
+private fun PhotoReactionBarNarrowPreview() {
     PhotoReactionBar(onEmojiClick = {})
 }
