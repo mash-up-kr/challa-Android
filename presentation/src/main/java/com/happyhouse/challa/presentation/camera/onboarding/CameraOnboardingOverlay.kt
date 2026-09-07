@@ -71,6 +71,7 @@ private fun CameraOnboardingPreview() {
             isFlashEnabled = false,
             isCameraSwitchEnabled = true,
             shutterEnabled = true,
+            closeEnabled = false,
             isShutterEffectVisible = false,
             isOnboardingVisible = true,
             zoomLevel = 1f,

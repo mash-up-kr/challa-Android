@@ -1,5 +1,6 @@
 package com.happyhouse.challa.presentation.camera
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -25,6 +26,7 @@ import com.happyhouse.challa.presentation.designsystem.component.snackbar.Challa
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @Composable
@@ -47,6 +49,7 @@ fun CameraRoute(
     val permissionController = rememberCameraPermissionController()
     val state = viewModel.uiState.collectAsStateWithLifecycle()
     var animatedRequestId by remember { mutableStateOf<Long?>(null) }
+    var captureExitFeedbackJob by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(state.value.isPhotoSaved, animatedRequestId) {
         val request = state.value.captureRequest ?: return@LaunchedEffect
@@ -63,8 +66,24 @@ fun CameraRoute(
     val photoCaptureFailedMessage = stringResource(R.string.camera_photo_capture_failed_message)
     val noRemainingCapturesMessage = stringResource(R.string.camera_no_remaining_captures_message)
     val cameraBindingFailedMessage = stringResource(R.string.camera_binding_failed_message)
+    val photoSavingMessage = stringResource(R.string.camera_photo_saving_message)
     val retryLabel = stringResource(R.string.camera_retry)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
+
+    BackHandler(enabled = state.value.isCapturePending) {
+        if (captureExitFeedbackJob?.isActive != true) {
+            captureExitFeedbackJob =
+                coroutineScope.launch {
+                    feedbackSnackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = photoSavingMessage,
+                            topOffset = 112.dp,
+                        ),
+                    )
+                }
+        }
+    }
+
     val isOnboardingVisible =
         rememberCameraOnboarding(
             onboardingState = state.value.onboardingState,

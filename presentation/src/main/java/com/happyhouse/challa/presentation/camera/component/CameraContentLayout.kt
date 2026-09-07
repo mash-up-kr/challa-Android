@@ -47,6 +47,7 @@ internal fun CameraContentLayout(
     isFlashEnabled: Boolean,
     isCameraSwitchEnabled: Boolean,
     shutterEnabled: Boolean,
+    closeEnabled: Boolean,
     isShutterEffectVisible: Boolean,
     isOnboardingVisible: Boolean,
     zoomLevel: Float,
@@ -140,7 +141,11 @@ internal fun CameraContentLayout(
             modifier =
                 Modifier
                     .size(52.dp)
-                    .noRippleClickOnce(role = Role.Button, onClick = onCloseClick),
+                    .noRippleClickOnce(
+                        enabled = closeEnabled,
+                        role = Role.Button,
+                        onClick = onCloseClick,
+                    ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -168,6 +173,7 @@ private fun CameraContentLayoutPreview() {
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
         shutterEnabled = true,
+        closeEnabled = true,
         isShutterEffectVisible = false,
         isOnboardingVisible = false,
         zoomLevel = 1f,
@@ -196,6 +202,7 @@ private fun CameraContentLimitReachedPreview() {
         isFlashEnabled = false,
         isCameraSwitchEnabled = true,
         shutterEnabled = false,
+        closeEnabled = true,
         isShutterEffectVisible = false,
         isOnboardingVisible = false,
         zoomLevel = 1f,

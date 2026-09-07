@@ -112,6 +112,7 @@ internal fun CameraContent(
             isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,
             isCameraSwitchEnabled = canSwitchCamera,
             shutterEnabled = canCapture,
+            closeEnabled = !state.isCapturePending,
             isShutterEffectVisible = isShutterEffectVisible,
             isOnboardingVisible = isOnboardingVisible,
             zoomLevel = state.zoomLevel,
