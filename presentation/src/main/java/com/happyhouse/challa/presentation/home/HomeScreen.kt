@@ -620,10 +620,12 @@ private fun HomeCompletedSection(
         )
         Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
             rooms.forEach { room ->
-                HomeCompletedRoom(
-                    room = room,
-                    onClick = { onRoomClick(room) },
-                )
+                key(room.id) {
+                    HomeCompletedRoom(
+                        room = room,
+                        onClick = { onRoomClick(room) },
+                    )
+                }
             }
         }
     }
@@ -748,7 +750,6 @@ private fun HomeFilmCard(
             imageUrl = imageUrl,
             contentDescription = if (overflowCount == null) stringResource(id = R.string.home_room_photo_description) else null,
             blurred = blurred,
-            keepPreviousImage = true,
             modifier = Modifier.fillMaxSize(),
         )
         if (overflowCount != null) {

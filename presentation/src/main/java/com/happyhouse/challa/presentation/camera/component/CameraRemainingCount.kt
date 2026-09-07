@@ -3,15 +3,15 @@ package com.happyhouse.challa.presentation.camera.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.PreviewWrapper
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.camera.model.RemainingCaptureStatus
+import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -39,18 +39,21 @@ internal fun CameraRemainingCount(
 }
 
 @ComposePreview(name = "6장 남음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun CameraRemainingCountPreview() {
     CameraRemainingCountPreviewContent(remainingCount = 6)
 }
 
 @ComposePreview(name = "5장 남음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun CameraRemainingCountLowRemainingPreview() {
     CameraRemainingCountPreviewContent(remainingCount = 5)
 }
 
 @ComposePreview(name = "0장 남음")
+@PreviewWrapper(wrapper = ChallaPreviewWrapper::class)
 @Composable
 private fun CameraRemainingCountEmptyPreview() {
     CameraRemainingCountPreviewContent(remainingCount = 0)
@@ -58,13 +61,10 @@ private fun CameraRemainingCountEmptyPreview() {
 
 @Composable
 private fun CameraRemainingCountPreviewContent(remainingCount: Int) {
-    ChallaTheme {
-        CameraRemainingCount(
-            remainingCount = remainingCount,
-            totalCount = 24,
-            modifier = Modifier.padding(vertical = 8.dp),
-        )
-    }
+    CameraRemainingCount(
+        remainingCount = remainingCount,
+        totalCount = 24,
+    )
 }
 
 @Composable
