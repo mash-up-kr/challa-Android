@@ -355,7 +355,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
             try {
                 chatRepository
                     .sendPhotoComment(roomId = roomId, photoId = photo.id, message = message)
-                    .onSuccess { updateState { copy(messageInput = "") } }
+                    .onSuccess {
+                        updateState { copy(messageInput = "") }
+                        sendEffect(PhotoDetailSideEffect.MessageSendSucceeded)
+                    }
                     .onFailure { failure ->
                         // 메시지 본문은 개인정보라 로그에 남기지 않는다.
                         Timber.e(
