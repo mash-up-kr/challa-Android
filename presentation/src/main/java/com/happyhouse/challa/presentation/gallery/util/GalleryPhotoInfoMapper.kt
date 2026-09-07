@@ -13,6 +13,8 @@ import timber.log.Timber
 /**
  * 방 상태와 지금까지 받은 사진 목록을 갤러리 본문 상태로 옮긴다.
  *
+ * @param photos 오래된 사진부터 촬영 순서대로 정렬된 사진 목록. 별도로 정렬하지 않고 목록 순서대로
+ * 필름 번호를 부여한다.
  * @param remainingSeconds 인화 완료까지 남은 시간. 인화 대기가 아니면 쓰이지 않는다.
  * @param hasNextPhotoPage 아직 받지 않은 사진 페이지가 남았는지. 남았으면 사진이 촬영 수보다 적은 것이 정상이다.
  * @param playsPrintAnimation 인화 연출을 재생해야 하는지. 인화 완료가 아니면 쓰이지 않는다.
@@ -45,7 +47,7 @@ internal fun RoomDetail.toPhotoInfo(
     }
 
 /**
- * 필름은 방의 전체 칸 수만큼 그리고, 앞에서부터 촬영된 칸을 채운다.
+ * 필름은 방의 전체 칸 수만큼 그리고, 전달받은 사진을 목록 순서대로 앞쪽 촬영 칸에 채운다.
  *
  * 촬영 여부는 서버가 내려준 촬영 수(`totalPhotoCount - remainedPhotoCount`)로 판단한다.
  * 사진 목록이 촬영 수보다 적게 와도 이미 찍은 칸이 촬영 전으로 보이지 않게 하기 위해서다.
@@ -81,7 +83,7 @@ private fun RoomDetail.toFilmSlots(
 }
 
 /**
- * 인화가 끝나 공개된 사진을 그린다. 번호는 촬영 순서대로 매긴다.
+ * 인화가 끝나 공개된 사진을 UI 모델로 변환하고, 현재 목록 순서대로 번호를 매긴다.
  */
 private fun List<Photo>.toGalleryPhotos(): ImmutableList<GalleryPhotoUiModel> =
     mapIndexed { index, photo ->
