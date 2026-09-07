@@ -6,14 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,17 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 private val ReactionButtonSize = 58.dp
 private val ReactionEmojiSize = 32.dp
 
-/** 페이지끼리의 간격. 피그마의 버튼 간격과 같은 값이라 넘길 때 리듬이 이어진다. */
-private val ReactionBarPageSpacing = 13.dp
+private val ReactionBarItemSpacing = 13.dp
 private val ReactionBarHorizontalPadding = 24.dp
-
-/**
- * 한 페이지에 노출하는 이모지 수. 스와이프 한 번에 이만큼 넘어간다.
- *
- * [ReactionBarEmojis]의 수가 이 값의 배수라 마지막 페이지도 꽉 찬다. 배수가 아니게 되면 마지막 페이지에서
- * 항목이 양 끝으로 벌어지므로, 그때는 배치를 다시 정해야 한다.
- */
-private const val EMOJI_COUNT_PER_PAGE = 5
 
 /**
  * 반응 바에 노출하는 순서.
@@ -68,42 +57,32 @@ private val ReactionBarEmojis: ImmutableList<ReactionEmoji> =
     )
 
 /**
- * 이모지를 [EMOJI_COUNT_PER_PAGE]개씩 끊어 좌우로 넘긴다.
+ * 이모지를 좌우로 스크롤해 고른다.
  *
- * 자유 스크롤이 아니라 페이지 단위로 딱 떨어져야 해서 pager를 쓴다.
- * 페이지가 화면 폭을 꽉 채워야 좌우 여백이 피그마대로 나오므로, 여백은 modifier가 아닌
- * contentPadding으로 준다.
+ * 페이지 단위로 끊지 않는다. 피그마 기준 폭(390dp)에서 다섯 번째 다음 이모지가 오른쪽 끝에 걸쳐,
+ * 옆으로 더 있다는 것이 보이는 것을 노린 배치다.
  *
- * 버튼 간격을 13dp로 고정하지 않고 [Arrangement.SpaceBetween]으로 남는 폭을 나눠 주는 이유:
- * 피그마 기준 폭(390dp)에서는 버튼 5개와 간격 4개가 페이지 폭과 정확히 맞아떨어져 간격이 13dp로 같지만,
- * 360dp 기기에서는 고정 간격이면 폭이 30dp 모자라 마지막 버튼이 잘린다.
- * 나눠 주면 좁은 화면에서는 간격만 줄어들어 5개가 모두 들어온다.
+ * 스크롤 영역이 화면 끝까지 닿아야 걸친 이모지가 잘리지 않고 그려지므로,
+ * 좌우 여백은 modifier가 아닌 contentPadding으로 준다.
  */
 @Composable
 fun PhotoReactionBar(
     onEmojiClick: (ReactionEmoji) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pages = remember { ReactionBarEmojis.chunked(EMOJI_COUNT_PER_PAGE) }
-    val pagerState = rememberPagerState { pages.size }
-
-    HorizontalPager(
+    LazyRow(
         modifier = modifier.fillMaxWidth(),
-        state = pagerState,
         contentPadding = PaddingValues(horizontal = ReactionBarHorizontalPadding),
-        pageSpacing = ReactionBarPageSpacing,
-    ) { page ->
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            pages[page].forEach { emoji ->
-                ReactionButton(
-                    emoji = emoji,
-                    onClick = { onEmojiClick(emoji) },
-                )
-            }
+        horizontalArrangement = Arrangement.spacedBy(ReactionBarItemSpacing),
+    ) {
+        items(
+            items = ReactionBarEmojis,
+            key = { emoji -> emoji.name },
+        ) { emoji ->
+            ReactionButton(
+                emoji = emoji,
+                onClick = { onEmojiClick(emoji) },
+            )
         }
     }
 }
