@@ -71,8 +71,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
     /** 사진별 내 반응의 chatId. 스티커를 지울 때 함께 지울 대상이자, 프로필 조회가 실패했을 때의 대비책이다. */
     private val myChatIds = mutableMapOf<Long, MutableSet<Long>>()
 
-    /** 내 반응을 바꾸는 작업은 겹치면 안 된다. 지운 chatId에 삭제가 또 나가거나 반응이 여러 개 남는다. */
+    /** 내 반응을 바꾸는 작업은 겹치면 안 된다. 지운 chatId에 삭제가 또 나가거나 순서가 뒤집힌다. */
     private val myReactionMutex = Mutex()
+
+    /** 사진별 내 마지막 이모지. 같은 것을 연달아 누르면 연출만 재생하고 전송은 건너뛴다. */
+    private val lastSentEmojis = mutableMapOf<Long, ReactionEmoji>()
 
     /** 같은 이모지를 다시 남겨도 연출이 재생되도록 매번 새 값을 준다. */
     private var nextBurstId = 0L
@@ -190,6 +193,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
         // 연출은 서버 왕복을 기다리지 않고 누르는 즉시 재생한다. 실패하면 토스트로 따로 알린다.
         emitBurst(photoId = photo.id, emoji = emoji)
 
+        // 같은 이모지를 또 보내도 스티커가 그대로라, 연타로 같은 요청을 쌓지 않는다.
+        if (lastSentEmojis.put(photo.id, emoji) == emoji) return
+
         viewModelScope.launch { myReactionMutex.withLock { addReaction(photo = photo, emoji = emoji) } }
     }
 
@@ -249,6 +255,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
                 myChatIdsOf(photo.id) += chatId
                 loadReactions(photo.id)
             }.onFailure { failure ->
+                // 다시 누르면 보내지도록 되돌린다.
+                lastSentEmojis.remove(photo.id)
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
             }
@@ -262,6 +270,8 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .removePhotoReaction(chatId)
             .onSuccess {
                 myChatIdsOf(photoId) -= chatId
+                // 지운 이모지를 바로 다시 보낼 수 있어야 한다.
+                lastSentEmojis.remove(photoId)
                 loadReactions(photoId)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
