@@ -130,11 +130,9 @@ fun PhotoReactionOverlay(
                         )
                     }
 
-                val removeLabel =
-                    stringResource(
-                        R.string.photo_detail_sticker_remove_description,
-                        stringResource(reaction.emoji.labelRes),
-                    )
+                val emojiLabel = stringResource(reaction.emoji.labelRes)
+                val stickerDescription = stringResource(R.string.photo_detail_sticker_description, emojiLabel)
+                val removeLabel = stringResource(R.string.photo_detail_sticker_remove_description, emojiLabel)
 
                 ReactionEmojiSticker(
                     modifier =
@@ -154,6 +152,7 @@ fun PhotoReactionOverlay(
                                 },
                             ),
                     emoji = reaction.emoji,
+                    contentDescription = stickerDescription,
                 )
             }
         }
