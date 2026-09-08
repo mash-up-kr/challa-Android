@@ -287,8 +287,6 @@ fun ChallaNavHost(
                             onAccountClick = {
                                 navigator.navigate(ChallaRoute.Account)
                             },
-                            onSupportClick = {},
-                            onFeedbackClick = {},
                             onOpenSourceLicenseClick = {
                                 navigator.navigate(ChallaRoute.OpenSourceLicense)
                             },
