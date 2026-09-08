@@ -103,12 +103,7 @@ fun EnterRoomBottomSheet(
                 is EnterRoomSideEffect.RoomEntered ->
                     hideThen { onRoomEntered(effect.roomId) }
 
-                is EnterRoomSideEffect.RoomEnterFailed -> {
-                    val message =
-                        effect.message?.takeIf { it.isNotBlank() }
-                            ?: roomEnterFailedMessage
-                    showToast(message)
-                }
+                EnterRoomSideEffect.RoomEnterFailed -> showToast(roomEnterFailedMessage)
             }
         }
     }
