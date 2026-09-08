@@ -10,8 +10,6 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
-import kotlinx.collections.immutable.ImmutableSet
-import kotlinx.collections.immutable.persistentSetOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 private val BottomBarTopPadding = 8.dp
@@ -30,7 +28,6 @@ private val MessageInputHorizontalPadding = 20.dp
 fun PhotoDetailBottomBar(
     message: String,
     isMessageSendable: Boolean,
-    addedEmojis: ImmutableSet<ReactionEmoji>,
     onEmojiClick: (ReactionEmoji) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: () -> Unit,
@@ -43,10 +40,7 @@ fun PhotoDetailBottomBar(
                 .padding(top = BottomBarTopPadding, bottom = BottomBarBottomPadding),
         verticalArrangement = Arrangement.spacedBy(BottomBarSpacing),
     ) {
-        PhotoReactionBar(
-            addedEmojis = addedEmojis,
-            onEmojiClick = onEmojiClick,
-        )
+        PhotoReactionBar(onEmojiClick = onEmojiClick)
 
         PhotoMessageInput(
             modifier = Modifier.padding(horizontal = MessageInputHorizontalPadding),
@@ -65,7 +59,6 @@ private fun PhotoDetailBottomBarPreview() {
     PhotoDetailBottomBar(
         message = "",
         isMessageSendable = false,
-        addedEmojis = persistentSetOf(),
         onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},
@@ -79,7 +72,6 @@ private fun PhotoDetailBottomBarTypingPreview() {
     PhotoDetailBottomBar(
         message = "기엽다",
         isMessageSendable = true,
-        addedEmojis = persistentSetOf(ReactionEmoji.FIRE, ReactionEmoji.HEART),
         onEmojiClick = {},
         onMessageChange = {},
         onSendClick = {},

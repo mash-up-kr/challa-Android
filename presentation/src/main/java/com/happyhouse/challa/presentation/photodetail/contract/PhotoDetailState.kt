@@ -6,10 +6,8 @@ import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.base.UiState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.parcelize.Parcelize
 
 @Immutable
@@ -34,13 +32,9 @@ data class PhotoDetailState(
         data class Loaded(
             val photos: ImmutableList<PhotoDetailUiModel>,
             val reactions: ImmutableMap<Long, ImmutableList<PhotoReactionUiModel>> = persistentMapOf(),
-            /** 반응 바에 표시하고, 다시 누르면 취소한다. */
-            val myEmojis: ImmutableMap<Long, ImmutableSet<ReactionEmoji>> = persistentMapOf(),
             val burst: ReactionBurstUiModel? = null,
         ) : PhotoInfo {
             fun reactionsOf(photoId: Long): ImmutableList<PhotoReactionUiModel> = reactions[photoId] ?: persistentListOf()
-
-            fun myEmojisOf(photoId: Long): ImmutableSet<ReactionEmoji> = myEmojis[photoId] ?: persistentSetOf()
         }
     }
 }
@@ -63,12 +57,14 @@ data class PhotoDetailUiModel(
 /**
  * 사진 위에 붙는 스티커 하나.
  *
- * @param chatId 취소에 쓰고, 배치 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려진다.
+ * @param chatId 지울 때 쓰고, 배치 좌표를 뽑는 seed로도 쓴다. 같은 반응은 항상 같은 자리에 그려진다.
+ * @param isMine 내가 남긴 스티커만 눌러서 지울 수 있다.
  */
 @Immutable
 data class PhotoReactionUiModel(
     val chatId: Long,
     val emoji: ReactionEmoji,
+    val isMine: Boolean,
 )
 
 const val REACTION_BURST_DURATION_MILLIS = 1100L

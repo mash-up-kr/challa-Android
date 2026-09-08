@@ -17,6 +17,8 @@ import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrap
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
@@ -24,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 fun PhotoDetailContent(
     state: PhotoDetailState,
     pagerState: PagerState,
+    onStickerClick: (PhotoDetailUiModel, PhotoReactionUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
@@ -41,6 +44,7 @@ fun PhotoDetailContent(
                     modifier = Modifier.fillMaxSize(),
                     loadedPhotoInfo = photoInfo,
                     pagerState = pagerState,
+                    onStickerClick = onStickerClick,
                 )
             }
         }
@@ -75,6 +79,7 @@ private fun PhotoDetailContentLoadedPreview() {
                 photoInfo = PhotoInfo.Loaded(photos),
             ),
         pagerState = rememberPagerState { photos.size },
+        onStickerClick = { _, _ -> },
     )
 }
 
@@ -86,5 +91,6 @@ private fun PhotoDetailContentEmptyPreview() {
         modifier = Modifier.fillMaxSize(),
         state = PhotoDetailState(photoInfo = PhotoInfo.Empty),
         pagerState = rememberPagerState { 0 },
+        onStickerClick = { _, _ -> },
     )
 }

@@ -65,6 +65,7 @@ private val PhotoDimBrush =
 fun PhotoDetailPage(
     photo: PhotoDetailUiModel,
     reactions: ImmutableList<PhotoReactionUiModel>,
+    onStickerClick: (PhotoReactionUiModel) -> Unit,
     modifier: Modifier = Modifier,
     burst: ReactionBurstUiModel? = null,
 ) {
@@ -118,6 +119,7 @@ fun PhotoDetailPage(
             modifier = Modifier.fillMaxSize(),
             photoId = photo.id,
             reactions = reactions,
+            onStickerClick = onStickerClick,
         )
 
         // 남기는 순간의 연출. 다른 사진의 연출이 넘어오지 않게 이 사진 것만 재생한다.
@@ -221,6 +223,7 @@ private fun PhotoDetailPageWithoutProfileImagePreview() {
                 capturedDate = "2026. 7. 16. 14:34",
             ),
         reactions = persistentListOf(),
+        onStickerClick = {},
     )
 }
 
@@ -244,8 +247,9 @@ private fun PhotoDetailPagePreview() {
             ),
         reactions =
             persistentListOf(
-                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.HEART),
-                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.FIRE),
+                PhotoReactionUiModel(chatId = 0L, emoji = ReactionEmoji.HEART, isMine = true),
+                PhotoReactionUiModel(chatId = 1L, emoji = ReactionEmoji.FIRE, isMine = false),
             ),
+        onStickerClick = {},
     )
 }
