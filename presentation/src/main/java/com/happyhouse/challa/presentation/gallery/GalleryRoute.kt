@@ -1,6 +1,8 @@
 package com.happyhouse.challa.presentation.gallery
 
 import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHostState
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -39,6 +42,9 @@ private val ToastTopOffset = 8.dp
 
 /** 붙여넣을 때 시스템이 함께 보여줄 수 있는 이름 */
 private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
+
+/** 초대 코드를 붙여 만드는 초대 링크. 번역 대상이 아니라 문자열 리소스가 아닌 상수로 둔다. */
+private const val INVITE_LINK_FORMAT = "https://challa.stellaris.co.kr/invite/%s"
 
 @Composable
 fun GalleryRoute(
@@ -67,7 +73,9 @@ fun GalleryRoute(
     val membersFailureMessage = stringResource(R.string.gallery_members_load_failure)
     val inviteCodeCopySuccessMessage = stringResource(R.string.gallery_invite_code_copy_success)
     val inviteCodeCopyFailureMessage = stringResource(R.string.gallery_invite_code_copy_failure)
+    val shareFailureMessage = stringResource(R.string.gallery_share_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
+    val context = LocalContext.current
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (shouldRefreshAfterCamera.value) {
@@ -143,7 +151,21 @@ fun GalleryRoute(
         onBackClick = onBackClick,
         onSettingClick = { onSettingClick(state.roomName) },
         onPrintAnimationComplete = viewModel::onPrintAnimationComplete,
-        onInviteCodeClick = { invitationCode ->
+        onKakaoShareClick = { invitationCode ->
+            if (!context.shareInviteCode(invitationCode)) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = shareFailureMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                            topOffset = ToastTopOffset,
+                        ),
+                    )
+                }
+            }
+        },
+        onInviteCodeCopyClick = { invitationCode ->
             coroutineScope.launch {
                 if (clipboard.copyInviteCode(invitationCode)) {
                     // Android 13부터는 복사하면 시스템이 안내를 띄워 우리 토스트와 겹친다.
@@ -187,5 +209,32 @@ private suspend fun Clipboard.copyInviteCode(invitationCode: String): Boolean {
     }.onFailure { throwable ->
         if (throwable is CancellationException) throw throwable
         Timber.e(throwable, "초대 코드를 복사하지 못했습니다.")
+    }.isSuccess
+}
+
+/**
+ * 초대 링크를 시스템 공유 시트로 넘긴다.
+ * 카카오톡, 문자 등 어느 앱으로 보낼지는 사용자가 시트에서 고른다.
+ *
+ * @return 공유 시트를 띄웠으면 true
+ */
+private fun Context.shareInviteCode(invitationCode: String): Boolean {
+    // 방 정보를 받아야 메뉴가 열리므로, 코드가 비었다면 응답이 스펙과 다른 것이다.
+    if (invitationCode.isBlank()) {
+        Timber.w("초대 코드가 비어 있어 공유하지 않습니다.")
+        return false
+    }
+
+    val inviteLink = INVITE_LINK_FORMAT.format(invitationCode)
+    val shareIntent =
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, inviteLink)
+        }
+
+    return runCatching {
+        startActivity(Intent.createChooser(shareIntent, null))
+    }.onFailure { throwable ->
+        Timber.e(throwable, "초대 코드를 공유하지 못했습니다.")
     }.isSuccess
 }
