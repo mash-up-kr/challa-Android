@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -43,11 +42,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -63,6 +62,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -74,6 +74,7 @@ import coil3.request.crossfade
 import coil3.request.transformations
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigation
 import com.happyhouse.challa.presentation.designsystem.component.ChallaTopNavigationVariant
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
@@ -306,13 +307,8 @@ private fun HomeScreen(
                 }
 
                 if (isFirstLoading || isRefreshing) {
-                    CircularProgressIndicator(
-                        modifier =
-                            Modifier
-                                .align(Alignment.Center)
-                                .size(28.dp),
-                        color = ChallaTheme.colors.labelNormal,
-                        strokeWidth = 2.dp,
+                    ChallaProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
                     )
                 }
             }
@@ -1009,8 +1005,15 @@ private fun HomeActionButtons(
         modifier =
             modifier
                 .fillMaxWidth()
-                .offset(y = enterOffset)
-                .alpha(enterAlpha)
+                .offset {
+                    IntOffset(
+                        x = 0,
+                        y = enterOffset.roundToPx(),
+                    )
+                }
+                .graphicsLayer {
+                    alpha = enterAlpha
+                }
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {

@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_exit_guide">뒤로가기를 한 번 더 누르면 앱이 종료돼요</string>
     <string name="presentation_module_name">presentation</string>
     <string name="sample_title">Challa Sample</string>
 
@@ -166,6 +167,7 @@
     <string name="photo_detail_empty">표시할 사진이 없어요.</string>
     <string name="photo_detail_message_placeholder">이 사진에 메시지를 보내세요.</string>
     <string name="photo_detail_message_send_description">메시지 보내기</string>
+    <string name="photo_detail_message_send_success">메시지를 보냈어요</string>
     <string name="photo_detail_message_send_failure">다시 시도해 주세요</string>
     <string name="photo_detail_reaction_fire">불</string>
     <string name="photo_detail_reaction_eyes">눈</string>
@@ -178,9 +180,9 @@
     <string name="photo_detail_reaction_poop">똥</string>
     <string name="photo_detail_reaction_skull">해골</string>
     <string name="photo_detail_reaction_add_description">%1$s 반응 남기기</string>
-    <string name="photo_detail_reaction_remove_description">%1$s 반응 취소</string>
+    <string name="photo_detail_sticker_remove_description">%1$s 스티커 지우기</string>
     <string name="photo_detail_reaction_failure">반응을 남기지 못했어요.</string>
-    <string name="photo_detail_reaction_cancel_failure">반응을 취소하지 못했어요.</string>
+    <string name="photo_detail_sticker_remove_failure">스티커를 지우지 못했어요.</string>
     <string name="photo_detail_reactions_load_failure">반응을 불러오지 못했어요.</string>
 
     <string name="share_invite_title">초대 링크 공유</string>
@@ -223,13 +225,12 @@
     <string name="setting_notification">알림</string>
     <string name="setting_account_section">계정</string>
     <string name="setting_account_management">계정 관리</string>
-    <!-- TODO: 구글 폼으로 연결하는 임시 신고/차단 메뉴. 인앱 신고·차단 기능 구현되면 아래 3개 문자열 삭제할 것. -->
-    <string name="setting_report_and_block">신고 및 차단</string>
-    <string name="setting_report_and_block_url" translatable="false">https://forms.gle/cKUj3JXAajLH1Cdr7</string>
-    <string name="setting_report_and_block_link_open_failure">신고 및 차단 링크를 열 수 없어요.</string>
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
+    <string name="setting_support_url" translatable="false">https://play.google.com/store/apps/details?id=com.happyhouse.challa</string>
+    <string name="setting_support_link_open_failure">스토어를 열 수 없어요.</string>
     <string name="setting_send_feedback">피드백 보내기</string>
+    <string name="setting_feedback_preparing">준비중인 기능입니다</string>
     <string name="setting_open_source_license">오픈 소스 라이선스</string>
 
     <!-- openSourceLicenseScreen -->

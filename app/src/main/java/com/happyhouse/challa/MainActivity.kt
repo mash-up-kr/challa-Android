@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
 
         setContent {
-            ChallaApp()
+            ChallaApp(onExitRequest = ::finish)
         }
     }
 

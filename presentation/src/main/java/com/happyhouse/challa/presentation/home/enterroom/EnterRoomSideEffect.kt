@@ -7,7 +7,5 @@ sealed interface EnterRoomSideEffect : UiSideEffect {
         val roomId: Long,
     ) : EnterRoomSideEffect
 
-    data class RoomEnterFailed(
-        val message: String?,
-    ) : EnterRoomSideEffect
+    data object RoomEnterFailed : EnterRoomSideEffect
 }

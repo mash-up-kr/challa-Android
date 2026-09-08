@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +19,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.designsystem.component.ChallaListItem
+import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonSize
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaButtonVariant
 import com.happyhouse.challa.presentation.designsystem.component.button.ChallaTextButton
@@ -43,8 +42,6 @@ fun SettingScreen(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    // TODO: 인앱 신고·차단 기능 구현 전까지 쓰는 임시 콜백. 구현되면 삭제할 것.
-    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
     onOpenSourceLicenseClick: () -> Unit,
@@ -85,7 +82,6 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
-                    onReportAndBlockClick = onReportAndBlockClick,
                     onSupportClick = onSupportClick,
                     onFeedbackClick = onFeedbackClick,
                 )
@@ -100,7 +96,6 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
-                    onReportAndBlockClick = onReportAndBlockClick,
                     onSupportClick = onSupportClick,
                     onFeedbackClick = onFeedbackClick,
                 )
@@ -118,11 +113,7 @@ private fun SettingLoadingContent(innerPadding: PaddingValues) {
                 .padding(innerPadding),
         contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(28.dp),
-            color = ChallaTheme.colors.labelNormal,
-            strokeWidth = 2.dp,
-        )
+        ChallaProgressIndicator()
     }
 }
 
@@ -133,7 +124,6 @@ private fun ProfileErrorSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -143,7 +133,6 @@ private fun ProfileErrorSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
-            onReportAndBlockClick = onReportAndBlockClick,
             onSupportClick = onSupportClick,
             onFeedbackClick = onFeedbackClick,
         )
@@ -159,7 +148,6 @@ private fun ProfileLoadedSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -174,7 +162,6 @@ private fun ProfileLoadedSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
-            onReportAndBlockClick = onReportAndBlockClick,
             onSupportClick = onSupportClick,
             onFeedbackClick = onFeedbackClick,
         )
@@ -204,7 +191,6 @@ private fun SettingMenuSections(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onReportAndBlockClick: () -> Unit,
     onSupportClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
@@ -235,12 +221,6 @@ private fun SettingMenuSections(
                 text = stringResource(R.string.setting_account_management),
                 leadingIcon = ChallaIcons.Profile,
                 onClick = onAccountClick,
-            )
-            // TODO: 인앱 신고·차단 기능 구현 전까지 구글 폼으로 연결하는 임시 메뉴. 구현되면 삭제할 것.
-            ChallaListItem(
-                text = stringResource(R.string.setting_report_and_block),
-                leadingIcon = ChallaIcons.Error,
-                onClick = onReportAndBlockClick,
             )
         }
 
@@ -307,7 +287,6 @@ private fun SettingScreenPreviewContent(state: SettingState) {
         onThemeClick = {},
         onNotificationClick = {},
         onAccountClick = {},
-        onReportAndBlockClick = {},
         onSupportClick = {},
         onFeedbackClick = {},
         onOpenSourceLicenseClick = {},

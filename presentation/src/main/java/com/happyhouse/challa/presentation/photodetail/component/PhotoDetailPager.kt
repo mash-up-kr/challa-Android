@@ -18,6 +18,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaPreviewWrapper
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import com.happyhouse.challa.presentation.photodetail.previewPhotoDetailPhotos
 import timber.log.Timber
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -31,6 +33,7 @@ private val PhotoPageSpacing = PhotoHorizontalPadding * 2
 fun PhotoDetailPager(
     loadedPhotoInfo: PhotoInfo.Loaded,
     pagerState: PagerState,
+    onStickerClick: (PhotoDetailUiModel, PhotoReactionUiModel) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val photos = loadedPhotoInfo.photos
@@ -66,6 +69,7 @@ fun PhotoDetailPager(
                 modifier = Modifier.fillMaxSize(),
                 photo = photo,
                 reactions = loadedPhotoInfo.reactionsOf(photo.id),
+                onStickerClick = { reaction -> onStickerClick(photo, reaction) },
                 burst = loadedPhotoInfo.burst,
             )
         }
@@ -91,6 +95,7 @@ private fun PhotoDetailPagerPreview() {
             modifier = Modifier.fillMaxWidth(),
             loadedPhotoInfo = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
+            onStickerClick = { _, _ -> },
         )
     }
 }
@@ -113,6 +118,7 @@ private fun PhotoDetailPagerSinglePhotoPreview() {
             modifier = Modifier.fillMaxWidth(),
             loadedPhotoInfo = PhotoInfo.Loaded(photos),
             pagerState = rememberPagerState { photos.size },
+            onStickerClick = { _, _ -> },
         )
     }
 }

@@ -21,6 +21,11 @@ sealed interface PhotoDetailIntent : UiIntent {
         val emoji: ReactionEmoji,
     ) : PhotoDetailIntent
 
+    data class StickerClick(
+        val photo: PhotoDetailUiModel,
+        val reaction: PhotoReactionUiModel,
+    ) : PhotoDetailIntent
+
     data class MessageChange(
         val message: String,
     ) : PhotoDetailIntent

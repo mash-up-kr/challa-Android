@@ -2,7 +2,6 @@ package com.happyhouse.challa.presentation.home.enterroom
 
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.repository.RoomRepository
-import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import com.happyhouse.challa.presentation.base.BaseViewModel
@@ -56,17 +55,10 @@ class EnterRoomViewModel
                         .onSuccess { entered ->
                             updateState { copy(isSubmitting = false) }
                             sendEffect(EnterRoomSideEffect.RoomEntered(roomId = entered.id))
-                        }.onFailure { failure ->
+                        }.onFailure {
                             updateState { copy(isSubmitting = false) }
-                            sendEffect(EnterRoomSideEffect.RoomEnterFailed(failure.serverMessage()))
+                            sendEffect(EnterRoomSideEffect.RoomEnterFailed)
                         }
                 }
         }
-
-        private fun ChallaResult.Failure.serverMessage(): String? =
-            when (this) {
-                is ChallaResult.Failure.Http -> message
-                is ChallaResult.Failure.Unknown -> cause?.message
-                is ChallaResult.Failure.Network -> null
-            }
     }
