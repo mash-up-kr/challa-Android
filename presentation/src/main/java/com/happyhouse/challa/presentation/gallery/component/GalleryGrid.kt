@@ -44,6 +44,7 @@ private const val GALLERY_COLUMN_COUNT = 4
 /** 받아둔 사진의 끝에서 이만큼 남았을 때 다음 페이지를 미리 요청한다. */
 private const val LOAD_MORE_PREFETCH_ITEM_COUNT = GALLERY_COLUMN_COUNT * 2
 
+private const val CAPTURE_HIGHLIGHT_STEP_DELAY_MS = 1_000L
 private const val PHOTO_REVEAL_FADE_MS = 220
 
 private val GalleryGridSpacing = 10.dp
@@ -60,7 +61,7 @@ private val GalleryGridVerticalPadding = 20.dp
  * @param capturedPhotoUrl 강조할 촬영 사진의 URL. 슬롯의 이미지 URL과 일치하는 칸을 찾아
  * 스크롤하며, 아직 불러오지 않은 촬영 칸이 있으면 추가 페이지를 요청합니다. null이면 강조하지 않습니다.
  * 대상 칸으로 이동하고 이미지 로딩이 성공 또는 실패로 끝나면 점선, primary 실선, 기본 테두리를
- * 1.5초 간격으로 전환한 뒤 기본 테두리를 유지합니다.
+ * 1초 간격으로 전환한 뒤 기본 테두리를 유지합니다.
  * @param onCaptureHighlightFinished 세 단계가 끝났을 때 호출합니다. 호출자는 강조 대상을 해제합니다.
  */
 @Composable
@@ -100,11 +101,11 @@ fun GalleryFilmSlotGrid(
 
     LaunchedEffect(capturedPhotoUrl, isCaptureImageLoaded, isCapturePositioned) {
         if (capturedPhotoUrl == null || !isCaptureImageLoaded || !isCapturePositioned) return@LaunchedEffect
-        delay(1000L)
+        delay(CAPTURE_HIGHLIGHT_STEP_DELAY_MS)
         captureBorder = ChallaCardBorder.PRIMARY
-        delay(1000L)
+        delay(CAPTURE_HIGHLIGHT_STEP_DELAY_MS)
         captureBorder = ChallaCardBorder.DEFAULT
-        delay(1000L)
+        delay(CAPTURE_HIGHLIGHT_STEP_DELAY_MS)
         currentOnCaptureHighlightFinished()
     }
 
