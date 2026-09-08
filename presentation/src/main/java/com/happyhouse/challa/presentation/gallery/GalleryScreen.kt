@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -160,7 +161,7 @@ private fun GalleryScaffold(
                     Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .height(GalleryBottomActionHeight)
+                        .heightIn(GalleryBottomActionHeight)
                         .then(measureBottomBar)
                         .then(bottomActionBackground),
                 contentAlignment = Alignment.BottomCenter,
