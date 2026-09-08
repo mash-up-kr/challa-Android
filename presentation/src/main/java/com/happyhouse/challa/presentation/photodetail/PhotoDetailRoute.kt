@@ -49,8 +49,9 @@ fun PhotoDetailRoute(
     val loadMoreFailureMessage = stringResource(R.string.photo_detail_load_more_failure)
     val retryLabel = stringResource(R.string.photo_detail_retry)
     val reactionFailureMessage = stringResource(R.string.photo_detail_reaction_failure)
-    val reactionCancelFailureMessage = stringResource(R.string.photo_detail_reaction_cancel_failure)
+    val stickerRemoveFailureMessage = stringResource(R.string.photo_detail_sticker_remove_failure)
     val reactionsLoadFailureMessage = stringResource(R.string.photo_detail_reactions_load_failure)
+    val messageSendSuccessMessage = stringResource(R.string.photo_detail_message_send_success)
     val messageSendFailureMessage = stringResource(R.string.photo_detail_message_send_failure)
     val destructiveIconTint = ChallaTheme.colors.statusDestructive
 
@@ -108,9 +109,9 @@ fun PhotoDetailRoute(
                             topOffset = ToastTopOffset,
                         )
 
-                    PhotoDetailSideEffect.ReactionCancelFailed ->
+                    PhotoDetailSideEffect.StickerRemoveFailed ->
                         ChallaToastVisuals(
-                            message = reactionCancelFailureMessage,
+                            message = stickerRemoveFailureMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                             topOffset = ToastTopOffset,
@@ -121,6 +122,12 @@ fun PhotoDetailRoute(
                             message = reactionsLoadFailureMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
+                            topOffset = ToastTopOffset,
+                        )
+
+                    PhotoDetailSideEffect.MessageSendSucceeded ->
+                        ChallaToastVisuals(
+                            message = messageSendSuccessMessage,
                             topOffset = ToastTopOffset,
                         )
 
@@ -151,6 +158,9 @@ fun PhotoDetailRoute(
         onReactionsLoad = { photo -> viewModel.onIntent(PhotoDetailIntent.ReactionsLoad(photo)) },
         onSaveClick = requestSave,
         onEmojiClick = { photo, emoji -> viewModel.onIntent(PhotoDetailIntent.ReactionClick(photo, emoji)) },
+        onStickerClick = { photo, reaction ->
+            viewModel.onIntent(PhotoDetailIntent.StickerClick(photo, reaction))
+        },
         onMessageChange = { message -> viewModel.onIntent(PhotoDetailIntent.MessageChange(message)) },
         onSendClick = { photo -> viewModel.onIntent(PhotoDetailIntent.MessageSend(photo)) },
         onBackClick = onBackClick,

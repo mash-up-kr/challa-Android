@@ -27,8 +27,9 @@ import com.happyhouse.challa.presentation.photodetail.component.PhotoDetailTopBa
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailState.PhotoInfo
 import com.happyhouse.challa.presentation.photodetail.contract.PhotoDetailUiModel
+import com.happyhouse.challa.presentation.photodetail.contract.PhotoReactionUiModel
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.collections.immutable.persistentMapOf
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 // TODO: 디자인 토큰에 없는 값이라 화면 로컬 상수로 둔다. 토큰 추가되면 교체할 것.
@@ -45,6 +46,7 @@ fun PhotoDetailScreen(
     onReactionsLoad: (PhotoDetailUiModel) -> Unit,
     onSaveClick: (PhotoDetailUiModel) -> Unit,
     onEmojiClick: (PhotoDetailUiModel, ReactionEmoji) -> Unit,
+    onStickerClick: (PhotoDetailUiModel, PhotoReactionUiModel) -> Unit,
     onMessageChange: (String) -> Unit,
     onSendClick: (PhotoDetailUiModel) -> Unit,
     onBackClick: () -> Unit,
@@ -57,12 +59,6 @@ fun PhotoDetailScreen(
             pageCount = { photos.size },
         )
     val currentPhoto = photos.getOrNull(pagerState.currentPage)
-
-    val addedEmojis =
-        remember(state.photoInfo, currentPhoto) {
-            val loaded = state.photoInfo as? PhotoInfo.Loaded
-            if (loaded == null || currentPhoto == null) persistentSetOf() else loaded.myEmojisOf(currentPhoto.id)
-        }
 
     LaunchedEffect(currentPhoto?.id) {
         currentPhoto?.let(onReactionsLoad)
@@ -102,7 +98,6 @@ fun PhotoDetailScreen(
                         modifier = Modifier.imePadding(),
                         message = state.messageInput,
                         isMessageSendable = state.isMessageSendable,
-                        addedEmojis = addedEmojis,
                         onEmojiClick = { emoji -> onEmojiClick(currentPhoto, emoji) },
                         onMessageChange = onMessageChange,
                         onSendClick = { onSendClick(currentPhoto) },
@@ -120,6 +115,7 @@ fun PhotoDetailScreen(
                     modifier = Modifier.fillMaxSize(),
                     state = state,
                     pagerState = pagerState,
+                    onStickerClick = onStickerClick,
                 )
 
                 // ChallaScaffold의 snackbarHostState 대신 content 안에 둔다.
@@ -147,6 +143,37 @@ private fun PhotoDetailScreenPreview() {
         onReactionsLoad = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
+        onStickerClick = { _, _ -> },
+        onMessageChange = {},
+        onSendClick = {},
+        onBackClick = {},
+    )
+}
+
+@ComposePreview(name = "PhotoDetailScreen - 스티커 있음")
+@PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
+@Composable
+private fun PhotoDetailScreenWithReactionsPreview() {
+    val photos = previewPhotoDetailPhotos(count = 24)
+
+    PhotoDetailScreen(
+        modifier = Modifier.fillMaxSize(),
+        state =
+            PhotoDetailState(
+                roomName = "해피하우스 강릉 여행",
+                initialPhotoIndex = 0,
+                photoInfo =
+                    PhotoInfo.Loaded(
+                        photos = photos,
+                        reactions = persistentMapOf(photos.first().id to previewPhotoReactions()),
+                    ),
+            ),
+        snackbarHostState = remember { SnackbarHostState() },
+        onLoadMore = {},
+        onReactionsLoad = {},
+        onSaveClick = {},
+        onEmojiClick = { _, _ -> },
+        onStickerClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},
@@ -169,6 +196,7 @@ private fun PhotoDetailScreenEmptyPreview() {
         onReactionsLoad = {},
         onSaveClick = {},
         onEmojiClick = { _, _ -> },
+        onStickerClick = { _, _ -> },
         onMessageChange = {},
         onSendClick = {},
         onBackClick = {},
