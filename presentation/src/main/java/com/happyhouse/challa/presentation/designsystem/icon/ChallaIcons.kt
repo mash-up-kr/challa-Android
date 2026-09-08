@@ -92,6 +92,9 @@ object ChallaIcons {
     val Setting = R.drawable.ic_setting
 
     @DrawableRes
+    val Share = R.drawable.ic_share
+
+    @DrawableRes
     val SignOut = R.drawable.ic_sign_out
 
     @DrawableRes
