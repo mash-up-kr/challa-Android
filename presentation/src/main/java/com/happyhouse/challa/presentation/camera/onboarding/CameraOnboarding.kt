@@ -12,6 +12,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.happyhouse.challa.presentation.R
+import com.happyhouse.challa.presentation.camera.contract.CameraOnboardingState
+import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
+import com.happyhouse.challa.presentation.camera.permission.CameraPermissionState
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
@@ -20,11 +23,29 @@ import kotlinx.coroutines.delay
 private const val CAMERA_ONBOARDING_DELAY_MILLIS = 500L
 
 @Composable
-internal fun rememberCameraOnboardingVisibility(
-    shouldShow: Boolean,
+internal fun rememberCameraOnboarding(
+    onboardingState: CameraOnboardingState,
+    roomLoadState: CameraRoomLoadState,
+    permissionState: CameraPermissionState,
     snackbarHostState: SnackbarHostState,
     onCompleted: () -> Unit,
 ): Boolean {
+    val isVisible =
+        when {
+            roomLoadState == CameraRoomLoadState.FAILED -> false
+            permissionState == CameraPermissionState.NotGranted -> false
+            permissionState == CameraPermissionState.PermanentlyDenied -> false
+            else ->
+                when (onboardingState) {
+                    CameraOnboardingState.LOADING, CameraOnboardingState.REQUIRED -> true
+                    CameraOnboardingState.COMPLETED, CameraOnboardingState.LOAD_FAILED -> false
+                }
+        }
+    val isReady =
+        isVisible &&
+            onboardingState == CameraOnboardingState.REQUIRED &&
+            roomLoadState == CameraRoomLoadState.LOADED &&
+            permissionState == CameraPermissionState.Granted
     var step by rememberSaveable { mutableStateOf<CameraOnboardingStep?>(null) }
     val currentOnCompleted by rememberUpdatedState(onCompleted)
     val captureCountMessage = stringResource(R.string.camera_onboarding_capture_count_message)
@@ -33,8 +54,8 @@ internal fun rememberCameraOnboardingVisibility(
     val confirmLabel = stringResource(R.string.camera_onboarding_confirm)
     val actionLabelColor = ChallaTheme.colors.primary
 
-    LaunchedEffect(shouldShow) {
-        if (!shouldShow) {
+    LaunchedEffect(isReady) {
+        if (!isReady) {
             step = null
             return@LaunchedEffect
         }
@@ -46,6 +67,7 @@ internal fun rememberCameraOnboardingVisibility(
     }
 
     LaunchedEffect(
+        isReady,
         step,
         snackbarHostState,
         captureCountMessage,
@@ -54,6 +76,7 @@ internal fun rememberCameraOnboardingVisibility(
         confirmLabel,
         actionLabelColor,
     ) {
+        if (!isReady) return@LaunchedEffect
         val currentStep = step ?: return@LaunchedEffect
         val result =
             snackbarHostState.showSnackbar(
@@ -90,7 +113,7 @@ internal fun rememberCameraOnboardingVisibility(
         }
     }
 
-    return shouldShow
+    return isVisible
 }
 
 private enum class CameraOnboardingStep {

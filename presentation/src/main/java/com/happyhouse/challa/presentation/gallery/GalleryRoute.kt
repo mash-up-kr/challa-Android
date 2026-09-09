@@ -46,6 +46,14 @@ private const val INVITE_CODE_CLIP_LABEL = "challa invite code"
 /** 초대 코드를 붙여 만드는 초대 링크. 번역 대상이 아니라 문자열 리소스가 아닌 상수로 둔다. */
 private const val INVITE_LINK_FORMAT = "https://challa.stellaris.co.kr/invite/%s"
 
+/**
+ * 갤러리 상태와 화면 이벤트를 연결합니다.
+ *
+ * @param capturedPhotoUrl 촬영 후 강조할 사진의 URL. 인화 전 사진 목록에서 동일한 URL의 칸을
+ * 찾아 테두리 연출을 재생하며, null이면 재생하지 않습니다.
+ * @param onCaptureHighlightFinished 연출 완료 콜백. 호출자는 [capturedPhotoUrl]을 null로 해제해
+ * 이후 재진입 시 같은 사진의 연출이 반복되지 않도록 합니다.
+ */
 @Composable
 fun GalleryRoute(
     roomId: Long,
@@ -56,6 +64,8 @@ fun GalleryRoute(
     onShootClick: () -> Unit,
     onChatClick: (roomName: String) -> Unit,
     onSettingClick: (roomName: String) -> Unit,
+    capturedPhotoUrl: String? = null,
+    onCaptureHighlightFinished: () -> Unit = {},
     viewModel: GalleryViewModel =
         hiltViewModel<GalleryViewModel, GalleryViewModel.Factory>(
             creationCallback = { factory ->
@@ -80,7 +90,7 @@ fun GalleryRoute(
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         if (shouldRefreshAfterCamera.value) {
             shouldRefreshAfterCamera.value = false
-            viewModel.onIntent(GalleryIntent.PhotosLoad)
+            viewModel.onIntent(GalleryIntent.PhotosRefresh)
         }
     }
 
@@ -144,6 +154,8 @@ fun GalleryRoute(
     }
 
     GalleryScreen(
+        capturedPhotoUrl = capturedPhotoUrl,
+        onCaptureHighlightFinished = onCaptureHighlightFinished,
         modifier = Modifier.fillMaxSize(),
         state = state,
         snackbarHostState = snackbarHostState,

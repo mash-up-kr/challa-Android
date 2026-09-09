@@ -62,7 +62,6 @@ private fun CameraOnboardingPreview() {
     ) {
         CameraContentLayout(
             modifier = Modifier.fillMaxSize(),
-            roomName = "해피하우스강릉여행",
             remainingCount = 6,
             totalCount = ROOM_REQUIRED_PHOTO_COUNT,
             isRoomLoaded = true,
@@ -72,6 +71,7 @@ private fun CameraOnboardingPreview() {
             isFlashEnabled = false,
             isCameraSwitchEnabled = true,
             shutterEnabled = true,
+            closeEnabled = false,
             isShutterEffectVisible = false,
             isOnboardingVisible = true,
             zoomLevel = 1f,
@@ -80,7 +80,7 @@ private fun CameraOnboardingPreview() {
             onShutterClick = {},
             onZoomClick = {},
             onFilterClick = {},
-            onRoomInfoClick = {},
+            onCloseClick = {},
             viewFinder = {},
         )
 

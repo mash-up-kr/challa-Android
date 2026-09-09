@@ -3,7 +3,7 @@ package com.happyhouse.challa.domain.model
 /**
  * 사진 한 장에 남은 반응 하나.
  *
- * @param chatId 취소할 때 쓰는 식별자
+ * @param chatId 지울 때 쓰는 식별자
  */
 data class PhotoReaction(
     val chatId: Long,
