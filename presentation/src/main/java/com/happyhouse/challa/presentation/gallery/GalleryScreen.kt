@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -55,6 +56,8 @@ fun GalleryScreen(
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
+    capturedPhotoUrl: String? = null,
+    onCaptureHighlightFinished: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -64,6 +67,8 @@ fun GalleryScreen(
                 .challaBackgroundGlow(),
     ) {
         GalleryScaffold(
+            capturedPhotoUrl = capturedPhotoUrl,
+            onCaptureHighlightFinished = onCaptureHighlightFinished,
             state = state,
             snackbarHostState = snackbarHostState,
             onIntent = onIntent,
@@ -84,6 +89,8 @@ private fun GalleryScaffold(
     onInviteCodeClick: (String) -> Unit,
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
+    capturedPhotoUrl: String?,
+    onCaptureHighlightFinished: () -> Unit,
 ) {
     val bottomGradient = rememberGalleryBottomGradient()
 
@@ -131,6 +138,8 @@ private fun GalleryScaffold(
             var printsFilm by remember { mutableStateOf(false) }
 
             GalleryContent(
+                capturedPhotoUrl = capturedPhotoUrl,
+                onCaptureHighlightFinished = onCaptureHighlightFinished,
                 modifier = Modifier.fillMaxSize(),
                 state = state,
                 onIntent = onIntent,
@@ -152,7 +161,7 @@ private fun GalleryScaffold(
                     Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .height(GalleryBottomActionHeight)
+                        .heightIn(GalleryBottomActionHeight)
                         .then(measureBottomBar)
                         .then(bottomActionBackground),
                 contentAlignment = Alignment.BottomCenter,

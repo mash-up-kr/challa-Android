@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -65,6 +66,8 @@ fun ChallaNavHost(
     val profileUpdateSuccessMessage = stringResource(R.string.setting_profile_update_success)
     val roomMemberJoinedSuffix = stringResource(R.string.room_member_joined_suffix)
     val exitGuideMessage = stringResource(R.string.app_exit_guide)
+    var capturedPhotoRoomId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var capturedPhotoUrl by rememberSaveable { mutableStateOf<String?>(null) }
     val currentRoute = navigator.currentRoute
     var lastBackPressedAt by remember { mutableStateOf<Long?>(null) }
 
@@ -143,11 +146,27 @@ fun ChallaNavHost(
                 entryProvider {
                     entry<ChallaRoute.Camera> { route ->
                         CameraRoute(
+                            onPhotoSaved = { roomId, imageUrl ->
+                                capturedPhotoRoomId = roomId
+                                capturedPhotoUrl = imageUrl
+                                val previous = navigator.backStack.getOrNull(navigator.backStack.lastIndex - 1)
+                                if (previous is ChallaRoute.Gallery && previous.roomId == roomId) {
+                                    navigator.goBack()
+                                } else {
+                                    navigator.replace(ChallaRoute.Gallery(roomId = roomId))
+                                }
+                            },
+                            onCloseClick = { navigator.goBack() },
                             roomId = route.roomId,
                         )
                     }
                     entry<ChallaRoute.Gallery> { route ->
                         GalleryRoute(
+                            capturedPhotoUrl = capturedPhotoUrl.takeIf { capturedPhotoRoomId == route.roomId },
+                            onCaptureHighlightFinished = {
+                                capturedPhotoUrl = null
+                                capturedPhotoRoomId = null
+                            },
                             roomId = route.roomId,
                             playsPrintAnimation = route.playsPrintAnimation,
                             memberJoinedEvents = memberJoinedObserverViewModel.events,

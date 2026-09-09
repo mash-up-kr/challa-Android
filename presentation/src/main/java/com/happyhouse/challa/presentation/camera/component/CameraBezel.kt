@@ -32,6 +32,7 @@ internal fun CameraBezel(
     zoomLevel: Float,
     onZoomClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showZoom: Boolean = true,
     viewFinder: @Composable (Modifier) -> Unit,
 ) {
     Box(
@@ -73,7 +74,7 @@ internal fun CameraBezel(
                         style = ChallaTheme.typography.bodyLarge.medium,
                     )
                 }
-            } else {
+            } else if (showZoom) {
                 Text(
                     text =
                         stringResource(

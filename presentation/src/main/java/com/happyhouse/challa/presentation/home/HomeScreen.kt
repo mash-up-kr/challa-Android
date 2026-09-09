@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -48,6 +49,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -387,18 +389,22 @@ private fun HomeShootingSection(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         shootingRooms.forEach { room ->
-            HomeShootingCard(
-                room = room,
-                onClick = { onRoomClick(room) },
-                onShootClick = { onShootClick(room.id) },
-            )
+            key(room.id) {
+                HomeShootingCard(
+                    room = room,
+                    onClick = { onRoomClick(room) },
+                    onShootClick = { onShootClick(room.id) },
+                )
+            }
         }
         printingRooms.forEach { room ->
-            HomePrintingCard(
-                room = room,
-                onClick = { onRoomClick(room) },
-                onCountdownFinish = onPrintCountdownFinish,
-            )
+            key(room.id) {
+                HomePrintingCard(
+                    room = room,
+                    onClick = { onRoomClick(room) },
+                    onCountdownFinish = onPrintCountdownFinish,
+                )
+            }
         }
     }
 }
@@ -451,6 +457,7 @@ private fun HomePrintingCard(
             RoomAsyncImage(
                 imageUrl = room.coverImageUrl,
                 contentDescription = null,
+                keepPreviousImage = true,
                 modifier = Modifier.fillMaxSize(),
             )
             HomePrintingScrim(modifier = Modifier.fillMaxSize())
@@ -613,10 +620,12 @@ private fun HomeCompletedSection(
         )
         Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
             rooms.forEach { room ->
-                HomeCompletedRoom(
-                    room = room,
-                    onClick = { onRoomClick(room) },
-                )
+                key(room.id) {
+                    HomeCompletedRoom(
+                        room = room,
+                        onClick = { onRoomClick(room) },
+                    )
+                }
             }
         }
     }
@@ -791,19 +800,27 @@ private fun RoomAsyncImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     blurred: Boolean = false,
+    keepPreviousImage: Boolean = false,
 ) {
-    AsyncImage(
-        model =
+    val context = LocalContext.current
+    var previousPainter by remember(blurred, keepPreviousImage) { mutableStateOf<Painter?>(null) }
+    val request =
+        remember(context, imageUrl, blurred, keepPreviousImage) {
             ImageRequest
-                .Builder(LocalContext.current)
+                .Builder(context)
                 .data(imageUrl)
                 // Modifier.blur는 API 31 미만에서 동작하지 않아 Coil 트랜스포메이션으로 처리한다.
                 .apply { if (blurred) transformations(BlurTransformation()) }
-                .crossfade(true)
-                .build(),
+                .crossfade(!keepPreviousImage)
+                .build()
+        }
+    AsyncImage(
+        model = request,
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
-        placeholder = ColorPainter(ChallaTheme.colors.backgroundLevel3),
+        // 촬영 후 커버 URL이 갱신돼도 새 이미지가 준비될 때까지 기존 커버를 유지한다.
+        placeholder = previousPainter.takeIf { keepPreviousImage && imageUrl != null } ?: ColorPainter(ChallaTheme.colors.backgroundLevel3),
+        onSuccess = { if (keepPreviousImage) previousPainter = it.painter },
         // 로드에 실패한 카드는 깨진 이미지 대신 검은 단색으로 덮는다.
         error = ColorPainter(ChallaTheme.colors.staticBlack),
         // 주소가 없는 건 로드 실패가 아니므로(예: 아직 커버 사진이 없는 방) 빈 카드 배경을 그대로 둔다.

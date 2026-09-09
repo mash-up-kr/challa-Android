@@ -179,7 +179,6 @@ class PhotoDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /** 인스타 스토리처럼 몇 번이든 보낼 수 있다. 보낸 것은 채팅에 쌓이고, 스티커는 방금 보낸 이모지로 바뀐다. */
     private fun handleReactionClick(
         photo: PhotoDetailUiModel,
         emoji: ReactionEmoji,
@@ -196,7 +195,14 @@ class PhotoDetailViewModel @AssistedInject constructor(
         // 같은 이모지를 또 보내도 스티커가 그대로라, 연타로 같은 요청을 쌓지 않는다.
         if (lastSentEmojis.put(photo.id, emoji) == emoji) return
 
-        viewModelScope.launch { myReactionMutex.withLock { addReaction(photo = photo, emoji = emoji) } }
+        viewModelScope.launch {
+            myReactionMutex.withLock {
+                addReaction(
+                    photo = photo,
+                    emoji = emoji,
+                )
+            }
+        }
     }
 
     private fun handleStickerClick(
@@ -212,7 +218,13 @@ class PhotoDetailViewModel @AssistedInject constructor(
         detachSticker(photoId = photo.id, chatId = reaction.chatId)
 
         viewModelScope.launch {
-            myReactionMutex.withLock { removeReaction(photoId = photo.id, chatId = reaction.chatId) }
+            myReactionMutex.withLock {
+                removeReaction(
+                    photoId = photo.id,
+                    chatId = reaction.chatId,
+                    emoji = reaction.emoji,
+                )
+            }
         }
     }
 
@@ -227,7 +239,9 @@ class PhotoDetailViewModel @AssistedInject constructor(
                         Timber.w("사진 목록이 열려 있지 않아 스티커를 떼지 않았습니다: $photoInfo")
                         return@updateState this
                     }
-            val remaining = loaded.reactionsOf(photoId).filterNot { sticker -> sticker.chatId == chatId }.toPersistentList()
+            val remaining =
+                loaded.reactionsOf(photoId).filterNot { sticker -> sticker.chatId == chatId }
+                    .toPersistentList()
 
             copy(photoInfo = loaded.copy(reactions = (loaded.reactions + (photoId to remaining)).toPersistentMap()))
         }
@@ -273,10 +287,10 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .addPhotoReaction(roomId = roomId, photoId = photo.id, emoji = emoji)
             .onSuccess { chatId ->
                 myChatIdsOf(photo.id) += chatId
-                loadReactions(photo.id)
+                loadReactions(photo.id, sentEmoji = emoji)
             }.onFailure { failure ->
-                // 다시 누르면 보내지도록 되돌린다.
-                lastSentEmojis.remove(photo.id)
+                // 다시 누르면 보내지도록 되돌린다. 그 사이 다른 이모지를 눌렀다면 그쪽 가드는 남겨야 한다.
+                lastSentEmojis.remove(photo.id, emoji)
                 Timber.e(failure.causeOrNull(), "반응을 남기지 못했습니다. photoId=${photo.id}, emoji=$emoji")
                 sendEffect(PhotoDetailSideEffect.ReactionSendFailed)
             }
@@ -285,19 +299,20 @@ class PhotoDetailViewModel @AssistedInject constructor(
     private suspend fun removeReaction(
         photoId: Long,
         chatId: Long,
+        emoji: ReactionEmoji,
     ) {
         chatRepository
             .removePhotoReaction(chatId)
             .onSuccess {
                 myChatIdsOf(photoId) -= chatId
-                // 지운 이모지를 바로 다시 보낼 수 있어야 한다.
-                lastSentEmojis.remove(photoId)
+                // 지운 이모지를 바로 다시 보낼 수 있어야 한다. 그 사이 다른 이모지를 보냈다면 그쪽 가드는 남겨야 한다.
+                lastSentEmojis.remove(photoId, emoji)
                 loadReactions(photoId)
             }.onFailure { failure ->
                 Timber.e(failure.causeOrNull(), "반응을 지우지 못했습니다. photoId=$photoId, chatId=$chatId")
                 sendEffect(PhotoDetailSideEffect.StickerRemoveFailed)
-                // 떼어둔 스티커를 서버 기준으로 되돌린다.
-                loadReactions(photoId)
+                // 떼어둔 스티커를 서버 기준으로 되돌린다. 이 조회까지 실패하면 실패 토스트가 겹치므로 알리지 않는다.
+                loadReactions(photoId, notifiesFailure = false)
             }
     }
 
@@ -308,7 +323,11 @@ class PhotoDetailViewModel @AssistedInject constructor(
      * 이모지를 연달아 누르면 한 사진에 조회가 겹쳐 도는데, 늦게 도착한 이전 응답이 최신 목록을
      * 덮어쓰면 방금 남긴 스티커가 사라진다. 그래서 마지막으로 보낸 요청의 응답만 반영한다.
      */
-    private suspend fun loadReactions(photoId: Long) {
+    private suspend fun loadReactions(
+        photoId: Long,
+        sentEmoji: ReactionEmoji? = null,
+        notifiesFailure: Boolean = true,
+    ) {
         ensureMyUserId()
 
         val revision = (reactionRevisions[photoId] ?: 0) + 1
@@ -319,10 +338,12 @@ class PhotoDetailViewModel @AssistedInject constructor(
             .onSuccess { reactions ->
                 if (reactionRevisions[photoId] == revision) applyReactions(photoId, reactions)
             }.onFailure { failure ->
+                if (reactionRevisions[photoId] != revision) return@onFailure
+
                 // 스티커를 못 그린 채로 남으므로, 같은 이모지를 다시 눌러 시도할 수 있게 열어둔다.
-                lastSentEmojis.remove(photoId)
+                if (sentEmoji != null) lastSentEmojis.remove(photoId, sentEmoji)
                 Timber.e(failure.causeOrNull(), "반응 목록을 불러오지 못했습니다. photoId=$photoId")
-                sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
+                if (notifiesFailure) sendEffect(PhotoDetailSideEffect.ReactionsLoadFailed)
             }
     }
 
@@ -331,10 +352,13 @@ class PhotoDetailViewModel @AssistedInject constructor(
         reactions: List<PhotoReaction>,
     ) {
         val sessionChatIds = myChatIdsOf(photoId)
+        val fetchedChatIds = reactions.mapTo(mutableSetOf()) { reaction -> reaction.chatId }
         val myChatIdsOnPhoto =
             reactions
                 .filter { reaction -> reaction.userId == myUserId || reaction.chatId in sessionChatIds }
                 .mapTo(mutableSetOf()) { reaction -> reaction.chatId }
+
+        myChatIdsOnPhoto += sessionChatIds.filterNot { chatId -> chatId in fetchedChatIds }
         myChatIds[photoId] = myChatIdsOnPhoto
 
         val stickers =

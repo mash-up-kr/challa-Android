@@ -1,5 +1,7 @@
 package com.happyhouse.challa.presentation.camera
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -7,14 +9,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.happyhouse.challa.presentation.camera.camerax.CameraBindingFailure
 import com.happyhouse.challa.presentation.camera.camerax.CameraBindingState
 import com.happyhouse.challa.presentation.camera.camerax.CameraCaptureResult
 import com.happyhouse.challa.presentation.camera.camerax.CameraSession
 import com.happyhouse.challa.presentation.camera.camerax.CameraSessionEvent
 import com.happyhouse.challa.presentation.camera.camerax.CameraSessionState
+import com.happyhouse.challa.presentation.camera.component.CameraCaptureTransition
 import com.happyhouse.challa.presentation.camera.component.CameraContentLayout
-import com.happyhouse.challa.presentation.camera.component.room.CameraRoomSelectionBottomSheet
 import com.happyhouse.challa.presentation.camera.contract.CameraIntent
 import com.happyhouse.challa.presentation.camera.contract.CameraRoomLoadState
 import com.happyhouse.challa.presentation.camera.contract.CameraState
@@ -31,7 +35,7 @@ private const val SHUTTER_EFFECT_DURATION_MILLIS = 120L
  * 카메라 화면의 UI 상태와 사용자 이벤트를 조정합니다.
  *
  * CameraX 객체와 촬영 과정은 [CameraSession]에 위임하고, 이 함수는 세션이 전달한
- * 준비·촬영 상태로 셔터 활성화를 결정합니다. 셔터 암전과 방 선택 시트처럼 화면 표현에만
+ * 준비·촬영 상태로 셔터 활성화를 결정합니다. 셔터 암전처럼 화면 표현에만
  * 필요한 상태는 여기에서 관리합니다.
  */
 @Composable
@@ -48,6 +52,8 @@ internal fun CameraContent(
     onSelectedFilterLutLoadFailed: (fileUrl: String) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,
     onIntent: (CameraIntent) -> Unit,
+    onCloseClick: () -> Unit,
+    onCaptureAnimationFinished: () -> Unit,
 ) {
     val captureRequest = state.captureRequest
     val selectedRoom = state.selectedRoom
@@ -55,7 +61,6 @@ internal fun CameraContent(
     val remainingCount = selectedRoom?.remainingCount ?: 0
     var cameraSessionState by remember { mutableStateOf(CameraSessionState()) }
     var isShutterEffectVisible by remember { mutableStateOf(false) }
-    var isRoomSelectionSheetVisible by remember { mutableStateOf(false) }
 
     val readyState = cameraSessionState.bindingState as? CameraBindingState.Ready
     val isCameraIdle = !state.isCapturePending && !cameraSessionState.isCapturing
@@ -90,107 +95,109 @@ internal fun CameraContent(
         }
     }
 
-    CameraContentLayout(
-        modifier = modifier,
-        roomName = selectedRoom?.name.orEmpty(),
-        remainingCount = remainingCount,
-        totalCount = selectedRoom?.totalCount ?: 0,
-        isRoomLoaded = isRoomLoaded,
-        isFilterSelectorReady = state.isFilterSelectorReady,
-        filters = state.cameraFilters,
-        selectedFilterIndex = state.selectedFilterIndex,
-        isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,
-        isCameraSwitchEnabled = canSwitchCamera,
-        shutterEnabled = canCapture,
-        isShutterEffectVisible = isShutterEffectVisible,
-        isOnboardingVisible = isOnboardingVisible,
-        zoomLevel = state.zoomLevel,
-        onFlashClick = { onIntent(CameraIntent.FlashClick(readyState?.hasFlashUnit == true)) },
-        onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
-        onShutterClick = { onIntent(CameraIntent.ShutterClick) },
-        onZoomClick = { onIntent(CameraIntent.ZoomClick) },
-        onFilterClick = { onIntent(CameraIntent.FilterClick(it)) },
-        onRoomInfoClick = { isRoomSelectionSheetVisible = true },
-    ) { viewFinderModifier ->
-        when (permissionState) {
-            CameraPermissionState.Unchecked -> {
-                CameraPermissionOverlay(
-                    state = CameraPermissionOverlayState.Checking,
-                    onRequestPermissionClick = onRequestPermissionClick,
-                    modifier = viewFinderModifier,
-                )
-            }
+    Box(modifier = modifier) {
+        CameraContentLayout(
+            modifier =
+                if (state.capturedImage != null) {
+                    Modifier.fillMaxSize().alpha(0f).clearAndSetSemantics {}
+                } else {
+                    Modifier.fillMaxSize()
+                },
+            remainingCount = remainingCount,
+            totalCount = selectedRoom?.totalCount ?: 0,
+            isRoomLoaded = isRoomLoaded,
+            isFilterSelectorReady = state.isFilterSelectorReady,
+            filters = state.cameraFilters,
+            selectedFilterIndex = state.selectedFilterIndex,
+            isFlashEnabled = state.isFlashEnabled && readyState?.hasFlashUnit == true,
+            isCameraSwitchEnabled = canSwitchCamera,
+            shutterEnabled = canCapture,
+            closeEnabled = !state.isCapturePending,
+            isShutterEffectVisible = isShutterEffectVisible,
+            isOnboardingVisible = isOnboardingVisible,
+            zoomLevel = state.zoomLevel,
+            onFlashClick = { onIntent(CameraIntent.FlashClick(readyState?.hasFlashUnit == true)) },
+            onSwitchCameraClick = { onIntent(CameraIntent.SwitchCameraClick) },
+            onShutterClick = { onIntent(CameraIntent.ShutterClick) },
+            onZoomClick = { onIntent(CameraIntent.ZoomClick) },
+            onFilterClick = { onIntent(CameraIntent.FilterClick(it)) },
+            onCloseClick = onCloseClick,
+        ) { viewFinderModifier ->
+            when (permissionState) {
+                CameraPermissionState.Unchecked -> {
+                    CameraPermissionOverlay(
+                        state = CameraPermissionOverlayState.Checking,
+                        onRequestPermissionClick = onRequestPermissionClick,
+                        modifier = viewFinderModifier,
+                    )
+                }
 
-            CameraPermissionState.Granted -> {
-                CameraSession(
-                    modifier = viewFinderModifier,
-                    lensFacing = state.lensFacing,
-                    isFlashEnabled = state.isFlashEnabled,
-                    zoomLevel = state.zoomLevel,
-                    filters = state.cameraFilters,
-                    selectedFilter = state.selectedFilter,
-                    captureRequestId = captureRequest?.requestId,
-                    getCameraFilterFile = getCameraFilterFile,
-                    onStateChanged = { cameraSessionState = it },
-                    onEvent = { event ->
-                        when (event) {
-                            CameraSessionEvent.BindingFailed -> {
-                                onCameraBindingFailed()
-                            }
-
-                            is CameraSessionEvent.CaptureStarted -> {
-                                if (captureRequest?.requestId == event.requestId) {
-                                    isShutterEffectVisible = true
+                CameraPermissionState.Granted -> {
+                    CameraSession(
+                        modifier = viewFinderModifier,
+                        lensFacing = state.lensFacing,
+                        isFlashEnabled = state.isFlashEnabled,
+                        zoomLevel = state.zoomLevel,
+                        filters = state.cameraFilters,
+                        selectedFilter = captureRequest?.selectedFilter ?: state.selectedFilter,
+                        captureRequestId = captureRequest?.requestId.takeIf { state.capturedImage == null },
+                        getCameraFilterFile = getCameraFilterFile,
+                        onStateChanged = { cameraSessionState = it },
+                        onEvent = { event ->
+                            when (event) {
+                                CameraSessionEvent.BindingFailed -> {
+                                    onCameraBindingFailed()
                                 }
-                            }
 
-                            is CameraSessionEvent.CaptureCompleted -> {
-                                when (event.result) {
-                                    is CameraCaptureResult.Success -> {
-                                        onPhotoCaptured(event.requestId, event.result.imageBytes)
-                                    }
-
-                                    CameraCaptureResult.Failed -> {
-                                        onPhotoCaptureFailed(event.requestId)
-                                    }
-
-                                    CameraCaptureResult.Cancelled -> {
-                                        onPhotoCaptureCancelled(event.requestId)
+                                is CameraSessionEvent.CaptureStarted -> {
+                                    if (captureRequest?.requestId == event.requestId) {
+                                        isShutterEffectVisible = true
                                     }
                                 }
+
+                                is CameraSessionEvent.CaptureCompleted -> {
+                                    when (event.result) {
+                                        is CameraCaptureResult.Success -> {
+                                            onPhotoCaptured(event.requestId, event.result.imageBytes)
+                                        }
+
+                                        CameraCaptureResult.Failed -> {
+                                            onPhotoCaptureFailed(event.requestId)
+                                        }
+
+                                        CameraCaptureResult.Cancelled -> {
+                                            onPhotoCaptureCancelled(event.requestId)
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    },
-                )
-            }
+                        },
+                    )
+                }
 
-            CameraPermissionState.NotGranted -> {
-                CameraPermissionOverlay(
-                    state = CameraPermissionOverlayState.Requestable,
-                    onRequestPermissionClick = onRequestPermissionClick,
-                    modifier = viewFinderModifier,
-                )
-            }
+                CameraPermissionState.NotGranted -> {
+                    CameraPermissionOverlay(
+                        state = CameraPermissionOverlayState.Requestable,
+                        onRequestPermissionClick = onRequestPermissionClick,
+                        modifier = viewFinderModifier,
+                    )
+                }
 
-            CameraPermissionState.PermanentlyDenied -> {
-                CameraPermissionOverlay(
-                    state = CameraPermissionOverlayState.PermanentlyDenied,
-                    onRequestPermissionClick = onRequestPermissionClick,
-                    modifier = viewFinderModifier,
-                )
+                CameraPermissionState.PermanentlyDenied -> {
+                    CameraPermissionOverlay(
+                        state = CameraPermissionOverlayState.PermanentlyDenied,
+                        onRequestPermissionClick = onRequestPermissionClick,
+                        modifier = viewFinderModifier,
+                    )
+                }
             }
         }
-    }
-
-    if (isRoomSelectionSheetVisible) {
-        CameraRoomSelectionBottomSheet(
-            rooms = state.rooms,
-            selectedRoomId = state.selectedRoomId,
-            onRoomClick = { room ->
-                onIntent(CameraIntent.RoomClick(room))
-                isRoomSelectionSheetVisible = false
-            },
-            onDismissRequest = { isRoomSelectionSheetVisible = false },
-        )
+        state.capturedImage?.let { image ->
+            CameraCaptureTransition(
+                image = image,
+                onAnimationFinished = onCaptureAnimationFinished,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }

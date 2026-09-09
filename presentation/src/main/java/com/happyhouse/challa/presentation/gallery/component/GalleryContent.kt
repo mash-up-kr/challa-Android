@@ -61,6 +61,8 @@ fun GalleryContent(
     extraBottomPadding: Dp = 0.dp,
     onPrintFilmStageChange: (Boolean) -> Unit = {},
     onPrintAnimationComplete: () -> Unit = {},
+    capturedPhotoUrl: String? = null,
+    onCaptureHighlightFinished: () -> Unit = {},
 ) {
     Box(modifier = modifier) {
         // 인화 전/후 그리드는 서로 다른 LazyVerticalGrid라, 상태를 공유하지 않으면
@@ -120,6 +122,8 @@ fun GalleryContent(
                         }
 
                     GalleryFilmSlotGrid(
+                        capturedPhotoUrl = capturedPhotoUrl,
+                        onCaptureHighlightFinished = onCaptureHighlightFinished,
                         modifier = Modifier.fillMaxSize(),
                         slots = photoInfo.slots,
                         loadedPhotoCount = loadedPhotoCount,
