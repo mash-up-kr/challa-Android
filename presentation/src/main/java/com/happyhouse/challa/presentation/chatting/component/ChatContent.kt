@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -38,6 +41,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -47,16 +51,15 @@ import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo.LoadMoreState
 import com.happyhouse.challa.presentation.chatting.model.ChatUiModel
+import com.happyhouse.challa.presentation.chatting.previewChats
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProfileImage
 import com.happyhouse.challa.presentation.designsystem.component.ChallaProgressIndicator
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.reaction.ReactionEmojiSticker
 import com.happyhouse.challa.presentation.reaction.labelRes
-import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.distinctUntilChanged
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
@@ -96,7 +99,7 @@ fun ChatContent(
             } else {
                 ChatList(
                     modifier = modifier,
-                    loadedChatInfo = chatInfo,
+                    chatInfo = chatInfo,
                     onLoadMore = onLoadMore,
                 )
             }
@@ -105,76 +108,20 @@ fun ChatContent(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 private fun ChatList(
-    loadedChatInfo: ChatInfo.Loaded,
+    chatInfo: ChatInfo.Loaded,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
-    val isImeVisible = WindowInsets.isImeVisible
-    var hasCompletedInitialScroll by remember { mutableStateOf(false) }
-    var lastObservedChatId by remember { mutableLongStateOf(loadedChatInfo.chats.last().chatId) }
-    val statusItemIndexOffset = if (loadedChatInfo.loadMoreState == LoadMoreState.IDLE) 0 else 1
-    val shouldLoadMore by
-        remember(
-            listState,
-            loadedChatInfo.chats.size,
-            loadedChatInfo.hasNext,
-            loadedChatInfo.loadMoreState,
-        ) {
-            derivedStateOf {
-                val firstVisibleIndex = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
-                hasCompletedInitialScroll &&
-                    loadedChatInfo.hasNext &&
-                    loadedChatInfo.loadMoreState == LoadMoreState.IDLE &&
-                    firstVisibleIndex != null &&
-                    firstVisibleIndex <= LOAD_MORE_THRESHOLD
-            }
-        }
+    val leadingStatusItemCount = if (chatInfo.loadMoreState == LoadMoreState.IDLE) 0 else 1
 
-    LaunchedEffect(loadedChatInfo.chats.size) {
-        if (!hasCompletedInitialScroll && loadedChatInfo.chats.isNotEmpty()) {
-            listState.scrollToItem(loadedChatInfo.chats.lastIndex + statusItemIndexOffset)
-            hasCompletedInitialScroll = true
-        }
-    }
-
-    LaunchedEffect(loadedChatInfo.chats.last().chatId) {
-        val latestChat = loadedChatInfo.chats.last()
-        val latestChatId = latestChat.chatId
-        if (hasCompletedInitialScroll && latestChatId != lastObservedChatId) {
-            val previousLatestIndex =
-                loadedChatInfo.chats.indexOfFirst { chat -> chat.chatId == lastObservedChatId }
-            val lastVisibleChatIndex =
-                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.minus(
-                    statusItemIndexOffset,
-                )
-            val wasNearBottom =
-                previousLatestIndex >= 0 &&
-                    lastVisibleChatIndex != null &&
-                    lastVisibleChatIndex >= previousLatestIndex - AUTO_SCROLL_THRESHOLD
-
-            if (wasNearBottom || latestChat.isMine) {
-                listState.scrollToItem(loadedChatInfo.chats.lastIndex + statusItemIndexOffset)
-            }
-        }
-        lastObservedChatId = latestChatId
-    }
-
-    LaunchedEffect(isImeVisible, loadedChatInfo.chats.size) {
-        if (!isImeVisible || loadedChatInfo.chats.isEmpty()) return@LaunchedEffect
-
-        snapshotFlow { listState.layoutInfo.viewportSize.height }
-            .distinctUntilChanged()
-            .collect {
-                listState.scrollToItem(loadedChatInfo.chats.lastIndex + statusItemIndexOffset)
-            }
-    }
-
-    LaunchedEffect(shouldLoadMore, loadedChatInfo.chats.size) {
-        if (shouldLoadMore) onLoadMore()
-    }
+    ChatListSideEffects(
+        chatInfo = chatInfo,
+        listState = listState,
+        leadingStatusItemCount = leadingStatusItemCount,
+        onLoadMore = onLoadMore,
+    )
 
     LazyColumn(
         modifier = modifier,
@@ -185,9 +132,9 @@ private fun ChatList(
                 vertical = ChatVerticalPadding,
             ),
     ) {
-        if (loadedChatInfo.loadMoreState != LoadMoreState.IDLE) {
+        if (chatInfo.loadMoreState != LoadMoreState.IDLE) {
             item(key = LOAD_MORE_STATUS_ITEM_KEY) {
-                when (loadedChatInfo.loadMoreState) {
+                when (chatInfo.loadMoreState) {
                     LoadMoreState.IDLE -> Unit
                     LoadMoreState.LOADING -> {
                         Box(
@@ -209,42 +156,102 @@ private fun ChatList(
         }
 
         itemsIndexed(
-            items = loadedChatInfo.chats,
+            items = chatInfo.chats,
             key = { _, chat -> chat.chatId },
         ) { index, chat ->
-            val previousChat = loadedChatInfo.chats.getOrNull(index - 1)
-            val nextChat = loadedChatInfo.chats.getOrNull(index + 1)
-            val showsDateHeader =
-                previousChat == null || previousChat.createdAt.toLocalDate() != chat.createdAt.toLocalDate()
-            val startsSenderGroup =
-                showsDateHeader || previousChat.userId != chat.userId
-            val endsSenderGroup =
-                nextChat == null ||
-                    nextChat.userId != chat.userId ||
-                    nextChat.createdAt.toLocalDate() != chat.createdAt.toLocalDate()
-            val topSpacing =
-                when {
-                    index == 0 -> 0.dp
-                    showsDateHeader -> DateHeaderTopSpacing
-                    previousChat.userId == chat.userId -> SameSenderSpacing
-                    else -> DifferentSenderSpacing
-                }
+            val layoutInfo = chatInfo.chats.itemLayoutInfoAt(index)
 
-            Column(modifier = Modifier.padding(top = topSpacing)) {
-                if (showsDateHeader) {
+            Column(modifier = Modifier.padding(top = layoutInfo.topPadding)) {
+                if (layoutInfo.showDateHeader) {
                     ChatDateHeader(
                         modifier = Modifier.padding(bottom = DateHeaderBottomSpacing),
                         text = ChatDateHeaderFormatter.format(chat.createdAt),
                     )
                 }
 
-                ChatListItem(
+                ChatMessageItem(
                     chat = chat,
-                    showsUserName = startsSenderGroup,
-                    showsProfileImage = endsSenderGroup,
+                    showSenderName = layoutInfo.showSenderName,
+                    showSenderProfileImage = layoutInfo.showSenderProfileImage,
                 )
             }
         }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun ChatListSideEffects(
+    chatInfo: ChatInfo.Loaded,
+    listState: LazyListState,
+    leadingStatusItemCount: Int,
+    onLoadMore: () -> Unit,
+) {
+    val chats = chatInfo.chats
+    val isImeVisible = WindowInsets.isImeVisible
+    var hasCompletedInitialScroll by rememberSaveable { mutableStateOf(false) }
+    var previousLatestChatId by remember { mutableLongStateOf(chats.last().chatId) }
+    val scrollTargetIndex = chats.lastIndex + leadingStatusItemCount
+    val latestScrollTargetIndex by rememberUpdatedState(scrollTargetIndex)
+    val currentOnLoadMore by rememberUpdatedState(onLoadMore)
+    val shouldLoadPreviousPage by
+        remember(
+            listState,
+            chats.size,
+            chatInfo.hasNext,
+            chatInfo.loadMoreState,
+        ) {
+            derivedStateOf {
+                val firstVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
+                hasCompletedInitialScroll &&
+                    chatInfo.hasNext &&
+                    chatInfo.loadMoreState == LoadMoreState.IDLE &&
+                    firstVisibleItemIndex != null &&
+                    firstVisibleItemIndex <= LOAD_MORE_TRIGGER_INDEX
+            }
+        }
+
+    LaunchedEffect(chats.size) {
+        if (!hasCompletedInitialScroll) {
+            listState.scrollToItem(latestScrollTargetIndex)
+            hasCompletedInitialScroll = true
+        }
+    }
+
+    LaunchedEffect(chats.last().chatId) {
+        val latestChat = chats.last()
+        val latestChatId = latestChat.chatId
+        if (hasCompletedInitialScroll && latestChatId != previousLatestChatId) {
+            val previousLatestChatIndex =
+                chats.indexOfFirst { chat -> chat.chatId == previousLatestChatId }
+            val lastVisibleChatIndex =
+                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.minus(
+                    leadingStatusItemCount,
+                )
+            val wasNearBottom =
+                previousLatestChatIndex >= 0 &&
+                    lastVisibleChatIndex != null &&
+                    lastVisibleChatIndex >= previousLatestChatIndex - AUTO_SCROLL_ITEM_THRESHOLD
+
+            if (wasNearBottom || latestChat.isMine) {
+                listState.scrollToItem(latestScrollTargetIndex)
+            }
+        }
+        previousLatestChatId = latestChatId
+    }
+
+    LaunchedEffect(isImeVisible, chats.size) {
+        if (!isImeVisible) return@LaunchedEffect
+
+        snapshotFlow { listState.layoutInfo.viewportSize.height }
+            .distinctUntilChanged()
+            .collect {
+                listState.scrollToItem(latestScrollTargetIndex)
+            }
+    }
+
+    LaunchedEffect(shouldLoadPreviousPage, chats.size) {
+        if (shouldLoadPreviousPage) currentOnLoadMore()
     }
 }
 
@@ -302,10 +309,10 @@ private fun ChatDateHeader(
 }
 
 @Composable
-private fun ChatListItem(
+private fun ChatMessageItem(
     chat: ChatUiModel,
-    showsUserName: Boolean,
-    showsProfileImage: Boolean,
+    showSenderName: Boolean,
+    showSenderProfileImage: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -314,7 +321,7 @@ private fun ChatListItem(
         verticalAlignment = Alignment.Bottom,
     ) {
         if (!chat.isMine) {
-            if (showsProfileImage) {
+            if (showSenderProfileImage) {
                 ChallaProfileImage(
                     modifier = Modifier.size(22.dp),
                     profileImageUrl = chat.userProfileImageUrl,
@@ -329,7 +336,7 @@ private fun ChatListItem(
             horizontalAlignment = if (chat.isMine) Alignment.End else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (!chat.isMine && showsUserName) {
+            if (!chat.isMine && showSenderName) {
                 chat.userName?.takeIf(String::isNotBlank)?.let { userName ->
                     Text(
                         text = userName,
@@ -498,20 +505,54 @@ private fun ChatStatusMessage(
     }
 }
 
-private const val LOAD_MORE_THRESHOLD = 3
-private const val AUTO_SCROLL_THRESHOLD = 1
+private data class ChatItemLayoutInfo(
+    val showDateHeader: Boolean,
+    val showSenderName: Boolean,
+    val showSenderProfileImage: Boolean,
+    val topPadding: Dp,
+)
+
+private fun ImmutableList<ChatUiModel>.itemLayoutInfoAt(index: Int): ChatItemLayoutInfo {
+    val chat = get(index)
+    val previousChat = getOrNull(index - 1)
+    val nextChat = getOrNull(index + 1)
+    val showDateHeader =
+        previousChat == null || previousChat.createdAt.toLocalDate() != chat.createdAt.toLocalDate()
+    val showSenderName = showDateHeader || previousChat.userId != chat.userId
+    val showSenderProfileImage =
+        nextChat == null ||
+            nextChat.userId != chat.userId ||
+            nextChat.createdAt.toLocalDate() != chat.createdAt.toLocalDate()
+    val topPadding =
+        when {
+            index == 0 -> 0.dp
+            showDateHeader -> DateHeaderTopSpacing
+            previousChat.userId == chat.userId -> SameSenderTopSpacing
+            else -> DifferentSenderTopSpacing
+        }
+
+    return ChatItemLayoutInfo(
+        showDateHeader = showDateHeader,
+        showSenderName = showSenderName,
+        showSenderProfileImage = showSenderProfileImage,
+        topPadding = topPadding,
+    )
+}
+
+private const val LOAD_MORE_TRIGGER_INDEX = 3
+private const val AUTO_SCROLL_ITEM_THRESHOLD = 1
 private const val LOAD_MORE_STATUS_ITEM_KEY = "chat-load-more-status"
 private val ChatHorizontalPadding = 20.dp
 private val ChatVerticalPadding = 16.dp
-private val SameSenderSpacing = 4.dp
-private val DifferentSenderSpacing = 24.dp
+private val SameSenderTopSpacing = 4.dp
+private val DifferentSenderTopSpacing = 24.dp
 private val DateHeaderTopSpacing = 24.dp
 private val DateHeaderBottomSpacing = 24.dp
 private val ChatPhotoWidth = 104.dp
 private val ChatPhotoHeight = 140.dp
 private val ChatReactionStickerSize = 64.dp
 private val ChatReactionStickerOverhang = 32.dp
-private val ChatDateHeaderFormatter = DateTimeFormatter.ofPattern("M.d. a h:mm", Locale.KOREA)
+private val ChatDateHeaderFormatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 EEEE", Locale.KOREA)
 
 @ComposePreview(name = "ChatContent - 채팅 목록")
 @PreviewWrapper(wrapper = ChallaScreenPreviewWrapper::class)
@@ -519,74 +560,12 @@ private val ChatDateHeaderFormatter = DateTimeFormatter.ofPattern("M.d. a h:mm",
 private fun ChatContentLoadedPreview() {
     val previewPhotoUrl =
         "android.resource://${LocalContext.current.packageName}/${R.drawable.img_onboarding_1}"
-    val previewCreatedAt =
-        ZonedDateTime.of(2026, 8, 30, 14, 48, 0, 0, ZoneId.systemDefault())
 
     ChatContent(
         modifier = Modifier.fillMaxSize(),
         chatInfo =
             ChatInfo.Loaded(
-                chats =
-                    persistentListOf(
-                        ChatUiModel.Default(
-                            chatId = 1L,
-                            userId = 1L,
-                            content = "강릉에 도착하면 바로 사진 찍으러 가자!",
-                            createdAt = previewCreatedAt,
-                            isMine = false,
-                            userName = "그린그린여성현",
-                            userProfileImageUrl = null,
-                        ),
-                        ChatUiModel.Default(
-                            chatId = 2L,
-                            userId = 2L,
-                            content = "좋아! 바다부터 보고 숙소로 이동하자.",
-                            createdAt = previewCreatedAt.plusMinutes(1),
-                            isMine = true,
-                            userName = "찰나",
-                            userProfileImageUrl = null,
-                        ),
-                        ChatUiModel.Comment(
-                            chatId = 3L,
-                            userId = 1L,
-                            content = "이 사진 분위기 정말 좋다.",
-                            photoImageUrl = previewPhotoUrl,
-                            createdAt = previewCreatedAt.plusMinutes(2),
-                            isMine = false,
-                            userName = "그린그린여성현",
-                            userProfileImageUrl = null,
-                        ),
-                        ChatUiModel.Comment(
-                            chatId = 4L,
-                            userId = 2L,
-                            content = "나도 이 사진이 제일 마음에 들어.",
-                            photoImageUrl = previewPhotoUrl,
-                            createdAt = previewCreatedAt.plusMinutes(3),
-                            isMine = true,
-                            userName = "찰나",
-                            userProfileImageUrl = null,
-                        ),
-                        ChatUiModel.Emoji(
-                            chatId = 5L,
-                            userId = 1L,
-                            reactionEmoji = ReactionEmoji.POOP,
-                            photoImageUrl = previewPhotoUrl,
-                            createdAt = previewCreatedAt.plusMinutes(4),
-                            isMine = false,
-                            userName = "그린그린여성현",
-                            userProfileImageUrl = null,
-                        ),
-                        ChatUiModel.Emoji(
-                            chatId = 6L,
-                            userId = 2L,
-                            reactionEmoji = ReactionEmoji.FIRE,
-                            photoImageUrl = previewPhotoUrl,
-                            createdAt = previewCreatedAt.plusMinutes(5),
-                            isMine = true,
-                            userName = "찰나",
-                            userProfileImageUrl = null,
-                        ),
-                    ),
+                chats = previewChats(photoImageUrl = previewPhotoUrl),
             ),
         onRetry = {},
         onLoadMore = {},
