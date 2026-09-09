@@ -227,7 +227,8 @@
     <string name="setting_support_url" translatable="false">https://play.google.com/store/apps/details?id=com.happyhouse.challa</string>
     <string name="setting_support_link_open_failure">스토어를 열 수 없어요.</string>
     <string name="setting_send_feedback">피드백 보내기</string>
-    <string name="setting_feedback_preparing">준비중인 기능입니다</string>
+    <string name="setting_feedback_url" translatable="false">https://forms.gle/StueBwLpofWJ21dG9</string>
+    <string name="setting_feedback_link_open_failure">피드백 링크를 열 수 없어요.</string>
     <string name="setting_open_source_license">오픈 소스 라이선스</string>
 
     <!-- openSourceLicenseScreen -->
