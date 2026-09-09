@@ -3,8 +3,8 @@
 compileSdk = "37"
 targetSdk = "37"
 minSdk = "26"
-versionCode = "4"
-versionName = "1.1.0"
+versionCode = "6"
+versionName = "1.1.2"
 
 # Build plugins
 agp = "9.1.1"
