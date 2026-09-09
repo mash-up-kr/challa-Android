@@ -38,6 +38,7 @@ import com.happyhouse.challa.presentation.gallery.component.GalleryContent
 import com.happyhouse.challa.presentation.gallery.component.GalleryCountdownBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryPrintedBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryProfileMenu
+import com.happyhouse.challa.presentation.gallery.component.GalleryShareBottomSheet
 import com.happyhouse.challa.presentation.gallery.component.GalleryShootBar
 import com.happyhouse.challa.presentation.gallery.component.GalleryTopBar
 import com.happyhouse.challa.presentation.gallery.contract.GalleryIntent
@@ -53,7 +54,8 @@ fun GalleryScreen(
     snackbarHostState: SnackbarHostState,
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
-    onInviteCodeClick: (String) -> Unit,
+    onKakaoShareClick: (String) -> Unit,
+    onInviteCodeCopyClick: (String) -> Unit,
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
     capturedPhotoUrl: String? = null,
@@ -73,7 +75,8 @@ fun GalleryScreen(
             snackbarHostState = snackbarHostState,
             onIntent = onIntent,
             onBackClick = onBackClick,
-            onInviteCodeClick = onInviteCodeClick,
+            onKakaoShareClick = onKakaoShareClick,
+            onInviteCodeCopyClick = onInviteCodeCopyClick,
             onSettingClick = onSettingClick,
             onPrintAnimationComplete = onPrintAnimationComplete,
         )
@@ -86,13 +89,17 @@ private fun GalleryScaffold(
     snackbarHostState: SnackbarHostState,
     onIntent: (GalleryIntent) -> Unit,
     onBackClick: () -> Unit,
-    onInviteCodeClick: (String) -> Unit,
+    onKakaoShareClick: (String) -> Unit,
+    onInviteCodeCopyClick: (String) -> Unit,
     onSettingClick: () -> Unit,
     onPrintAnimationComplete: () -> Unit,
     capturedPhotoUrl: String?,
     onCaptureHighlightFinished: () -> Unit,
 ) {
     val bottomGradient = rememberGalleryBottomGradient()
+
+    // 시트를 여닫는 것뿐이라 화면 안에서만 들고 있는다.
+    var showsShareSheet by remember { mutableStateOf(false) }
 
     ChallaScaffold(
         containerColor = Color.Transparent,
@@ -230,7 +237,15 @@ private fun GalleryScaffold(
                     invitationCode = state.invitationCode,
                     inviteMenu = state.inviteMenu,
                     onProfileBarClick = { onIntent(GalleryIntent.ProfileBarClick) },
-                    onInviteCodeClick = onInviteCodeClick,
+                    onInviteCodeClick = { showsShareSheet = true },
+                )
+            }
+
+            if (showsShareSheet) {
+                GalleryShareBottomSheet(
+                    onDismiss = { showsShareSheet = false },
+                    onKakaoShareClick = { onKakaoShareClick(state.invitationCode) },
+                    onInviteCodeCopyClick = { onInviteCodeCopyClick(state.invitationCode) },
                 )
             }
 
@@ -325,7 +340,8 @@ private fun GalleryScreenPreviewTemplate(
         onIntent = {},
         onPrintAnimationComplete = {},
         onBackClick = {},
-        onInviteCodeClick = {},
+        onKakaoShareClick = {},
+        onInviteCodeCopyClick = {},
         onSettingClick = {},
     )
 }
