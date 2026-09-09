@@ -6,7 +6,5 @@ sealed interface RoomInviteEvent {
         val roomId: Long,
     ) : RoomInviteEvent
 
-    data class RoomEnterFailed(
-        val message: String?,
-    ) : RoomInviteEvent
+    data object RoomEnterFailed : RoomInviteEvent
 }

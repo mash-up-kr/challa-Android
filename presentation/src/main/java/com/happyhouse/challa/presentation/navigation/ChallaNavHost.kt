@@ -141,10 +141,10 @@ fun ChallaNavHost(
                     navigator.navigate(ChallaRoute.Gallery(roomId = event.roomId))
                 }
 
-                is RoomInviteEvent.RoomEnterFailed ->
+                RoomInviteEvent.RoomEnterFailed ->
                     snackbarHostState.showSnackbar(
                         ChallaToastVisuals(
-                            message = event.message?.takeIf(String::isNotBlank) ?: enterRoomFailedMessage,
+                            message = enterRoomFailedMessage,
                             icon = ChallaIcons.Error,
                             iconTint = destructiveIconTint,
                         ),

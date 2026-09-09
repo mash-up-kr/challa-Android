@@ -3,7 +3,6 @@ package com.happyhouse.challa.presentation.invite
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.happyhouse.challa.domain.repository.RoomRepository
-import com.happyhouse.challa.domain.result.ChallaResult
 import com.happyhouse.challa.domain.result.onFailure
 import com.happyhouse.challa.domain.result.onSuccess
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,16 +55,9 @@ class RoomInviteViewModel
                         .enterRoom(code = invitationCode)
                         .onSuccess { entered ->
                             _events.send(RoomInviteEvent.RoomEntered(roomId = entered.id))
-                        }.onFailure { failure ->
-                            _events.send(RoomInviteEvent.RoomEnterFailed(failure.serverMessage()))
+                        }.onFailure {
+                            _events.send(RoomInviteEvent.RoomEnterFailed)
                         }
                 }
         }
-
-        private fun ChallaResult.Failure.serverMessage(): String? =
-            when (this) {
-                is ChallaResult.Failure.Http -> message
-                is ChallaResult.Failure.Unknown -> cause?.message
-                is ChallaResult.Failure.Network -> null
-            }
     }
