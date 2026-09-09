@@ -224,8 +224,6 @@
     <string name="setting_account_management">계정 관리</string>
     <string name="setting_feedback_section">피드백</string>
     <string name="setting_support">찰나 응원하기</string>
-    <string name="setting_support_url" translatable="false">https://play.google.com/store/apps/details?id=com.happyhouse.challa</string>
-    <string name="setting_support_link_open_failure">스토어를 열 수 없어요.</string>
     <string name="setting_send_feedback">피드백 보내기</string>
     <string name="setting_feedback_url" translatable="false">https://forms.gle/StueBwLpofWJ21dG9</string>
     <string name="setting_feedback_link_open_failure">피드백 링크를 열 수 없어요.</string>

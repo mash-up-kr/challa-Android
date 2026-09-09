@@ -23,6 +23,7 @@ import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.setting.contract.SettingIntent
 import com.happyhouse.challa.presentation.setting.contract.SettingSideEffect
 import com.happyhouse.challa.presentation.setting.contract.SettingState.ProfileState
+import com.happyhouse.challa.presentation.setting.review.rememberInAppReviewLauncher
 import kotlinx.coroutines.launch
 
 @Composable
@@ -37,10 +38,9 @@ fun SettingRoute(
     viewModel: SettingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val inAppReviewLauncher = rememberInAppReviewLauncher()
     val uriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
-    val supportUrl = stringResource(R.string.setting_support_url)
-    val supportLinkOpenFailureMessage = stringResource(R.string.setting_support_link_open_failure)
     val feedbackUrl = stringResource(R.string.setting_feedback_url)
     val feedbackLinkOpenFailureMessage = stringResource(R.string.setting_feedback_link_open_failure)
     val profileReadFailureMessage = stringResource(R.string.setting_profile_read_failure)
@@ -97,19 +97,7 @@ fun SettingRoute(
         onThemeClick = onThemeClick,
         onNotificationClick = onNotificationClick,
         onAccountClick = onAccountClick,
-        onSupportClick = {
-            if (!uriHandler.tryOpenUri(supportUrl)) {
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar(
-                        ChallaToastVisuals(
-                            message = supportLinkOpenFailureMessage,
-                            icon = ChallaIcons.Error,
-                            iconTint = destructiveIconTint,
-                        ),
-                    )
-                }
-            }
-        },
+        onReviewClick = inAppReviewLauncher::launch,
         onFeedbackClick = {
             if (!uriHandler.tryOpenUri(feedbackUrl)) {
                 coroutineScope.launch {
