@@ -39,7 +39,7 @@
 ## DOWNLOAD
 
 <a href="https://play.google.com/store/apps/details?id=com.happyhouse.challa">
-  <img src="https://play.google.com/intl/ko/badges/static/images/badges/ko_badge_web_generic.png" height="80" alt="Google Play에서 다운로드" />
+  <img src="https://img.shields.io/badge/Google_Play-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C-D5F700?style=for-the-badge&logo=googleplay&logoColor=black&labelColor=1F1F1F" height="34" alt="Google Play에서 다운로드" />
 </a>
 
 <br/>
