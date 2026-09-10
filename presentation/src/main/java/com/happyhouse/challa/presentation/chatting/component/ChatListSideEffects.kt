@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
@@ -39,7 +38,7 @@ internal fun ChatListSideEffects(
 ) {
     val chats = chatInfo.chats
     val isImeVisible = WindowInsets.isImeVisible
-    var hasCompletedInitialScroll by rememberSaveable { mutableStateOf(false) }
+    var hasCompletedInitialScroll by remember { mutableStateOf(false) }
     var previousLatestChatId by remember { mutableLongStateOf(chats.last().chatId) }
     val scrollTargetIndex = chats.lastIndex + leadingStatusItemCount
     val latestScrollTargetIndex by rememberUpdatedState(scrollTargetIndex)
