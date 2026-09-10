@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
-import com.happyhouse.challa.domain.model.ReactionEmoji
 import com.happyhouse.challa.presentation.R
 import com.happyhouse.challa.presentation.chatting.component.ChatContent
 import com.happyhouse.challa.presentation.chatting.component.ChatInputArea
@@ -20,14 +19,10 @@ import com.happyhouse.challa.presentation.chatting.component.ChatTopBar
 import com.happyhouse.challa.presentation.chatting.contract.ChatIntent
 import com.happyhouse.challa.presentation.chatting.contract.ChatState
 import com.happyhouse.challa.presentation.chatting.contract.ChatState.ChatInfo
-import com.happyhouse.challa.presentation.chatting.model.ChatUiModel
 import com.happyhouse.challa.presentation.designsystem.layout.ChallaScaffold
 import com.happyhouse.challa.presentation.designsystem.preview.ChallaScreenPreviewWrapper
 import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.designsystem.util.challaBackgroundGlow
-import kotlinx.collections.immutable.persistentListOf
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 @Composable
 fun ChatScreen(
@@ -78,7 +73,6 @@ fun ChatScreen(
 private fun ChatScreenPreview() {
     val previewPhotoUrl =
         "android.resource://${LocalContext.current.packageName}/${R.drawable.img_onboarding_1}"
-    val previewZoneId = ZoneId.systemDefault()
 
     ChatScreen(
         state =
@@ -86,68 +80,7 @@ private fun ChatScreenPreview() {
                 roomName = "해피하우스 강릉 여행",
                 chatInfo =
                     ChatInfo.Loaded(
-                        chats =
-                            persistentListOf(
-                                ChatUiModel.Default(
-                                    chatId = 1L,
-                                    userId = 1L,
-                                    content = "강릉에 도착하면 바로 사진 찍으러 가자!",
-                                    createdAt =
-                                        ZonedDateTime.of(
-                                            2026,
-                                            8,
-                                            29,
-                                            20,
-                                            15,
-                                            0,
-                                            0,
-                                            previewZoneId,
-                                        ),
-                                    isMine = false,
-                                    userName = "user1",
-                                    userProfileImageUrl = null,
-                                ),
-                                ChatUiModel.Comment(
-                                    chatId = 2L,
-                                    userId = 2L,
-                                    content = "좋아! 바다부터 보고 숙소로 이동하자.",
-                                    photoImageUrl = previewPhotoUrl,
-                                    createdAt =
-                                        ZonedDateTime.of(
-                                            2026,
-                                            8,
-                                            29,
-                                            20,
-                                            17,
-                                            0,
-                                            0,
-                                            previewZoneId,
-                                        ),
-                                    isMine = true,
-                                    userName = "찰나",
-                                    userProfileImageUrl = null,
-                                ),
-                                ChatUiModel.Emoji(
-                                    chatId = 3L,
-                                    userId = 3L,
-                                    reactionEmoji = ReactionEmoji.FIRE,
-                                    photoImageUrl = previewPhotoUrl,
-                                    createdAt =
-                                        ZonedDateTime.of(
-                                            2026,
-                                            8,
-                                            30,
-                                            9,
-                                            34,
-                                            0,
-                                            0,
-                                            previewZoneId,
-                                        ),
-                                    isMine = false,
-                                    userName = "여름여행가자",
-                                    userProfileImageUrl = null,
-                                ),
-                            ),
+                        chats = previewChats(photoImageUrl = previewPhotoUrl),
                     ),
             ),
         snackbarHostState = remember { SnackbarHostState() },
