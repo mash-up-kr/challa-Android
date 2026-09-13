@@ -17,12 +17,10 @@ val localProperties =
     }
 
 // 카카오 SDK 설정
-val kakaoNativeAppKeyDebug =
-    localProperties.getProperty("debug.kakao.native.app.key").orEmpty()
-val kakaoNativeAppKeyRelease =
-    localProperties.getProperty("release.kakao.native.app.key").orEmpty()
+val kakaoNativeAppKey =
+    localProperties.getProperty("kakao.native.app.key").orEmpty()
 
-// 릴리스 서명 설정
+// 릴리즈 서명 설정
 val releaseStoreFilePath =
     localProperties.getProperty("release.store.file").orEmpty()
 val releaseStorePassword =
@@ -32,14 +30,31 @@ val releaseKeyAlias =
 val releaseKeyPassword =
     localProperties.getProperty("release.key.password").orEmpty()
 
-// 릴리스 변형을 빌드할 때 카카오 키가 없으면(local.properties/CI 시크릿 누락) 빌드를 실패시킨다.
-// 키 없이 릴리스 APK가 생성되면 배포 후 카카오 SDK 초기화·로그인이 실패하기 때문이다.
+// app의 릴리즈 산출물을 생성하는 요청 태스크에서만 카카오 키와 서명 정보를 검증한다.
+// ktlintCheck처럼 릴리즈 SourceSet만 검사하는 태스크는 검증 대상에서 제외한다.
 gradle.taskGraph.whenReady {
-    val buildsRelease = allTasks.any { it.project == project && it.name.contains("Release") }
-    if (buildsRelease && kakaoNativeAppKeyRelease.isBlank()) {
+    val releaseBuildTasks =
+        setOf(
+            "assemble",
+            "build",
+            "assembleRelease",
+            "bundleRelease",
+            "installRelease",
+            "packageRelease",
+            "publishReleaseBundle",
+        )
+    val buildsRelease =
+        gradle.startParameter.taskNames.any { taskPath ->
+            val taskName = taskPath.substringAfterLast(':')
+            val targetProject =
+                taskPath.removePrefix(":").substringBefore(':', missingDelimiterValue = "app")
+            targetProject == "app" && taskName in releaseBuildTasks
+        }
+    if (buildsRelease && kakaoNativeAppKey.isBlank()) {
         throw GradleException(
-            "릴리스 카카오 네이티브 앱 키가 없습니다. local.properties(또는 CI 시크릿)에 " +
-                "'release.kakao.native.app.key'를 설정하세요.",
+            "릴리즈 빌드에 필요한 카카오 네이티브 앱 키가 없습니다. " +
+                "local.properties에 'kakao.native.app.key'를 설정하세요. " +
+                "CI에서는 'KAKAO_NATIVE_APP_KEY' Secret을 확인하세요.",
         )
     }
     if (buildsRelease) {
@@ -53,14 +68,14 @@ gradle.taskGraph.whenReady {
 
         if (missingSigningProperties.isNotEmpty()) {
             throw GradleException(
-                "릴리스 서명 정보가 없습니다: " +
+                "릴리즈 빌드에 필요한 서명 설정이 없습니다: " +
                     missingSigningProperties.joinToString { (key) -> key },
             )
         }
 
         val releaseStoreFile = rootProject.file(releaseStoreFilePath)
         if (!releaseStoreFile.isFile) {
-            throw GradleException("릴리스 keystore 파일을 찾을 수 없습니다: $releaseStoreFilePath")
+            throw GradleException("release keystore 파일을 찾을 수 없습니다: $releaseStoreFilePath")
         }
     }
 }
@@ -94,8 +109,8 @@ android {
             versionNameSuffix = "-debug"
             isDebuggable = true
 
-            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKeyDebug\"")
-            manifestPlaceholders["kakaoNativeAppKey"] = kakaoNativeAppKeyDebug
+            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
+            manifestPlaceholders["kakaoNativeAppKey"] = kakaoNativeAppKey
         }
 
         release {
@@ -107,8 +122,8 @@ android {
                 "proguard-rules.pro",
             )
 
-            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKeyRelease\"")
-            manifestPlaceholders["kakaoNativeAppKey"] = kakaoNativeAppKeyRelease
+            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
+            manifestPlaceholders["kakaoNativeAppKey"] = kakaoNativeAppKey
         }
     }
     compileOptions {
