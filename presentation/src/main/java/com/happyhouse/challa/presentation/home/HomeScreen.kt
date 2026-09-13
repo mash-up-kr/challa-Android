@@ -266,7 +266,8 @@ private fun HomeScreen(
 
             // 프로필 설정에서 막 넘어왔다면 방이 없는 게 확실하다.
             // 첫 조회 동안 스피너로 갈아끼우면 이어서 보이던 화면이 끊기므로 빈 상태를 그대로 둔다.
-            val isFirstLoading = state.roomLoadState == HomeRoomLoadState.LOADING && !suppressLoading
+            val isFirstLoading =
+                state.roomLoadState == HomeRoomLoadState.LOADING && !suppressLoading
             val isRefreshing = state.roomLoadState == HomeRoomLoadState.REFRESHING
 
             Box(
@@ -819,7 +820,9 @@ private fun RoomAsyncImage(
         contentDescription = contentDescription,
         contentScale = ContentScale.Crop,
         // 촬영 후 커버 URL이 갱신돼도 새 이미지가 준비될 때까지 기존 커버를 유지한다.
-        placeholder = previousPainter.takeIf { keepPreviousImage && imageUrl != null } ?: ColorPainter(ChallaTheme.colors.backgroundLevel3),
+        placeholder =
+            previousPainter.takeIf { keepPreviousImage && imageUrl != null }
+                ?: ColorPainter(ChallaTheme.colors.backgroundLevel3),
         onSuccess = { if (keepPreviousImage) previousPainter = it.painter },
         // 로드에 실패한 카드는 깨진 이미지 대신 검은 단색으로 덮는다.
         error = ColorPainter(ChallaTheme.colors.staticBlack),
@@ -944,7 +947,6 @@ private fun HomeTopBarAction(
  * 방이 하나도 없을 때의 홈 본문.
  *
  * 프로필 설정 화면에서 넘어오며 이어지는 화면이라, 그쪽 완료 상태와 같은 여백 구조를 쓴다.
- * 문구 영역은 상하 24dp, 프로필 이미지 영역은 상하 28dp.
  */
 @Composable
 private fun HomeEmptyMessage(
@@ -1061,7 +1063,7 @@ private fun HomeActionButton(
                 .clip(RoundedCornerShape(12.dp))
                 .background(containerColor)
                 .noRippleClickOnce(role = Role.Button, onClick = onClick)
-                .padding(horizontal = 20.dp, vertical = 15.dp),
+                .padding(vertical = 15.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(

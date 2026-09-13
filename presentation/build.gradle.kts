@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.bundles.androidx.camera)
     implementation(libs.bundles.coil)
     implementation(libs.kakao.user)
+    implementation(libs.google.play.review)
+    implementation(libs.google.play.review.ktx)
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.android.compiler)

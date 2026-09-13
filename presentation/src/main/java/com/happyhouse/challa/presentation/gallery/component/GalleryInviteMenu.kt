@@ -49,6 +49,7 @@ private val MemberListMaxHeight = 450.dp
  * 초대 코드와 방 참여자 목록을 담은 메뉴
  *
  * @param members 비어 있으면 초대 코드만 그린다.
+ * @param onInviteCodeClick 초대 코드를 눌렀을 때. 공유 수단을 고르는 시트를 연다.
  */
 @Composable
 fun GalleryInviteMenu(
@@ -99,7 +100,7 @@ private fun InviteCode(
         modifier =
             modifier.noRippleClickOnce(
                 role = Role.Button,
-                onClickLabel = stringResource(R.string.gallery_invite_code_copy_label),
+                onClickLabel = stringResource(R.string.gallery_invite_code_share_label),
                 onClick = onClick,
             ).fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -127,7 +128,7 @@ private fun InviteCode(
 
             Icon(
                 modifier = Modifier.size(ChallaIconSize.V20.dp),
-                painter = painterResource(ChallaIcons.Copy),
+                painter = painterResource(ChallaIcons.Share),
                 contentDescription = null,
                 tint = ChallaTheme.colors.labelDisable,
             )

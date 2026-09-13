@@ -28,7 +28,7 @@ fun GalleryProfileMenu(
     invitationCode: String,
     inviteMenu: InviteMenu,
     onProfileBarClick: () -> Unit,
-    onInviteCodeClick: (String) -> Unit,
+    onInviteCodeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -66,7 +66,7 @@ fun GalleryProfileMenu(
                     .pointerInput(Unit) { detectTapGestures {} },
             invitationCode = invitationCode,
             members = members,
-            onInviteCodeClick = { onInviteCodeClick(invitationCode) },
+            onInviteCodeClick = onInviteCodeClick,
         )
 
         if (inviteMenu.showsTooltip) {

@@ -30,9 +30,13 @@ import com.happyhouse.challa.presentation.chatting.ChatRoute
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarContent
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarHost
 import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaSnackbarVisuals
+import com.happyhouse.challa.presentation.designsystem.component.snackbar.ChallaToastVisuals
 import com.happyhouse.challa.presentation.designsystem.icon.ChallaIcons
+import com.happyhouse.challa.presentation.designsystem.theme.ChallaTheme
 import com.happyhouse.challa.presentation.gallery.GalleryRoute
 import com.happyhouse.challa.presentation.home.HomeRoute
+import com.happyhouse.challa.presentation.invite.RoomInviteEvent
+import com.happyhouse.challa.presentation.invite.RoomInviteViewModel
 import com.happyhouse.challa.presentation.login.LoginRoute
 import com.happyhouse.challa.presentation.photodetail.PhotoDetailRoute
 import com.happyhouse.challa.presentation.profile.EditProfileRoute
@@ -59,6 +63,7 @@ fun ChallaNavHost(
     modifier: Modifier = Modifier,
 ) {
     val memberJoinedObserverViewModel: RoomMemberJoinedObserverViewModel = hiltViewModel()
+    val roomInviteViewModel: RoomInviteViewModel = hiltViewModel()
     val snackbarHostState = remember { SnackbarHostState() }
     val roomMemberJoinedHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -68,6 +73,8 @@ fun ChallaNavHost(
     val exitGuideMessage = stringResource(R.string.app_exit_guide)
     var capturedPhotoRoomId by rememberSaveable { mutableStateOf<Long?>(null) }
     var capturedPhotoUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    val enterRoomFailedMessage = stringResource(R.string.enter_room_failed)
+    val destructiveIconTint = ChallaTheme.colors.statusDestructive
     val currentRoute = navigator.currentRoute
     var lastBackPressedAt by remember { mutableStateOf<Long?>(null) }
 
@@ -114,6 +121,38 @@ fun ChallaNavHost(
             -> memberJoinedObserverViewModel.stopObserving()
 
             else -> Unit
+        }
+    }
+
+    // 초대를 받은 시점에 입장할 수 있는 화면인지로만 판단한다. 로그인 전에 들어온 초대는 보관하지 않고 흘려보내,
+    // 사용자가 로그인을 마치고 초대 링크를 다시 타고 들어왔을 때 입장한다.
+    LaunchedEffect(roomInviteViewModel) {
+        roomInviteViewModel.invitations.collect { invitationCode ->
+            if (navigator.currentRoute.allowsRoomEnter()) {
+                roomInviteViewModel.enterRoom(invitationCode)
+            }
+        }
+    }
+
+    LaunchedEffect(roomInviteViewModel) {
+        roomInviteViewModel.events.collect { event ->
+            when (event) {
+                is RoomInviteEvent.RoomEntered -> {
+                    memberJoinedObserverViewModel.addObservedRoom(event.roomId)
+                    // 초대 링크는 앱 어느 화면에서든 들어올 수 있으므로, 홈 위에 초대받은 방만 남긴다.
+                    navigator.clearAndNavigate(ChallaRoute.Home())
+                    navigator.navigate(ChallaRoute.Gallery(roomId = event.roomId))
+                }
+
+                RoomInviteEvent.RoomEnterFailed ->
+                    snackbarHostState.showSnackbar(
+                        ChallaToastVisuals(
+                            message = enterRoomFailedMessage,
+                            icon = ChallaIcons.Error,
+                            iconTint = destructiveIconTint,
+                        ),
+                    )
+            }
         }
     }
 
@@ -362,3 +401,10 @@ fun ChallaNavHost(
         )
     }
 }
+
+/** 초대 링크로 받은 방에 바로 입장해도 되는 화면인지. 로그인 전이나 프로필 설정 중에는 입장할 수 없다. */
+private fun ChallaRoute.allowsRoomEnter(): Boolean =
+    when (this) {
+        ChallaRoute.Login, ChallaRoute.SettingProfile -> false
+        else -> true
+    }

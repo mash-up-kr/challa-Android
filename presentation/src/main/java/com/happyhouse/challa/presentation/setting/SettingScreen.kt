@@ -42,7 +42,7 @@ fun SettingScreen(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onSupportClick: () -> Unit,
+    onReviewClick: () -> Unit,
     onFeedbackClick: () -> Unit,
     onOpenSourceLicenseClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -82,7 +82,7 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
-                    onSupportClick = onSupportClick,
+                    onReviewClick = onReviewClick,
                     onFeedbackClick = onFeedbackClick,
                 )
             }
@@ -96,7 +96,7 @@ fun SettingScreen(
                     onThemeClick = onThemeClick,
                     onNotificationClick = onNotificationClick,
                     onAccountClick = onAccountClick,
-                    onSupportClick = onSupportClick,
+                    onReviewClick = onReviewClick,
                     onFeedbackClick = onFeedbackClick,
                 )
             }
@@ -124,7 +124,7 @@ private fun ProfileErrorSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onSupportClick: () -> Unit,
+    onReviewClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
     SettingContentLayout(innerPadding = innerPadding) {
@@ -133,7 +133,7 @@ private fun ProfileErrorSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
-            onSupportClick = onSupportClick,
+            onReviewClick = onReviewClick,
             onFeedbackClick = onFeedbackClick,
         )
     }
@@ -148,7 +148,7 @@ private fun ProfileLoadedSettingContent(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onSupportClick: () -> Unit,
+    onReviewClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
     SettingContentLayout(innerPadding = innerPadding) {
@@ -162,7 +162,7 @@ private fun ProfileLoadedSettingContent(
             onThemeClick = onThemeClick,
             onNotificationClick = onNotificationClick,
             onAccountClick = onAccountClick,
-            onSupportClick = onSupportClick,
+            onReviewClick = onReviewClick,
             onFeedbackClick = onFeedbackClick,
         )
     }
@@ -191,7 +191,7 @@ private fun SettingMenuSections(
     onThemeClick: () -> Unit,
     onNotificationClick: () -> Unit,
     onAccountClick: () -> Unit,
-    onSupportClick: () -> Unit,
+    onReviewClick: () -> Unit,
     onFeedbackClick: () -> Unit,
 ) {
     Column(
@@ -230,7 +230,7 @@ private fun SettingMenuSections(
             ChallaListItem(
                 text = stringResource(R.string.setting_support),
                 leadingIcon = ChallaIcons.Carrot,
-                onClick = onSupportClick,
+                onClick = onReviewClick,
             )
             ChallaListItem(
                 text = stringResource(R.string.setting_send_feedback),
@@ -287,7 +287,7 @@ private fun SettingScreenPreviewContent(state: SettingState) {
         onThemeClick = {},
         onNotificationClick = {},
         onAccountClick = {},
-        onSupportClick = {},
+        onReviewClick = {},
         onFeedbackClick = {},
         onOpenSourceLicenseClick = {},
     )
