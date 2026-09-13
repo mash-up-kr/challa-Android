@@ -248,7 +248,7 @@ internal fun CameraSession(
             currentOnEvent(
                 CameraSessionEvent.CaptureCompleted(
                     requestId = requestId,
-                    result = CameraCaptureResult.Failed,
+                    result = CameraCaptureResult.Failed(cause = null),
                 ),
             )
             return@LaunchedEffect
@@ -285,7 +285,7 @@ internal fun CameraSession(
                 throw cancellationException
             } catch (throwable: Throwable) {
                 Timber.e(throwable, "사진 촬영에 실패했습니다")
-                CameraCaptureResult.Failed
+                CameraCaptureResult.Failed(cause = throwable)
             } finally {
                 sessionState = sessionState.copy(isCapturing = false)
                 currentOnStateChanged(sessionState)

@@ -23,6 +23,7 @@ fun ChallaApp(
         ChallaNavHost(
             navigator = appState.navigator,
             onExitRequest = onExitRequest,
+            onScreenChanged = viewModel::onScreenChanged,
         )
     }
 }
