@@ -60,6 +60,7 @@ private const val EXIT_BACK_PRESS_TIMEOUT_MILLIS = 2_000L
 fun ChallaNavHost(
     navigator: ChallaNavigator,
     onExitRequest: () -> Unit,
+    onScreenChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val memberJoinedObserverViewModel: RoomMemberJoinedObserverViewModel = hiltViewModel()
@@ -113,6 +114,7 @@ fun ChallaNavHost(
 
     LaunchedEffect(currentRoute) {
         lastBackPressedAt = null
+        onScreenChanged(currentRoute.crashScreenName)
 
         when (currentRoute) {
             is ChallaRoute.RoomScoped -> memberJoinedObserverViewModel.addObservedRoom(currentRoute.roomId)
@@ -408,3 +410,24 @@ private fun ChallaRoute.allowsRoomEnter(): Boolean =
         ChallaRoute.Login, ChallaRoute.SettingProfile -> false
         else -> true
     }
+
+/** 동적 route 인자를 제외한 안정적인 화면 이름을 반환합니다. */
+private val ChallaRoute.crashScreenName: String
+    get() =
+        when (this) {
+            is ChallaRoute.Camera -> "camera"
+            is ChallaRoute.PhotoDetail -> "photo_detail"
+            is ChallaRoute.Gallery -> "gallery"
+            is ChallaRoute.Chat -> "chat"
+            is ChallaRoute.RoomCover -> "room_cover"
+            is ChallaRoute.RoomSetting -> "room_setting"
+            ChallaRoute.Login -> "login"
+            ChallaRoute.SettingProfile -> "profile_setup"
+            is ChallaRoute.EditProfile -> "edit_profile"
+            is ChallaRoute.Home -> "home"
+            ChallaRoute.Setting -> "setting"
+            ChallaRoute.ThemeSetting -> "theme_setting"
+            ChallaRoute.Notification -> "notification_setting"
+            ChallaRoute.Account -> "account"
+            ChallaRoute.OpenSourceLicense -> "open_source_license"
+        }
