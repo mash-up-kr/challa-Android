@@ -7,13 +7,6 @@ package com.happyhouse.challa.presentation.logging
  * 개인정보나 민감한 정보는 전달하지 않아야 합니다.
  */
 interface CrashReporter {
-    /**
-     * 이후 오류 보고서에 연결할 내부 사용자 식별자를 설정합니다.
-     *
-     * 직접 식별할 수 없는 서버 내부 ID를 사용하며, `null`을 전달하면 기존 식별자를 제거합니다.
-     */
-    fun setUserId(userId: String?)
-
     /** 이후 오류 보고서에 첨부할 문자열 상태를 설정하거나 동일한 [key]의 값을 갱신합니다. */
     fun setCustomKey(
         key: String,

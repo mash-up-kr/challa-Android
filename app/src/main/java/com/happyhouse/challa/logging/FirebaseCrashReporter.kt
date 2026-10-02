@@ -11,10 +11,6 @@ class FirebaseCrashReporter
     constructor() : CrashReporter {
         private val crashlytics = FirebaseCrashlytics.getInstance()
 
-        override fun setUserId(userId: String?) {
-            crashlytics.setUserId(userId.orEmpty())
-        }
-
         override fun setCustomKey(
             key: String,
             value: String,

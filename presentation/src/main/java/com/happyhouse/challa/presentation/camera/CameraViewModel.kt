@@ -240,7 +240,7 @@ class CameraViewModel @AssistedInject constructor(
                 roomId = room.id,
                 selectedFilter = currentState.selectedFilter,
             )
-        reportOperation(CRASH_OPERATION_PHOTO_CAPTURE, CRASH_OPERATION_STATE_IN_PROGRESS)
+        reportOperation(CrashOperation.PHOTO_CAPTURE, CrashOperationState.IN_PROGRESS)
         crashReporter.setCustomKey(CRASH_KEY_CAMERA_FACING, currentState.lensFacing.name.lowercase())
         crashReporter.setCustomKey(CRASH_KEY_FILTER_NAME, captureRequest.selectedFilter.name)
         crashReporter.setCustomKey(CRASH_KEY_REMAINING_PHOTO_COUNT_BEFORE_CAPTURE, room.remainingCount)
@@ -258,7 +258,7 @@ class CameraViewModel @AssistedInject constructor(
         if (currentState.capturedImage != null) return
         val capturedImage = CapturedImage(imageBytes)
         updateState { copy(capturedImage = capturedImage, savedImageUrl = null) }
-        reportOperation(CRASH_OPERATION_IMAGE_UPLOAD, CRASH_OPERATION_STATE_IN_PROGRESS)
+        reportOperation(CrashOperation.IMAGE_UPLOAD, CrashOperationState.IN_PROGRESS)
         crashReporter.log("Photo captured; image upload started")
 
         viewModelScope.launch {
@@ -266,12 +266,12 @@ class CameraViewModel @AssistedInject constructor(
                 when (val result = imageUploadRepository.uploadPhoto(imageBytes)) {
                     is ChallaResult.Success -> result.data
                     is ChallaResult.Failure -> {
-                        handlePhotoCreateFailure(result, CRASH_OPERATION_IMAGE_UPLOAD)
+                        handlePhotoCreateFailure(result, CrashOperation.IMAGE_UPLOAD)
                         return@launch
                     }
                 }
 
-            reportOperation(CRASH_OPERATION_PHOTO_REGISTRATION, CRASH_OPERATION_STATE_IN_PROGRESS)
+            reportOperation(CrashOperation.PHOTO_REGISTRATION, CrashOperationState.IN_PROGRESS)
             crashReporter.log("Image upload completed; photo registration started")
 
             when (
@@ -283,7 +283,7 @@ class CameraViewModel @AssistedInject constructor(
                     )
             ) {
                 is ChallaResult.Success -> completePhotoCreation(captureRequest, imageUrl)
-                is ChallaResult.Failure -> handlePhotoCreateFailure(result, CRASH_OPERATION_PHOTO_REGISTRATION)
+                is ChallaResult.Failure -> handlePhotoCreateFailure(result, CrashOperation.PHOTO_REGISTRATION)
             }
         }
     }
@@ -295,9 +295,9 @@ class CameraViewModel @AssistedInject constructor(
         if (currentState.captureRequest?.requestId != requestId) return
 
         reportOperation(
-            operation = CRASH_OPERATION_PHOTO_CAPTURE,
-            state = CRASH_OPERATION_STATE_FAILED,
-            failureType = if (cause == null) CRASH_FAILURE_CAMERA_NOT_READY else CRASH_FAILURE_UNEXPECTED,
+            operation = CrashOperation.PHOTO_CAPTURE,
+            state = CrashOperationState.FAILED,
+            failureType = if (cause == null) CrashFailureType.CAMERA_NOT_READY else CrashFailureType.UNEXPECTED,
         )
         crashReporter.log("Photo capture failed")
         cause?.let(crashReporter::recordException)
@@ -313,7 +313,7 @@ class CameraViewModel @AssistedInject constructor(
     ) {
         if (currentState.captureRequest?.requestId != captureRequest.requestId) return
 
-        reportOperation(CRASH_OPERATION_PHOTO_REGISTRATION, CRASH_OPERATION_STATE_COMPLETED)
+        reportOperation(CrashOperation.PHOTO_REGISTRATION, CrashOperationState.COMPLETED)
         crashReporter.log("Photo creation completed")
         updateState {
             copy(
@@ -333,15 +333,15 @@ class CameraViewModel @AssistedInject constructor(
 
     private suspend fun handlePhotoCreateFailure(
         result: ChallaResult.Failure,
-        operation: String,
+        operation: CrashOperation,
     ) {
         Timber.e("사진 업로드 또는 생성에 실패했습니다: %s", result)
         reportOperation(
             operation = operation,
-            state = CRASH_OPERATION_STATE_FAILED,
+            state = CrashOperationState.FAILED,
             failureType = result.toCrashFailureType(),
         )
-        crashReporter.log("$operation failed")
+        crashReporter.log("${operation.value} failed")
         if (result is ChallaResult.Failure.Unknown) {
             result.cause?.let(crashReporter::recordException)
         }
@@ -353,26 +353,26 @@ class CameraViewModel @AssistedInject constructor(
     fun onPhotoCaptureCancelled(requestId: Long) {
         if (currentState.captureRequest?.requestId != requestId) return
 
-        reportOperation(CRASH_OPERATION_PHOTO_CAPTURE, CRASH_OPERATION_STATE_CANCELLED)
+        reportOperation(CrashOperation.PHOTO_CAPTURE, CrashOperationState.CANCELLED)
         updateState { copy(captureRequest = null, capturedImage = null, savedImageUrl = null) }
     }
 
     /** 마지막 촬영 작업의 단계와 결과를 함께 갱신하고, 새 단계에서는 이전 실패 분류를 제거합니다. */
     private fun reportOperation(
-        operation: String,
-        state: String,
-        failureType: String = CRASH_FAILURE_NONE,
+        operation: CrashOperation,
+        state: CrashOperationState,
+        failureType: CrashFailureType = CrashFailureType.NONE,
     ) {
-        crashReporter.setCustomKey(CRASH_KEY_LAST_OPERATION, operation)
-        crashReporter.setCustomKey(CRASH_KEY_LAST_OPERATION_STATE, state)
-        crashReporter.setCustomKey(CRASH_KEY_FAILURE_TYPE, failureType)
+        crashReporter.setCustomKey(CRASH_KEY_LAST_OPERATION, operation.value)
+        crashReporter.setCustomKey(CRASH_KEY_LAST_OPERATION_STATE, state.value)
+        crashReporter.setCustomKey(CRASH_KEY_FAILURE_TYPE, failureType.value)
     }
 
-    private fun ChallaResult.Failure.toCrashFailureType(): String =
+    private fun ChallaResult.Failure.toCrashFailureType(): CrashFailureType =
         when (this) {
-            is ChallaResult.Failure.Network -> CRASH_FAILURE_NETWORK
-            is ChallaResult.Failure.Http -> CRASH_FAILURE_HTTP
-            is ChallaResult.Failure.Unknown -> CRASH_FAILURE_UNEXPECTED
+            is ChallaResult.Failure.Network -> CrashFailureType.NETWORK
+            is ChallaResult.Failure.Http -> CrashFailureType.HTTP
+            is ChallaResult.Failure.Unknown -> CrashFailureType.UNEXPECTED
         }
 
     private fun handleZoomClick() {
@@ -428,6 +428,33 @@ class CameraViewModel @AssistedInject constructor(
         fun create(roomId: Long): CameraViewModel
     }
 
+    private enum class CrashOperation(
+        val value: String,
+    ) {
+        PHOTO_CAPTURE("photo_capture"),
+        IMAGE_UPLOAD("image_upload"),
+        PHOTO_REGISTRATION("photo_registration"),
+    }
+
+    private enum class CrashOperationState(
+        val value: String,
+    ) {
+        IN_PROGRESS("in_progress"),
+        COMPLETED("completed"),
+        FAILED("failed"),
+        CANCELLED("cancelled"),
+    }
+
+    private enum class CrashFailureType(
+        val value: String,
+    ) {
+        NONE("none"),
+        NETWORK("network"),
+        HTTP("http"),
+        UNEXPECTED("unexpected"),
+        CAMERA_NOT_READY("camera_not_ready"),
+    }
+
     private companion object {
         const val DEFAULT_ZOOM_LEVEL = 1f
         const val DOUBLE_ZOOM_LEVEL = 2f
@@ -438,17 +465,5 @@ class CameraViewModel @AssistedInject constructor(
         const val CRASH_KEY_CAMERA_FACING = "camera_facing"
         const val CRASH_KEY_FILTER_NAME = "filter_name"
         const val CRASH_KEY_REMAINING_PHOTO_COUNT_BEFORE_CAPTURE = "remaining_photo_count_before_capture"
-        const val CRASH_OPERATION_PHOTO_CAPTURE = "photo_capture"
-        const val CRASH_OPERATION_IMAGE_UPLOAD = "image_upload"
-        const val CRASH_OPERATION_PHOTO_REGISTRATION = "photo_registration"
-        const val CRASH_OPERATION_STATE_IN_PROGRESS = "in_progress"
-        const val CRASH_OPERATION_STATE_COMPLETED = "completed"
-        const val CRASH_OPERATION_STATE_FAILED = "failed"
-        const val CRASH_OPERATION_STATE_CANCELLED = "cancelled"
-        const val CRASH_FAILURE_NONE = "none"
-        const val CRASH_FAILURE_NETWORK = "network"
-        const val CRASH_FAILURE_HTTP = "http"
-        const val CRASH_FAILURE_UNEXPECTED = "unexpected"
-        const val CRASH_FAILURE_CAMERA_NOT_READY = "camera_not_ready"
     }
 }
