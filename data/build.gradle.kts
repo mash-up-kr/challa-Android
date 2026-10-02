@@ -1,5 +1,5 @@
 import com.android.build.api.variant.BuildConfigField
-import java.util.Properties
+import org.gradle.api.provider.Provider
 
 plugins {
     alias(libs.plugins.android.library)
@@ -8,19 +8,15 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties =
-    Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localPropertiesFile.inputStream().use(::load)
+fun requiredGradleProperty(name: String): Provider<String> =
+    providers
+        .gradleProperty(name)
+        .orElse("")
+        .map { value ->
+            value.ifBlank {
+                throw GradleException("필수 Gradle Property '$name'가 없거나 비어 있습니다.")
+            }
         }
-    }
-
-fun localProperty(key: String) =
-    providers.provider {
-        localProperties.getProperty(key)
-            ?: error("Missing local.properties key: $key")
-    }
 
 android {
     namespace = "com.happyhouse.challa.data"
@@ -51,13 +47,19 @@ androidComponents {
     onVariants { variant ->
         val buildType = variant.buildType ?: return@onVariants
         val buildConfigFields = variant.buildConfigFields ?: return@onVariants
-        val baseUrlKey = "$buildType.base.url"
+        val baseUrlPropertyName =
+            when (buildType) {
+                "debug" -> "challaDebugBaseUrl"
+                "release" -> "challaReleaseBaseUrl"
+                else -> return@onVariants
+            }
 
         buildConfigFields.put(
             "BASE_URL",
-            localProperty(baseUrlKey).map { value ->
-                BuildConfigField("String", "\"$value\"", null)
-            },
+            requiredGradleProperty(baseUrlPropertyName)
+                .map { value ->
+                    BuildConfigField("String", "\"$value\"", null)
+                },
         )
     }
 }

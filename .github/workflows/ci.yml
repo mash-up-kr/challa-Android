@@ -31,13 +31,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Create local.properties
+      - name: Validate debug build configuration
         env:
-          DEBUG_BASE_URL: ${{ secrets.DEBUG_BASE_URL }}
-          KAKAO_NATIVE_APP_KEY: ${{ secrets.KAKAO_NATIVE_APP_KEY }}
+          ORG_GRADLE_PROJECT_challaDebugBaseUrl: ${{ secrets.DEBUG_BASE_URL }}
+          ORG_GRADLE_PROJECT_challaKakaoNativeAppKey: ${{ secrets.KAKAO_NATIVE_APP_KEY }}
         run: |
-          echo "debug.base.url=${DEBUG_BASE_URL}" >> local.properties
-          echo "kakao.native.app.key=${KAKAO_NATIVE_APP_KEY}" >> local.properties
+          : "${ORG_GRADLE_PROJECT_challaDebugBaseUrl:?DEBUG_BASE_URL secret is not configured}"
+          : "${ORG_GRADLE_PROJECT_challaKakaoNativeAppKey:?KAKAO_NATIVE_APP_KEY secret is not configured}"
 
       - name: Create google-services.json
         env:
@@ -58,4 +58,7 @@ jobs:
         run: ./gradlew ktlintCheck
 
       - name: Build (debug)
+        env:
+          ORG_GRADLE_PROJECT_challaDebugBaseUrl: ${{ secrets.DEBUG_BASE_URL }}
+          ORG_GRADLE_PROJECT_challaKakaoNativeAppKey: ${{ secrets.KAKAO_NATIVE_APP_KEY }}
         run: ./gradlew assembleDebug

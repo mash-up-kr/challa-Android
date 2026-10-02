@@ -1,4 +1,4 @@
-import java.util.Properties
+import com.android.build.api.variant.BuildConfigField
 
 plugins {
     alias(libs.plugins.android.application)
@@ -8,77 +8,28 @@ plugins {
     alias(libs.plugins.google.services)
 }
 
-val localProperties =
-    Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localPropertiesFile.inputStream().use(::load)
-        }
-    }
-
 // 카카오 SDK 설정
-val kakaoNativeAppKey =
-    localProperties.getProperty("kakao.native.app.key").orEmpty()
+val kakaoNativeAppKeyProvider =
+    providers
+        .gradleProperty("challaKakaoNativeAppKey")
+        .orElse("")
+        .map { value ->
+            value.ifBlank {
+                throw GradleException(
+                    "필수 Gradle Property 'challaKakaoNativeAppKey'가 없거나 비어 있습니다.",
+                )
+            }
+        }
 
 // 릴리즈 서명 설정
 val releaseStoreFilePath =
-    localProperties.getProperty("release.store.file").orEmpty()
+    providers.gradleProperty("challaReleaseStoreFile").orNull.orEmpty()
 val releaseStorePassword =
-    localProperties.getProperty("release.store.password").orEmpty()
+    providers.gradleProperty("challaReleaseStorePassword").orNull.orEmpty()
 val releaseKeyAlias =
-    localProperties.getProperty("release.key.alias").orEmpty()
+    providers.gradleProperty("challaReleaseKeyAlias").orNull.orEmpty()
 val releaseKeyPassword =
-    localProperties.getProperty("release.key.password").orEmpty()
-
-// app의 릴리즈 산출물을 생성하는 요청 태스크에서만 카카오 키와 서명 정보를 검증한다.
-// ktlintCheck처럼 릴리즈 SourceSet만 검사하는 태스크는 검증 대상에서 제외한다.
-gradle.taskGraph.whenReady {
-    val releaseBuildTasks =
-        setOf(
-            "assemble",
-            "build",
-            "assembleRelease",
-            "bundleRelease",
-            "installRelease",
-            "packageRelease",
-            "publishReleaseBundle",
-        )
-    val buildsRelease =
-        gradle.startParameter.taskNames.any { taskPath ->
-            val taskName = taskPath.substringAfterLast(':')
-            val targetProject =
-                taskPath.removePrefix(":").substringBefore(':', missingDelimiterValue = "app")
-            targetProject == "app" && taskName in releaseBuildTasks
-        }
-    if (buildsRelease && kakaoNativeAppKey.isBlank()) {
-        throw GradleException(
-            "릴리즈 빌드에 필요한 카카오 네이티브 앱 키가 없습니다. " +
-                "local.properties에 'kakao.native.app.key'를 설정하세요. " +
-                "CI에서는 'KAKAO_NATIVE_APP_KEY' Secret을 확인하세요.",
-        )
-    }
-    if (buildsRelease) {
-        val missingSigningProperties =
-            listOf(
-                "release.store.file" to releaseStoreFilePath,
-                "release.store.password" to releaseStorePassword,
-                "release.key.alias" to releaseKeyAlias,
-                "release.key.password" to releaseKeyPassword,
-            ).filter { (_, value) -> value.isBlank() }
-
-        if (missingSigningProperties.isNotEmpty()) {
-            throw GradleException(
-                "릴리즈 빌드에 필요한 서명 설정이 없습니다: " +
-                    missingSigningProperties.joinToString { (key) -> key },
-            )
-        }
-
-        val releaseStoreFile = rootProject.file(releaseStoreFilePath)
-        if (!releaseStoreFile.isFile) {
-            throw GradleException("release keystore 파일을 찾을 수 없습니다: $releaseStoreFilePath")
-        }
-    }
-}
+    providers.gradleProperty("challaReleaseKeyPassword").orNull.orEmpty()
 
 android {
     namespace = "com.happyhouse.challa"
@@ -108,9 +59,6 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             isDebuggable = true
-
-            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
-            manifestPlaceholders["kakaoNativeAppKey"] = kakaoNativeAppKey
         }
 
         release {
@@ -121,9 +69,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-
-            buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
-            manifestPlaceholders["kakaoNativeAppKey"] = kakaoNativeAppKey
         }
     }
     compileOptions {
@@ -133,6 +78,20 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val buildConfigFields = variant.buildConfigFields ?: return@onVariants
+
+        buildConfigFields.put(
+            "KAKAO_NATIVE_APP_KEY",
+            kakaoNativeAppKeyProvider.map { value ->
+                BuildConfigField("String", "\"$value\"", null)
+            },
+        )
+        variant.manifestPlaceholders.put("kakaoNativeAppKey", kakaoNativeAppKeyProvider)
     }
 }
 
