@@ -38,9 +38,7 @@
 
 ## DOWNLOAD
 
-<a href="https://play.google.com/store/apps/details?id=com.happyhouse.challa">
-  <img src="https://play.google.com/intl/ko/badges/static/images/badges/ko_badge_web_generic.png" height="80" alt="Google Play에서 다운로드" />
-</a>
+<img src="https://img.shields.io/badge/Google_Play-%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C-D5F700?style=for-the-badge&logo=googleplay&logoColor=black&labelColor=1F1F1F" height="34" />
 
 <br/>
 
@@ -49,7 +47,7 @@
 |                     함범준 🎬<br/>([@HamBeomJoon](https://github.com/HamBeomJoon))<br/>**Android Lead**                     |                     김주환<br/>([@juhwankim-dev](https://github.com/juhwankim-dev))                      |                      김아린<br/>([@arinming](https://github.com/arinming))                       |
 | :---------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
 |                  <img width="180px" src="https://github.com/HamBeomJoon.png" alt=""/>                   |                <img width="180px" src="https://github.com/juhwankim-dev.png" alt=""/>                |               <img width="180px" src="https://github.com/arinming.png" alt=""/>              |
-|              `촬영`<br/>`디자인 시스템`<br/>`채팅`<br/>`설정`               |                 `홈`<br/>`로그인`<br/>`프로필`<br/>`방 설정`                  |                `갤러리`<br/>`사진 상세`<br/>`방 커버`                 |
+|              `카메라, 이미지 처리`<br/>`디자인 시스템`<br/>`실시간 통신(채팅, 방 참여 알림)`<br/>`설정`               |                 `홈`<br/>`로그인`<br/>`프로필`<br/>`방 설정`                  |                `갤러리`<br/>`사진 상세`<br/>`방 커버`                 |
 
 <br/>
 
