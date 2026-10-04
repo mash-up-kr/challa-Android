@@ -1,3 +1,7 @@
+# Crashlytics
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception
+
 # Kakao SDK
 -keep class com.kakao.sdk.**.model.* { <fields>; }
 
