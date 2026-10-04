@@ -6,13 +6,16 @@ import com.happyhouse.challa.data.network.dto.UploadUrlRequest
 import com.happyhouse.challa.data.network.qualifier.S3UploadClient
 import com.happyhouse.challa.domain.repository.ImageUploadRepository
 import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.domain.result.map
 import com.happyhouse.challa.domain.result.mapCatching
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -54,55 +57,72 @@ class ImageUploadRepositoryImpl
         private suspend fun uploadImage(
             purpose: String,
             bytes: ByteArray,
-        ): ChallaResult<String> =
+        ): ChallaResult<String> {
             // 1단계: 서버에서 S3 업로드용 서명 URL 과 저장에 쓸 공개 URL 을 함께 발급받는다.
-            uploadApi
-                .postUploadUrl(
-                    UploadUrlRequest(
-                        upload =
-                            UploadUrlRequest.Upload(
-                                purpose = purpose,
-                                contentType = CONTENT_TYPE_JPEG,
-                            ),
-                    ),
-                ).mapCatching { response ->
-                    check(response.success) { response.message }
-                    val upload =
+            val uploadResult =
+                uploadApi
+                    .postUploadUrl(
+                        UploadUrlRequest(
+                            upload =
+                                UploadUrlRequest.Upload(
+                                    purpose = purpose,
+                                    contentType = CONTENT_TYPE_JPEG,
+                                ),
+                        ),
+                    ).mapCatching { response ->
+                        check(response.success) { response.message }
                         requireNotNull(response.data?.upload) { "업로드 URL 응답 데이터가 비어 있습니다." }
+                    }
 
+            return when (uploadResult) {
+                is ChallaResult.Success -> {
+                    val upload = uploadResult.data
                     // 2단계: 발급받은 서명 URL 로 이미지 바이너리를 직접 PUT 한다.
                     putImageToS3(
                         uploadUrl = upload.uploadUrl,
                         bytes = bytes,
                         contentType = CONTENT_TYPE_JPEG,
-                    )
-
-                    // API 요청에 저장할 공개 URL을 돌려준다.
-                    upload.imageUrl
+                    ).map { upload.imageUrl }
                 }
+
+                is ChallaResult.Failure -> uploadResult
+            }
+        }
 
         private suspend fun putImageToS3(
             contentType: String,
             bytes: ByteArray,
             uploadUrl: String,
-        ) {
+        ): ChallaResult<Unit> =
             withContext(Dispatchers.IO) {
-                val request =
-                    Request
-                        .Builder()
-                        .url(uploadUrl)
-                        // Content-Type 은 1단계 contentType 과 정확히 같아야 하며,
-                        // Authorization 헤더는 붙이지 않는다. (S3UploadClient 사용)
-                        .put(bytes.toRequestBody(contentType.toMediaType()))
-                        .build()
+                try {
+                    val request =
+                        Request
+                            .Builder()
+                            .url(uploadUrl)
+                            // Content-Type 은 1단계 contentType 과 정확히 같아야 하며,
+                            // Authorization 헤더는 붙이지 않는다. (S3UploadClient 사용)
+                            .put(bytes.toRequestBody(contentType.toMediaType()))
+                            .build()
 
-                s3UploadClient.newCall(request).execute().use { response ->
-                    check(response.isSuccessful) {
-                        "S3 이미지 업로드 실패: HTTP ${response.code}"
+                    s3UploadClient.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            ChallaResult.Success(Unit)
+                        } else {
+                            ChallaResult.Failure.Http(
+                                code = response.code,
+                                message = response.message,
+                            )
+                        }
                     }
+                } catch (cancellationException: CancellationException) {
+                    throw cancellationException
+                } catch (exception: IOException) {
+                    ChallaResult.Failure.Network(exception)
+                } catch (throwable: Throwable) {
+                    ChallaResult.Failure.Unknown(throwable)
                 }
             }
-        }
 
         companion object {
             private const val PURPOSE_PROFILE_IMAGE = "PROFILE_IMAGE"

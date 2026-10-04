@@ -24,8 +24,14 @@ internal sealed interface CameraCaptureResult {
         val imageBytes: ByteArray,
     ) : CameraCaptureResult
 
-    /** CameraX가 촬영 요청을 완료하지 못했습니다. */
-    data object Failed : CameraCaptureResult
+    /**
+     * CameraX가 촬영 요청을 완료하지 못했습니다.
+     *
+     * @property cause 촬영 처리 중 발생한 예상 밖 예외. 세션 상태 때문에 요청하지 못한 경우에는 null입니다.
+     */
+    data class Failed(
+        val cause: Throwable?,
+    ) : CameraCaptureResult
 
     /** 세션 해제 등으로 진행 중인 촬영 코루틴이 취소됐습니다. */
     data object Cancelled : CameraCaptureResult

@@ -25,7 +25,7 @@ fun CameraScreen(
     onRequestPermissionClick: () -> Unit,
     onCameraBindingFailed: () -> Unit,
     onPhotoCaptured: (requestId: Long, imageBytes: ByteArray) -> Unit,
-    onPhotoCaptureFailed: (requestId: Long) -> Unit,
+    onPhotoCaptureFailed: (requestId: Long, cause: Throwable?) -> Unit,
     onPhotoCaptureCancelled: (requestId: Long) -> Unit,
     onSelectedFilterLutLoadFailed: (fileUrl: String) -> Unit,
     getCameraFilterFile: suspend (String) -> ByteArray?,

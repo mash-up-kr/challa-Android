@@ -7,6 +7,7 @@ import com.happyhouse.challa.domain.repository.AuthRepository
 import com.happyhouse.challa.domain.repository.ThemeRepository
 import com.happyhouse.challa.domain.repository.UserRepository
 import com.happyhouse.challa.domain.result.ChallaResult
+import com.happyhouse.challa.presentation.logging.CrashReporter
 import com.happyhouse.challa.presentation.navigation.ChallaRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +25,7 @@ class ChallaAppViewModel
         private val authRepository: AuthRepository,
         themeRepository: ThemeRepository,
         private val userRepository: UserRepository,
+        private val crashReporter: CrashReporter,
     ) : ViewModel() {
         val primaryTheme: StateFlow<PrimaryTheme> =
             themeRepository.primaryTheme
@@ -56,6 +58,10 @@ class ChallaAppViewModel
                 initialValue = null,
             )
 
+        fun onScreenChanged(screen: String) {
+            crashReporter.setCustomKey(CRASH_KEY_SCREEN, screen)
+        }
+
         private suspend fun resolveStartRoute(): ChallaRoute {
             if (!authRepository.isLoggedIn()) return ChallaRoute.Login
             return when (val result = userRepository.getMyProfile()) {
@@ -68,5 +74,9 @@ class ChallaAppViewModel
                 // 프로필 조회에 실패하면 로그인 화면으로 보낸다.
                 is ChallaResult.Failure -> ChallaRoute.Login
             }
+        }
+
+        private companion object {
+            const val CRASH_KEY_SCREEN = "screen"
         }
     }
