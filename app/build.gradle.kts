@@ -22,6 +22,40 @@ val kakaoNativeAppKeyProvider =
             }
         }
 
+// 배포용 Debug 키를 지정하지 않은 로컬 빌드는 기존 Android Debug 키를 사용합니다.
+val debugSigningProperties =
+    listOf(
+        "challaDebugStoreFile",
+        "challaDebugStorePassword",
+        "challaDebugKeyAlias",
+        "challaDebugKeyPassword",
+    ).associateWith { providers.gradleProperty(it).orNull }
+val usesCustomDebugSigning = debugSigningProperties.values.any { it != null }
+if (usesCustomDebugSigning) {
+    val validateCustomDebugSigning =
+        tasks.register("validateCustomDebugSigning") {
+            val signingProperties = debugSigningProperties.toMap()
+            val signingStoreFile =
+                signingProperties["challaDebugStoreFile"]
+                    ?.takeIf(String::isNotBlank)
+                    ?.let(rootProject::file)
+
+            doLast {
+                val missingProperties = signingProperties.filterValues { it.isNullOrBlank() }.keys
+                if (missingProperties.isNotEmpty()) {
+                    throw GradleException("Debug 서명 설정이 없거나 비어 있습니다: ${missingProperties.joinToString()}")
+                }
+                if (signingStoreFile?.isFile != true) {
+                    throw GradleException("Debug keystore 파일을 찾을 수 없습니다: $signingStoreFile")
+                }
+            }
+        }
+
+    tasks.matching { it.name == "validateSigningDebug" || it.name == "packageDebug" }.configureEach {
+        dependsOn(validateCustomDebugSigning)
+    }
+}
+
 // 릴리즈 서명 설정
 val releaseStoreFilePath =
     providers.gradleProperty("challaReleaseStoreFile").orNull.orEmpty()
@@ -47,6 +81,17 @@ android {
     }
 
     signingConfigs {
+        getByName("debug") {
+            if (usesCustomDebugSigning) {
+                storeFile =
+                    debugSigningProperties["challaDebugStoreFile"]
+                        ?.takeIf(String::isNotBlank)
+                        ?.let(rootProject::file)
+                storePassword = debugSigningProperties.getValue("challaDebugStorePassword")
+                keyAlias = debugSigningProperties.getValue("challaDebugKeyAlias")
+                keyPassword = debugSigningProperties.getValue("challaDebugKeyPassword")
+            }
+        }
         create("release") {
             storeFile = releaseStoreFilePath.takeIf(String::isNotBlank)?.let(rootProject::file)
             storePassword = releaseStorePassword
