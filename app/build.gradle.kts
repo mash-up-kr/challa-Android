@@ -32,13 +32,27 @@ val debugSigningProperties =
     ).associateWith { providers.gradleProperty(it).orNull }
 val usesCustomDebugSigning = debugSigningProperties.values.any { it != null }
 if (usesCustomDebugSigning) {
-    val missingProperties = debugSigningProperties.filterValues { it.isNullOrBlank() }.keys
-    if (missingProperties.isNotEmpty()) {
-        throw GradleException("Debug 서명 설정이 없거나 비어 있습니다: ${missingProperties.joinToString()}")
-    }
-    val debugStoreFile = rootProject.file(debugSigningProperties.getValue("challaDebugStoreFile")!!)
-    if (!debugStoreFile.isFile) {
-        throw GradleException("Debug keystore 파일을 찾을 수 없습니다: $debugStoreFile")
+    val validateCustomDebugSigning =
+        tasks.register("validateCustomDebugSigning") {
+            val signingProperties = debugSigningProperties.toMap()
+            val signingStoreFile =
+                signingProperties["challaDebugStoreFile"]
+                    ?.takeIf(String::isNotBlank)
+                    ?.let(rootProject::file)
+
+            doLast {
+                val missingProperties = signingProperties.filterValues { it.isNullOrBlank() }.keys
+                if (missingProperties.isNotEmpty()) {
+                    throw GradleException("Debug 서명 설정이 없거나 비어 있습니다: ${missingProperties.joinToString()}")
+                }
+                if (signingStoreFile?.isFile != true) {
+                    throw GradleException("Debug keystore 파일을 찾을 수 없습니다: $signingStoreFile")
+                }
+            }
+        }
+
+    tasks.matching { it.name == "validateSigningDebug" || it.name == "packageDebug" }.configureEach {
+        dependsOn(validateCustomDebugSigning)
     }
 }
 
@@ -70,7 +84,9 @@ android {
         getByName("debug") {
             if (usesCustomDebugSigning) {
                 storeFile =
-                    rootProject.file(debugSigningProperties.getValue("challaDebugStoreFile")!!)
+                    debugSigningProperties["challaDebugStoreFile"]
+                        ?.takeIf(String::isNotBlank)
+                        ?.let(rootProject::file)
                 storePassword = debugSigningProperties.getValue("challaDebugStorePassword")
                 keyAlias = debugSigningProperties.getValue("challaDebugKeyAlias")
                 keyPassword = debugSigningProperties.getValue("challaDebugKeyPassword")
